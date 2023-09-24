@@ -1,0 +1,6 @@
+FROM gcr.io/distroless/static-debian11:nonroot
+
+COPY --chown=nonroot:nonroot vulnapi /usr/bin/vulnapi
+
+ENTRYPOINT ["vulnapi"]
+CMD ["vulnapi"]

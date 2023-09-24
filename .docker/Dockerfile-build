@@ -1,0 +1,22 @@
+FROM golang:1.21-bullseye AS builder
+
+WORKDIR /go/src/github.com/cerberauth/vulnapi
+
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+ENV CGO_ENABLED 0
+ENV GO111MODULE on
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -o /usr/bin/vulnapi .
+
+FROM gcr.io/distroless/static-debian11:nonroot AS runner
+
+COPY --from=builder --chown=nonroot:nonroot /usr/bin/vulnapi /usr/bin/vulnapi
+
+ENTRYPOINT ["vulnapi"]
+CMD ["vulnapi"]

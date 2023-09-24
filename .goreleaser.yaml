@@ -1,0 +1,82 @@
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+    - goos: windows
+      format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# brews:
+#   - name: "{{ .ProjectName }}"
+#     description: "vulnapi"
+#     license: "MIT"
+#     repository:
+#       owner: cerberauth
+#       name: "{{ .ProjectName }}"
+#     goarm: 6
+#     test: |
+#       system "#{bin}/{{ .ProjectName }} help"
+#     homepage: https://github.com/cerberauth/vulnapi
+#     commit_author:
+#       name: emmanuelgautier
+#       email: emmanuel@cerberauth.com
+
+# nfpms:
+#   - package_name: "{{ .ProjectName }}"
+#     vendor: CerberAuth
+#     homepage: https://github.com/cerberauth/vulnapi
+#     maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
+#     description: "vulnapi"
+#     license: "MIT"
+#     formats:
+#       - apk
+#       - deb
+#       - rpm
+#       - termux.deb
+#       - archlinux
+
+snapcrafts:
+  - title: vulnapi
+    publish: true
+    summary: "vulnapi"
+    description: "vulnapi"
+    license: MIT
+
+dockers:
+  - image_templates:
+      - "ghcr.io/cerberauth/vulnapi:{{ .Tag }}"
+      - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}"
+      - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/cerberauth/vulnapi:latest"
+    dockerfile: .docker/Dockerfile-goreleaser
