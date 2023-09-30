@@ -7,8 +7,9 @@ import (
 func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
 		Use:   "scan",
-		Short: "scan",
-		Run:   func(cmd *cobra.Command, args []string) {},
+		Short: "API Scan",
+		// Full API scan coming (not only one URL)
+		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
 	return scanCmd
