@@ -32,7 +32,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				jwt = stdin
 			}
 
-			reports, err := scan.NewScanner(url, &jwt).WithNotVerifiedJwtScan().Execute()
+			reports, err := scan.NewScanner(url, &jwt).WithNotVerifiedJwtScan().WithAlgNoneJwtScan().Execute()
 			if err != nil {
 				log.Fatal(err)
 			}

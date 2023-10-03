@@ -8,8 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func NotVerifiedJwtScanHandler(url string, token string) []error {
-	newToken, err := internalJwt.CreateNewJWTWithClaims(token, jwt.SigningMethodHS256, []byte(""))
+func AlgNoneJwtScanHandler(url string, token string) []error {
+	newToken, err := internalJwt.CreateNewJWTWithClaims(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return []error{err}
 	}
@@ -20,12 +20,12 @@ func NotVerifiedJwtScanHandler(url string, token string) []error {
 	}
 
 	if statusCode > 200 && statusCode <= 300 {
-		return []error{fmt.Errorf("unexpected status code %d with an invalid forged token", statusCode)}
+		return []error{fmt.Errorf("unexpected status code %d with an alg none forged token", statusCode)}
 	}
 
 	return nil
 }
 
-func (s *Scan) WithNotVerifiedJwtScan() *Scan {
-	return s.AddPendingScanHandler(NotVerifiedJwtScanHandler)
+func (s *Scan) WithAlgNoneJwtScan() *Scan {
+	return s.AddPendingScanHandler(AlgNoneJwtScanHandler)
 }
