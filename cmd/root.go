@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cerberauth/vulnapi/cmd/scan"
-	"github.com/cerberauth/vulnapi/cmd/scan_url"
 )
 
 func NewRootCmd() (cmd *cobra.Command) {
@@ -15,7 +14,6 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Short: "vulnapi",
 	}
 	rootCmd.AddCommand(scan.NewScanCmd())
-	rootCmd.AddCommand(scan_url.NewScanUrlCmd())
 
 	return rootCmd
 }
