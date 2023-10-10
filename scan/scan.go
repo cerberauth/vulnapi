@@ -46,7 +46,7 @@ func (s *Scan) ValidateRequest() error {
 		return errors.New("no valid JWT provided")
 	}
 
-	statusCode, err := request.SendRequestWithBearerAuth(s.Url, *s.ValidJwt)
+	statusCode, _, err := request.SendRequestWithBearerAuth(s.Url, *s.ValidJwt)
 	if err != nil {
 		return fmt.Errorf("request with url %s has an unexpected error", err)
 	}

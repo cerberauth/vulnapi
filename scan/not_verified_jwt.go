@@ -14,7 +14,7 @@ func NotVerifiedJwtScanHandler(url string, token string) []error {
 		return []error{err}
 	}
 
-	statusCode, err := request.SendRequestWithBearerAuth(url, newToken)
+	statusCode, _, err := request.SendRequestWithBearerAuth(url, newToken)
 	if err != nil {
 		return []error{err}
 	}
