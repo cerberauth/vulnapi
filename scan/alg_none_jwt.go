@@ -9,7 +9,7 @@ import (
 )
 
 func AlgNoneJwtScanHandler(url string, token string) []error {
-	newToken, err := internalJwt.CreateNewJWTWithClaims(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
+	newToken, err := internalJwt.CreateNewJWTWithClaimsAndMethod(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return []error{err}
 	}
