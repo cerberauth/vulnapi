@@ -1,10 +1,16 @@
 package jwt
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
+	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
+)
+
+const (
+	NullSigVulnerabilitySeverityLevel = 9
+	NullSigVulnerabilityName          = "JWT Null Signature"
+	NullSigVulnerabilityDescription   = "JWT with null signature is accepted allowing to bypass authentication."
 )
 
 func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
@@ -17,20 +23,23 @@ func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], ""}, "."), nil
 }
 
-func NullSignatureScanHandler(url string, token string) []error {
+func NullSignatureScanHandler(url string, token string) (*report.ScanReport, error) {
+	r := report.NewScanReport()
+
 	newToken, err := createNewJWTWithoutSignature(token)
 	if err != nil {
-		return []error{err}
+		return r, err
+	}
+	vsa := restapi.ScanRestAPI(url, newToken)
+	r.AddScanAttempt(vsa).End()
+
+	if vsa.Response.StatusCode < 300 {
+		r.AddVulnerabilityReport(&report.VulnerabilityReport{
+			SeverityLevel: NullSigVulnerabilitySeverityLevel,
+			Name:          NullSigVulnerabilityName,
+			Description:   NullSigVulnerabilityDescription,
+		})
 	}
 
-	statusCode, _, err := request.SendRequestWithBearerAuth(url, newToken)
-	if err != nil {
-		return []error{err}
-	}
-
-	if statusCode > 200 && statusCode <= 300 {
-		return []error{fmt.Errorf("unexpected status code %d with a null signature", statusCode)}
-	}
-
-	return nil
+	return r, nil
 }

@@ -1,46 +1,45 @@
 package jwt
 
 import (
-	"fmt"
-
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
+	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func NotVerifiedScanHandler(url string, token string) []error {
+const (
+	NotVerifiedVulnerabilitySeverityLevel = 9
+	NotVerifiedVulnerabilityName          = "JWT Not Verified"
+	NotVerifiedVulnerabilityDescription   = "JWT is not verified."
+)
+
+func NotVerifiedScanHandler(url string, token string) (*report.ScanReport, error) {
+	r := report.NewScanReport()
+
 	newTokenA, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("a"))
 	if err != nil {
-		return []error{err}
+		return r, err
 	}
 
 	newTokenB, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("b"))
 	if err != nil {
-		return []error{err}
+		return r, err
 	}
 
-	statusCodeA, _, errRequestA := request.SendRequestWithBearerAuth(url, newTokenA)
-	statusCodeB, _, errRequestB := request.SendRequestWithBearerAuth(url, newTokenB)
+	vsa1 := restapi.ScanRestAPI(url, newTokenA)
+	r.AddScanAttempt(vsa1)
 
-	var errors []error
-	if errRequestA != nil {
-		errors = append(errors, errRequestA)
+	vsa2 := restapi.ScanRestAPI(url, newTokenB)
+	r.AddScanAttempt(vsa2)
+
+	r.End()
+
+	if vsa1.Response.StatusCode != vsa2.Response.StatusCode {
+		r.AddVulnerabilityReport(&report.VulnerabilityReport{
+			SeverityLevel: NotVerifiedVulnerabilitySeverityLevel,
+			Name:          NotVerifiedVulnerabilityName,
+			Description:   NotVerifiedVulnerabilityDescription,
+		})
 	}
 
-	if errRequestB != nil {
-		errors = append(errors, errRequestB)
-	}
-
-	if statusCodeA > 200 && statusCodeA <= 300 {
-		errors = append(errors, fmt.Errorf("unexpected status code %d with an invalid forged token", statusCodeA))
-	}
-
-	if statusCodeA != statusCodeB {
-		errors = append(errors, fmt.Errorf("status code are not the same between the two attempts"))
-	}
-
-	if len(errors) > 0 {
-		return errors
-	}
-
-	return nil
+	return r, nil
 }
