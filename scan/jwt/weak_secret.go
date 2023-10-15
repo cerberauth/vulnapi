@@ -1,14 +1,13 @@
-package scan
+package jwt
 
 import (
 	"fmt"
 
-	internalJwt "github.com/cerberauth/vulnapi/internal/jwt"
 	"github.com/cerberauth/vulnapi/internal/request"
 )
 
-func BlankJwtSecretScanHandler(url string, token string) []error {
-	newToken, err := internalJwt.CreateNewJWTWithClaims(token, []byte(""))
+func BlankSecretScanHandler(url string, token string) []error {
+	newToken, err := createNewJWTWithClaims(token, []byte(""))
 	if err != nil {
 		return []error{err}
 	}
@@ -25,12 +24,8 @@ func BlankJwtSecretScanHandler(url string, token string) []error {
 	return nil
 }
 
-func DictJwtSecretScanHandler(url string, token string) []error {
+func DictSecretScanHandler(url string, token string) []error {
 	// Use a dictionary attack to try finding the secret
 
 	return nil
-}
-
-func (s *Scan) WithWeakJwtSecretScan() *Scan {
-	return s.AddPendingScanHandler(BlankJwtSecretScanHandler).AddPendingScanHandler(DictJwtSecretScanHandler)
 }

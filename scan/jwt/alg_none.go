@@ -1,15 +1,14 @@
-package scan
+package jwt
 
 import (
 	"fmt"
 
-	internalJwt "github.com/cerberauth/vulnapi/internal/jwt"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func AlgNoneJwtScanHandler(url string, token string) []error {
-	newToken, err := internalJwt.CreateNewJWTWithClaimsAndMethod(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
+	newToken, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return []error{err}
 	}
@@ -24,8 +23,4 @@ func AlgNoneJwtScanHandler(url string, token string) []error {
 	}
 
 	return nil
-}
-
-func (s *Scan) WithAlgNoneJwtScan() *Scan {
-	return s.AddPendingScanHandler(AlgNoneJwtScanHandler)
 }
