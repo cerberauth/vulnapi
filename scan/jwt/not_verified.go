@@ -1,20 +1,19 @@
-package scan
+package jwt
 
 import (
 	"fmt"
 
-	internalJwt "github.com/cerberauth/vulnapi/internal/jwt"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func NotVerifiedJwtScanHandler(url string, token string) []error {
-	newTokenA, err := internalJwt.CreateNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("a"))
+func NotVerifiedScanHandler(url string, token string) []error {
+	newTokenA, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("a"))
 	if err != nil {
 		return []error{err}
 	}
 
-	newTokenB, err := internalJwt.CreateNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("b"))
+	newTokenB, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("b"))
 	if err != nil {
 		return []error{err}
 	}
@@ -44,8 +43,4 @@ func NotVerifiedJwtScanHandler(url string, token string) []error {
 	}
 
 	return nil
-}
-
-func (s *Scan) WithNotVerifiedJwtScan() *Scan {
-	return s.AddPendingScanHandler(NotVerifiedJwtScanHandler)
 }

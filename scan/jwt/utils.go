@@ -2,7 +2,7 @@ package jwt
 
 import "github.com/golang-jwt/jwt/v5"
 
-func CreateNewJWTWithClaimsAndMethod(originalTokenString string, method jwt.SigningMethod, newSecretKey interface{}) (string, error) {
+func createNewJWTWithClaimsAndMethod(originalTokenString string, method jwt.SigningMethod, newSecretKey interface{}) (string, error) {
 	// Parse the original JWT token
 	originalToken, _, err := new(jwt.Parser).ParseUnverified(originalTokenString, jwt.MapClaims{})
 	if err != nil {
@@ -21,7 +21,7 @@ func CreateNewJWTWithClaimsAndMethod(originalTokenString string, method jwt.Sign
 	return tokenString, nil
 }
 
-func CreateNewJWTWithClaims(originalTokenString string, newSecretKey interface{}) (string, error) {
+func createNewJWTWithClaims(originalTokenString string, newSecretKey interface{}) (string, error) {
 	// Parse the original JWT token
 	originalToken, _, err := new(jwt.Parser).ParseUnverified(originalTokenString, jwt.MapClaims{})
 	if err != nil {
