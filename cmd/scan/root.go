@@ -32,17 +32,17 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				jwt = stdin
 			}
 
-			reports, err := scan.NewScanner(url, &jwt).WithAllScans().Execute()
+			rpr, _, err := scan.NewScanner(url, &jwt).WithAllScans().Execute()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if len(reports) == 0 {
+			if !rpr.HasVulnerability() {
 				println("Congratulations! No vulnerability has been discovered!")
 			}
 
-			for _, report := range reports {
-				log.Println(report)
+			for _, r := range rpr.GetVulnerabilityReports() {
+				log.Println(r)
 			}
 		},
 	}

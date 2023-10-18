@@ -2,31 +2,34 @@ package request
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 )
 
-func SendRequestWithBearerAuth(url string, token string) (int, []byte, error) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", url, nil)
+func prepareVulnAPIRequest(method string, url string) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return 0, nil, err
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "vulnapi/0.1")
+
+	return req, nil
+}
+
+func SendRequestWithBearerAuth(url string, token string) (*http.Request, *http.Response, error) {
+	req, err := prepareVulnAPIRequest("GET", url)
+	if err != nil {
+		return req, nil, err
 	}
 
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Set("User-Agent", "vulnapi/0.1")
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, nil, err
+		return req, resp, err
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	return resp.StatusCode, body, nil
+	return req, resp, nil
 }

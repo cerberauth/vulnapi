@@ -1,31 +1,43 @@
 package jwt
 
 import (
-	"fmt"
-
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
+	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 )
 
-func BlankSecretScanHandler(url string, token string) []error {
+const (
+	WeakSecretVulnerabilitySeverityLevel = 9
+	WeakSecretVulnerabilityName          = "Weak Secret Vulnerability"
+	WeakSecretVulnerabilityDescription   = "JWT is signed with a weak secret allowing attackers to issue valid JWT."
+)
+
+func BlankSecretScanHandler(url string, token string) (*report.ScanReport, error) {
+	r := report.NewScanReport()
+
 	newToken, err := createNewJWTWithClaims(token, []byte(""))
 	if err != nil {
-		return []error{err}
+		return r, err
+	}
+	vsa := restapi.ScanRestAPI(url, newToken)
+	r.AddScanAttempt(vsa).End()
+
+	if vsa.Response.StatusCode < 300 {
+		r.AddVulnerabilityReport(&report.VulnerabilityReport{
+			SeverityLevel: WeakSecretVulnerabilitySeverityLevel,
+			Name:          WeakSecretVulnerabilityName,
+			Description:   WeakSecretVulnerabilityDescription,
+		})
 	}
 
-	statusCode, _, err := request.SendRequestWithBearerAuth(url, newToken)
-	if err != nil {
-		return []error{err}
-	}
-
-	if statusCode > 200 && statusCode <= 300 {
-		return []error{fmt.Errorf("unexpected status code %d with a blank secret", statusCode)}
-	}
-
-	return nil
+	return r, nil
 }
 
-func DictSecretScanHandler(url string, token string) []error {
+func DictSecretScanHandler(url string, token string) (*report.ScanReport, error) {
+	r := report.NewScanReport()
+
 	// Use a dictionary attack to try finding the secret
 
-	return nil
+	r.End()
+
+	return r, nil
 }
