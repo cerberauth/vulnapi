@@ -2,26 +2,50 @@ package scan
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
+	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
 	"github.com/cerberauth/vulnapi/report"
-	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
-type ScanHandler func(url string, jwt string) (*report.ScanReport, error)
+type ScanHandler func(url string, ss auth.SecurityScheme) (*report.ScanReport, error)
 
-type Scan struct {
-	url          string
-	validJwt     *string
-	pendingScans []ScanHandler
-	reporter     *report.Reporter
+type ScanOptions struct {
+	Url              string
+	OpenAPIUrlOrPath string
 }
 
-func NewScanner(url string, valid_jwt *string) *Scan {
-	return &Scan{
-		reporter: report.NewReporter(),
-		url:      url,
-		validJwt: valid_jwt,
+type Scan struct {
+	opts            ScanOptions
+	openAPIDoc      *openapi3.T
+	securitySchemes []auth.SecurityScheme
+	pendingScans    []ScanHandler
+	reporter        *report.Reporter
+}
+
+func NewScanner(opts ScanOptions) (*Scan, error) {
+	var openAPIDoc *openapi3.T
+	if opts.OpenAPIUrlOrPath != "" {
+		doc, err := restapi.LoadOpenAPI(opts.OpenAPIUrlOrPath)
+		if err != nil {
+			return nil, err
+		}
+
+		openAPIDoc = doc
 	}
+
+	return &Scan{
+		opts:       opts,
+		openAPIDoc: openAPIDoc,
+		reporter:   report.NewReporter(),
+	}, nil
+}
+
+func (s *Scan) AddSecurityScheme(ss auth.SecurityScheme) {
+	s.securitySchemes = append(s.securitySchemes, ss)
 }
 
 func (s *Scan) AddPendingScanHandler(sh ScanHandler) *Scan {
@@ -31,13 +55,19 @@ func (s *Scan) AddPendingScanHandler(sh ScanHandler) *Scan {
 }
 
 func (s *Scan) Execute() (*report.Reporter, []error, error) {
+	if len(s.securitySchemes) == 0 {
+		return nil, nil, errors.New("no security schemes has been configured")
+	}
+
 	if err := s.ValidateRequest(); err != nil {
 		return nil, nil, err
 	}
 
+	log.Println("starting scan")
+
 	var errors []error
 	for i := 0; i < len(s.pendingScans); i++ {
-		rep, err := s.pendingScans[i](s.url, *s.validJwt)
+		rep, err := s.pendingScans[i](s.opts.Url, s.securitySchemes[0])
 
 		if err != nil {
 			errors = append(errors, err)
@@ -50,13 +80,15 @@ func (s *Scan) Execute() (*report.Reporter, []error, error) {
 }
 
 func (s *Scan) ValidateRequest() error {
-	if s.validJwt == nil {
-		return errors.New("no valid JWT provided")
-	}
+	log.Println("validating request")
 
-	r := restapi.ScanRestAPI(s.url, *s.validJwt)
+	r := restapi.ScanRestAPI(s.opts.Url, s.securitySchemes[0])
 	if r.Err != nil {
 		return r.Err
+	}
+
+	if r.Response.StatusCode >= 300 {
+		return fmt.Errorf("the request with the passed JWT should return 2xx status code")
 	}
 
 	return nil

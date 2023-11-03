@@ -2,17 +2,33 @@ package scan
 
 import (
 	"bufio"
-	"fmt"
 	"log"
+	"os"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/spf13/cobra"
 )
 
 var (
-	url string
-	jwt string
+	openapiUrlOrPath string
+	url              string
 )
+
+func isStdinOpen() bool {
+	stat, _ := os.Stdin.Stat()
+	return (stat.Mode() & os.ModeCharDevice) == 0
+}
+
+func readStdin() *string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		t := scanner.Text()
+		return &t
+	}
+
+	return nil
+}
 
 func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
@@ -24,21 +40,30 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				url = args[0]
 			}
 
-			if jwt == "" {
-				stdin, err := bufio.NewReader(cmd.InOrStdin()).ReadString('\n')
-				if err != nil {
-					log.Fatal(fmt.Errorf("failed process input: %v", err))
-				}
-				jwt = stdin
+			opts := scan.ScanOptions{
+				Url:              url,
+				OpenAPIUrlOrPath: openapiUrlOrPath,
+			}
+			scanner, err := scan.NewScanner(opts)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			rpr, _, err := scan.NewScanner(url, &jwt).WithAllScans().Execute()
+			if isStdinOpen() {
+				stdin := readStdin()
+				if stdin != nil {
+					bearerSecurityScheme := auth.NewAuthorizationBearerSecurityScheme("default", stdin)
+					scanner.AddSecurityScheme(bearerSecurityScheme)
+				}
+			}
+
+			rpr, _, err := scanner.WithAllScans().Execute()
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			if !rpr.HasVulnerability() {
-				println("Congratulations! No vulnerability has been discovered!")
+				log.Println("Congratulations! No vulnerability has been discovered!")
 			}
 
 			for _, r := range rpr.GetVulnerabilityReports() {
@@ -47,8 +72,8 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
+	scanCmd.PersistentFlags().StringVarP(&openapiUrlOrPath, "openapi", "", "", "OpenAPI URL or Path. The scan will be performed against the operations listed in OpenAPI file.")
 	scanCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "URL")
-	scanCmd.PersistentFlags().StringVarP(&jwt, "jwt", "j", "", "Valid JWT")
 
 	return scanCmd
 }

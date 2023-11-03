@@ -1,8 +1,9 @@
 package jwt
 
 import (
+	"github.com/cerberauth/vulnapi/internal/auth"
+	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
 	"github.com/cerberauth/vulnapi/report"
-	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 )
 
 const (
@@ -11,14 +12,16 @@ const (
 	WeakSecretVulnerabilityDescription   = "JWT is signed with a weak secret allowing attackers to issue valid JWT."
 )
 
-func BlankSecretScanHandler(url string, token string) (*report.ScanReport, error) {
+func BlankSecretScanHandler(url string, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
+	token := ss.GetValidValue().(string)
 
 	newToken, err := createNewJWTWithClaims(token, []byte(""))
 	if err != nil {
 		return r, err
 	}
-	vsa := restapi.ScanRestAPI(url, newToken)
+	ss.SetAttackValue(newToken)
+	vsa := restapi.ScanRestAPI(url, ss)
 	r.AddScanAttempt(vsa).End()
 
 	if vsa.Response.StatusCode < 300 {
@@ -32,7 +35,7 @@ func BlankSecretScanHandler(url string, token string) (*report.ScanReport, error
 	return r, nil
 }
 
-func DictSecretScanHandler(url string, token string) (*report.ScanReport, error) {
+func DictSecretScanHandler(url string, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 
 	// Use a dictionary attack to try finding the secret
