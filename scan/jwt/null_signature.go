@@ -3,8 +3,9 @@ package jwt
 import (
 	"strings"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
+	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
 	"github.com/cerberauth/vulnapi/report"
-	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 )
 
 const (
@@ -23,14 +24,16 @@ func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], ""}, "."), nil
 }
 
-func NullSignatureScanHandler(url string, token string) (*report.ScanReport, error) {
+func NullSignatureScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
+	token := ss.GetValidValue().(string)
 
 	newToken, err := createNewJWTWithoutSignature(token)
 	if err != nil {
 		return r, err
 	}
-	vsa := restapi.ScanRestAPI(url, newToken)
+	ss.SetAttackValue(newToken)
+	vsa := restapi.ScanRestAPI(o, ss)
 	r.AddScanAttempt(vsa).End()
 
 	if vsa.Response.StatusCode < 300 {
@@ -38,6 +41,7 @@ func NullSignatureScanHandler(url string, token string) (*report.ScanReport, err
 			SeverityLevel: NullSigVulnerabilitySeverityLevel,
 			Name:          NullSigVulnerabilityName,
 			Description:   NullSigVulnerabilityDescription,
+			Url:           o.Url,
 		})
 	}
 

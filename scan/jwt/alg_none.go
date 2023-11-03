@@ -1,8 +1,9 @@
 package jwt
 
 import (
+	"github.com/cerberauth/vulnapi/internal/auth"
+	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
 	"github.com/cerberauth/vulnapi/report"
-	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -12,14 +13,16 @@ const (
 	AlgNoneVulnerabilityDescription   = "JWT accepts none algorithm and does verify jwt."
 )
 
-func AlgNoneJwtScanHandler(url string, token string) (*report.ScanReport, error) {
+func AlgNoneJwtScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
+	token := ss.GetValidValue().(string)
 
 	newToken, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return r, err
 	}
-	vsa := restapi.ScanRestAPI(url, newToken)
+	ss.SetAttackValue(newToken)
+	vsa := restapi.ScanRestAPI(o, ss)
 	r.AddScanAttempt(vsa).End()
 
 	if vsa.Response.StatusCode < 300 {
@@ -27,6 +30,7 @@ func AlgNoneJwtScanHandler(url string, token string) (*report.ScanReport, error)
 			SeverityLevel: AlgNoneVulnerabilitySeverityLevel,
 			Name:          AlgNoneVulnerabilityName,
 			Description:   AlgNoneVulnerabilityDescription,
+			Url:           o.Url,
 		})
 	}
 

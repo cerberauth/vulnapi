@@ -6,7 +6,7 @@ type VulnerabilityReport struct {
 	SeverityLevel float64 // https://nvd.nist.gov/vuln-metrics/cvss
 	Name          string
 	Description   string
-	Url           *string
+	Url           string
 }
 
 func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
@@ -22,7 +22,7 @@ func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s] %s: %s", severyLevelString(vr.SeverityLevel), vr.Name, vr.Description)
+	return fmt.Sprintf("[%s][%s] %s: %s", severyLevelString(vr.SeverityLevel), vr.Name, vr.Url, vr.Description)
 }
 
 func severyLevelString(severityLevel float64) string {
