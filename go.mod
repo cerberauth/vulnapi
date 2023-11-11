@@ -3,8 +3,8 @@ module github.com/cerberauth/vulnapi
 go 1.21
 
 require (
-	github.com/golang-jwt/jwt/v5 v5.0.0
-	github.com/spf13/cobra v1.7.0
+	github.com/golang-jwt/jwt/v5 v5.1.0
+	github.com/spf13/cobra v1.8.0
 )
 
 require (
