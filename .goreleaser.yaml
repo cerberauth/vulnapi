@@ -75,6 +75,10 @@ snapcrafts:
 
 dockers:
   - image_templates:
+      - "cerberauth/vulnapi:{{ .Tag }}"
+      - "cerberauth/vulnapi:v{{ .Major }}"
+      - "cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
+      - "cerberauth/vulnapi:latest"
       - "ghcr.io/cerberauth/vulnapi:{{ .Tag }}"
       - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}"
       - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
