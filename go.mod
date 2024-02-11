@@ -1,6 +1,6 @@
 module github.com/cerberauth/vulnapi
 
-go 1.21
+go 1.22
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.0
