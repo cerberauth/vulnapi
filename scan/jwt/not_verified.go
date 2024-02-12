@@ -1,8 +1,9 @@
 package jwt
 
 import (
+	"github.com/cerberauth/vulnapi/internal/auth"
+	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
 	"github.com/cerberauth/vulnapi/report"
-	restapi "github.com/cerberauth/vulnapi/scan/rest_api"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -12,8 +13,9 @@ const (
 	NotVerifiedVulnerabilityDescription   = "JWT is not verified."
 )
 
-func NotVerifiedScanHandler(url string, token string) (*report.ScanReport, error) {
+func NotVerifiedScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
+	token := ss.GetValidValue().(string)
 
 	newTokenA, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("a"))
 	if err != nil {
@@ -25,10 +27,12 @@ func NotVerifiedScanHandler(url string, token string) (*report.ScanReport, error
 		return r, err
 	}
 
-	vsa1 := restapi.ScanRestAPI(url, newTokenA)
+	ss.SetAttackValue(newTokenA)
+	vsa1 := restapi.ScanRestAPI(o, ss)
 	r.AddScanAttempt(vsa1)
 
-	vsa2 := restapi.ScanRestAPI(url, newTokenB)
+	ss.SetAttackValue(newTokenB)
+	vsa2 := restapi.ScanRestAPI(o, ss)
 	r.AddScanAttempt(vsa2)
 
 	r.End()
@@ -38,6 +42,7 @@ func NotVerifiedScanHandler(url string, token string) (*report.ScanReport, error
 			SeverityLevel: NotVerifiedVulnerabilitySeverityLevel,
 			Name:          NotVerifiedVulnerabilityName,
 			Description:   NotVerifiedVulnerabilityDescription,
+			Url:           o.Url,
 		})
 	}
 

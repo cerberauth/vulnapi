@@ -1,11 +1,12 @@
 package request
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
 )
 
-func prepareVulnAPIRequest(method string, url string) (*http.Request, error) {
+func NewRequest(method string, url string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -16,20 +17,22 @@ func prepareVulnAPIRequest(method string, url string) (*http.Request, error) {
 	return req, nil
 }
 
-func SendRequestWithBearerAuth(url string, token string) (*http.Request, *http.Response, error) {
-	req, err := prepareVulnAPIRequest("GET", url)
-	if err != nil {
-		return req, nil, err
+func DoRequest(client *http.Client, req *http.Request, ss auth.SecurityScheme) (*http.Request, *http.Response, error) {
+	if ss != nil {
+		for _, c := range ss.GetCookies() {
+			req.AddCookie(c)
+		}
+
+		for n, h := range ss.GetHeaders() {
+			req.Header.Add(n, h[0])
+		}
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
-		return req, resp, err
+		return req, res, err
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
-	return req, resp, nil
+	return req, res, nil
 }
