@@ -70,11 +70,10 @@ func (s *Scan) ExecuteOperation(o *auth.Operation) ([]error, error) {
 		rep, err := handler(o, o.SecuritySchemes[0])
 
 		if err != nil {
-			println(err.Error())
 			errors = append(errors, err)
-		} else if rep != nil {
-			s.Reporter.AddReport(rep)
 		}
+
+		s.Reporter.AddReport(rep)
 	}
 
 	return errors, nil
