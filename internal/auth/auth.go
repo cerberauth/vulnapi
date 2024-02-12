@@ -39,3 +39,20 @@ type Operation struct {
 
 	SecuritySchemes []SecurityScheme
 }
+
+func (o Operation) Clone() Operation {
+	clonedHeaders := make(http.Header)
+	if o.Headers != nil {
+		clonedHeaders = o.Headers.Clone()
+	}
+
+	clonedCookies := make([]http.Cookie, len(o.Cookies))
+	copy(clonedCookies, o.Cookies)
+
+	return Operation{
+		Url:     o.Url,
+		Method:  o.Method,
+		Headers: &clonedHeaders,
+		Cookies: clonedCookies,
+	}
+}
