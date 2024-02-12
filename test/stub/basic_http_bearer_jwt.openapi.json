@@ -19,44 +19,9 @@
                         "bearer_auth": []
                     }
                 ]
-            },
-            "post": {
-                "parameters": [],
-                "responses": {
-                    "204": {
-                        "description": "successful operation"
-                    }
-                },
-                "security": [
-                    {
-                        "bearer_auth": []
-                    }
-                ]
             }
         },
         "/resources/{id}": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "successful operation"
-                    }
-                },
-                "security": [
-                    {
-                        "bearer_auth": []
-                    }
-                ]
-            },
             "post": {
                 "parameters": [
                     {

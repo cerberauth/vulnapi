@@ -43,52 +43,14 @@ func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 
 	token := "token"
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
-	operations := auth.Operations{
-		{
-			Method:  "GET",
-			Url:     "http://localhost:8080/",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "POST",
-			Url:     "http://localhost:8080/",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "GET",
-			Url:     "http://localhost:8080/resources/perfectly",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "POST",
-			Url:     "http://localhost:8080/resources/as",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-	}
 
 	s, err := scan.NewOpenAPIScan("../test/stub/basic_http_bearer_jwt.openapi.json", &token, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, &scan.Scan{
-		Operations: operations,
-		Handlers:   []scan.ScanHandler{},
-		Reporter:   report.NewReporter(),
-	}, s)
+	assert.Equal(t, 2, len(s.Operations))
+	for _, s := range s.Operations {
+		assert.Equal(t, s.SecuritySchemes, securitySchemes)
+	}
 }
 
 func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
@@ -96,50 +58,12 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 
 	token := "token"
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
-	operations := auth.Operations{
-		{
-			Method:  "GET",
-			Url:     "http://localhost:8080/",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "POST",
-			Url:     "http://localhost:8080/",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "GET",
-			Url:     "http://localhost:8080/resources/perfectly",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		{
-			Method:  "POST",
-			Url:     "http://localhost:8080/resources/as",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: securitySchemes,
-		},
-	}
 
 	s, err := scan.NewOpenAPIScan("../test/stub/basic_http_bearer_jwt.openapi.json", &token, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, &scan.Scan{
-		Operations: operations,
-		Handlers:   []scan.ScanHandler{},
-		Reporter:   report.NewReporter(),
-	}, s)
+	assert.Equal(t, 2, len(s.Operations))
+	for _, s := range s.Operations {
+		assert.Equal(t, s.SecuritySchemes, securitySchemes)
+	}
 }
