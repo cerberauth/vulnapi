@@ -69,4 +69,4 @@ This scanner is provided for educational and informational purposes only. It sho
 
 ## License
 
-This repository is licensed under the MIT license License. You are free to use, modify, and distribute the contents of this repository for educational and testing purposes.
+This repository is licensed under the [MIT License](https://github.com/cerberauth/vulnapi/blob/main/LICENSE) @ [CerberAuth](https://www.cerberauth.com/). You are free to use, modify, and distribute the contents of this repository for educational and testing purposes.
