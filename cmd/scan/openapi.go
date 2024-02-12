@@ -43,17 +43,19 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			rpr, _, err := scan.WithAllVulnsScans().Execute()
+			rpr, _, err := scan.WithAllVulnsScans().WithAllBestPracticesScans().Execute()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if !rpr.HasVulnerability() {
-				log.Println("Congratulations! No vulnerability has been discovered!")
+			for _, r := range rpr.GetVulnerabilityReports() {
+				log.Println(r)
 			}
 
-			for _, r := range rpr.GetVulnerabilityReports() {
-				log.Fatalln(r)
+			if !rpr.HasVulnerability() {
+				log.Println("Congratulations! No vulnerability has been discovered!")
+			} else {
+				log.Fatalln("There is one or more vulnerabilies you should know.")
 			}
 		},
 	}
