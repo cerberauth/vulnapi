@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
+	github.com/brianvoe/gofakeit/v7 v7.0.1
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/jarcoal/httpmock v1.3.1
