@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
@@ -12,13 +13,13 @@ import (
 )
 
 func TestNewScanWithNoOperations(t *testing.T) {
-	_, err := scan.NewScan(auth.Operations{}, nil)
+	_, err := scan.NewScan(request.Operations{}, nil)
 
 	require.Error(t, err)
 }
 
 func TestNewScan(t *testing.T) {
-	operations := auth.Operations{{
+	operations := request.Operations{{
 		Method:  "GET",
 		Url:     "http://localhost:8080",
 		Headers: &http.Header{},
@@ -38,7 +39,7 @@ func TestNewScan(t *testing.T) {
 }
 
 func TestNewScanWithReporter(t *testing.T) {
-	operations := auth.Operations{{
+	operations := request.Operations{{
 		Method:  "GET",
 		Url:     "http://localhost:8080",
 		Headers: &http.Header{},

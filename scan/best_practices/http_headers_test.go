@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	bestpractices "github.com/cerberauth/vulnapi/scan/best_practices"
 	"github.com/jarcoal/httpmock"
@@ -12,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getValidHTTPHeaders(o *auth.Operation) *http.Header {
+func getValidHTTPHeaders(o *request.Operation) *http.Header {
 	header := http.Header{}
 	header.Add(bestpractices.CSPHTTPHeader, "frame-ancestors 'none'")
 	header.Add(bestpractices.CORSOriginHTTPHeader, "http://localhost:8080")
@@ -29,7 +30,7 @@ func TestHTTPHeadersBestPracticesScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -50,7 +51,7 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -79,7 +80,7 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -108,7 +109,7 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -137,7 +138,7 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -166,7 +167,7 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -195,7 +196,7 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -224,7 +225,7 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -253,7 +254,7 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}

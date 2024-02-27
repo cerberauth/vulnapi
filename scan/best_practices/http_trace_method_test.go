@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	bestpractices "github.com/cerberauth/vulnapi/scan/best_practices"
 	"github.com/jarcoal/httpmock"
@@ -17,7 +18,7 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}
@@ -37,7 +38,7 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := auth.Operation{
+	o := request.Operation{
 		Method: "GET",
 		Url:    "http://localhost:8080/",
 	}

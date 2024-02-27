@@ -13,45 +13,45 @@ type VulnerabilityScanAttempt struct {
 }
 
 type ScanReport struct {
-	scans []*VulnerabilityScanAttempt
-	vulns []*VulnerabilityReport
+	Scans []*VulnerabilityScanAttempt `json:"scans"`
+	Vulns []*VulnerabilityReport      `json:"vulnerabilities"`
 
-	startTime time.Time
-	endTime   time.Time
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 func NewScanReport() *ScanReport {
 	return &ScanReport{
-		startTime: time.Now(),
+		StartTime: time.Now(),
 	}
 }
 
 func (sc *ScanReport) Start() *ScanReport {
-	sc.startTime = time.Now()
+	sc.StartTime = time.Now()
 	return sc
 }
 
 func (sc *ScanReport) End() *ScanReport {
-	sc.endTime = time.Now()
+	sc.EndTime = time.Now()
 	return sc
 }
 
 func (sc *ScanReport) AddScanAttempt(a *VulnerabilityScanAttempt) *ScanReport {
-	sc.scans = append(sc.scans, a)
+	sc.Scans = append(sc.Scans, a)
 	return sc
 }
 
 func (sc *ScanReport) GetScanAttempts() []*VulnerabilityScanAttempt {
-	return sc.scans
+	return sc.Scans
 }
 
 func (sc *ScanReport) AddVulnerabilityReport(vr *VulnerabilityReport) *ScanReport {
-	sc.vulns = append(sc.vulns, vr)
+	sc.Vulns = append(sc.Vulns, vr)
 	return sc
 }
 
 func (sc *ScanReport) GetVulnerabilityReports() []*VulnerabilityReport {
-	return sc.vulns
+	return sc.Vulns
 }
 
 func (sc *ScanReport) HasVulnerabilityReport() bool {
