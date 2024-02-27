@@ -1,21 +1,21 @@
 package report
 
 type Reporter struct {
-	reports []*ScanReport
+	Reports []*ScanReport `json:"reports"`
 }
 
 func NewReporter() *Reporter {
 	return &Reporter{
-		reports: []*ScanReport{},
+		Reports: []*ScanReport{},
 	}
 }
 
 func (rr *Reporter) AddReport(r *ScanReport) {
-	rr.reports = append(rr.reports, r)
+	rr.Reports = append(rr.Reports, r)
 }
 
 func (rr *Reporter) GetReports() []*ScanReport {
-	return rr.reports
+	return rr.Reports
 }
 
 func (rr *Reporter) HasVulnerability() bool {

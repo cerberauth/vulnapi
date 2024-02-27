@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -24,7 +24,7 @@ func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], ""}, "."), nil
 }
 
-func NullSignatureScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func NullSignatureScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
@@ -33,8 +33,11 @@ func NullSignatureScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*repor
 		return r, err
 	}
 	ss.SetAttackValue(newToken)
-	vsa := restapi.ScanRestAPI(o, ss)
+	vsa, err := request.ScanURL(o, &ss)
 	r.AddScanAttempt(vsa).End()
+	if err != nil {
+		return r, err
+	}
 
 	if vsa.Response.StatusCode < 300 {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{

@@ -8,7 +8,8 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/cerberauth/vulnapi/internal/auth"
-	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
+	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/getkin/kin-openapi/openapi3"
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go"
@@ -93,7 +94,7 @@ func getOperationPath(p string, params openapi3.Parameters) (string, error) {
 }
 
 func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *report.Reporter) (*Scan, error) {
-	doc, err := restapi.LoadOpenAPI(openAPIUrlOrPath)
+	doc, err := openapi.LoadOpenAPI(openAPIUrlOrPath)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *repor
 		}
 	}
 
-	operations := auth.Operations{}
+	operations := request.Operations{}
 	for docPath, p := range doc.Paths {
 		for method, o := range p.Operations() {
 			headers := http.Header{}
@@ -148,7 +149,7 @@ func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *repor
 			operationUrl := *baseUrl
 			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
 
-			operations = append(operations, auth.Operation{
+			operations = append(operations, request.Operation{
 				Url:     operationUrl.String(),
 				Method:  method,
 				Headers: &headers,

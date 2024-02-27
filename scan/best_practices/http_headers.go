@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -43,7 +43,7 @@ const (
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Frame-Options Header has been detected in HTTP Response."
 )
 
-func checkCSPHeader(o *auth.Operation, headers http.Header, r *report.ScanReport) bool {
+func checkCSPHeader(o *request.Operation, headers http.Header, r *report.ScanReport) bool {
 	cspHeader := headers.Get(CSPHTTPHeader)
 	if cspHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
@@ -77,7 +77,7 @@ func checkCSPHeader(o *auth.Operation, headers http.Header, r *report.ScanReport
 	return false
 }
 
-func CheckCORSAllowOrigin(o *auth.Operation, headers http.Header, r *report.ScanReport) bool {
+func CheckCORSAllowOrigin(o *request.Operation, headers http.Header, r *report.ScanReport) bool {
 	allowOrigin := headers.Get(CORSOriginHTTPHeader)
 	if allowOrigin == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
@@ -105,13 +105,16 @@ func CheckCORSAllowOrigin(o *auth.Operation, headers http.Header, r *report.Scan
 	return false
 }
 
-func HTTPHeadersBestPracticesScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func HTTPHeadersBestPracticesScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
 	ss.SetAttackValue(token)
-	vsa := restapi.ScanRestAPI(o, ss)
+	vsa, err := request.ScanURL(o, &ss)
 	r.AddScanAttempt(vsa).End()
+	if err != nil {
+		return r, err
+	}
 
 	if vsa.Err != nil {
 		return r, vsa.Err

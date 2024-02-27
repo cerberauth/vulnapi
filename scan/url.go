@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -51,7 +52,7 @@ func NewURLScan(method string, url string, headers *http.Header, cookies []http.
 		securitySchemes = append(securitySchemes, securityScheme)
 	}
 
-	operations := auth.Operations{{
+	operations := request.Operations{{
 		Url:     url,
 		Method:  method,
 		Headers: headers,

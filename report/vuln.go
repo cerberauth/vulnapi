@@ -29,7 +29,7 @@ func severyLevelString(severityLevel float64) string {
 	if severityLevel >= 9 {
 		return "critical"
 	} else if severityLevel < 9 && severityLevel >= 7 {
-		return "hight"
+		return "high"
 	} else if severityLevel < 7 && severityLevel >= 4 {
 		return "medium"
 	} else if severityLevel < 4 && severityLevel >= 0.1 {

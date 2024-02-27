@@ -1,38 +1,47 @@
 package request
 
 import (
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 )
 
-func NewRequest(method string, url string) (*http.Request, error) {
-	req, err := http.NewRequest(method, url, nil)
+var SharedClient = &http.Client{
+	Timeout: time.Second * 10,
+}
+
+type Request struct {
+	*http.Request
+	SecurityScheme *auth.SecurityScheme
+}
+
+func NewRequest(method string, url string, body io.Reader) (*Request, error) {
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Set("User-Agent", "vulnapi/0.1")
-
-	return req, nil
+	return &Request{req, nil}, nil
 }
 
-func DoRequest(client *http.Client, req *http.Request, ss auth.SecurityScheme) (*http.Request, *http.Response, error) {
-	if ss != nil {
-		for _, c := range ss.GetCookies() {
-			req.AddCookie(c)
+func (r *Request) WithSecurityScheme(ss *auth.SecurityScheme) *Request {
+	r.SecurityScheme = ss
+	return r
+}
+
+func (r *Request) Do() (*http.Response, error) {
+	r.Header.Set("User-Agent", "MyProject")
+
+	if securityScheme := *r.SecurityScheme; securityScheme != nil {
+		for _, c := range securityScheme.GetCookies() {
+			r.AddCookie(c)
 		}
 
-		for n, h := range ss.GetHeaders() {
-			req.Header.Add(n, h[0])
+		for n, h := range securityScheme.GetHeaders() {
+			r.Header.Add(n, h[0])
 		}
 	}
 
-	res, err := client.Do(req)
-	if err != nil {
-		return req, res, err
-	}
-	defer res.Body.Close()
-
-	return req, res, nil
+	return SharedClient.Do(r.Request)
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ func TestNewURLScan(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &http.Header{},
@@ -35,7 +36,7 @@ func TestNewURLScanWithHeaders(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &headers,
@@ -56,7 +57,7 @@ func TestNewURLScanWithCookies(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &http.Header{},
@@ -76,7 +77,7 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &headers,
@@ -98,7 +99,7 @@ func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &headers,
@@ -120,7 +121,7 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
-		Operations: auth.Operations{{
+		Operations: request.Operations{{
 			Method:  "GET",
 			Url:     "http://localhost:8080",
 			Headers: &headers,

@@ -1,23 +1,10 @@
-package auth
+package request
 
-import "net/http"
+import (
+	"net/http"
 
-type Type string
-
-const (
-	HttpType      Type = "http"
-	OAuth2        Type = "oauth2"
-	OpenIdConnect Type = "openIdConnect"
-	ApiKey        Type = "apiKey"
+	"github.com/cerberauth/vulnapi/internal/auth"
 )
-
-type SecurityScheme interface {
-	GetHeaders() http.Header
-	GetCookies() []*http.Cookie
-	GetValidValue() interface{}
-	SetAttackValue(v interface{})
-	GetAttackValue() interface{}
-}
 
 type Operations []Operation
 
@@ -37,7 +24,7 @@ type Operation struct {
 	Headers *http.Header
 	Cookies []http.Cookie
 
-	SecuritySchemes []SecurityScheme
+	SecuritySchemes []auth.SecurityScheme
 }
 
 func (o Operation) Clone() Operation {

@@ -2,18 +2,18 @@ package jwt
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
 	AlgNoneVulnerabilitySeverityLevel = 9
-	AlgNoneVulnerabilityName          = "JWT Alg None"
-	AlgNoneVulnerabilityDescription   = "JWT accepts none algorithm and does verify jwt."
+	AlgNoneVulnerabilityName          = "JWT None Algorithm"
+	AlgNoneVulnerabilityDescription   = "JWT with none algorithm is accepted allowing to bypass authentication."
 )
 
-func AlgNoneJwtScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func AlgNoneJwtScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
@@ -22,7 +22,10 @@ func AlgNoneJwtScanHandler(o *auth.Operation, ss auth.SecurityScheme) (*report.S
 		return r, err
 	}
 	ss.SetAttackValue(newToken)
-	vsa := restapi.ScanRestAPI(o, ss)
+	vsa, err := request.ScanURL(o, &ss)
+	if err != nil {
+		return r, err
+	}
 	r.AddScanAttempt(vsa).End()
 
 	if vsa.Response.StatusCode < 300 {

@@ -4,19 +4,19 @@ import (
 	"fmt"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	restapi "github.com/cerberauth/vulnapi/internal/rest_api"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
-type ScanHandler func(o *auth.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
+type ScanHandler func(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
 
 type Scan struct {
-	Operations auth.Operations
+	Operations request.Operations
 	Handlers   []ScanHandler
 	Reporter   *report.Reporter
 }
 
-func NewScan(operations auth.Operations, reporter *report.Reporter) (*Scan, error) {
+func NewScan(operations request.Operations, reporter *report.Reporter) (*Scan, error) {
 	if len(operations) == 0 {
 		return nil, fmt.Errorf("a scan must have at least one operation")
 	}
@@ -60,37 +60,37 @@ func (s *Scan) Execute() (*report.Reporter, []error, error) {
 	return s.Reporter, errors, nil
 }
 
-func (s *Scan) ExecuteOperation(o *auth.Operation) ([]error, error) {
-	if len(o.SecuritySchemes) == 0 {
+func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
+	if len(operation.SecuritySchemes) == 0 {
 		return nil, fmt.Errorf("no security schemes has been configured")
 	}
 
 	var errors []error
 	for _, handler := range s.Handlers {
-		rep, err := handler(o, o.SecuritySchemes[0])
+		report, err := handler(operation, operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
 
 		if err != nil {
 			errors = append(errors, err)
 		}
 
-		s.Reporter.AddReport(rep)
+		s.Reporter.AddReport(report)
 	}
 
 	return errors, nil
 }
 
-func (s *Scan) ValidateOperation(o *auth.Operation) error {
-	if len(o.SecuritySchemes) == 0 {
+func (s *Scan) ValidateOperation(operation *request.Operation) error {
+	if len(operation.SecuritySchemes) == 0 {
 		return fmt.Errorf("no security schemes has been configured")
 	}
 
-	r := restapi.ScanRestAPI(o, o.SecuritySchemes[0])
-	if r.Err != nil {
-		return r.Err
+	attempt, err := request.ScanURL(operation, &operation.SecuritySchemes[0])
+	if err != nil {
+		return err
 	}
 
-	if r.Response.StatusCode >= 300 {
-		return fmt.Errorf("the request with the passed JWT should return 2xx status code")
+	if attempt.Err != nil {
+		return attempt.Err
 	}
 
 	return nil
