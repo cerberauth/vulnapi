@@ -1,6 +1,8 @@
 package report
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type VulnerabilityReport struct {
 	SeverityLevel float64 // https://nvd.nist.gov/vuln-metrics/cvss
@@ -22,19 +24,19 @@ func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s: %s", severyLevelString(vr.SeverityLevel), vr.Name, vr.Url, vr.Description)
+	return fmt.Sprintf("[%s][%s] %s: %s", vr.SeverityLevelString(), vr.Name, vr.Url, vr.Description)
 }
 
-func severyLevelString(severityLevel float64) string {
-	if severityLevel >= 9 {
-		return "critical"
-	} else if severityLevel < 9 && severityLevel >= 7 {
-		return "high"
-	} else if severityLevel < 7 && severityLevel >= 4 {
-		return "medium"
-	} else if severityLevel < 4 && severityLevel >= 0.1 {
-		return "low"
+func (vr *VulnerabilityReport) SeverityLevelString() string {
+	if vr.SeverityLevel >= 9 {
+		return "Critical"
+	} else if vr.SeverityLevel < 9 && vr.SeverityLevel >= 7 {
+		return "High"
+	} else if vr.SeverityLevel < 7 && vr.SeverityLevel >= 4 {
+		return "Medium"
+	} else if vr.SeverityLevel < 4 && vr.SeverityLevel >= 0.1 {
+		return "Low"
 	} else {
-		return "none"
+		return "None"
 	}
 }
