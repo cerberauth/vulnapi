@@ -18,10 +18,11 @@ func TestNewURLScan(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
 		Operations: request.Operations{{
-			Method:  "GET",
-			Url:     "http://localhost:8080",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
+			Method:          "GET",
+			Url:             "http://localhost:8080",
+			Headers:         &http.Header{},
+			Cookies:         []http.Cookie{},
+			SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 		}},
 		Handlers: []scan.ScanHandler{},
 		Reporter: report.NewReporter(),
@@ -37,10 +38,11 @@ func TestNewURLScanWithHeaders(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
 		Operations: request.Operations{{
-			Method:  "GET",
-			Url:     "http://localhost:8080",
-			Headers: &headers,
-			Cookies: []http.Cookie{},
+			Method:          "GET",
+			Url:             "http://localhost:8080",
+			Headers:         &headers,
+			Cookies:         []http.Cookie{},
+			SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 		}},
 		Handlers: []scan.ScanHandler{},
 		Reporter: report.NewReporter(),
@@ -58,10 +60,11 @@ func TestNewURLScanWithCookies(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &scan.Scan{
 		Operations: request.Operations{{
-			Method:  "GET",
-			Url:     "http://localhost:8080",
-			Headers: &http.Header{},
-			Cookies: cookies,
+			Method:          "GET",
+			Url:             "http://localhost:8080",
+			Headers:         &http.Header{},
+			Cookies:         cookies,
+			SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 		}},
 		Handlers: []scan.ScanHandler{},
 		Reporter: report.NewReporter(),

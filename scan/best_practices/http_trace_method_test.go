@@ -18,14 +18,11 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder("TRACE", o.Url, httpmock.NewBytesResponder(405, nil))
+	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(405, nil))
 
-	report, err := bestpractices.HTTPTraceMethodScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -38,20 +35,17 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPTraceMethodSeverityLevel,
 		Name:          bestpractices.HTTPTraceMethodVulnerabilityName,
 		Description:   bestpractices.HTTPTraceMethodVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	httpmock.RegisterResponder("TRACE", o.Url, httpmock.NewBytesResponder(204, nil))
+	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(204, nil))
 
-	report, err := bestpractices.HTTPTraceMethodScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

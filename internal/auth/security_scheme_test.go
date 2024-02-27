@@ -29,7 +29,7 @@ func TestNoAuthSecurityScheme_GetCookies(t *testing.T) {
 func TestNoAuthSecurityScheme_GetValidValue(t *testing.T) {
 	ss := &auth.NoAuthSecurityScheme{}
 	validValue := ss.GetValidValue()
-	assert.Nil(t, validValue)
+	assert.Equal(t, "", validValue)
 }
 
 func TestNoAuthSecurityScheme_SetAttackValue(t *testing.T) {

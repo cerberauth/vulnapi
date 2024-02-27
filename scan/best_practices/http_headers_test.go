@@ -30,15 +30,12 @@ func TestHTTPHeadersBestPracticesScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	header := getValidHTTPHeaders(&o)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	header := getValidHTTPHeaders(&operation)
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -51,22 +48,19 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Del(bestpractices.CSPHTTPHeader)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -80,22 +74,19 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'")
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -109,22 +100,19 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'; frame-ancestors 'http://example.com'")
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -138,22 +126,19 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Del(bestpractices.CORSOriginHTTPHeader)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -167,22 +152,19 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityName,
 		Description:   bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Set(bestpractices.CORSOriginHTTPHeader, "*")
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -196,22 +178,19 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HSTSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Del(bestpractices.HSTSHTTPHeader)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -225,22 +204,19 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
 		Name:          bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Del(bestpractices.XContentTypeOptionsHTTPHeader)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -254,22 +230,19 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	o := request.Operation{
-		Method: "GET",
-		Url:    "http://localhost:8080/",
-	}
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
 		Name:          bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Url:           operation.Url,
 	}
 
-	header := getValidHTTPHeaders(&o)
+	header := getValidHTTPHeaders(&operation)
 	header.Del(bestpractices.XFrameOptionsHTTPHeader)
-	httpmock.RegisterResponder(o.Method, o.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&o, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

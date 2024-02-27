@@ -39,10 +39,6 @@ func (s *Scan) AddScanHandler(sh ScanHandler) *Scan {
 }
 
 func (s *Scan) Execute() (*report.Reporter, []error, error) {
-	if len(s.Operations) == 0 {
-		return nil, nil, fmt.Errorf("no operations has been configured before executing scan")
-	}
-
 	if err := s.ValidateOperation(&s.Operations[0]); err != nil {
 		return nil, nil, err
 	}
@@ -61,10 +57,6 @@ func (s *Scan) Execute() (*report.Reporter, []error, error) {
 }
 
 func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
-	if len(operation.SecuritySchemes) == 0 {
-		return nil, fmt.Errorf("no security schemes has been configured")
-	}
-
 	var errors []error
 	for _, handler := range s.Handlers {
 		report, err := handler(operation, operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
@@ -80,10 +72,6 @@ func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
 }
 
 func (s *Scan) ValidateOperation(operation *request.Operation) error {
-	if len(operation.SecuritySchemes) == 0 {
-		return fmt.Errorf("no security schemes has been configured")
-	}
-
 	attempt, err := request.ScanURL(operation, &operation.SecuritySchemes[0])
 	if err != nil {
 		return err

@@ -27,6 +27,20 @@ type Operation struct {
 	SecuritySchemes []auth.SecurityScheme
 }
 
+func NewOperation(url, method string, headers *http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) Operation {
+	if len(securitySchemes) == 0 {
+		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	}
+
+	return Operation{
+		Url:             url,
+		Method:          method,
+		Headers:         headers,
+		Cookies:         cookies,
+		SecuritySchemes: securitySchemes,
+	}
+}
+
 func (o Operation) Clone() Operation {
 	clonedHeaders := make(http.Header)
 	if o.Headers != nil {
@@ -36,10 +50,8 @@ func (o Operation) Clone() Operation {
 	clonedCookies := make([]http.Cookie, len(o.Cookies))
 	copy(clonedCookies, o.Cookies)
 
-	return Operation{
-		Url:     o.Url,
-		Method:  o.Method,
-		Headers: &clonedHeaders,
-		Cookies: clonedCookies,
-	}
+	clonedSecuritySchemes := make([]auth.SecurityScheme, len(o.SecuritySchemes))
+	copy(clonedSecuritySchemes, o.SecuritySchemes)
+
+	return NewOperation(o.Url, o.Method, &clonedHeaders, clonedCookies, clonedSecuritySchemes)
 }

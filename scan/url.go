@@ -50,6 +50,8 @@ func NewURLScan(method string, url string, headers *http.Header, cookies []http.
 	var securitySchemes []auth.SecurityScheme
 	if securityScheme := detectSecurityScheme(headers, cookies); securityScheme != nil {
 		securitySchemes = append(securitySchemes, securityScheme)
+	} else {
+		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
 	operations := request.Operations{{
