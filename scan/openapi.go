@@ -149,14 +149,7 @@ func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *repor
 			operationUrl := *baseUrl
 			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
 
-			operations = append(operations, request.Operation{
-				Url:     operationUrl.String(),
-				Method:  method,
-				Headers: &headers,
-				Cookies: cookies,
-
-				SecuritySchemes: operationsSecuritySchemes,
-			})
+			operations = append(operations, request.NewOperation(operationUrl.String(), method, &headers, cookies, operationsSecuritySchemes))
 		}
 	}
 

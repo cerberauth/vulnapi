@@ -38,7 +38,7 @@ func (ss *NoAuthSecurityScheme) GetCookies() []*http.Cookie {
 }
 
 func (ss *NoAuthSecurityScheme) GetValidValue() interface{} {
-	return nil
+	return ""
 }
 
 func (ss *NoAuthSecurityScheme) SetAttackValue(v interface{}) {}

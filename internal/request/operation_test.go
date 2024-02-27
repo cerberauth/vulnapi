@@ -4,9 +4,59 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewOperation(t *testing.T) {
+	url := "http://example.com"
+	method := "GET"
+	headers := &http.Header{}
+	cookies := []http.Cookie{
+		{
+			Name:  "cookie1",
+			Value: "value1",
+		},
+		{
+			Name:  "cookie2",
+			Value: "value2",
+		},
+	}
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+
+	operation := request.NewOperation(url, method, headers, cookies, securitySchemes)
+
+	assert.Equal(t, url, operation.Url)
+	assert.Equal(t, method, operation.Method)
+	assert.Equal(t, headers, operation.Headers)
+	assert.Equal(t, cookies, operation.Cookies)
+	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
+}
+
+func TestNewOperationWithNoSecuritySchemes(t *testing.T) {
+	url := "http://example.com"
+	method := "GET"
+	headers := &http.Header{}
+	cookies := []http.Cookie{
+		{
+			Name:  "cookie1",
+			Value: "value1",
+		},
+		{
+			Name:  "cookie2",
+			Value: "value2",
+		},
+	}
+
+	operation := request.NewOperation(url, method, headers, cookies, nil)
+
+	assert.Equal(t, url, operation.Url)
+	assert.Equal(t, method, operation.Method)
+	assert.Equal(t, headers, operation.Headers)
+	assert.Equal(t, cookies, operation.Cookies)
+	assert.Len(t, operation.SecuritySchemes, 1)
+}
 
 func TestOperation_Clone(t *testing.T) {
 	headers := http.Header{}
@@ -23,12 +73,7 @@ func TestOperation_Clone(t *testing.T) {
 		},
 	}
 
-	operation := request.Operation{
-		Url:     "http://example.com",
-		Method:  "GET",
-		Headers: &headers,
-		Cookies: cookies,
-	}
+	operation := request.NewOperation("http://example.com", "GET", &headers, cookies, nil)
 
 	clonedOperation := operation.Clone()
 
