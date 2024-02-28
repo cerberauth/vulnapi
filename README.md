@@ -1,10 +1,10 @@
 # VulnAPI: An API Security Vulnerability Scanner
 
-## Overview
+VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
 
-As APIs are becoming increasingly essential, they are also becoming prime targets for security breaches. To protect your APIs, it's vital to proactively identify and address security vulnerabilities.
+By using this tool, you can detect that some API potential vulnerabilities and fix security issues.
 
-VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses. By using this tool, you can detect that some API potential vulnerabilities and fix security issues.
+![Demo](demo.gif)
 
 You can test the scanner against example [vulnerability challenges](https://github.com/cerberauth/api-vulns-challenges).
 
@@ -76,7 +76,26 @@ The CLI provides detailed reports on any vulnerabilities detected during the sca
 Warning: Critical vulnerabilities detected!
 ```
 
-In this example, each line represents a detected vulnerability, including the timestamp, severity level (critical), vulnerability type (JWT Alg None), affected endpoint (http://localhost:8080/), and a description of the vulnerability (JWT accepts none algorithm and does not verify JWT).
+In this example, each line represents a detected vulnerability, severity level (critical), vulnerability type, affected operation (GET http://localhost:8080/), and a description of the vulnerability.
+
+## Vulnerabilities Detected
+
+The scanner is capable of detecting the following vulnerabilities:
+* JWT `none` algorithm accepted
+* JWT not verified
+* JWT weak secret used
+* JWT null signature accepted
+
+The scanner also detects the following security best practices:
+* CSP Header is not set
+* HSTS Header is not set
+* CORS Header is not set
+* X-Content-Type-Options Header is not set
+* X-Frame-Options Header is not set
+* HTTP Trace Method enabled
+* Server Signature exposed
+
+> More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 
 ## Additional Options
 
