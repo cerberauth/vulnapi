@@ -5,21 +5,21 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/cerberauth/vulnapi/cmd/jwt"
 	"github.com/cerberauth/vulnapi/cmd/scan"
 )
 
 func NewRootCmd() (cmd *cobra.Command) {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "vulnapi",
 		Short: "vulnapi",
 	}
 	rootCmd.AddCommand(scan.NewScanCmd())
+	rootCmd.AddCommand(jwt.NewRootCmd())
 
 	return rootCmd
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
 	c := NewRootCmd()
 
