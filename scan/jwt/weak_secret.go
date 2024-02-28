@@ -29,7 +29,7 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 		return r, err
 	}
 
-	if vsa.Response.StatusCode < 300 {
+	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: WeakSecretVulnerabilitySeverityLevel,
 			Name:          WeakSecretVulnerabilityName,
