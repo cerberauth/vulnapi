@@ -3,6 +3,7 @@ package jwt
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -13,7 +14,7 @@ const (
 	AlgNoneVulnerabilityDescription   = "JWT with none algorithm is accepted allowing to bypass authentication."
 )
 
-func AlgNoneJwtScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
@@ -22,7 +23,7 @@ func AlgNoneJwtScanHandler(o *request.Operation, ss auth.SecurityScheme) (*repor
 		return r, err
 	}
 	ss.SetAttackValue(newToken)
-	vsa, err := request.ScanURL(o, &ss)
+	vsa, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err
 	}
@@ -33,7 +34,7 @@ func AlgNoneJwtScanHandler(o *request.Operation, ss auth.SecurityScheme) (*repor
 			SeverityLevel: AlgNoneVulnerabilitySeverityLevel,
 			Name:          AlgNoneVulnerabilityName,
 			Description:   AlgNoneVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 

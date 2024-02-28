@@ -2,13 +2,16 @@ package report
 
 import (
 	"fmt"
+
+	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 type VulnerabilityReport struct {
 	SeverityLevel float64 // https://nvd.nist.gov/vuln-metrics/cvss
 	Name          string
 	Description   string
-	Url           string
+
+	Operation *request.Operation
 }
 
 func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
@@ -24,7 +27,7 @@ func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s: %s", vr.SeverityLevelString(), vr.Name, vr.Url, vr.Description)
+	return fmt.Sprintf("[%s][%s] %s %s: %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Url, vr.Description)
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {

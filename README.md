@@ -51,10 +51,29 @@ echo "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30." | vulnapi scan openapi ./test/st
 The CLI provides detailed reports on any vulnerabilities detected during the scan. Below is an example of the output format:
 
 ```bash
-2024/02/12 16:09:30 [critical][JWT Alg None] http://localhost:8080/: JWT accepts none algorithm and does verify jwt.
-2024/02/12 16:09:30 [critical][JWT Alg None] http://localhost:8080/: JWT accepts none algorithm and does verify jwt.
-2024/02/12 16:09:30 [critical][JWT Alg None] http://localhost:8080/resources/ours: JWT accepts none algorithm and does verify jwt.
-2024/02/12 16:09:30 [critical][JWT Alg None] http://localhost:8080/resources/those: JWT accepts none algorithm and does verify jwt.
++------------+--------------------------------+--------------------------------+----------------------------+
+| RISK LEVEL |         VULNERABILITY          |          DESCRIPTION           |         OPERATION          |
++------------+--------------------------------+--------------------------------+----------------------------+
+| Critical   | JWT None Algorithm             | JWT with none algorithm is     | GET http://localhost:8080/ |
+|            |                                | accepted allowing to bypass    |                            |
+|            |                                | authentication.                |                            |
+| Low        | CSP Header is not set          | No Content Security Policy     | GET http://localhost:8080/ |
+|            |                                | (CSP) Header has been detected |                            |
+|            |                                | in HTTP Response.              |                            |
+| Low        | CORS Header is not set         | No CORS Header has been        | GET http://localhost:8080/ |
+|            |                                | detected in HTTP Response.     |                            |
+| Low        | HSTS Header is not set         | No HSTS Header has been        | GET http://localhost:8080/ |
+|            |                                | detected in HTTP Response.     |                            |
+| Low        | X-Content-Type-Options Header  | No X-Content-Type-Options      | GET http://localhost:8080/ |
+|            | is not set                     | Header has been detected in    |                            |
+|            |                                | HTTP Response.                 |                            |
+| Low        | X-Frame-Options Header is not  | No X-Frame-Options Header      | GET http://localhost:8080/ |
+|            | set                            | has been detected in HTTP      |                            |
+|            |                                | Response.                      |                            |
+| Low        | HTTP Trace Method enabled      | HTTP Trace method seems        | GET http://localhost:8080/ |
+|            |                                | enabled for this request.      |                            |
++------------+--------------------------------+--------------------------------+----------------------------+
+Warning: Critical vulnerabilities detected!
 ```
 
 In this example, each line represents a detected vulnerability, including the timestamp, severity level (critical), vulnerability type (JWT Alg None), affected endpoint (http://localhost:8080/), and a description of the vulnerability (JWT accepts none algorithm and does not verify JWT).

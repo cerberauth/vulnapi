@@ -6,7 +6,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 )
 
-type Operations []Operation
+type Operations []*Operation
 
 func (o Operations) Len() int      { return len(o) }
 func (o Operations) Swap(i, j int) { o[i], o[j] = o[j], o[i] }
@@ -27,21 +27,23 @@ type Operation struct {
 	SecuritySchemes []auth.SecurityScheme
 }
 
-func NewOperation(url, method string, headers *http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) Operation {
+func NewOperation(url, method string, headers *http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) *Operation {
 	if len(securitySchemes) == 0 {
 		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 
-	return Operation{
+	operation := Operation{
 		Url:             url,
 		Method:          method,
 		Headers:         headers,
 		Cookies:         cookies,
 		SecuritySchemes: securitySchemes,
 	}
+
+	return &operation
 }
 
-func (o Operation) Clone() Operation {
+func (o *Operation) Clone() *Operation {
 	clonedHeaders := make(http.Header)
 	if o.Headers != nil {
 		clonedHeaders = o.Headers.Clone()

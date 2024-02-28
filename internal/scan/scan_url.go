@@ -1,14 +1,15 @@
-package request
+package scan
 
 import (
 	"fmt"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
-func ScanURL(operation *Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
-	req, err := NewRequest(operation.Method, operation.Url, nil)
+func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
+	req, err := request.NewRequest(operation.Method, operation.Url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("request with url %s has an unexpected error", err)
 	} else {

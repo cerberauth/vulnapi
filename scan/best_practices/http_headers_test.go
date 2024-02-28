@@ -32,10 +32,10 @@ func TestHTTPHeadersBestPracticesScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -53,14 +53,14 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.CSPHTTPHeader)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -79,14 +79,14 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'")
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -105,14 +105,14 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'; frame-ancestors 'http://example.com'")
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -131,14 +131,14 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.CORSOriginHTTPHeader)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -157,14 +157,14 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityName,
 		Description:   bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CORSOriginHTTPHeader, "*")
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -183,14 +183,14 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.HSTSHTTPHeaderSeverityLevel,
 		Name:          bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.HSTSHTTPHeader)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -209,14 +209,14 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 		SeverityLevel: bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
 		Name:          bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.XContentTypeOptionsHTTPHeader)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -235,14 +235,14 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
 		Name:          bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
 		Description:   bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
-	header := getValidHTTPHeaders(&operation)
+	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.XFrameOptionsHTTPHeader)
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
 
-	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

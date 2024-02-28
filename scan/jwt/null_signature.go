@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -24,7 +25,7 @@ func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], ""}, "."), nil
 }
 
-func NullSignatureScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
@@ -33,7 +34,7 @@ func NullSignatureScanHandler(o *request.Operation, ss auth.SecurityScheme) (*re
 		return r, err
 	}
 	ss.SetAttackValue(newToken)
-	vsa, err := request.ScanURL(o, &ss)
+	vsa, err := scan.ScanURL(operation, &ss)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -44,7 +45,7 @@ func NullSignatureScanHandler(o *request.Operation, ss auth.SecurityScheme) (*re
 			SeverityLevel: NullSigVulnerabilitySeverityLevel,
 			Name:          NullSigVulnerabilityName,
 			Description:   NullSigVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 
