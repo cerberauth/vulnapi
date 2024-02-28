@@ -3,6 +3,7 @@ package bestpractices
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -12,14 +13,14 @@ const (
 	HTTPTraceMethodVulnerabilityDescription = "HTTP Trace method seems enabled for this request."
 )
 
-func HTTPTraceMethodScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	newOperation := o.Clone()
+	newOperation := operation.Clone()
 	newOperation.Method = "TRACE"
 
 	token := ss.GetValidValue().(string)
 	ss.SetAttackValue(token)
-	vsa, err := request.ScanURL(&newOperation, &ss)
+	vsa, err := scan.ScanURL(newOperation, &ss)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -30,7 +31,7 @@ func HTTPTraceMethodScanHandler(o *request.Operation, ss auth.SecurityScheme) (*
 			SeverityLevel: HTTPTraceMethodSeverityLevel,
 			Name:          HTTPTraceMethodVulnerabilityName,
 			Description:   HTTPTraceMethodVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 

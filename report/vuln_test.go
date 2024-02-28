@@ -3,6 +3,7 @@ package report_test
 import (
 	"testing"
 
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,9 +28,13 @@ func TestVulnerabilityReport_String(t *testing.T) {
 		SeverityLevel: 7.5,
 		Name:          "Test Vulnerability",
 		Description:   "This is a test vulnerability",
-		Url:           "https://example.com/vulnerability",
+
+		Operation: &request.Operation{
+			Method: "GET",
+			Url:    "https://example.com/vulnerability",
+		},
 	}
-	expected := "[High][Test Vulnerability] https://example.com/vulnerability: This is a test vulnerability"
+	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability: This is a test vulnerability"
 	assert.Equal(t, expected, vr.String())
 }
 func TestVulnerabilityReport_SeverityLevelString(t *testing.T) {

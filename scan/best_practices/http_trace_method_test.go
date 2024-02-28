@@ -22,7 +22,7 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 
 	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(405, nil))
 
-	report, err := bestpractices.HTTPTraceMethodScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -40,12 +40,12 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 		SeverityLevel: bestpractices.HTTPTraceMethodSeverityLevel,
 		Name:          bestpractices.HTTPTraceMethodVulnerabilityName,
 		Description:   bestpractices.HTTPTraceMethodVulnerabilityDescription,
-		Url:           operation.Url,
+		Operation:     operation,
 	}
 
 	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(204, nil))
 
-	report, err := bestpractices.HTTPTraceMethodScanHandler(&operation, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

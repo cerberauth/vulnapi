@@ -6,6 +6,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -43,14 +44,14 @@ const (
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Frame-Options Header has been detected in HTTP Response."
 )
 
-func checkCSPHeader(o *request.Operation, headers http.Header, r *report.ScanReport) bool {
+func checkCSPHeader(operation *request.Operation, headers http.Header, r *report.ScanReport) bool {
 	cspHeader := headers.Get(CSPHTTPHeader)
 	if cspHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: CSPHTTPHeaderSeverityLevel,
 			Name:          CSPHTTPHeaderIsNotSetVulnerabilityName,
 			Description:   CSPHTTPHeaderIsNotSetVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 
 		return false
@@ -71,20 +72,20 @@ func checkCSPHeader(o *request.Operation, headers http.Header, r *report.ScanRep
 		SeverityLevel: CSPHTTPHeaderSeverityLevel,
 		Name:          CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		Description:   CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Url:           o.Url,
+		Operation:     operation,
 	})
 
 	return false
 }
 
-func CheckCORSAllowOrigin(o *request.Operation, headers http.Header, r *report.ScanReport) bool {
+func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *report.ScanReport) bool {
 	allowOrigin := headers.Get(CORSOriginHTTPHeader)
 	if allowOrigin == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: CORSHTTPHeaderSeverityLevel,
 			Name:          CORSHTTPHeaderIsNotSetVulnerabilityName,
 			Description:   CORSHTTPHeaderIsNotSetVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 
 		return false
@@ -99,18 +100,18 @@ func CheckCORSAllowOrigin(o *request.Operation, headers http.Header, r *report.S
 		SeverityLevel: CORSHTTPHeaderSeverityLevel,
 		Name:          CORSHTTPHeaderIsPermisiveVulnerabilityName,
 		Description:   CORSHTTPHeaderIsPermisiveVulnerabilityDescription,
-		Url:           o.Url,
+		Operation:     operation,
 	})
 
 	return false
 }
 
-func HTTPHeadersBestPracticesScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 	token := ss.GetValidValue().(string)
 
 	ss.SetAttackValue(token)
-	vsa, err := request.ScanURL(o, &ss)
+	vsa, err := scan.ScanURL(operation, &ss)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -120,15 +121,15 @@ func HTTPHeadersBestPracticesScanHandler(o *request.Operation, ss auth.SecurityS
 		return r, vsa.Err
 	}
 
-	checkCSPHeader(o, vsa.Response.Header, r)
-	CheckCORSAllowOrigin(o, vsa.Response.Header, r)
+	checkCSPHeader(operation, vsa.Response.Header, r)
+	CheckCORSAllowOrigin(operation, vsa.Response.Header, r)
 
 	if hstsHeader := vsa.Response.Header.Get(HSTSHTTPHeader); hstsHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: HSTSHTTPHeaderSeverityLevel,
 			Name:          HSTSHTTPHeaderIsNotSetVulnerabilityName,
 			Description:   HSTSHTTPHeaderIsNotSetVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 
@@ -137,7 +138,7 @@ func HTTPHeadersBestPracticesScanHandler(o *request.Operation, ss auth.SecurityS
 			SeverityLevel: XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
 			Name:          XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
 			Description:   XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 
@@ -146,7 +147,7 @@ func HTTPHeadersBestPracticesScanHandler(o *request.Operation, ss auth.SecurityS
 			SeverityLevel: XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
 			Name:          XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
 			Description:   XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-			Url:           o.Url,
+			Operation:     operation,
 		})
 	}
 

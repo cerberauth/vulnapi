@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -39,13 +40,13 @@ func (s *Scan) AddScanHandler(sh ScanHandler) *Scan {
 }
 
 func (s *Scan) Execute() (*report.Reporter, []error, error) {
-	if err := s.ValidateOperation(&s.Operations[0]); err != nil {
+	if err := s.ValidateOperation(s.Operations[0]); err != nil {
 		return nil, nil, err
 	}
 
 	var errors []error
-	for _, o := range s.Operations {
-		opErrors, opError := s.ExecuteOperation(&o)
+	for _, operation := range s.Operations {
+		opErrors, opError := s.ExecuteOperation(operation)
 		if opError != nil {
 			return nil, nil, opError
 		}
@@ -72,7 +73,7 @@ func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
 }
 
 func (s *Scan) ValidateOperation(operation *request.Operation) error {
-	attempt, err := request.ScanURL(operation, &operation.SecuritySchemes[0])
+	attempt, err := scan.ScanURL(operation, &operation.SecuritySchemes[0])
 	if err != nil {
 		return err
 	}
