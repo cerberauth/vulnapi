@@ -4,8 +4,9 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
+	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
-	"github.com/golang-jwt/jwt/v5"
+	jwtlib "github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -16,14 +17,14 @@ const (
 
 func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	token := ss.GetValidValue().(string)
+	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	newTokenA, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("a"))
+	newTokenA, err := token.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("a"))
 	if err != nil {
 		return r, err
 	}
 
-	newTokenB, err := createNewJWTWithClaimsAndMethod(token, jwt.SigningMethodHS256, []byte("b"))
+	newTokenB, err := token.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("b"))
 	if err != nil {
 		return r, err
 	}
