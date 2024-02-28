@@ -18,8 +18,7 @@ func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecuritySc
 	newOperation := operation.Clone()
 	newOperation.Method = "TRACE"
 
-	token := ss.GetValidValue().(string)
-	ss.SetAttackValue(token)
+	ss.SetAttackValue(ss.GetValidValue())
 	vsa, err := scan.ScanURL(newOperation, &ss)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {

@@ -32,6 +32,12 @@ func TestNoAuthSecurityScheme_GetValidValue(t *testing.T) {
 	assert.Equal(t, "", validValue)
 }
 
+func TestNoAuthSecurityScheme_GetValidValueWriter(t *testing.T) {
+	ss := &auth.NoAuthSecurityScheme{}
+	validValueWriter := ss.GetValidValueWriter()
+	assert.Equal(t, "", validValueWriter)
+}
+
 func TestNoAuthSecurityScheme_SetAttackValue(t *testing.T) {
 	ss := &auth.NoAuthSecurityScheme{}
 	ss.SetAttackValue("attack value")

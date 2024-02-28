@@ -1,11 +1,10 @@
 package jwt
 
 import (
-	"strings"
-
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
+	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -15,21 +14,11 @@ const (
 	NullSigVulnerabilityDescription   = "JWT with null signature is accepted allowing to bypass authentication."
 )
 
-func createNewJWTWithoutSignature(originalTokenString string) (string, error) {
-	newTokenString, err := createNewJWTWithClaims(originalTokenString, []byte(""))
-	if err != nil {
-		return "", err
-	}
-
-	parts := strings.Split(newTokenString, ".")
-	return strings.Join([]string{parts[0], parts[1], ""}, "."), nil
-}
-
 func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	token := ss.GetValidValue().(string)
+	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	newToken, err := createNewJWTWithoutSignature(token)
+	newToken, err := token.WithoutSignature()
 	if err != nil {
 		return r, err
 	}

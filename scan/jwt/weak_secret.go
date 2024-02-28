@@ -4,6 +4,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
+	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -15,9 +16,9 @@ const (
 
 func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	token := ss.GetValidValue().(string)
+	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	newToken, err := createNewJWTWithClaims(token, []byte(""))
+	newToken, err := token.SignWithKey([]byte(""))
 	if err != nil {
 		return r, err
 	}

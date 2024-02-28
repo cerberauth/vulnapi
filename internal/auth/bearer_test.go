@@ -57,6 +57,17 @@ func TestBearerSecurityScheme_GetValidValue(t *testing.T) {
 	assert.Equal(t, value, validValue)
 }
 
+func TestBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
+	name := "token"
+	value := "abc123"
+
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	writer := ss.GetValidValueWriter()
+
+	assert.Equal(t, ss.TokenWriter, writer)
+}
+
 func TestBearerSecurityScheme_SetAttackValue(t *testing.T) {
 	name := "token"
 	value := "abc123"

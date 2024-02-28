@@ -3,6 +3,8 @@ package auth
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/cerberauth/vulnapi/jwt"
 )
 
 type BearerSecurityScheme struct {
@@ -11,18 +13,22 @@ type BearerSecurityScheme struct {
 	In          SchemeIn
 	Name        string
 	ValidValue  *string
+	TokenWriter *jwt.JWTWriter
 	AttackValue string
 }
 
 var _ SecurityScheme = (*BearerSecurityScheme)(nil)
 
 func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSecurityScheme {
+	tokenWriter, _ := jwt.NewJWTWriter(*value)
+
 	return &BearerSecurityScheme{
 		Type:        HttpType,
 		Scheme:      BearerScheme,
 		In:          InHeader,
 		Name:        name,
 		ValidValue:  value,
+		TokenWriter: tokenWriter,
 		AttackValue: "",
 	}
 }
@@ -42,6 +48,10 @@ func (ss *BearerSecurityScheme) GetCookies() []*http.Cookie {
 
 func (ss *BearerSecurityScheme) GetValidValue() interface{} {
 	return *ss.ValidValue
+}
+
+func (ss *BearerSecurityScheme) GetValidValueWriter() interface{} {
+	return ss.TokenWriter
 }
 
 func (ss *BearerSecurityScheme) SetAttackValue(v interface{}) {
