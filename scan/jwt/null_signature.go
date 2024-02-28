@@ -29,7 +29,7 @@ func NullSignatureScanHandler(operation *request.Operation, ss auth.SecuritySche
 		return r, err
 	}
 
-	if vsa.Response.StatusCode < 300 {
+	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NullSigVulnerabilitySeverityLevel,
 			Name:          NullSigVulnerabilityName,

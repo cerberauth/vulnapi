@@ -29,7 +29,7 @@ func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme)
 	}
 	r.AddScanAttempt(vsa).End()
 
-	if vsa.Response.StatusCode < 300 {
+	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: AlgNoneVulnerabilitySeverityLevel,
 			Name:          AlgNoneVulnerabilityName,

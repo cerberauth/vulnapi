@@ -25,13 +25,15 @@ func TestNewAuthorizationBearerSecurityScheme(t *testing.T) {
 func TestBearerSecurityScheme_GetHeaders(t *testing.T) {
 	name := "token"
 	value := "abc123"
+	attackValue := "xyz789"
 
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+	ss.SetAttackValue(attackValue)
 
 	headers := ss.GetHeaders()
 
 	assert.Equal(t, http.Header{
-		"Authorization": []string{"Bearer abc123"},
+		"Authorization": []string{"Bearer xyz789"},
 	}, headers)
 }
 

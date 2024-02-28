@@ -36,7 +36,7 @@ func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSec
 func (ss *BearerSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	if ss.ValidValue != nil {
-		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, *ss.ValidValue))
+		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, ss.GetAttackValue().(string)))
 	}
 
 	return header
