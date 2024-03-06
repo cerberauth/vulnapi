@@ -115,7 +115,7 @@ func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *repor
 	}
 
 	operations := request.Operations{}
-	for docPath, p := range doc.Paths {
+	for docPath, p := range doc.Paths.Map() {
 		for method, o := range p.Operations() {
 			headers := http.Header{}
 			cookies := []http.Cookie{}
