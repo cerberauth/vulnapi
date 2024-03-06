@@ -1,4 +1,4 @@
-package bestpractices
+package discover
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -13,10 +13,10 @@ const (
 	ServerSignatureVulnerabilityDescription = "A Server signature is exposed in an header."
 )
 
-var SignatureHeaders = []string{"Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"}
+var signatureHeaders = []string{"Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"}
 
-func CheckSignatureHeader(operation *request.Operation, headers map[string][]string, r *report.ScanReport) bool {
-	for _, header := range SignatureHeaders {
+func checkSignatureHeader(operation *request.Operation, headers map[string][]string, r *report.ScanReport) bool {
+	for _, header := range signatureHeaders {
 		value := headers[header]
 		if len(value) > 0 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
@@ -33,11 +33,11 @@ func CheckSignatureHeader(operation *request.Operation, headers map[string][]str
 	return true
 }
 
-func ServerSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func ServerSignatureScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
 
-	ss.SetAttackValue(ss.GetValidValue())
-	vsa, err := scan.ScanURL(operation, &ss)
+	securityScheme.SetAttackValue(securityScheme.GetValidValue())
+	vsa, err := scan.ScanURL(operation, &securityScheme)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -47,7 +47,7 @@ func ServerSignatureScanHandler(operation *request.Operation, ss auth.SecuritySc
 		return r, vsa.Err
 	}
 
-	CheckSignatureHeader(operation, vsa.Response.Header, r)
+	checkSignatureHeader(operation, vsa.Response.Header, r)
 
 	return r, nil
 }

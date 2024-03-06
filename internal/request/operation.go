@@ -44,16 +44,22 @@ func NewOperation(url, method string, headers *http.Header, cookies []http.Cooki
 }
 
 func (o *Operation) Clone() *Operation {
-	clonedHeaders := make(http.Header)
+	var clonedHeaders http.Header
 	if o.Headers != nil {
 		clonedHeaders = o.Headers.Clone()
 	}
 
-	clonedCookies := make([]http.Cookie, len(o.Cookies))
-	copy(clonedCookies, o.Cookies)
+	var clonedCookies []http.Cookie
+	if o.Cookies != nil {
+		clonedCookies = make([]http.Cookie, len(o.Cookies))
+		copy(clonedCookies, o.Cookies)
+	}
 
-	clonedSecuritySchemes := make([]auth.SecurityScheme, len(o.SecuritySchemes))
-	copy(clonedSecuritySchemes, o.SecuritySchemes)
+	var clonedSecuritySchemes []auth.SecurityScheme
+	if o.SecuritySchemes != nil {
+		clonedSecuritySchemes = make([]auth.SecurityScheme, len(o.SecuritySchemes))
+		copy(clonedSecuritySchemes, o.SecuritySchemes)
+	}
 
 	return NewOperation(o.Url, o.Method, &clonedHeaders, clonedCookies, clonedSecuritySchemes)
 }

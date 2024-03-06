@@ -3,19 +3,19 @@ package scan
 import "github.com/cerberauth/vulnapi/scan/jwt"
 
 func (s *Scan) WithAlgNoneJwtScan() *Scan {
-	return s.AddScanHandler(jwt.AlgNoneJwtScanHandler)
+	return s.AddOperationScanHandler(jwt.AlgNoneJwtScanHandler)
 }
 
 func (s *Scan) WithNotVerifiedJwtScan() *Scan {
-	return s.AddScanHandler(jwt.NotVerifiedScanHandler)
+	return s.AddOperationScanHandler(jwt.NotVerifiedScanHandler)
 }
 
 func (s *Scan) WithJWTNullSignatureScan() *Scan {
-	return s.AddScanHandler(jwt.NullSignatureScanHandler)
+	return s.AddOperationScanHandler(jwt.NullSignatureScanHandler)
 }
 
 func (s *Scan) WithWeakJwtSecretScan() *Scan {
-	return s.AddScanHandler(jwt.BlankSecretScanHandler).AddScanHandler(jwt.DictSecretScanHandler)
+	return s.AddOperationScanHandler(jwt.BlankSecretScanHandler).AddOperationScanHandler(jwt.DictSecretScanHandler)
 }
 
 func (s *Scan) WithAllVulnsScans() *Scan {
