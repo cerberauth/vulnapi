@@ -1,7 +1,7 @@
 package discover
 
 import (
-	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -16,7 +16,7 @@ const (
 	DiscoverableOpenAPIVulnerabilityDescription = "An OpenAPI file is exposed without protection. This can lead to information disclosure and security issues"
 )
 
-var possibleOpenAPIPaths = []string{
+var potentialOpenAPIPaths = []string{
 	"/openapi",
 	"/swagger.json",
 	"/swagger.yaml",
@@ -26,25 +26,11 @@ var possibleOpenAPIPaths = []string{
 	"/api-docs.json",
 	"/api-docs.yaml",
 	"/api-docs.yml",
+	"/v1/api-docs",
 	"/v2/api-docs",
 	"/v3/api-docs",
 	".well-known/openapi.json",
 	".well-known/openapi.yaml",
-}
-
-func extractBase(inputURL string) (*url.URL, error) {
-	parsedURL, err := url.Parse(inputURL)
-	if err != nil {
-		return nil, err
-	}
-
-	baseURL := fmt.Sprintf("%s://%s%s", parsedURL.Scheme, parsedURL.Host, parsedURL.Path)
-	base, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	return base, nil
 }
 
 func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
@@ -52,14 +38,10 @@ func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme
 
 	securityScheme.SetAttackValue(securityScheme.GetValidValue())
 
-	base, err := extractBase(operation.Url)
-	if err != nil {
-		return r, err
-	}
-
-	for _, path := range possibleOpenAPIPaths {
-		newOperation := operation.Clone()
-		newOperation.Url = base.ResolveReference(&url.URL{Path: path}).String()
+	base := ExtractBaseURL(operation.Request.URL)
+	for _, path := range potentialOpenAPIPaths {
+		newRequest, _ := http.NewRequest(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil)
+		newOperation := request.NewOperationFromRequest(newRequest, []auth.SecurityScheme{securityScheme})
 
 		attempt, err := scan.ScanURL(newOperation, &securityScheme)
 		r.AddScanAttempt(attempt).End()

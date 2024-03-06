@@ -12,7 +12,7 @@ import (
 func TestNewOperation(t *testing.T) {
 	url := "http://example.com"
 	method := "GET"
-	headers := &http.Header{}
+	header := http.Header{}
 	cookies := []http.Cookie{
 		{
 			Name:  "cookie1",
@@ -25,19 +25,18 @@ func TestNewOperation(t *testing.T) {
 	}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation := request.NewOperation(url, method, headers, cookies, securitySchemes)
+	operation := request.NewOperation(url, method, header, cookies, securitySchemes)
 
-	assert.Equal(t, url, operation.Url)
-	assert.Equal(t, method, operation.Method)
-	assert.Equal(t, headers, operation.Headers)
-	assert.Equal(t, cookies, operation.Cookies)
+	assert.Equal(t, url, operation.Request.URL.String())
+	assert.Equal(t, method, operation.Request.Method)
+	assert.Equal(t, header, operation.Request.Header)
 	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
 }
 
 func TestNewOperationWithNoSecuritySchemes(t *testing.T) {
 	url := "http://example.com"
 	method := "GET"
-	headers := &http.Header{}
+	header := http.Header{}
 	cookies := []http.Cookie{
 		{
 			Name:  "cookie1",
@@ -49,47 +48,22 @@ func TestNewOperationWithNoSecuritySchemes(t *testing.T) {
 		},
 	}
 
-	operation := request.NewOperation(url, method, headers, cookies, nil)
+	operation := request.NewOperation(url, method, header, cookies, nil)
 
-	assert.Equal(t, url, operation.Url)
-	assert.Equal(t, method, operation.Method)
-	assert.Equal(t, headers, operation.Headers)
-	assert.Equal(t, cookies, operation.Cookies)
+	assert.Equal(t, url, operation.Request.URL.String())
+	assert.Equal(t, method, operation.Request.Method)
+	assert.Equal(t, header, operation.Request.Header)
 	assert.Len(t, operation.SecuritySchemes, 1)
 }
 
-func TestOperationCloneWithHeader(t *testing.T) {
-	headers := http.Header{}
-	headers.Add("Content-Type", "application/json")
+func TestNewOperationFromRequest(t *testing.T) {
+	r, _ := http.NewRequest("GET", "http://example.com", nil)
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation := request.NewOperation("http://example.com", "GET", &headers, nil, nil)
+	operation := request.NewOperationFromRequest(r, securitySchemes)
 
-	clonedOperation := operation.Clone()
-
-	assert.Equal(t, operation.Url, clonedOperation.Url)
-	assert.Equal(t, operation.Method, clonedOperation.Method)
-	assert.Equal(t, operation.Headers, clonedOperation.Headers)
-}
-
-func TestOperationCloneWithCookies(t *testing.T) {
-	cookies := []http.Cookie{
-		{
-			Name:  "cookie1",
-			Value: "value1",
-		},
-		{
-			Name:  "cookie2",
-			Value: "value2",
-		},
-	}
-
-	operation := request.NewOperation("http://example.com", "GET", nil, cookies, nil)
-
-	clonedOperation := operation.Clone()
-
-	assert.Equal(t, operation.Url, clonedOperation.Url)
-	assert.Equal(t, operation.Method, clonedOperation.Method)
-	assert.Equal(t, operation.Cookies, clonedOperation.Cookies)
+	assert.Equal(t, r, operation.Request)
+	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
 }
 
 func TestOperationCloneWithSecuritySchemes(t *testing.T) {
@@ -99,7 +73,6 @@ func TestOperationCloneWithSecuritySchemes(t *testing.T) {
 
 	clonedOperation := operation.Clone()
 
-	assert.Equal(t, operation.Url, clonedOperation.Url)
-	assert.Equal(t, operation.Method, clonedOperation.Method)
+	assert.Equal(t, operation.Request, clonedOperation.Request)
 	assert.Equal(t, operation.SecuritySchemes, clonedOperation.SecuritySchemes)
 }

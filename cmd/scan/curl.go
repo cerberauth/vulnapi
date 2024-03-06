@@ -27,10 +27,10 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			url = args[0]
 
-			httpHeaders := http.Header{}
+			httpHeader := http.Header{}
 			for _, h := range headers {
 				parts := strings.SplitN(h, ":", 2)
-				httpHeaders.Add(parts[0], strings.TrimLeft(parts[1], " "))
+				httpHeader.Add(parts[0], strings.TrimLeft(parts[1], " "))
 			}
 
 			var httpCookies []http.Cookie
@@ -42,7 +42,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				})
 			}
 
-			scan, err := scan.NewURLScan(method, url, &httpHeaders, httpCookies, nil)
+			scan, err := scan.NewURLScan(method, url, httpHeader, httpCookies, nil)
 			if err != nil {
 				log.Fatal(err)
 			}

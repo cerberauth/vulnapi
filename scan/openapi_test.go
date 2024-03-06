@@ -6,8 +6,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,18 +16,11 @@ func TestNewOpenAPIScan(t *testing.T) {
 	s, err := scan.NewOpenAPIScan("../test/stub/simple_http_bearer_jwt.openapi.json", &token, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, &scan.Scan{
-		Operations: request.Operations{{
-			Method:  "GET",
-			Url:     "http://localhost:8080/",
-			Headers: &http.Header{},
-			Cookies: []http.Cookie{},
-
-			SecuritySchemes: []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)},
-		}},
-		Handlers: []scan.ScanHandler{},
-		Reporter: report.NewReporter(),
-	}, s)
+	assert.Equal(t, 1, len(s.Operations))
+	assert.Equal(t, "http://localhost:8080/", s.Operations[0].Request.URL.String())
+	assert.Equal(t, "GET", s.Operations[0].Request.Method)
+	assert.Equal(t, http.Header{}, s.Operations[0].Request.Header)
+	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}, s.Operations[0].SecuritySchemes)
 }
 
 func TestNewOpenAPIScanWithPathError(t *testing.T) {

@@ -1,6 +1,8 @@
 package report_test
 
 import (
+	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -30,8 +32,10 @@ func TestVulnerabilityReport_String(t *testing.T) {
 		Description:   "This is a test vulnerability",
 
 		Operation: &request.Operation{
-			Method: "GET",
-			Url:    "https://example.com/vulnerability",
+			Request: &http.Request{
+				Method: "GET",
+				URL:    &url.URL{Scheme: "https", Host: "example.com", Path: "/vulnerability"},
+			},
 		},
 	}
 	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability: This is a test vulnerability"
