@@ -11,12 +11,12 @@ import (
 
 const bearerPrefix = auth.BearerPrefix + " "
 
-func detectAuthorizationHeader(headers *http.Header) string {
-	if h := headers.Get(auth.AuthorizationHeader); h != "" {
+func detectAuthorizationHeader(header http.Header) string {
+	if h := header.Get(auth.AuthorizationHeader); h != "" {
 		return h
 	}
 
-	if h := headers.Get(strings.ToLower(auth.AuthorizationHeader)); h != "" {
+	if h := header.Get(strings.ToLower(auth.AuthorizationHeader)); h != "" {
 		return h
 	}
 
@@ -36,8 +36,8 @@ func getBearerToken(authHeader string) string {
 	return ""
 }
 
-func detectSecurityScheme(headers *http.Header, cookies []http.Cookie) auth.SecurityScheme {
-	if authHeader := detectAuthorizationHeader(headers); authHeader != "" {
+func detectSecurityScheme(header http.Header, cookies []http.Cookie) auth.SecurityScheme {
+	if authHeader := detectAuthorizationHeader(header); authHeader != "" {
 		if token := getBearerToken(authHeader); token != "" {
 			return auth.NewAuthorizationBearerSecurityScheme("default", &token)
 		}
@@ -46,22 +46,15 @@ func detectSecurityScheme(headers *http.Header, cookies []http.Cookie) auth.Secu
 	return nil
 }
 
-func NewURLScan(method string, url string, headers *http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
+func NewURLScan(method string, url string, header http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
 	var securitySchemes []auth.SecurityScheme
-	if securityScheme := detectSecurityScheme(headers, cookies); securityScheme != nil {
+	if securityScheme := detectSecurityScheme(header, cookies); securityScheme != nil {
 		securitySchemes = append(securitySchemes, securityScheme)
 	} else {
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
-	operations := request.Operations{{
-		Url:     url,
-		Method:  method,
-		Headers: headers,
-		Cookies: cookies,
-
-		SecuritySchemes: securitySchemes,
-	}}
+	operations := request.Operations{request.NewOperation(url, method, header, cookies, securitySchemes)}
 
 	return NewScan(operations, reporter)
 }

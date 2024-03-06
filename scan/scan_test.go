@@ -2,6 +2,7 @@ package scan_test
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -20,10 +21,11 @@ func TestNewScanWithNoOperations(t *testing.T) {
 
 func TestNewScan(t *testing.T) {
 	operations := request.Operations{{
-		Method:  "GET",
-		Url:     "http://localhost:8080",
-		Headers: &http.Header{},
-		Cookies: []http.Cookie{},
+		Request: &http.Request{
+			Method: "GET",
+			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
+			Header: http.Header{},
+		},
 
 		SecuritySchemes: []auth.SecurityScheme{},
 	}}
@@ -40,10 +42,11 @@ func TestNewScan(t *testing.T) {
 
 func TestNewScanWithReporter(t *testing.T) {
 	operations := request.Operations{{
-		Method:  "GET",
-		Url:     "http://localhost:8080",
-		Headers: &http.Header{},
-		Cookies: []http.Cookie{},
+		Request: &http.Request{
+			Method: "GET",
+			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
+			Header: http.Header{},
+		},
 
 		SecuritySchemes: []auth.SecurityScheme{},
 	}}

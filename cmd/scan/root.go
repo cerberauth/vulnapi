@@ -66,7 +66,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				lineColor := severityTableColor(v)
 				row := []string{v.SeverityLevelString(), v.Name, v.Description}
 				if cmd.Name() == "openapi" {
-					row = append(row, fmt.Sprintf("%s %s", v.Operation.Method, v.Operation.Url))
+					row = append(row, fmt.Sprintf("%s %s", v.Operation.Method, v.Operation.Request.URL.String()))
 				}
 
 				tableColors := make([]tablewriter.Colors, len(headers))

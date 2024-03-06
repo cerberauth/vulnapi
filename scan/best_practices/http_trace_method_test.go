@@ -20,7 +20,7 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(405, nil))
+	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
 
 	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
 
@@ -43,7 +43,7 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 		Operation:     operation,
 	}
 
-	httpmock.RegisterResponder("TRACE", operation.Url, httpmock.NewBytesResponder(204, nil))
+	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
 
 	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
 

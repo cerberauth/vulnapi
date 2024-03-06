@@ -9,7 +9,7 @@ import (
 )
 
 func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
-	req, err := request.NewRequest(operation.Method, operation.Url, nil)
+	req, err := request.NewRequest(operation.Method, operation.Request.URL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("request with url %s has an unexpected error", err)
 	}

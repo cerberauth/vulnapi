@@ -21,7 +21,7 @@ func TestHTTPCookiesScanHandlerWhenNoCookies(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(405, nil))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
@@ -49,7 +49,7 @@ func TestHTTPCookiesScanHandlerWhenNoUnsecrurePractices(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
@@ -77,7 +77,7 @@ func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesNotHTTPOnlySeverityLevel,
@@ -113,7 +113,7 @@ func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesNotSecureSeverityLevel,
@@ -149,7 +149,7 @@ func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesSameSiteSeverityLevel,
@@ -185,7 +185,7 @@ func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
 		Expires:  time.Time{},
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesExpiresSeverityLevel,

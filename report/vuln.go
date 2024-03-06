@@ -27,7 +27,7 @@ func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s %s: %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Url, vr.Description)
+	return fmt.Sprintf("[%s][%s] %s %s: %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String(), vr.Description)
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {

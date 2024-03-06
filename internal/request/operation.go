@@ -11,49 +11,42 @@ type Operations []*Operation
 func (o Operations) Len() int      { return len(o) }
 func (o Operations) Swap(i, j int) { o[i], o[j] = o[j], o[i] }
 func (o Operations) Less(i, j int) bool {
-	if o[i].Url == o[j].Url {
+	if o[i].Request.URL.String() == o[j].Request.URL.String() {
 		return o[i].Method < o[j].Method
 	}
 
-	return o[i].Url < o[j].Url
+	return o[i].Request.URL.String() < o[j].Request.URL.String()
 }
 
 type Operation struct {
-	Url     string
-	Method  string
-	Headers *http.Header
-	Cookies []http.Cookie
+	*http.Request
 
 	SecuritySchemes []auth.SecurityScheme
 }
 
-func NewOperation(url, method string, headers *http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) *Operation {
+func NewOperation(url, method string, header http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) *Operation {
+	request, _ := http.NewRequest(method, url, nil)
+	request.Header = header
+	for _, cookie := range cookies {
+		request.AddCookie(&cookie)
+	}
+
+	return NewOperationFromRequest(request, securitySchemes)
+}
+
+func NewOperationFromRequest(r *http.Request, securitySchemes []auth.SecurityScheme) *Operation {
 	if len(securitySchemes) == 0 {
 		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 
-	operation := Operation{
-		Url:             url,
-		Method:          method,
-		Headers:         headers,
-		Cookies:         cookies,
+	return &Operation{
+		Request:         r,
 		SecuritySchemes: securitySchemes,
 	}
-
-	return &operation
 }
 
 func (o *Operation) Clone() *Operation {
-	var clonedHeaders http.Header
-	if o.Headers != nil {
-		clonedHeaders = o.Headers.Clone()
-	}
-
-	var clonedCookies []http.Cookie
-	if o.Cookies != nil {
-		clonedCookies = make([]http.Cookie, len(o.Cookies))
-		copy(clonedCookies, o.Cookies)
-	}
+	o.Request = o.Request.Clone(o.Request.Context())
 
 	var clonedSecuritySchemes []auth.SecurityScheme
 	if o.SecuritySchemes != nil {
@@ -61,5 +54,5 @@ func (o *Operation) Clone() *Operation {
 		copy(clonedSecuritySchemes, o.SecuritySchemes)
 	}
 
-	return NewOperation(o.Url, o.Method, &clonedHeaders, clonedCookies, clonedSecuritySchemes)
+	return NewOperationFromRequest(o.Request, clonedSecuritySchemes)
 }
