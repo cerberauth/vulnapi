@@ -93,6 +93,7 @@ The scanner also detects the following security best practices:
 * X-Content-Type-Options Header is not set
 * X-Frame-Options Header is not set
 * HTTP Trace Method enabled
+* HTTP Cookies not marked as secure, httpOnly, or SameSite
 * Server Signature exposed
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.

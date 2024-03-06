@@ -16,6 +16,10 @@ func (s *Scan) WithServerSignatureScan() *Scan {
 	return s.AddScanHandler(bestpractices.ServerSignatureScanHandler)
 }
 
+func (s *Scan) WithHTTPCookiesBestPracticesScan() *Scan {
+	return s.AddScanHandler(bestpractices.HTTPCookiesScanHandler)
+}
+
 func (s *Scan) WithAllBestPracticesScans() *Scan {
-	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithServerSignatureScan()
+	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithServerSignatureScan().WithHTTPCookiesBestPracticesScan()
 }
