@@ -1,4 +1,4 @@
-package bestpractices_test
+package discover_test
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
-	bestpractices "github.com/cerberauth/vulnapi/scan/best_practices"
+	"github.com/cerberauth/vulnapi/scan/discover"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,15 +21,15 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.ServerSignatureSeverityLevel,
-		Name:          bestpractices.ServerSignatureVulnerabilityName,
-		Description:   bestpractices.ServerSignatureVulnerabilityDescription,
+		SeverityLevel: discover.ServerSignatureSeverityLevel,
+		Name:          discover.ServerSignatureVulnerabilityName,
+		Description:   discover.ServerSignatureVulnerabilityDescription,
 		Operation:     operation,
 	}
 
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 
-	report, err := bestpractices.ServerSignatureScanHandler(operation, securityScheme)
+	report, err := discover.ServerSignatureScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -47,7 +47,7 @@ func TestCheckSignatureHeaderWithoutSignatureHeader(t *testing.T) {
 
 	httpmock.RegisterResponder(operation.Method, operation.Url, httpmock.NewBytesResponder(204, nil))
 
-	report, err := bestpractices.ServerSignatureScanHandler(operation, securityScheme)
+	report, err := discover.ServerSignatureScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

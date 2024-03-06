@@ -13,8 +13,10 @@ type ScanHandler func(o *request.Operation, ss auth.SecurityScheme) (*report.Sca
 
 type Scan struct {
 	Operations request.Operations
-	Handlers   []ScanHandler
 	Reporter   *report.Reporter
+
+	OperationHandlers []ScanHandler
+	Handlers          []ScanHandler
 }
 
 func NewScan(operations request.Operations, reporter *report.Reporter) (*Scan, error) {
@@ -33,35 +35,22 @@ func NewScan(operations request.Operations, reporter *report.Reporter) (*Scan, e
 	}, nil
 }
 
-func (s *Scan) AddScanHandler(sh ScanHandler) *Scan {
-	s.Handlers = append(s.Handlers, sh)
+func (s *Scan) AddOperationScanHandler(handler ScanHandler) *Scan {
+	s.OperationHandlers = append(s.OperationHandlers, handler)
 
 	return s
 }
 
-func (s *Scan) Execute() (*report.Reporter, []error, error) {
-	if err := s.ValidateOperation(s.Operations[0]); err != nil {
-		return nil, nil, err
-	}
+func (s *Scan) AddScanHandler(handler ScanHandler) *Scan {
+	s.Handlers = append(s.Handlers, handler)
 
-	var errors []error
-	for _, operation := range s.Operations {
-		opErrors, opError := s.ExecuteOperation(operation)
-		if opError != nil {
-			return nil, nil, opError
-		}
-
-		errors = append(errors, opErrors...)
-	}
-
-	return s.Reporter, errors, nil
+	return s
 }
 
-func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
+func (s *Scan) ExecuteOperation(operation *request.Operation, handlers []ScanHandler) ([]error, error) {
 	var errors []error
-	for _, handler := range s.Handlers {
+	for _, handler := range handlers {
 		report, err := handler(operation, operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
-
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -70,6 +59,29 @@ func (s *Scan) ExecuteOperation(operation *request.Operation) ([]error, error) {
 	}
 
 	return errors, nil
+}
+
+func (s *Scan) Execute() (*report.Reporter, []error, error) {
+	operation := s.Operations[0]
+	if err := s.ValidateOperation(operation); err != nil {
+		return nil, nil, err
+	}
+
+	errors, err := s.ExecuteOperation(operation, s.Handlers)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, operation := range s.Operations {
+		opErrors, opError := s.ExecuteOperation(operation, s.OperationHandlers)
+		if opError != nil {
+			return nil, nil, opError
+		}
+
+		errors = append(errors, opErrors...)
+	}
+
+	return s.Reporter, errors, nil
 }
 
 func (s *Scan) ValidateOperation(operation *request.Operation) error {
@@ -83,4 +95,8 @@ func (s *Scan) ValidateOperation(operation *request.Operation) error {
 	}
 
 	return nil
+}
+
+func (s *Scan) WithAllScans() *Scan {
+	return s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllDiscoverScans()
 }

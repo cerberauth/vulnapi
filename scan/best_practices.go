@@ -5,21 +5,17 @@ import (
 )
 
 func (s *Scan) WithHTTPHeadersBestPracticesScan() *Scan {
-	return s.AddScanHandler(bestpractices.HTTPHeadersBestPracticesScanHandler)
+	return s.AddOperationScanHandler(bestpractices.HTTPHeadersBestPracticesScanHandler)
 }
 
 func (s *Scan) WithHTTPTraceMethodBestPracticesScan() *Scan {
-	return s.AddScanHandler(bestpractices.HTTPTraceMethodScanHandler)
-}
-
-func (s *Scan) WithServerSignatureScan() *Scan {
-	return s.AddScanHandler(bestpractices.ServerSignatureScanHandler)
+	return s.AddOperationScanHandler(bestpractices.HTTPTraceMethodScanHandler)
 }
 
 func (s *Scan) WithHTTPCookiesBestPracticesScan() *Scan {
-	return s.AddScanHandler(bestpractices.HTTPCookiesScanHandler)
+	return s.AddOperationScanHandler(bestpractices.HTTPCookiesScanHandler)
 }
 
 func (s *Scan) WithAllBestPracticesScans() *Scan {
-	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithServerSignatureScan().WithHTTPCookiesBestPracticesScan()
+	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithHTTPCookiesBestPracticesScan()
 }

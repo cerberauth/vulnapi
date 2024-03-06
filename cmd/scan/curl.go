@@ -47,7 +47,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			if reporter, _, err = scan.WithAllVulnsScans().WithAllBestPracticesScans().Execute(); err != nil {
+			if reporter, _, err = scan.WithAllScans().Execute(); err != nil {
 				log.Fatal(err)
 			}
 		},
