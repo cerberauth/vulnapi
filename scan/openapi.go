@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/internal/request"
