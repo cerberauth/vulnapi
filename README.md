@@ -98,6 +98,7 @@ The scanner also detects the following security best practices:
 The scanner perform some discoverability scans:
 * Server Signature exposed
 * Discovery of API endpoints using OpenAPI contracts
+* GraphQL Introspection enabled
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 
