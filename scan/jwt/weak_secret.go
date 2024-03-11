@@ -16,9 +16,12 @@ const (
 
 func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	newToken, err := token.SignWithKey([]byte(""))
+	if _, ok := ss.GetValidValueWriter().(*jwt.JWTWriter); !ok {
+		return r, nil
+	}
+
+	newToken, err := ss.GetValidValueWriter().(*jwt.JWTWriter).SignWithKey([]byte(""))
 	if err != nil {
 		return r, err
 	}

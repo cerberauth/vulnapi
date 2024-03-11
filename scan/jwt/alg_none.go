@@ -6,6 +6,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
+	jwtlib "github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -16,9 +17,12 @@ const (
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	newToken, err := token.WithAlgNone()
+	if valueWriter, ok := ss.GetValidValueWriter().(*jwt.JWTWriter); !ok || valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+		return r, nil
+	}
+
+	newToken, err := ss.GetValidValueWriter().(*jwt.JWTWriter).WithAlgNone()
 	if err != nil {
 		return r, err
 	}
