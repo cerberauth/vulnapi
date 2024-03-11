@@ -14,6 +14,9 @@ var (
 	method  string
 	headers []string
 	cookies []string
+
+	placeholderString string
+	placeholderBool   bool
 )
 
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
@@ -56,6 +59,16 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd.PersistentFlags().StringVarP(&method, "request", "X", "GET", "Specify request method to use")
 	scanCmd.PersistentFlags().StringArrayVarP(&headers, "header", "H", nil, "Pass custom header(s) to target API")
 	scanCmd.PersistentFlags().StringArrayVarP(&cookies, "cookie", "b", nil, "Send cookies from string")
+
+	// The following flags are not implemented yet
+	scanCmd.PersistentFlags().StringVarP(&placeholderString, "data", "d", "", "HTTP POST data")
+	scanCmd.PersistentFlags().BoolVarP(&placeholderBool, "fail", "f", false, "Fail silently (no output at all) on HTTP errors")
+	scanCmd.PersistentFlags().BoolVarP(&placeholderBool, "include", "i", false, "Include protocol headers in the output")
+	scanCmd.PersistentFlags().BoolVarP(&placeholderBool, "remote-name", "O", false, "Write output to a file named as the remote file")
+	scanCmd.PersistentFlags().BoolVarP(&placeholderBool, "silent", "s", false, "Run in silent mode")
+	scanCmd.PersistentFlags().StringVarP(&placeholderString, "upload-file", "T", "", "Transfer file to target API")
+	scanCmd.PersistentFlags().StringVarP(&placeholderString, "user", "u", "", "Specify the user name and password to use for server authentication")
+	scanCmd.PersistentFlags().StringVarP(&placeholderString, "user-agent", "A", "", "User-Agent to send to server")
 
 	return scanCmd
 }
