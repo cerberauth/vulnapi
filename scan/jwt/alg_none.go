@@ -17,12 +17,16 @@ const (
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-
-	if valueWriter, ok := ss.GetValidValueWriter().(*jwt.JWTWriter); !ok || valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+	if !ShouldBeScanned(ss) {
 		return r, nil
 	}
 
-	newToken, err := ss.GetValidValueWriter().(*jwt.JWTWriter).WithAlgNone()
+	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+	if valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+		return r, nil
+	}
+
+	newToken, err := valueWriter.WithAlgNone()
 	if err != nil {
 		return r, err
 	}

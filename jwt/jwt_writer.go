@@ -1,6 +1,10 @@
 package jwt
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"errors"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type JWTWriter struct {
 	Token *jwt.Token
@@ -11,6 +15,10 @@ func NewJWTWriter(token string) (*JWTWriter, error) {
 	originalToken, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
 	if err != nil {
 		return nil, err
+	}
+
+	if originalToken == nil {
+		return nil, errors.New("invalid JWT token")
 	}
 
 	return &JWTWriter{Token: originalToken}, nil
