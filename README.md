@@ -1,6 +1,6 @@
 # VulnAPI: An API Security Vulnerability Scanner
 
-VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
+VulnAPI is an Open-Source DAST designed to help you scan your APIs for common security vulnerabilities and weaknesses.
 
 By using this tool, you can detect that some API potential vulnerabilities and fix security issues.
 
