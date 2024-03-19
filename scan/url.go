@@ -36,7 +36,7 @@ func getBearerToken(authHeader string) string {
 	return ""
 }
 
-func detectSecurityScheme(header http.Header, cookies []http.Cookie) auth.SecurityScheme {
+func detectSecurityScheme(header http.Header) auth.SecurityScheme {
 	if authHeader := detectAuthorizationHeader(header); authHeader != "" {
 		if token := getBearerToken(authHeader); token != "" {
 			return auth.NewAuthorizationBearerSecurityScheme("default", &token)
@@ -48,7 +48,7 @@ func detectSecurityScheme(header http.Header, cookies []http.Cookie) auth.Securi
 
 func NewURLScan(method string, url string, header http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
 	var securitySchemes []auth.SecurityScheme
-	if securityScheme := detectSecurityScheme(header, cookies); securityScheme != nil {
+	if securityScheme := detectSecurityScheme(header); securityScheme != nil {
 		securitySchemes = append(securitySchemes, securityScheme)
 	} else {
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())

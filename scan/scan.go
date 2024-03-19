@@ -53,6 +53,9 @@ func (s *Scan) ExecuteOperation(operation *request.Operation, handlers []ScanHan
 		report, err := handler(operation, operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
 		if err != nil {
 			errors = append(errors, err)
+		} else if report == nil {
+			// Skip if no report
+			continue
 		}
 
 		s.Reporter.AddReport(report)

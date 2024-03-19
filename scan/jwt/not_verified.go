@@ -17,18 +17,17 @@ const (
 
 func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-
-	if _, ok := ss.GetValidValueWriter().(*jwt.JWTWriter); !ok {
+	if !ShouldBeScanned(ss) {
 		return r, nil
 	}
 
-	token := ss.GetValidValueWriter().(*jwt.JWTWriter)
-	newTokenA, err := token.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("a"))
+	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+	newTokenA, err := valueWriter.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("a"))
 	if err != nil {
 		return r, err
 	}
 
-	newTokenB, err := token.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("b"))
+	newTokenB, err := valueWriter.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("b"))
 	if err != nil {
 		return r, err
 	}

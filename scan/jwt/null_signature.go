@@ -16,12 +16,12 @@ const (
 
 func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport()
-
-	if _, ok := ss.GetValidValueWriter().(*jwt.JWTWriter); !ok {
+	if !ShouldBeScanned(ss) {
 		return r, nil
 	}
 
-	newToken, err := ss.GetValidValueWriter().(*jwt.JWTWriter).WithoutSignature()
+	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+	newToken, err := valueWriter.WithoutSignature()
 	if err != nil {
 		return r, err
 	}
