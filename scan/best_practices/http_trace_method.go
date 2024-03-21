@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	HTTPTraceMethodSeverityLevel            = 1
+	HTTPTraceMethodSeverityLevel            = 0
 	HTTPTraceMethodVulnerabilityName        = "HTTP Trace Method enabled"
 	HTTPTraceMethodVulnerabilityDescription = "HTTP Trace method seems enabled for this request."
 )

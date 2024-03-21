@@ -14,7 +14,7 @@ import (
 var reporter *report.Reporter
 
 func severityTableColor(v *report.VulnerabilityReport) int {
-	if v.IsLowRiskSeverity() {
+	if v.IsLowRiskSeverity() || v.IsInfoRiskSeverity() {
 		return tablewriter.BgBlueColor
 	} else if v.IsMediumRiskSeverity() {
 		return tablewriter.FgYellowColor

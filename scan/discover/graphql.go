@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	GraphqlIntrospectionEnabledSeverityLevel            = 1
+	GraphqlIntrospectionEnabledSeverityLevel            = 0
 	GraphqlIntrospectionEnabledVulnerabilityName        = "GraphQL Introspection enabled"
 	GraphqlIntrospectionEnabledVulnerabilityDescription = "GraphQL Introspection seems enabled and can lead to information disclosure and security issues"
 )

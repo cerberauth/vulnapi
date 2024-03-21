@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DiscoverableOpenAPISeverityLevel            = 1
+	DiscoverableOpenAPISeverityLevel            = 0
 	DiscoverableOpenAPIVulnerabilityName        = "Discoverable OpenAPI"
 	DiscoverableOpenAPIVulnerabilityDescription = "An OpenAPI file is exposed without protection. This can lead to information disclosure and security issues"
 )

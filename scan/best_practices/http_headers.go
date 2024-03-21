@@ -19,27 +19,27 @@ const (
 )
 
 const (
-	CSPHTTPHeaderSeverityLevel                                  = 1
+	CSPHTTPHeaderSeverityLevel                                  = 0
 	CSPHTTPHeaderIsNotSetVulnerabilityName                      = "CSP Header is not set"
 	CSPHTTPHeaderIsNotSetVulnerabilityDescription               = "No Content Security Policy (CSP) Header has been detected in HTTP Response."
 	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName        = "CSP frame-ancestors policy is not set"
 	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription = "No frame-ancestors policy has been set in CSP HTTP Response Header."
 
-	HSTSHTTPHeaderSeverityLevel                    = 1
+	HSTSHTTPHeaderSeverityLevel                    = 0
 	HSTSHTTPHeaderIsNotSetVulnerabilityName        = "HSTS Header is not set"
 	HSTSHTTPHeaderIsNotSetVulnerabilityDescription = "No HSTS Header has been detected in HTTP Response."
 
-	CORSHTTPHeaderSeverityLevel                       = 1
+	CORSHTTPHeaderSeverityLevel                       = 0
 	CORSHTTPHeaderIsNotSetVulnerabilityName           = "CORS Header is not set"
 	CORSHTTPHeaderIsNotSetVulnerabilityDescription    = "No CORS Header has been detected in HTTP Response."
 	CORSHTTPHeaderIsPermisiveVulnerabilityName        = "CORS Header is set but permissive"
 	CORSHTTPHeaderIsPermisiveVulnerabilityDescription = "CORS Header has been detected in HTTP Response but is permissive."
 
-	XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel            = 1
+	XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel            = 0
 	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName        = "X-Content-Type-Options Header is not set"
 	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Content-Type-Options Header has been detected in HTTP Response."
 
-	XFrameOptionsHTTPHeaderIsNotSetSeverityLevel            = 1
+	XFrameOptionsHTTPHeaderIsNotSetSeverityLevel            = 0
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName        = "X-Frame-Options Header is not set"
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Frame-Options Header has been detected in HTTP Response."
 )
