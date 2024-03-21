@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ServerSignatureSeverityLevel            = 1
+	ServerSignatureSeverityLevel            = 0
 	ServerSignatureVulnerabilityName        = "Server Signature Exposed"
 	ServerSignatureVulnerabilityDescription = "A Server signature is exposed in an header."
 )

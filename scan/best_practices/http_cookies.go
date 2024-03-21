@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	HTTPCookiesNotHTTPOnlySeverityLevel            = 1
+	HTTPCookiesNotHTTPOnlySeverityLevel            = 0
 	HTTPCookiesNotHTTPOnlyVulnerabilityName        = "Cookies not HTTP-Only"
 	HTTPCookiesNotHTTPOnlyVulnerabilityDescription = "Cookies should be http-only."
 
-	HTTPCookiesNotSecureSeverityLevel            = 1
+	HTTPCookiesNotSecureSeverityLevel            = 0
 	HTTPCookiesNotSecureVulnerabilityName        = "Cookies not Secure"
 	HTTPCookiesNotSecureVulnerabilityDescription = "Cookies should be secure."
 
-	HTTPCookiesSameSiteSeverityLevel            = 1
+	HTTPCookiesSameSiteSeverityLevel            = 0
 	HTTPCookiesSameSiteVulnerabilityName        = "Cookies SameSite not set or set to None"
 	HTTPCookiesSameSiteVulnerabilityDescription = "Cookies should have SameSite attribute set to Strict or Lax."
 
-	HTTPCookiesExpiresSeverityLevel            = 1
+	HTTPCookiesExpiresSeverityLevel            = 0
 	HTTPCookiesExpiresVulnerabilityName        = "Cookies Expires not set"
 	HTTPCookiesExpiresVulnerabilityDescription = "Cookies should have Expires attribute set."
 )
