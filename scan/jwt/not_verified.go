@@ -22,24 +22,23 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	}
 
 	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
-	newTokenA, err := valueWriter.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("a"))
+	method := jwtlib.SigningMethodHS256
+	if valueWriter.Token.Method == method {
+		method = jwtlib.SigningMethodHS384
+	}
+	newToken, err := valueWriter.SignWithMethodAndKey(method, []byte("a"))
 	if err != nil {
 		return r, err
 	}
 
-	newTokenB, err := valueWriter.SignWithMethodAndKey(jwtlib.SigningMethodHS256, []byte("b"))
-	if err != nil {
-		return r, err
-	}
-
-	ss.SetAttackValue(newTokenA)
+	ss.SetAttackValue(ss.GetValidValue())
 	vsa1, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err
 	}
 	r.AddScanAttempt(vsa1)
 
-	ss.SetAttackValue(newTokenB)
+	ss.SetAttackValue(newToken)
 	vsa2, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err
@@ -48,7 +47,7 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	r.AddScanAttempt(vsa2)
 	r.End()
 
-	if vsa1.Response.StatusCode != vsa2.Response.StatusCode {
+	if vsa1.Response.StatusCode == vsa2.Response.StatusCode {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NotVerifiedVulnerabilitySeverityLevel,
 			Name:          NotVerifiedVulnerabilityName,
