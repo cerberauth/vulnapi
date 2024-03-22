@@ -14,6 +14,12 @@ type VulnerabilityReport struct {
 	Operation *request.Operation
 }
 
+func (vr *VulnerabilityReport) WithOperation(operation *request.Operation) *VulnerabilityReport {
+	vr.Operation = operation
+
+	return vr
+}
+
 func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
 	return vr.SeverityLevel < 4
 }

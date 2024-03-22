@@ -10,6 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestVulnerabilityReport_WithOperation(t *testing.T) {
+	vr := &report.VulnerabilityReport{}
+	operation := &request.Operation{
+		Request: &http.Request{
+			Method: "POST",
+			URL:    &url.URL{Scheme: "https", Host: "example.com", Path: "/vulnerability"},
+		},
+	}
+
+	vr.WithOperation(operation)
+
+	assert.Equal(t, operation, vr.Operation)
+}
+
 func TestVulnerabilityReport_IsLowRiskSeverity(t *testing.T) {
 	vr := &report.VulnerabilityReport{SeverityLevel: 3.5}
 	assert.True(t, vr.IsLowRiskSeverity())
@@ -41,6 +55,7 @@ func TestVulnerabilityReport_String(t *testing.T) {
 	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability: This is a test vulnerability"
 	assert.Equal(t, expected, vr.String())
 }
+
 func TestVulnerabilityReport_SeverityLevelString(t *testing.T) {
 	vr := &report.VulnerabilityReport{}
 

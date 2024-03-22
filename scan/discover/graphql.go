@@ -12,6 +12,10 @@ import (
 )
 
 const (
+	DiscoverableGraphQLPathSeverityLevel            = 0
+	DiscoverableGraphQLPathVulnerabilityName        = "Discoverable GraphQL Path"
+	DiscoverableGraphQLPathVulnerabilityDescription = "GraphQL path seems discoverable and can lead to information disclosure and security issues"
+
 	GraphqlIntrospectionEnabledSeverityLevel            = 0
 	GraphqlIntrospectionEnabledVulnerabilityName        = "GraphQL Introspection enabled"
 	GraphqlIntrospectionEnabledVulnerabilityDescription = "GraphQL Introspection seems enabled and can lead to information disclosure and security issues"
@@ -26,6 +30,7 @@ var potentialGraphQLEndpoints = []string{
 	"/v1/graphiql",
 	"/v1/explorer",
 }
+var graphqlSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/graphql.txt"
 
 func newGraphqlIntrospectionRequest(endpoint *url.URL) (*http.Request, error) {
 	return http.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(`{
@@ -67,4 +72,14 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 	}
 
 	return r, nil
+}
+
+func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, &report.VulnerabilityReport{
+		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
+		Name:          DiscoverableGraphQLPathVulnerabilityName,
+		Description:   DiscoverableGraphQLPathVulnerabilityDescription,
+	})
+
+	return handler(operation, securityScheme)
 }

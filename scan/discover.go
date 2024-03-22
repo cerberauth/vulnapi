@@ -10,10 +10,14 @@ func (s *Scan) WithDiscoverableOpenAPIScan() *Scan {
 	return s.AddScanHandler(discover.DiscoverableOpenAPIScanHandler)
 }
 
+func (s *Scan) WithDiscoverableGraphQLPathScan() *Scan {
+	return s.AddScanHandler(discover.DiscoverableGraphQLPathScanHandler)
+}
+
 func (s *Scan) WithGraphQLIntrospectionScan() *Scan {
 	return s.AddScanHandler(discover.GraphqlIntrospectionScanHandler)
 }
 
 func (s *Scan) WithAllDiscoverScans() *Scan {
-	return s.WithServerSignatureScan().WithDiscoverableOpenAPIScan().WithGraphQLIntrospectionScan()
+	return s.WithServerSignatureScan().WithDiscoverableOpenAPIScan().WithDiscoverableGraphQLPathScan().WithGraphQLIntrospectionScan()
 }

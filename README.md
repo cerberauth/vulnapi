@@ -110,6 +110,11 @@ The VulnAPI may support additional options for customizing scans or output forma
 
 This scanner is provided for educational and informational purposes only. It should not be used for malicious purposes or to attack any system without proper authorization. Always respect the security and privacy of others.
 
+## Thanks
+
+This project used the following open-source libraries:
+* [SecLists](https://github.com/danielmiessler/SecLists)
+
 ## License
 
 This repository is licensed under the [MIT License](https://github.com/cerberauth/vulnapi/blob/main/LICENSE) @ [CerberAuth](https://www.cerberauth.com/). You are free to use, modify, and distribute the contents of this repository for educational and testing purposes.
