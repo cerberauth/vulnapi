@@ -11,7 +11,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.8.0
-	github.com/std-uritemplate/std-uritemplate/go v0.0.54
+	github.com/std-uritemplate/std-uritemplate/go v0.0.55
 	github.com/stretchr/testify v1.9.0
 )
 
