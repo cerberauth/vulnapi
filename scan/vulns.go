@@ -15,7 +15,7 @@ func (s *Scan) WithJWTNullSignatureScan() *Scan {
 }
 
 func (s *Scan) WithWeakJwtSecretScan() *Scan {
-	return s.AddOperationScanHandler(jwt.BlankSecretScanHandler).AddOperationScanHandler(jwt.DictSecretScanHandler)
+	return s.AddOperationScanHandler(jwt.BlankSecretScanHandler).AddOperationScanHandler(jwt.WeakHMACSecretScanHandler)
 }
 
 func (s *Scan) WithAllVulnsScans() *Scan {

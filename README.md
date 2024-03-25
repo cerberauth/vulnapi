@@ -83,7 +83,7 @@ In this example, each line represents a detected vulnerability, severity level (
 The scanner is capable of detecting the following vulnerabilities:
 * JWT `none` algorithm accepted
 * JWT not verified
-* JWT weak secret used
+* JWT blank or weak secret used with HMAC algorithm
 * JWT null signature accepted
 
 The scanner also detects the following security best practices:
