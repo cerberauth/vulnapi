@@ -68,3 +68,24 @@ func TestNotVerifiedScanHandlerWithNotVerifiedJWT(t *testing.T) {
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
 }
+
+func TestNotVerifiedScanHandlerWhenHTTPCodeIs401(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	securityScheme := auth.NewAuthorizationBearerSecurityScheme("token", &token)
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromMultipleResponses(
+		[]*http.Response{
+			httpmock.NewBytesResponse(401, nil),
+			httpmock.NewBytesResponse(401, nil),
+		}, t.Log),
+	)
+	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.False(t, report.HasVulnerabilityReport())
+}

@@ -32,22 +32,26 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	}
 
 	ss.SetAttackValue(ss.GetValidValue())
-	vsa1, err := scan.ScanURL(operation, &ss)
+	attemptOne, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(vsa1)
+	r.AddScanAttempt(attemptOne)
+
+	if scan.DetectNotExpectedResponse(attemptOne.Response) == nil {
+		return r, nil
+	}
 
 	ss.SetAttackValue(newToken)
-	vsa2, err := scan.ScanURL(operation, &ss)
+	attemptTwo, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err
 	}
 
-	r.AddScanAttempt(vsa2)
+	r.AddScanAttempt(attemptTwo)
 	r.End()
 
-	if vsa1.Response.StatusCode == vsa2.Response.StatusCode {
+	if attemptOne.Response.StatusCode == attemptTwo.Response.StatusCode {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NotVerifiedVulnerabilitySeverityLevel,
 			Name:          NotVerifiedVulnerabilityName,
