@@ -31,7 +31,7 @@ func (r *Request) WithSecurityScheme(ss *auth.SecurityScheme) *Request {
 }
 
 func (r *Request) Do() (*http.Response, error) {
-	r.Header.Set("User-Agent", "MyProject")
+	r.Header.Set("User-Agent", "vulnapi")
 
 	if securityScheme := *r.SecurityScheme; securityScheme != nil {
 		for _, c := range securityScheme.GetCookies() {
