@@ -88,13 +88,18 @@ func (s *Scan) Execute() (*report.Reporter, []error, error) {
 }
 
 func (s *Scan) ValidateOperation(operation *request.Operation) error {
-	attempt, err := scan.ScanURL(operation, &operation.SecuritySchemes[0])
+	securityScheme := operation.SecuritySchemes[0] // TODO: handle multiple security schemes
+	attempt, err := scan.ScanURL(operation, &securityScheme)
 	if err != nil {
 		return err
 	}
 
 	if attempt.Err != nil {
 		return attempt.Err
+	}
+
+	if scan.DetectNotExpectedResponse(attempt.Response) == nil {
+		return fmt.Errorf("operation validation failed because of unexpected response: %d", attempt.Response.StatusCode)
 	}
 
 	return nil
