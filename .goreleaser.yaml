@@ -37,34 +37,50 @@ changelog:
       - '^docs:'
       - '^test:'
 
-# brews:
-#   - name: "{{ .ProjectName }}"
-#     description: "vulnapi"
-#     license: "MIT"
-#     repository:
-#       owner: cerberauth
-#       name: "{{ .ProjectName }}"
-#     goarm: 6
-#     test: |
-#       system "#{bin}/{{ .ProjectName }} help"
-#     homepage: https://github.com/cerberauth/vulnapi
-#     commit_author:
-#       name: emmanuelgautier
-#       email: emmanuel@cerberauth.com
+brews:
+  - name: "{{ .ProjectName }}"
+    description: "VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses."
+    license: "MIT"
+    repository:
+      owner: cerberauth
+      name: "{{ .ProjectName }}"
+    homepage: https://vulnapi.cerberauth.com/
+    commit_author:
+      name: emmanuelgautier
+      email: emmanuel@cerberauth.com
 
-# nfpms:
-#   - package_name: "{{ .ProjectName }}"
-#     vendor: CerberAuth
-#     homepage: https://github.com/cerberauth/vulnapi
-#     maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
-#     description: "vulnapi"
-#     license: "MIT"
-#     formats:
-#       - apk
-#       - deb
-#       - rpm
-#       - termux.deb
-#       - archlinux
+chocolateys:
+  - name: "{{ .ProjectName }}"
+    owners: CerberAuth
+    authors: Emmanuel Gautier
+    project_url: https://vulnapi.cerberauth.com/
+    icon_url: "https://avatars.githubusercontent.com/u/127022998"
+    license_url: https://github.com/cerberauth/vulnapi/blob/main/LICENSE
+    require_license_acceptance: false
+    project_source_url: https://github.com/cerberauth/vulnapi
+    docs_url: https://vulnapi.cerberauth.com/docs/
+    bug_tracker_url: https://github.com/cerberauth/vulnapi/issues
+    tags: "security vulnerability developer"
+    summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
+    description: |
+      VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
+    dependencies:
+      - id: nfpm
+
+nfpms:
+  - package_name: "{{ .ProjectName }}"
+    vendor: CerberAuth
+    homepage: https://vulnapi.cerberauth.com/
+    maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
+    description: |-
+      VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
+    license: "MIT"
+    formats:
+      - apk
+      - deb
+      - rpm
+      - termux.deb
+      - archlinux
 
 snapcrafts:
   - title: vulnapi
