@@ -37,20 +37,17 @@ changelog:
       - '^docs:'
       - '^test:'
 
-# brews:
-#   - name: "{{ .ProjectName }}"
-#     description: "vulnapi"
-#     license: "MIT"
-#     repository:
-#       owner: cerberauth
-#       name: "{{ .ProjectName }}"
-#     goarm: 6
-#     test: |
-#       system "#{bin}/{{ .ProjectName }} help"
-#     homepage: https://vulnapi.cerberauth.com
-#     commit_author:
-#       name: emmanuelgautier
-#       email: emmanuel@cerberauth.com
+brews:
+  - name: "{{ .ProjectName }}"
+    description: "VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses."
+    license: "MIT"
+    repository:
+      owner: cerberauth
+      name: "{{ .ProjectName }}"
+    homepage: https://vulnapi.cerberauth.com
+    commit_author:
+      name: emmanuelgautier
+      email: emmanuel@cerberauth.com
 
 nfpms:
   - package_name: "{{ .ProjectName }}"
