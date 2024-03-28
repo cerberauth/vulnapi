@@ -50,7 +50,7 @@ brews:
       email: emmanuel@cerberauth.com
 
 chocolateys:
-  - name: "{{ .ProjectName }}"
+  - name: vulnapi
     owners: CerberAuth
     authors: Emmanuel Gautier
     project_url: https://vulnapi.cerberauth.com/
@@ -64,8 +64,6 @@ chocolateys:
     summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
     description: |
       VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
-    dependencies:
-      - id: nfpm
 
 nfpms:
   - package_name: "{{ .ProjectName }}"
