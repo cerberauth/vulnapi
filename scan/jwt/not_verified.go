@@ -6,7 +6,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
-	jwtlib "github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -22,11 +21,7 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	}
 
 	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
-	method := jwtlib.SigningMethodHS256
-	if valueWriter.Token.Method == method {
-		method = jwtlib.SigningMethodHS384
-	}
-	newToken, err := valueWriter.SignWithMethodAndKey(method, []byte("a"))
+	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.Token.Method)
 	if err != nil {
 		return r, err
 	}
