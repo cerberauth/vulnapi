@@ -5,21 +5,21 @@
 class Vulnapi < Formula
   desc "VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses."
   homepage "https://vulnapi.cerberauth.com/"
-  version "0.4.4-beta.2"
+  version "0.4.5"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.4-beta.2/vulnapi_Darwin_x86_64.tar.gz"
-      sha256 "da28fef87af369d21de90414e9746aff71dd92fe2e291352e3ac33a8e97e0d9f"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.5/vulnapi_Darwin_x86_64.tar.gz"
+      sha256 "2f4e57d36699e816a8cb85a3aee3278706f78f2e1b1af3cf9fdcb54de7c0b72e"
 
       def install
         bin.install "vulnapi"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.4-beta.2/vulnapi_Darwin_arm64.tar.gz"
-      sha256 "4152e7d9b6f71842f871c2515d163dfb889fb929dabc5c18e229ef0809cb704d"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.5/vulnapi_Darwin_arm64.tar.gz"
+      sha256 "529ca230f856cdb6c02c6e73f32490cb064c79deeee148dc01a223288ab62c06"
 
       def install
         bin.install "vulnapi"
@@ -29,16 +29,16 @@ class Vulnapi < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.4-beta.2/vulnapi_Linux_x86_64.tar.gz"
-      sha256 "5cf7d9dee1f19e976d91336cdc953f8c619222ba70e9bfd9c4e86bdefb7ebf72"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.5/vulnapi_Linux_x86_64.tar.gz"
+      sha256 "2699815dc5c4647e1732fff2451cc499225057962c3b7ee5e4ee1ce9bce2f9b6"
 
       def install
         bin.install "vulnapi"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.4-beta.2/vulnapi_Linux_arm64.tar.gz"
-      sha256 "c3fdaf6c33971915182781d25291289940f199f85b5df760a2d5a13c8add3733"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.4.5/vulnapi_Linux_arm64.tar.gz"
+      sha256 "7179279b97d977aa27c6598a5d8884475fb79e3cda8b33c5f7a7a3ce2779b027"
 
       def install
         bin.install "vulnapi"
