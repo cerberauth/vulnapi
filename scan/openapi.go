@@ -79,10 +79,9 @@ func getOperationPath(p string, params openapi3.Parameters) (string, error) {
 
 		// if there is no example generate random param
 		if value == nil {
-			switch v.Value.Schema.Value.Type {
-			case "string":
+			if v.Value.Schema.Value.Type.Is("string") {
 				value = gofakeit.Word()
-			case "number", "integer":
+			} else if v.Value.Schema.Value.Type.Is("number") || v.Value.Schema.Value.Type.Is("integer") {
 				value = gofakeit.Number(0, 5)
 			}
 		}
