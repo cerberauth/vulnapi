@@ -5,10 +5,13 @@ import (
 	"os"
 
 	"github.com/cerberauth/vulnapi/report"
+	"github.com/cerberauth/x/analyticsx"
 	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 var reporter *report.Reporter
@@ -33,6 +36,9 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			figure.NewColorFigure("VulnAPI", "", "cyan", true).Print()
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			ctx := cmd.Context()
+			tracer := otel.Tracer("scan")
+
 			if reporter == nil {
 				return
 			}
@@ -76,6 +82,12 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 
 				table.Rich(row, tableColors)
 			}
+
+			analyticsx.TrackEvent(ctx, tracer, "Scan Report", []attribute.KeyValue{
+				attribute.Int("vulnerabilityCount", len(reporter.GetVulnerabilityReports())),
+				attribute.Bool("hasVulnerability", reporter.HasVulnerability()),
+				attribute.Bool("hasHighRiskSeverityVulnerability", reporter.HasHighRiskSeverityVulnerability()),
+			})
 
 			table.Render()
 			outputColor.Fprintln(outputStream, outputMessage)
