@@ -1,7 +1,7 @@
 package scan
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -11,13 +11,13 @@ import (
 func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
 	req, err := request.NewRequest(operation.Method, operation.Request.URL.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("request with url %s has an unexpected error", err)
+		return nil, errors.New("request has an unexpected error")
 	}
 
 	req = req.WithSecurityScheme(securityScheme)
 	resp, err := req.Do()
 	if err != nil {
-		return nil, fmt.Errorf("request with url %s has an unexpected error", err)
+		return nil, errors.New("request has an unexpected error")
 	}
 	defer resp.Body.Close()
 

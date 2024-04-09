@@ -106,6 +106,10 @@ The scanner perform some discoverability scans:
 
 The VulnAPI may support additional options for customizing scans or output formatting. Run `vulnapi -h` or `vulnapi help` command to view available options and their descriptions.
 
+## Telemetry
+
+The scanner collects anonymous usage data to help improve the tool. This data includes the number of scans performed, number of detected vulnerabilities, and the severity of vulnerabilities. No sensitive information is collected. You can opt-out of telemetry by passing the `--sqa-opt-out` flag.
+
 ## Disclaimer
 
 This scanner is provided for educational and informational purposes only. It should not be used for malicious purposes or to attack any system without proper authorization. Always respect the security and privacy of others.
