@@ -30,15 +30,18 @@ func TestNewScan(t *testing.T) {
 
 		SecuritySchemes: []auth.SecurityScheme{},
 	}}
+	expected := scan.Scan{
+		Operations:      operations,
+		Reporter:        report.NewReporter(),
+		OperationsScans: []scan.OperationScan{},
+	}
 
 	s, err := scan.NewScan(operations, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, &scan.Scan{
-		Operations: operations,
-		Handlers:   []scan.ScanHandler{},
-		Reporter:   report.NewReporter(),
-	}, s)
+	assert.Equal(t, expected.Operations, s.Operations)
+	assert.Equal(t, expected.Reporter, s.Reporter)
+	assert.Equal(t, expected.OperationsScans, s.OperationsScans)
 }
 
 func TestNewScanWithReporter(t *testing.T) {
@@ -52,15 +55,55 @@ func TestNewScanWithReporter(t *testing.T) {
 		SecuritySchemes: []auth.SecurityScheme{},
 	}}
 	reporter := report.NewReporter()
+	expected := scan.Scan{
+		Operations:      operations,
+		Reporter:        reporter,
+		OperationsScans: []scan.OperationScan{},
+	}
 
 	s, err := scan.NewScan(operations, reporter)
 
 	require.NoError(t, err)
-	assert.Equal(t, &scan.Scan{
-		Operations: operations,
-		Handlers:   []scan.ScanHandler{},
-		Reporter:   reporter,
-	}, s)
+	assert.Equal(t, expected.Operations, s.Operations)
+	assert.Equal(t, expected.Reporter, s.Reporter)
+	assert.Equal(t, expected.OperationsScans, s.OperationsScans)
+}
+
+func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
+	operations := request.Operations{{
+		Request: &http.Request{
+			Method: "GET",
+			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
+			Header: http.Header{},
+		},
+
+		SecuritySchemes: []auth.SecurityScheme{},
+	}}
+	s, _ := scan.NewScan(operations, nil)
+
+	operationsScans := s.GetOperationsScans()
+
+	assert.Equal(t, s.OperationsScans, operationsScans)
+}
+
+func TestScanGetOperationsScans(t *testing.T) {
+	operations := request.Operations{{
+		Request: &http.Request{
+			Method: "GET",
+			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
+			Header: http.Header{},
+		},
+
+		SecuritySchemes: []auth.SecurityScheme{},
+	}}
+	s, _ := scan.NewScan(operations, nil)
+	s.AddOperationScanHandler(func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+		return nil, nil
+	})
+
+	operationsScans := s.GetOperationsScans()
+
+	assert.Equal(t, 1, len(operationsScans))
 }
 
 func TestScanValidateOperation(t *testing.T) {

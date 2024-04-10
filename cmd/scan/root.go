@@ -8,6 +8,7 @@ import (
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -25,6 +26,15 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 	}
 
 	return tablewriter.BgWhiteColor
+}
+
+func newProgressBar(max int) *progressbar.ProgressBar {
+	return progressbar.NewOptions(max,
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetElapsedTime(false),
+		progressbar.OptionSetPredictTime(false),
+		progressbar.OptionShowCount(),
+	)
 }
 
 func NewScanCmd() (scanCmd *cobra.Command) {

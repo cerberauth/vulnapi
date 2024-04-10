@@ -9,14 +9,17 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 )
 
-type ScanHandler func(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
+type OperationScan struct {
+	Operation *request.Operation
+	Handler   ScanHandler
+}
+
+type ScanHandler func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
 
 type Scan struct {
-	Operations request.Operations
-	Reporter   *report.Reporter
-
-	OperationHandlers []ScanHandler
-	Handlers          []ScanHandler
+	Operations      request.Operations
+	Reporter        *report.Reporter
+	OperationsScans []OperationScan
 }
 
 func NewScan(operations request.Operations, reporter *report.Reporter) (*Scan, error) {
@@ -29,67 +32,64 @@ func NewScan(operations request.Operations, reporter *report.Reporter) (*Scan, e
 	}
 
 	return &Scan{
-		Operations: operations,
-		Handlers:   []ScanHandler{},
-		Reporter:   reporter,
+		Operations:      operations,
+		Reporter:        reporter,
+		OperationsScans: []OperationScan{},
 	}, nil
 }
 
+func (s *Scan) GetOperationsScans() []OperationScan {
+	return s.OperationsScans
+}
+
 func (s *Scan) AddOperationScanHandler(handler ScanHandler) *Scan {
-	s.OperationHandlers = append(s.OperationHandlers, handler)
+	for _, operation := range s.Operations {
+		s.OperationsScans = append(s.OperationsScans, OperationScan{
+			Operation: operation,
+			Handler:   handler,
+		})
+	}
 
 	return s
 }
 
 func (s *Scan) AddScanHandler(handler ScanHandler) *Scan {
-	s.Handlers = append(s.Handlers, handler)
+	s.OperationsScans = append(s.OperationsScans, OperationScan{
+		Operation: s.Operations[0],
+		Handler:   handler,
+	})
 
 	return s
 }
 
-func (s *Scan) ExecuteOperation(operation *request.Operation, handlers []ScanHandler) ([]error, error) {
+func (s *Scan) Execute(scanCallback func(operationScan *OperationScan)) (*report.Reporter, []error, error) {
+	if err := s.ValidateOperation(s.Operations[0]); err != nil {
+		return nil, nil, err
+	}
+
+	if scanCallback == nil {
+		scanCallback = func(operationScan *OperationScan) {}
+	}
+
 	var errors []error
-	for _, handler := range handlers {
-		report, err := handler(operation, operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
+	for _, scan := range s.OperationsScans {
+		report, err := scan.Handler(scan.Operation, scan.Operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
 		if err != nil {
 			errors = append(errors, err)
-		} else if report == nil {
-			// Skip if no report
-			continue
 		}
 
-		s.Reporter.AddReport(report)
-	}
-
-	return errors, nil
-}
-
-func (s *Scan) Execute() (*report.Reporter, []error, error) {
-	operation := s.Operations[0]
-	if err := s.ValidateOperation(operation); err != nil {
-		return nil, nil, err
-	}
-
-	errors, err := s.ExecuteOperation(operation, s.Handlers)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	for _, operation := range s.Operations {
-		opErrors, opError := s.ExecuteOperation(operation, s.OperationHandlers)
-		if opError != nil {
-			return nil, nil, opError
+		if report != nil {
+			s.Reporter.AddReport(report)
 		}
 
-		errors = append(errors, opErrors...)
+		scanCallback(&scan)
 	}
 
 	return s.Reporter, errors, nil
 }
 
 func (s *Scan) ValidateOperation(operation *request.Operation) error {
-	securityScheme := operation.SecuritySchemes[0] // TODO: handle multiple security schemes
-	attempt, err := scan.ScanURL(operation, &securityScheme)
+	attempt, err := scan.ScanURL(operation, &operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
 	if err != nil {
 		return err
 	}
