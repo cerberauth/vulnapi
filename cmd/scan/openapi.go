@@ -39,18 +39,22 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			var validToken *string
 			if isStdinOpen() {
-				stdin := readStdin()
-				validToken = stdin
+				validToken = readStdin()
 			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			scan, err := scan.NewOpenAPIScan(openapiUrlOrPath, validToken, nil)
+			s, err := scan.NewOpenAPIScan(openapiUrlOrPath, validToken, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			if reporter, _, err = scan.WithAllScans().Execute(); err != nil {
+			s.WithAllScans()
+			bar := newProgressBar(len(s.GetOperationsScans()))
+
+			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
+				bar.Add(1)
+			}); err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}

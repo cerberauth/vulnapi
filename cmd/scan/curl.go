@@ -53,13 +53,18 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			analyticsx.TrackEvent(ctx, tracer, "Scan CURL", []attribute.KeyValue{
 				attribute.String("method", method),
 			})
-			scan, err := scan.NewURLScan(method, url, httpHeader, httpCookies, nil)
+			s, err := scan.NewURLScan(method, url, httpHeader, httpCookies, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			if reporter, _, err = scan.WithAllScans().Execute(); err != nil {
+			s.WithAllScans()
+			bar := newProgressBar(len(s.GetOperationsScans()))
+
+			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
+				bar.Add(1)
+			}); err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
