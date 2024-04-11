@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 )
 
-func NewURLScan(method string, url string, header http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
+func NewGraphQLScan(url string, header http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
 	var securitySchemes []auth.SecurityScheme
 	if securityScheme := detectSecurityScheme(header); securityScheme != nil {
 		securitySchemes = append(securitySchemes, securityScheme)
@@ -16,7 +16,7 @@ func NewURLScan(method string, url string, header http.Header, cookies []http.Co
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
-	operations := request.Operations{request.NewOperation(url, method, header, cookies, securitySchemes)}
+	operations := request.Operations{request.NewOperation(url, "POST", header, cookies, securitySchemes)}
 
 	return NewScan(operations, reporter)
 }

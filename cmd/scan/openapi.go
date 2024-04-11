@@ -1,9 +1,7 @@
 package scan
 
 import (
-	"bufio"
 	"log"
-	"os"
 
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
@@ -11,21 +9,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
-
-func isStdinOpen() bool {
-	stat, _ := os.Stdin.Stat()
-	return (stat.Mode() & os.ModeCharDevice) == 0
-}
-
-func readStdin() *string {
-	scanner := bufio.NewScanner(os.Stdin)
-	if scanner.Scan() {
-		t := scanner.Text()
-		return &t
-	}
-
-	return nil
-}
 
 func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
@@ -49,7 +32,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			s.WithAllScans()
+			s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllOpenAPIDiscoverScans()
 			bar := newProgressBar(len(s.GetOperationsScans()))
 
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {

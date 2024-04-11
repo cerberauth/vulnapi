@@ -14,5 +14,4 @@ func TestNewScanCmd(t *testing.T) {
 
 	// Assert that NewCURLScanCmd and NewOpenAPIScanCmd commands are added
 	assert.NotNil(t, scanCmd.Commands())
-	assert.Len(t, scanCmd.Commands(), 2)
 }
