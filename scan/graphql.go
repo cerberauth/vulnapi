@@ -16,7 +16,7 @@ func NewGraphQLScan(url string, header http.Header, cookies []http.Cookie, repor
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
-	operations := request.Operations{request.NewOperation(url, "POST", header, cookies, securitySchemes)}
+	operations := request.Operations{request.NewOperation(url, http.MethodPost, header, cookies, securitySchemes)}
 
 	return NewScan(operations, reporter)
 }
