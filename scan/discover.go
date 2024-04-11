@@ -21,3 +21,11 @@ func (s *Scan) WithGraphQLIntrospectionScan() *Scan {
 func (s *Scan) WithAllDiscoverScans() *Scan {
 	return s.WithServerSignatureScan().WithDiscoverableOpenAPIScan().WithDiscoverableGraphQLPathScan().WithGraphQLIntrospectionScan()
 }
+
+func (s *Scan) WithAllGraphQLScans() *Scan {
+	return s.WithServerSignatureScan().WithDiscoverableGraphQLPathScan().WithGraphQLIntrospectionScan()
+}
+
+func (s *Scan) WithAllOpenAPIDiscoverScans() *Scan {
+	return s.WithServerSignatureScan().WithDiscoverableOpenAPIScan()
+}

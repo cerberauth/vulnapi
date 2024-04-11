@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -15,6 +16,21 @@ import (
 )
 
 var reporter *report.Reporter
+
+func isStdinOpen() bool {
+	stat, _ := os.Stdin.Stat()
+	return (stat.Mode() & os.ModeCharDevice) == 0
+}
+
+func readStdin() *string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		t := scanner.Text()
+		return &t
+	}
+
+	return nil
+}
 
 func severityTableColor(v *report.VulnerabilityReport) int {
 	if v.IsLowRiskSeverity() || v.IsInfoRiskSeverity() {
@@ -101,6 +117,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 	}
 	scanCmd.AddCommand(NewCURLScanCmd())
 	scanCmd.AddCommand(NewOpenAPIScanCmd())
+	scanCmd.AddCommand(NewGraphQLScanCmd())
 
 	return scanCmd
 }
