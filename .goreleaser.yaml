@@ -62,6 +62,8 @@ chocolateys:
     tags: "security vulnerability developer"
     summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
     skip_publish: false
+    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
+    source_repo: "https://push.chocolatey.org/"
     description: |
       VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
 
