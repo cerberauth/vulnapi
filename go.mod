@@ -1,6 +1,6 @@
 module github.com/cerberauth/vulnapi
 
-go 1.22.0
+go 1.22.2
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.2
@@ -10,8 +10,9 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/schollz/progressbar/v3 v3.14.2
 	github.com/spf13/cobra v1.8.0
-	github.com/std-uritemplate/std-uritemplate/go v0.0.55
+	github.com/std-uritemplate/std-uritemplate/go v0.0.56
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel v1.25.0
 	go.opentelemetry.io/otel/sdk v1.25.0
@@ -37,7 +38,6 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/schollz/progressbar/v3 v3.14.2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.25.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.25.0 // indirect
