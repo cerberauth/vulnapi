@@ -15,6 +15,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+const reportUnexpectedError = "If you think that report is not accurate or if you have any suggestions for improvements, please open an issue at: https://github.com/cerberauth/vulnapi/issues/new."
+
 var reporter *report.Reporter
 
 func isStdinOpen() bool {
@@ -113,6 +115,9 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 
 			table.Render()
 			outputColor.Fprintln(outputStream, outputMessage)
+
+			fmt.Println()
+			fmt.Println(reportUnexpectedError)
 		},
 	}
 	scanCmd.AddCommand(NewCURLScanCmd())
