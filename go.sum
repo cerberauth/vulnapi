@@ -4,6 +4,8 @@ github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK3
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/cerberauth/x v0.0.0-20240409133334-f71a9f0073ae h1:d2bPBngMcevu64RNuS4Xcc47F4AlAKrT0pxDC0In4I4=
 github.com/cerberauth/x v0.0.0-20240409133334-f71a9f0073ae/go.mod h1:H4j9MAe/8zgK12E11QEROznj8S3XH3G66DfgI9ZuPm0=
+github.com/cerberauth/x v0.0.0-20240417082024-19736ff88dc2 h1:3jY7GgzIZQeXgvGYdS60Tj4A/7w+mdadPbdgccAEhn4=
+github.com/cerberauth/x v0.0.0-20240417082024-19736ff88dc2/go.mod h1:DjxEWTqK3M+i1luE3fNcxFMOadREoMXQKgRyfKsKkzE=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
