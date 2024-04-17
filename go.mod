@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.2
-	github.com/cerberauth/x v0.0.0-20240409133334-f71a9f0073ae
+	github.com/cerberauth/x v0.0.0-20240417082024-19736ff88dc2
 	github.com/fatih/color v1.16.0
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
