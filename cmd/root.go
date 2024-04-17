@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,17 +14,27 @@ import (
 
 var sqaOptOut bool
 
-func NewRootCmd() (cmd *cobra.Command) {
+func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of this application",
+		Long:  `All software has versions. This is this application's`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(projectVersion)
+		},
+	}
+
 	rootCmd := &cobra.Command{
 		Use:   "vulnapi",
 		Short: "vulnapi",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !sqaOptOut {
 				ctx := cmd.Context()
-				analytics.NewAnalytics(ctx)
+				analytics.NewAnalytics(ctx, projectVersion)
 			}
 		},
 	}
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(scan.NewScanCmd())
 	rootCmd.AddCommand(jwt.NewRootCmd())
 	rootCmd.AddCommand(serve.NewServeCmd())
@@ -33,8 +44,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 	return rootCmd
 }
 
-func Execute() {
-	c := NewRootCmd()
+func Execute(projectVersion string) {
+	c := NewRootCmd(projectVersion)
 
 	if err := c.Execute(); err != nil {
 		os.Exit(1)
