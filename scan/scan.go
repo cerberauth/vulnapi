@@ -99,7 +99,9 @@ func (s *Scan) ValidateOperation(operation *request.Operation) error {
 	}
 
 	if scan.DetectNotExpectedResponse(attempt.Response) == nil {
-		return fmt.Errorf("operation validation failed because of unexpected response: %d", attempt.Response.StatusCode)
+		fmt.Println("Operation validation failed because of unexpected response:", attempt.Response.StatusCode)
+		fmt.Println("For better results, please make sure the first request is working as expected.")
+		fmt.Println()
 	}
 
 	return nil

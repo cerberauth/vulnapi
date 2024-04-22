@@ -10,7 +10,12 @@ import (
 
 func NewURLScan(method string, url string, header http.Header, cookies []http.Cookie, reporter *report.Reporter) (*Scan, error) {
 	var securitySchemes []auth.SecurityScheme
-	if securityScheme := detectSecurityScheme(header); securityScheme != nil {
+	securityScheme, err := detectSecurityScheme(header)
+	if err != nil {
+		return nil, err
+	}
+
+	if securityScheme != nil {
 		securitySchemes = append(securitySchemes, securityScheme)
 	} else {
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())

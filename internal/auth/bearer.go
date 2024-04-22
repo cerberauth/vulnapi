@@ -2,10 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-
-	"github.com/cerberauth/vulnapi/jwt"
 )
 
 type BearerSecurityScheme struct {
@@ -14,30 +11,18 @@ type BearerSecurityScheme struct {
 	In          SchemeIn
 	Name        string
 	ValidValue  *string
-	TokenWriter *jwt.JWTWriter
-	IsJWT       bool
 	AttackValue string
 }
 
 var _ SecurityScheme = (*BearerSecurityScheme)(nil)
 
 func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSecurityScheme {
-	var tokenWriter *jwt.JWTWriter
-
-	if value != nil {
-		var err error
-		if tokenWriter, err = jwt.NewJWTWriter(*value); err != nil {
-			log.Default().Println("Error creating JWT writer: ", err)
-		}
-	}
-
 	return &BearerSecurityScheme{
 		Type:        HttpType,
 		Scheme:      BearerScheme,
 		In:          InHeader,
 		Name:        name,
 		ValidValue:  value,
-		TokenWriter: tokenWriter,
 		AttackValue: "",
 	}
 }
@@ -63,7 +48,7 @@ func (ss *BearerSecurityScheme) GetValidValue() interface{} {
 }
 
 func (ss *BearerSecurityScheme) GetValidValueWriter() interface{} {
-	return ss.TokenWriter
+	return nil
 }
 
 func (ss *BearerSecurityScheme) SetAttackValue(v interface{}) {

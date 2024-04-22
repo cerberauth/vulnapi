@@ -51,7 +51,6 @@ func TestBearerSecurityScheme_GetCookies(t *testing.T) {
 func TestBearerSecurityScheme_GetValidValue(t *testing.T) {
 	name := "token"
 	value := "abc123"
-
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
 
 	validValue := ss.GetValidValue()
@@ -62,12 +61,10 @@ func TestBearerSecurityScheme_GetValidValue(t *testing.T) {
 func TestBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
 	name := "token"
 	value := "abc123"
-
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
 	writer := ss.GetValidValueWriter()
 
-	assert.Equal(t, ss.TokenWriter, writer)
+	assert.Equal(t, nil, writer)
 }
 
 func TestBearerSecurityScheme_SetAttackValue(t *testing.T) {
@@ -85,7 +82,6 @@ func TestBearerSecurityScheme_SetAttackValue(t *testing.T) {
 func TestBearerSecurityScheme_GetAttackValue(t *testing.T) {
 	name := "token"
 	value := "abc123"
-
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
 
 	attackValue := "xyz789"

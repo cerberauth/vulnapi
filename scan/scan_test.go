@@ -119,6 +119,18 @@ func TestScanValidateOperation(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestScanValidateOperationWhenRequestHasTimeoutError(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+
+	s, err := scan.NewURLScan(operation.Method, operation.RequestURI, nil, nil, nil)
+	err = s.ValidateOperation(operation)
+
+	assert.Error(t, err)
+}
+
 func TestScanValidateOperationWhenRequestHasInternalServerError(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -127,7 +139,7 @@ func TestScanValidateOperationWhenRequestHasInternalServerError(t *testing.T) {
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(httpmock.NewStringResponse(500, "Internal Server Error")))
 
 	s, err := scan.NewURLScan(operation.Method, operation.RequestURI, nil, nil, nil)
-
 	err = s.ValidateOperation(operation)
-	assert.Error(t, err)
+
+	assert.NoError(t, err)
 }

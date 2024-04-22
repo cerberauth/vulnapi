@@ -13,7 +13,8 @@ const (
 	OAuthScheme  SchemeName = "oauth"
 	PrivateToken SchemeName = "privateToken"
 
-	NoneScheme SchemeName = "none"
+	NoneScheme    SchemeName = "none"
+	UnknownScheme SchemeName = "unknown"
 )
 
 func (s *SchemeName) String() string {
