@@ -108,7 +108,15 @@ func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *repor
 		switch scheme.Value.Type {
 		case "http":
 			if scheme.Value.Scheme == string(auth.BearerScheme) {
-				securitySchemes[name] = auth.NewAuthorizationBearerSecurityScheme(name, validToken)
+				switch scheme.Value.BearerFormat {
+				case "jwt":
+					securitySchemes[name], err = auth.NewAuthorizationJWTBearerSecurityScheme(name, validToken)
+					if err != nil {
+						return nil, err
+					}
+				default:
+					securitySchemes[name] = auth.NewAuthorizationBearerSecurityScheme(name, validToken)
+				}
 			}
 		}
 	}

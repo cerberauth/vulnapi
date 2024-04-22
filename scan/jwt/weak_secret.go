@@ -10,6 +10,10 @@ import (
 )
 
 const (
+	BlankSecretVulnerabilitySeverityLevel = 9
+	BlankSecretVulnerabilityName          = "JWT Blank Secret"
+	BlankSecretVulnerabilityDescription   = "JWT secret is blank and can be easily guessed."
+
 	WeakSecretVulnerabilitySeverityLevel = 9
 	WeakSecretVulnerabilityName          = "JWT Weak Secret"
 	WeakSecretVulnerabilityDescription   = "JWT secret is weak and can be easily guessed."
@@ -39,9 +43,9 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: WeakSecretVulnerabilitySeverityLevel,
-			Name:          WeakSecretVulnerabilityName,
-			Description:   WeakSecretVulnerabilityDescription,
+			SeverityLevel: BlankSecretVulnerabilitySeverityLevel,
+			Name:          BlankSecretVulnerabilityName,
+			Description:   BlankSecretVulnerabilityDescription,
 			Operation:     operation,
 		})
 	}
@@ -66,6 +70,10 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 	}
 
 	for _, secret := range jwtSecretDictionary {
+		if secret == "" {
+			continue
+		}
+
 		newToken, err := valueWriter.SignWithKey([]byte(secret))
 		if err != nil {
 			return r, nil
