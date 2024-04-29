@@ -1,0 +1,97 @@
+{
+	"info": {
+		"_postman_id": "6b95c3a4-9fd3-4891-bf0f-51e67dbd7ef3",
+		"name": "VulnAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "458835"
+	},
+	"item": [
+		{
+			"name": "Scan URL",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\": \"http://localhost:8091\",\n    \"method\": \"GET\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/scans/url",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"scans",
+						"url"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Scan GraphQL",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"endpoint\": \"http://localhost:8091\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/scans/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"scans",
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Scan OpenAPI",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"schema\": \"{\\\"openapi\\\":\\\"3.0.2\\\",\\\"servers\\\":[{\\\"url\\\":\\\"http://localhost:8091\\\"}],\\\"paths\\\":{\\\"/\\\":{\\\"get\\\":{\\\"parameters\\\":[],\\\"responses\\\":{\\\"204\\\":{\\\"description\\\":\\\"successful operation\\\"}},\\\"security\\\":[{\\\"bearer_auth\\\":[]}]}},\\\"/resources/{id}\\\":{\\\"post\\\":{\\\"parameters\\\":[{\\\"name\\\":\\\"id\\\",\\\"in\\\":\\\"path\\\",\\\"required\\\":true,\\\"schema\\\":{\\\"type\\\":\\\"string\\\"}}],\\\"responses\\\":{\\\"204\\\":{\\\"description\\\":\\\"successful operation\\\"}},\\\"security\\\":[{\\\"bearer_auth\\\":[]}]}}},\\\"components\\\":{\\\"securitySchemes\\\":{\\\"bearer_auth\\\":{\\\"type\\\":\\\"http\\\",\\\"scheme\\\":\\\"bearer\\\",\\\"bearerFormat\\\":\\\"JWT\\\"}}}}\",\n    \"valid_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.LwimMJA3puF3ioGeS-tfczR3370GXBZMIL-bdpu4hOU\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/scans/openapi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"scans",
+						"openapi"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

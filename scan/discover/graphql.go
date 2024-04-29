@@ -12,10 +12,15 @@ import (
 )
 
 const (
+	DiscoverableGraphQLPathScanID   = "discover.graphql"
+	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
+
 	DiscoverableGraphQLPathSeverityLevel            = 0
 	DiscoverableGraphQLPathVulnerabilityName        = "Discoverable GraphQL Path"
 	DiscoverableGraphQLPathVulnerabilityDescription = "GraphQL path seems discoverable and can lead to information disclosure and security issues"
 
+	GraphqlIntrospectionScanID                          = "scan.graphql-introspection"
+	GraphqlIntrospectionScanName                        = "GraphQL Introspection"
 	GraphqlIntrospectionEnabledSeverityLevel            = 0
 	GraphqlIntrospectionEnabledVulnerabilityName        = "GraphQL Introspection enabled"
 	GraphqlIntrospectionEnabledVulnerabilityDescription = "GraphQL Introspection seems enabled and can lead to information disclosure and security issues"
@@ -51,8 +56,7 @@ func newGetGraphqlIntrospectionRequest(endpoint *url.URL) (*http.Request, error)
 }
 
 func GraphqlIntrospectionScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
-
+	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName)
 	securityScheme.SetAttackValue(securityScheme.GetValidValue())
 
 	base := ExtractBaseURL(operation.Request.URL)
@@ -111,7 +115,8 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 }
 
 func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, &report.VulnerabilityReport{
+	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName)
+	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
 		Name:          DiscoverableGraphQLPathVulnerabilityName,
 		Description:   DiscoverableGraphQLPathVulnerabilityDescription,

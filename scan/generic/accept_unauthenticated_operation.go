@@ -8,9 +8,15 @@ import (
 )
 
 const (
+	NoAuthOperationScanID   = "generic.no-auth-operation"
+	NoAuthOperationScanName = "No Auth Operation"
+
 	NoAuthOperationVulnerabilityLevel       = 0
 	NoAuthOperationVulnerabilityName        = "Operation Accepts Unauthenticated Requests"
 	NoAuthOperationVulnerabilityDescription = "The operation accepts unauthenticated requests or the authenticated scheme has not been detected. This can lead to unauthorized access and security issues."
+
+	AcceptsUnauthenticatedOperationScanID   = "generic.accept-unauthenticated-operation"
+	AcceptsUnauthenticatedOperationScanName = "Accept Unauthenticated Operation"
 
 	AcceptUnauthenticatedOperationVulnerabilityLevel       = 9
 	AcceptUnauthenticatedOperationVulnerabilityName        = "Operation Accepts Unauthenticated Requests"
@@ -18,7 +24,7 @@ const (
 )
 
 func NoAuthOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NoAuthOperationVulnerabilityLevel,
@@ -28,11 +34,12 @@ func NoAuthOperationScanHandler(operation *request.Operation, securityScheme aut
 		})
 	}
 
+	r.End()
 	return r, nil
 }
 
 func AcceptUnauthenticatedOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		return r, nil
 	}

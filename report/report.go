@@ -6,13 +6,16 @@ import (
 )
 
 type VulnerabilityScanAttempt struct {
-	Request  *http.Request
-	Response *http.Response
+	Request  *http.Request  `json:"request"`
+	Response *http.Response `json:"response"`
 
-	Err error
+	Err error `json:"error"`
 }
 
 type ScanReport struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
 	Scans []*VulnerabilityScanAttempt `json:"scans"`
 	Vulns []*VulnerabilityReport      `json:"vulnerabilities"`
 
@@ -20,8 +23,14 @@ type ScanReport struct {
 	EndTime   time.Time `json:"end_time"`
 }
 
-func NewScanReport() *ScanReport {
+func NewScanReport(id string, name string) *ScanReport {
 	return &ScanReport{
+		ID:   id,
+		Name: name,
+
+		Scans: []*VulnerabilityScanAttempt{},
+		Vulns: []*VulnerabilityReport{},
+
 		StartTime: time.Now(),
 	}
 }

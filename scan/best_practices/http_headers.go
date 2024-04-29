@@ -19,6 +19,9 @@ const (
 )
 
 const (
+	HTTPHeadersScanID   = "bestpractices.http-headers"
+	HTTPHeadersScanName = "HTTP Headers Best Practices"
+
 	CSPHTTPHeaderSeverityLevel                                  = 0
 	CSPHTTPHeaderIsNotSetVulnerabilityName                      = "CSP Header is not set"
 	CSPHTTPHeaderIsNotSetVulnerabilityDescription               = "No Content Security Policy (CSP) Header has been detected in HTTP Response."
@@ -107,7 +110,7 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 }
 
 func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName)
 
 	ss.SetAttackValue(ss.GetValidValue())
 	vsa, err := scan.ScanURL(operation, &ss)
