@@ -21,7 +21,7 @@ func (o Operations) Less(i, j int) bool {
 type Operation struct {
 	*http.Request
 
-	SecuritySchemes []auth.SecurityScheme
+	SecuritySchemes []auth.SecurityScheme `json:"security_schemes"`
 }
 
 func NewOperation(url, method string, header http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) *Operation {

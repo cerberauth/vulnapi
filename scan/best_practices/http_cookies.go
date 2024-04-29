@@ -10,6 +10,9 @@ import (
 )
 
 const (
+	HTTPCookiesScanID   = "bestpractices.http-cookies"
+	HTTPCookiesScanName = "HTTP Cookies Best Practices"
+
 	HTTPCookiesNotHTTPOnlySeverityLevel            = 0
 	HTTPCookiesNotHTTPOnlyVulnerabilityName        = "Cookies not HTTP-Only"
 	HTTPCookiesNotHTTPOnlyVulnerabilityDescription = "Cookies should be http-only."
@@ -28,7 +31,7 @@ const (
 )
 
 func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName)
 
 	securityScheme.SetAttackValue(securityScheme.GetValidValue())
 	attempt, err := scan.ScanURL(operation, &securityScheme)

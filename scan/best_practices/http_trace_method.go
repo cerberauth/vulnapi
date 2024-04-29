@@ -8,13 +8,16 @@ import (
 )
 
 const (
+	HTTPTraceScanID   = "bestpractices.http-trace"
+	HTTPTraceScanName = "HTTP Trace Method Best Practices"
+
 	HTTPTraceMethodSeverityLevel            = 0
 	HTTPTraceMethodVulnerabilityName        = "HTTP Trace Method enabled"
 	HTTPTraceMethodVulnerabilityDescription = "HTTP Trace method seems enabled for this request."
 )
 
 func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName)
 	newOperation := operation.Clone()
 	newOperation.Method = "TRACE"
 

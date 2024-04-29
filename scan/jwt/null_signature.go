@@ -9,13 +9,16 @@ import (
 )
 
 const (
+	NullSignatureScanID   = "jwt.null-signature"
+	NullSignatureScanName = "JWT Null Signature"
+
 	NullSigVulnerabilitySeverityLevel = 9
 	NullSigVulnerabilityName          = "JWT Null Signature"
 	NullSigVulnerabilityDescription   = "JWT with null signature is accepted allowing to bypass authentication."
 )
 
 func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName)
 	if !ShouldBeScanned(ss) {
 		return r, nil
 	}

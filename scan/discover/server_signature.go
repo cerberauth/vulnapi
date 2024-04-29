@@ -8,6 +8,9 @@ import (
 )
 
 const (
+	DiscoverServerSignatureScanID   = "discover.server-signature"
+	DiscoverServerSignatureScanName = "Server Signature Discovery"
+
 	ServerSignatureSeverityLevel            = 0
 	ServerSignatureVulnerabilityName        = "Server Signature Exposed"
 	ServerSignatureVulnerabilityDescription = "A Server signature is exposed in an header."
@@ -34,7 +37,7 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 }
 
 func ServerSignatureScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(DiscoverServerSignatureScanID, DiscoverServerSignatureScanName)
 
 	securityScheme.SetAttackValue(securityScheme.GetValidValue())
 	vsa, err := scan.ScanURL(operation, &securityScheme)

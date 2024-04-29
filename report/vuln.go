@@ -7,11 +7,11 @@ import (
 )
 
 type VulnerabilityReport struct {
-	SeverityLevel float64 // https://nvd.nist.gov/vuln-metrics/cvss
-	Name          string
-	Description   string
+	SeverityLevel float64 `json:"severity"` // https://nvd.nist.gov/vuln-metrics/cvss
+	Name          string  `json:"name"`
+	Description   string  `json:"description"`
 
-	Operation *request.Operation
+	Operation *request.Operation `json:"operation"`
 }
 
 func (vr *VulnerabilityReport) WithOperation(operation *request.Operation) *VulnerabilityReport {

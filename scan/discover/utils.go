@@ -20,14 +20,13 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	return baseURL
 }
 
-func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	scanUrls := defaultUrls
 	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil {
 		scanUrls = urlsFromSeclist.Items
 	}
 
 	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-		r := report.NewScanReport()
 		securityScheme.SetAttackValue(securityScheme.GetValidValue())
 
 		base := ExtractBaseURL(operation.Request.URL)

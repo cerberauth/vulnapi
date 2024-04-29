@@ -3,6 +3,7 @@ package scan
 import (
 	"log"
 
+	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
@@ -20,13 +21,19 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			tracer := otel.Tracer("scan/openapi")
 			openapiUrlOrPath := args[0]
 
+			doc, err := openapi.LoadOpenAPI(openapiUrlOrPath)
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
 			var validToken *string
 			if isStdinOpen() {
 				validToken = readStdin()
 			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			s, err := scan.NewOpenAPIScan(openapiUrlOrPath, validToken, nil)
+			s, err := scan.NewOpenAPIScan(doc, validToken, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

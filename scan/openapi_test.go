@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,8 @@ import (
 
 func TestNewOpenAPIScan(t *testing.T) {
 	token := "token"
-	s, err := scan.NewOpenAPIScan("../test/stub/simple_http_bearer_jwt.openapi.json", &token, nil)
+	doc, _ := openapi.LoadOpenAPI("../test/stub/simple_http_bearer_jwt.openapi.json")
+	s, err := scan.NewOpenAPIScan(doc, &token, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -23,20 +25,14 @@ func TestNewOpenAPIScan(t *testing.T) {
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}, s.Operations[0].SecuritySchemes)
 }
 
-func TestNewOpenAPIScanWithPathError(t *testing.T) {
-	token := ""
-	_, err := scan.NewOpenAPIScan("../test/stub/non_existing_file.openapi.json", &token, nil)
-
-	require.Error(t, err)
-}
-
 func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 	gofakeit.Seed(1)
 
 	token := "token"
+	doc, _ := openapi.LoadOpenAPI("../test/stub/basic_http_bearer_jwt.openapi.json")
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 
-	s, err := scan.NewOpenAPIScan("../test/stub/basic_http_bearer_jwt.openapi.json", &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
@@ -49,9 +45,10 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 	gofakeit.Seed(1)
 
 	token := "token"
+	doc, _ := openapi.LoadOpenAPI("../test/stub/basic_http_bearer_jwt.openapi.json")
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 
-	s, err := scan.NewOpenAPIScan("../test/stub/basic_http_bearer_jwt.openapi.json", &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))

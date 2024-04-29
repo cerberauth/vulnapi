@@ -10,13 +10,16 @@ import (
 )
 
 const (
+	AlgNoneJwtScanID   = "jwt.alg-none"
+	AlgNoneJwtScanName = "JWT None Algorithm"
+
 	AlgNoneVulnerabilitySeverityLevel = 9
 	AlgNoneVulnerabilityName          = "JWT None Algorithm"
 	AlgNoneVulnerabilityDescription   = "JWT with none algorithm is accepted allowing to bypass authentication."
 )
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName)
 	if !ShouldBeScanned(ss) {
 		return r, nil
 	}

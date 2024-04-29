@@ -9,13 +9,16 @@ import (
 )
 
 const (
+	NotVerifiedJwtScanID   = "jwt.not-verified"
+	NotVerifiedJwtScanName = "JWT Not Verified"
+
 	NotVerifiedVulnerabilitySeverityLevel = 9
 	NotVerifiedVulnerabilityName          = "JWT Not Verified"
 	NotVerifiedVulnerabilityDescription   = "JWT is not verified allowing attackers to issue valid JWT."
 )
 
 func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName)
 	if !ShouldBeScanned(ss) {
 		return r, nil
 	}
@@ -31,7 +34,7 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(attemptOne)
+	r.AddScanAttempt(attemptOne).End()
 
 	if scan.DetectNotExpectedResponse(attemptOne.Response) == nil {
 		return r, nil
@@ -43,8 +46,7 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 		return r, err
 	}
 
-	r.AddScanAttempt(attemptTwo)
-	r.End()
+	r.AddScanAttempt(attemptTwo).End()
 
 	if attemptOne.Response.StatusCode == attemptTwo.Response.StatusCode {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{

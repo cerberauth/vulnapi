@@ -7,6 +7,9 @@ import (
 )
 
 const (
+	DiscoverableOpenAPIScanID   = "discover.discoverable-openapi"
+	DiscoverableOpenAPIScanName = "Discoverable OpenAPI"
+
 	DiscoverableOpenAPISeverityLevel            = 0
 	DiscoverableOpenAPIVulnerabilityName        = "Discoverable OpenAPI"
 	DiscoverableOpenAPIVulnerabilityDescription = "An OpenAPI file is exposed without protection. This can lead to information disclosure and security issues"
@@ -29,7 +32,8 @@ var potentialOpenAPIPaths = []string{
 var openapiSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt"
 
 func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	handler := CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, &report.VulnerabilityReport{
+	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName)
+	handler := CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableOpenAPISeverityLevel,
 		Name:          DiscoverableOpenAPIVulnerabilityName,
 		Description:   DiscoverableOpenAPIVulnerabilityDescription,

@@ -10,9 +10,15 @@ import (
 )
 
 const (
+	BlankSecretVulnerabilityScanID   = "jwt.blank"
+	BlankSecretVulnerabilityScanName = "JWT Blank Secret"
+
 	BlankSecretVulnerabilitySeverityLevel = 9
 	BlankSecretVulnerabilityName          = "JWT Blank Secret"
 	BlankSecretVulnerabilityDescription   = "JWT secret is blank and can be easily guessed."
+
+	WeakSecretVulnerabilityScanID   = "jwt.weak-secret"
+	WeakSecretVulnerabilityScanName = "JWT Weak Secret"
 
 	WeakSecretVulnerabilitySeverityLevel = 9
 	WeakSecretVulnerabilityName          = "JWT Weak Secret"
@@ -24,8 +30,9 @@ var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "chang
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
 
 func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName)
 	if !ShouldBeScanned(ss) {
+		r.End()
 		return r, nil
 	}
 
@@ -54,8 +61,9 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 }
 
 func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport()
+	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName)
 	if !ShouldBeScanned(ss) {
+		r.End()
 		return r, nil
 	}
 
@@ -85,7 +93,7 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 
 		ss.SetAttackValue(newToken)
 		vsa, err := scan.ScanURL(o, &ss)
-		r.AddScanAttempt(vsa)
+		r.AddScanAttempt(vsa).End()
 		if err != nil {
 			return r, err
 		}

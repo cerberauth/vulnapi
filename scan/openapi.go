@@ -8,7 +8,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -92,12 +91,7 @@ func getOperationPath(p string, params openapi3.Parameters) (string, error) {
 	return stduritemplate.Expand(p, subs)
 }
 
-func NewOpenAPIScan(openAPIUrlOrPath string, validToken *string, reporter *report.Reporter) (*Scan, error) {
-	doc, err := openapi.LoadOpenAPI(openAPIUrlOrPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Reporter) (*Scan, error) {
 	baseUrl, err := getBaseUrl(doc)
 	if err != nil {
 		return nil, err

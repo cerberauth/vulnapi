@@ -7,6 +7,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/cmd/jwt"
 	"github.com/cerberauth/vulnapi/cmd/scan"
+	"github.com/cerberauth/vulnapi/cmd/serve"
 	"github.com/cerberauth/vulnapi/internal/analytics"
 )
 
@@ -25,6 +26,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	}
 	rootCmd.AddCommand(scan.NewScanCmd())
 	rootCmd.AddCommand(jwt.NewRootCmd())
+	rootCmd.AddCommand(serve.NewServeCmd())
 
 	rootCmd.PersistentFlags().BoolVarP(&sqaOptOut, "sqa-opt-out", "", false, "Opt out of sending anonymous usage statistics and crash reports to help improve the tool")
 
