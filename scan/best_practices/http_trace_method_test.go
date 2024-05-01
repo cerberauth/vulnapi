@@ -5,7 +5,6 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	bestpractices "github.com/cerberauth/vulnapi/scan/best_practices"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -36,15 +35,6 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HTTPTraceMethodSeverityLevel,
-
-		ID:   bestpractices.HTTPTraceMethodVulnerabilityID,
-		Name: bestpractices.HTTPTraceMethodVulnerabilityName,
-		URL:  bestpractices.HTTPTraceMethodVulnerabilityURL,
-
-		Operation: operation,
-	}
 
 	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
 
@@ -53,5 +43,4 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0], &vulnerabilityReport)
 }

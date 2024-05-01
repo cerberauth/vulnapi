@@ -20,10 +20,14 @@ func TestFormatReports(t *testing.T) {
 			EndTime:   endTime,
 			Vulns: []*report.VulnerabilityReport{
 				{
+					OWASP2023Category: report.OWASP2023BFLACategory,
+
 					ID:   "vulnerability-1",
 					Name: "Vulnerability 1",
 				},
 				{
+					OWASP2023Category: report.OWASP2023BOPLCategory,
+
 					ID:   "vulnerability-2",
 					Name: "Vulnerability 2",
 				},
@@ -39,12 +43,16 @@ func TestFormatReports(t *testing.T) {
 			EndTime:   endTime,
 			Vulns: []api.HTTPResponseVulnerability{
 				{
-					SeverityLevel: 0,
-					Name:          "Vulnerability 1",
+					OWASP2023Category: report.OWASP2023BFLACategory,
+
+					ID:   "vulnerability-1",
+					Name: "Vulnerability 1",
 				},
 				{
-					SeverityLevel: 0,
-					Name:          "Vulnerability 2",
+					OWASP2023Category: report.OWASP2023BOPLCategory,
+
+					ID:   "vulnerability-2",
+					Name: "Vulnerability 2",
 				},
 			},
 		},
