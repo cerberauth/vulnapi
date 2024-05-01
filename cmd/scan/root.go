@@ -84,6 +84,11 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				outputStream = os.Stderr
 			}
 
+			fmt.Println()
+			fmt.Println()
+			outputColor.Fprintln(outputStream, outputMessage)
+			fmt.Println()
+
 			headers := []string{"Risk Level", "Vulnerability", "Documentation URL"}
 			if cmd.Name() == "openapi" {
 				headers = append(headers, "Operation")
@@ -117,7 +122,6 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			})
 
 			table.Render()
-			outputColor.Fprintln(outputStream, outputMessage)
 
 			fmt.Println()
 			fmt.Println(reportUnexpectedError)
