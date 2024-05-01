@@ -8,12 +8,14 @@ import (
 )
 
 const (
-	DiscoverServerSignatureScanID   = "discover.server-signature"
+	DiscoverServerSignatureScanID   = "discover.server_signature"
 	DiscoverServerSignatureScanName = "Server Signature Discovery"
 
-	ServerSignatureSeverityLevel            = 0
-	ServerSignatureVulnerabilityName        = "Server Signature Exposed"
-	ServerSignatureVulnerabilityDescription = "A Server signature is exposed in an header."
+	ServerSignatureSeverityLevel     = 0
+	ServerSignatureOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	ServerSignatureVulnerabilityID   = "security_misconfiguration.server_signature"
+	ServerSignatureVulnerabilityName = "Server Signature Exposed"
+	ServerSignatureVulnerabilityURL  = ""
 )
 
 var signatureHeaders = []string{"Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"}
@@ -24,9 +26,14 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 		if len(value) > 0 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: ServerSignatureSeverityLevel,
-				Name:          ServerSignatureVulnerabilityName,
-				Description:   ServerSignatureVulnerabilityDescription,
-				Operation:     operation,
+
+				OWASP2023Category: ServerSignatureOWASP2023Category,
+
+				ID:   ServerSignatureVulnerabilityID,
+				Name: ServerSignatureVulnerabilityName,
+				URL:  ServerSignatureVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return false

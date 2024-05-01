@@ -15,15 +15,20 @@ const (
 	DiscoverableGraphQLPathScanID   = "discover.graphql"
 	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
 
-	DiscoverableGraphQLPathSeverityLevel            = 0
-	DiscoverableGraphQLPathVulnerabilityName        = "Discoverable GraphQL Path"
-	DiscoverableGraphQLPathVulnerabilityDescription = "GraphQL path seems discoverable and can lead to information disclosure and security issues"
+	DiscoverableGraphQLPathSeverityLevel     = 0
+	DiscoverableGraphQLPathOWASP2023Category = report.OWASP2023SSRFCategory
+	DiscoverableGraphQLPathVulnerabilityID   = "ssrf.graphql_discover_endpoint"
+	DiscoverableGraphQLPathVulnerabilityName = "Discoverable GraphQL Endpoint"
+	DiscoverableGraphQLPathVulnerabilityURL  = ""
 
-	GraphqlIntrospectionScanID                          = "scan.graphql-introspection"
-	GraphqlIntrospectionScanName                        = "GraphQL Introspection"
-	GraphqlIntrospectionEnabledSeverityLevel            = 0
-	GraphqlIntrospectionEnabledVulnerabilityName        = "GraphQL Introspection enabled"
-	GraphqlIntrospectionEnabledVulnerabilityDescription = "GraphQL Introspection seems enabled and can lead to information disclosure and security issues"
+	GraphqlIntrospectionScanID   = "discover.graphql_introspection"
+	GraphqlIntrospectionScanName = "GraphQL Introspection"
+
+	GraphqlIntrospectionEnabledSeverityLevel     = 0
+	GraphqlIntrospectionEnabledOWASP2023Category = report.OWASP2023SSRFCategory
+	GraphqlIntrospectionEnabledVulnerabilityID   = "ssrf.graphql_introspection_enabled"
+	GraphqlIntrospectionEnabledVulnerabilityName = "GraphQL Introspection enabled"
+	GraphqlIntrospectionEnabledVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection/?utm_source=vulnapi"
 )
 
 var potentialGraphQLEndpoints = []string{
@@ -77,9 +82,14 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 		if attempt.Response.StatusCode < 300 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
-				Name:          GraphqlIntrospectionEnabledVulnerabilityName,
-				Description:   GraphqlIntrospectionEnabledVulnerabilityDescription,
-				Operation:     operation,
+
+				OWASP2023Category: GraphqlIntrospectionEnabledOWASP2023Category,
+
+				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
+				Name: GraphqlIntrospectionEnabledVulnerabilityName,
+				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return r, nil
@@ -102,9 +112,14 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 		if attempt.Response.StatusCode < 300 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
-				Name:          GraphqlIntrospectionEnabledVulnerabilityName,
-				Description:   GraphqlIntrospectionEnabledVulnerabilityDescription,
-				Operation:     operation,
+
+				OWASP2023Category: GraphqlIntrospectionEnabledOWASP2023Category,
+
+				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
+				Name: GraphqlIntrospectionEnabledVulnerabilityName,
+				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return r, nil
@@ -118,8 +133,14 @@ func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securitySc
 	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName)
 	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
-		Name:          DiscoverableGraphQLPathVulnerabilityName,
-		Description:   DiscoverableGraphQLPathVulnerabilityDescription,
+
+		OWASP2023Category: DiscoverableGraphQLPathOWASP2023Category,
+
+		ID:   DiscoverableGraphQLPathVulnerabilityID,
+		Name: DiscoverableGraphQLPathVulnerabilityName,
+		URL:  DiscoverableGraphQLPathVulnerabilityURL,
+
+		Operation: operation,
 	})
 
 	return handler(operation, securityScheme)

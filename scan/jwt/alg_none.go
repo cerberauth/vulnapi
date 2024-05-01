@@ -10,12 +10,15 @@ import (
 )
 
 const (
-	AlgNoneJwtScanID   = "jwt.alg-none"
+	AlgNoneJwtScanID   = "jwt.alg_none"
 	AlgNoneJwtScanName = "JWT None Algorithm"
 
-	AlgNoneVulnerabilitySeverityLevel = 9
-	AlgNoneVulnerabilityName          = "JWT None Algorithm"
-	AlgNoneVulnerabilityDescription   = "JWT with none algorithm is accepted allowing to bypass authentication."
+	AlgNoneVulnerabilitySeverityLevel     = 9
+	AlgNoneVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	AlgNoneVulnerabilityID   = "broken_authentication.jwt_alg_none"
+	AlgNoneVulnerabilityName = "JWT None Algorithm"
+	AlgNoneVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-alg-none/?utm_source=vulnapi"
 )
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
@@ -43,9 +46,14 @@ func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme)
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: AlgNoneVulnerabilitySeverityLevel,
-			Name:          AlgNoneVulnerabilityName,
-			Description:   AlgNoneVulnerabilityDescription,
-			Operation:     operation,
+
+			OWASP2023Category: AlgNoneVulnerabilityOWASP2023Category,
+
+			ID:   AlgNoneVulnerabilityID,
+			Name: AlgNoneVulnerabilityName,
+			URL:  AlgNoneVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 

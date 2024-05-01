@@ -10,55 +10,20 @@ import (
 )
 
 const (
-	BlankSecretVulnerabilityScanID   = "jwt.blank"
-	BlankSecretVulnerabilityScanName = "JWT Blank Secret"
-
-	BlankSecretVulnerabilitySeverityLevel = 9
-	BlankSecretVulnerabilityName          = "JWT Blank Secret"
-	BlankSecretVulnerabilityDescription   = "JWT secret is blank and can be easily guessed."
-
-	WeakSecretVulnerabilityScanID   = "jwt.weak-secret"
+	WeakSecretVulnerabilityScanID   = "jwt.weak_secret"
 	WeakSecretVulnerabilityScanName = "JWT Weak Secret"
 
-	WeakSecretVulnerabilitySeverityLevel = 9
-	WeakSecretVulnerabilityName          = "JWT Weak Secret"
-	WeakSecretVulnerabilityDescription   = "JWT secret is weak and can be easily guessed."
+	WeakSecretVulnerabilitySeverityLevel     = 9
+	WeakSecretVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	WeakSecretVulnerabilityID   = "broken_authentication.jwt_weak_secret"
+	WeakSecretVulnerabilityName = "JWT Weak Secret"
+	WeakSecretVulnerabilityURL  = ""
 )
 
 var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "changeme", "admin", "token"}
 
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
-
-func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName)
-	if !ShouldBeScanned(ss) {
-		r.End()
-		return r, nil
-	}
-
-	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
-	newToken, err := valueWriter.SignWithKey([]byte(""))
-	if err != nil {
-		return r, err
-	}
-	ss.SetAttackValue(newToken)
-	vsa, err := scan.ScanURL(operation, &ss)
-	r.AddScanAttempt(vsa).End()
-	if err != nil {
-		return r, err
-	}
-
-	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
-		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: BlankSecretVulnerabilitySeverityLevel,
-			Name:          BlankSecretVulnerabilityName,
-			Description:   BlankSecretVulnerabilityDescription,
-			Operation:     operation,
-		})
-	}
-
-	return r, nil
-}
 
 func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName)
@@ -101,9 +66,12 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 		if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: WeakSecretVulnerabilitySeverityLevel,
-				Name:          WeakSecretVulnerabilityName,
-				Description:   WeakSecretVulnerabilityDescription,
-				Operation:     o,
+
+				ID:   BlankSecretVulnerabilityID,
+				Name: WeakSecretVulnerabilityName,
+				URL:  BlankSecretVulnerabilityURL,
+
+				Operation: o,
 			})
 			break
 		}

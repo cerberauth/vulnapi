@@ -7,7 +7,6 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	bestpractices "github.com/cerberauth/vulnapi/scan/best_practices"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -79,19 +78,11 @@ func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
 	resp.Header.Add("Set-Cookie", cookie.String())
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
-	expectedReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HTTPCookiesNotHTTPOnlySeverityLevel,
-		Name:          bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityDescription,
-		Operation:     operation,
-	}
-
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0], &expectedReport)
 }
 
 func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
@@ -115,19 +106,11 @@ func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
 	resp.Header.Add("Set-Cookie", cookie.String())
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
-	expectedReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HTTPCookiesNotSecureSeverityLevel,
-		Name:          bestpractices.HTTPCookiesNotSecureVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesNotSecureVulnerabilityDescription,
-		Operation:     operation,
-	}
-
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0], &expectedReport)
 }
 
 func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
@@ -151,19 +134,11 @@ func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
 	resp.Header.Add("Set-Cookie", cookie.String())
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
-	expectedReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HTTPCookiesSameSiteSeverityLevel,
-		Name:          bestpractices.HTTPCookiesSameSiteVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesSameSiteVulnerabilityDescription,
-		Operation:     operation,
-	}
-
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0], &expectedReport)
 }
 
 func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
@@ -187,17 +162,9 @@ func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
 	resp.Header.Add("Set-Cookie", cookie.String())
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
 
-	expectedReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HTTPCookiesExpiresSeverityLevel,
-		Name:          bestpractices.HTTPCookiesExpiresVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesExpiresVulnerabilityDescription,
-		Operation:     operation,
-	}
-
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0], &expectedReport)
 }

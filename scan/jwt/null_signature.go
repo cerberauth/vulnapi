@@ -9,12 +9,15 @@ import (
 )
 
 const (
-	NullSignatureScanID   = "jwt.null-signature"
+	NullSignatureScanID   = "jwt.null_signature"
 	NullSignatureScanName = "JWT Null Signature"
 
-	NullSigVulnerabilitySeverityLevel = 9
-	NullSigVulnerabilityName          = "JWT Null Signature"
-	NullSigVulnerabilityDescription   = "JWT with null signature is accepted allowing to bypass authentication."
+	NullSigVulnerabilitySeverityLevel     = 9
+	NullSigVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	NullSigVulnerabilityID   = "broken_authentication.jwt_null_signature"
+	NullSigVulnerabilityName = "JWT Null Signature"
+	NullSigVulnerabilityURL  = ""
 )
 
 func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
@@ -38,9 +41,14 @@ func NullSignatureScanHandler(operation *request.Operation, ss auth.SecuritySche
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NullSigVulnerabilitySeverityLevel,
-			Name:          NullSigVulnerabilityName,
-			Description:   NullSigVulnerabilityDescription,
-			Operation:     operation,
+
+			OWASP2023Category: NullSigVulnerabilityOWASP2023Category,
+
+			ID:   NullSigVulnerabilityID,
+			Name: NullSigVulnerabilityName,
+			URL:  NullSigVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 

@@ -7,12 +7,14 @@ import (
 )
 
 const (
-	DiscoverableOpenAPIScanID   = "discover.discoverable-openapi"
+	DiscoverableOpenAPIScanID   = "discover.discoverable_openapi"
 	DiscoverableOpenAPIScanName = "Discoverable OpenAPI"
 
-	DiscoverableOpenAPISeverityLevel            = 0
-	DiscoverableOpenAPIVulnerabilityName        = "Discoverable OpenAPI"
-	DiscoverableOpenAPIVulnerabilityDescription = "An OpenAPI file is exposed without protection. This can lead to information disclosure and security issues"
+	DiscoverableOpenAPISeverityLevel     = 0
+	DiscoverableOpenAPIOWASP2023Category = report.OWASP2023SSRFCategory
+	DiscoverableOpenAPIVulnerabilityID   = "ssrf.discoverable_openapi"
+	DiscoverableOpenAPIVulnerabilityName = "Discoverable OpenAPI"
+	DiscoverableOpenAPIVulnerabilityURL  = ""
 )
 
 var potentialOpenAPIPaths = []string{
@@ -35,8 +37,14 @@ func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName)
 	handler := CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableOpenAPISeverityLevel,
-		Name:          DiscoverableOpenAPIVulnerabilityName,
-		Description:   DiscoverableOpenAPIVulnerabilityDescription,
+
+		OWASP2023Category: DiscoverableOpenAPIOWASP2023Category,
+
+		ID:   DiscoverableOpenAPIVulnerabilityID,
+		Name: DiscoverableOpenAPIVulnerabilityName,
+		URL:  DiscoverableOpenAPIVulnerabilityURL,
+
+		Operation: operation,
 	})
 
 	return handler(operation, securityScheme)

@@ -7,8 +7,10 @@ import (
 )
 
 type HTTPResponseVulnerability struct {
-	SeverityLevel float64 `json:"severity"`
-	Name          string  `json:"name"`
+	OWASP2023Category string `json:"owasp2023_category"`
+
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type HTTPResponseReport struct {
@@ -22,8 +24,10 @@ type HTTPResponseReport struct {
 
 func formatVulnerabilitReport(vr *report.VulnerabilityReport) HTTPResponseVulnerability {
 	return HTTPResponseVulnerability{
-		SeverityLevel: vr.SeverityLevel,
-		Name:          vr.Name,
+		OWASP2023Category: vr.OWASP2023Category,
+
+		ID:   vr.ID,
+		Name: vr.Name,
 	}
 }
 

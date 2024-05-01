@@ -8,29 +8,40 @@ import (
 )
 
 const (
-	NoAuthOperationScanID   = "generic.no-auth-operation"
+	NoAuthOperationScanID   = "generic.no_auth_operation"
 	NoAuthOperationScanName = "No Auth Operation"
 
-	NoAuthOperationVulnerabilityLevel       = 0
-	NoAuthOperationVulnerabilityName        = "Operation Accepts Unauthenticated Requests"
-	NoAuthOperationVulnerabilityDescription = "The operation accepts unauthenticated requests or the authenticated scheme has not been detected. This can lead to unauthorized access and security issues."
+	NoAuthOperationVulnerabilitySeverityLevel     = 0
+	NoAuthOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
 
-	AcceptsUnauthenticatedOperationScanID   = "generic.accept-unauthenticated-operation"
+	NoAuthOperationVulnerabilityID   = "broken_authentication.no_auth_operation"
+	NoAuthOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
+	NoAuthOperationVulnerabilityURL  = ""
+
+	AcceptsUnauthenticatedOperationScanID   = "generic.accept_unauthenticated_operation"
 	AcceptsUnauthenticatedOperationScanName = "Accept Unauthenticated Operation"
 
-	AcceptUnauthenticatedOperationVulnerabilityLevel       = 9
-	AcceptUnauthenticatedOperationVulnerabilityName        = "Operation Accepts Unauthenticated Requests"
-	AcceptUnauthenticatedOperationVulnerabilityDescription = "The operation accepts unauthenticated requests or the authenticated scheme has not been detected. This can lead to unauthorized access and security issues."
+	AcceptUnauthenticatedOperationVulnerabilitySeverityLevel     = 9
+	AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	AcceptUnauthenticatedOperationVulnerabilityID   = "broken_authentication.accept_unauthenticated_operation"
+	AcceptUnauthenticatedOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
+	AcceptUnauthenticatedOperationVulnerabilityURL  = ""
 )
 
 func NoAuthOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: NoAuthOperationVulnerabilityLevel,
-			Name:          NoAuthOperationVulnerabilityName,
-			Description:   NoAuthOperationVulnerabilityDescription,
-			Operation:     operation,
+			SeverityLevel: NoAuthOperationVulnerabilitySeverityLevel,
+
+			OWASP2023Category: NoAuthOperationVulnerabilityOWASP2023Category,
+
+			ID:   NoAuthOperationVulnerabilityID,
+			Name: NoAuthOperationVulnerabilityName,
+			URL:  NoAuthOperationVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 
@@ -53,10 +64,15 @@ func AcceptUnauthenticatedOperationScanHandler(operation *request.Operation, sec
 
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: AcceptUnauthenticatedOperationVulnerabilityLevel,
-			Name:          AcceptUnauthenticatedOperationVulnerabilityName,
-			Description:   AcceptUnauthenticatedOperationVulnerabilityDescription,
-			Operation:     operation,
+			SeverityLevel: AcceptUnauthenticatedOperationVulnerabilitySeverityLevel,
+
+			OWASP2023Category: AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category,
+
+			ID:   AcceptUnauthenticatedOperationVulnerabilityID,
+			Name: AcceptUnauthenticatedOperationVulnerabilityName,
+			URL:  AcceptUnauthenticatedOperationVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 

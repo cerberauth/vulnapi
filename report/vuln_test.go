@@ -42,8 +42,9 @@ func TestVulnerabilityReport_IsHighRiskSeverity(t *testing.T) {
 func TestVulnerabilityReport_String(t *testing.T) {
 	vr := &report.VulnerabilityReport{
 		SeverityLevel: 7.5,
+		ID:            "test-vulnerability",
 		Name:          "Test Vulnerability",
-		Description:   "This is a test vulnerability",
+		URL:           "https://example.com/docs/vulnerability",
 
 		Operation: &request.Operation{
 			Request: &http.Request{
@@ -52,7 +53,7 @@ func TestVulnerabilityReport_String(t *testing.T) {
 			},
 		},
 	}
-	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability: This is a test vulnerability"
+	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability"
 	assert.Equal(t, expected, vr.String())
 }
 

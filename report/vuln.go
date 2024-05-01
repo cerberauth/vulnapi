@@ -7,9 +7,13 @@ import (
 )
 
 type VulnerabilityReport struct {
-	SeverityLevel float64 `json:"severity"` // https://nvd.nist.gov/vuln-metrics/cvss
-	Name          string  `json:"name"`
-	Description   string  `json:"description"`
+	SeverityLevel float64 `json:"severity"` // TODO: Follow https://www.first.org/cvss/specification-document
+
+	OWASP2023Category string `json:"owasp_2023_category"`
+
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 
 	Operation *request.Operation `json:"operation"`
 }
@@ -37,7 +41,7 @@ func (vr *VulnerabilityReport) IsInfoRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s %s: %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String(), vr.Description)
+	return fmt.Sprintf("[%s][%s] %s %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String())
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {

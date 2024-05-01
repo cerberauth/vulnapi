@@ -45,9 +45,12 @@ func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: discover.DiscoverableOpenAPISeverityLevel,
-		Name:          discover.DiscoverableOpenAPIVulnerabilityName,
-		Description:   discover.DiscoverableOpenAPIVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   discover.DiscoverableOpenAPIVulnerabilityID,
+		Name: discover.DiscoverableOpenAPIVulnerabilityName,
+		URL:  discover.DiscoverableOpenAPIVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := discover.DiscoverableOpenAPIScanHandler(operation, securityScheme)

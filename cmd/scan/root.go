@@ -84,7 +84,12 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				outputStream = os.Stderr
 			}
 
-			headers := []string{"Risk Level", "Vulnerability", "Description"}
+			fmt.Println()
+			fmt.Println()
+			outputColor.Fprintln(outputStream, outputMessage)
+			fmt.Println()
+
+			headers := []string{"Risk Level", "OWASP", "Vulnerability"}
 			if cmd.Name() == "openapi" {
 				headers = append(headers, "Operation")
 			}
@@ -93,15 +98,18 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			table.SetHeader(headers)
 
 			for _, v := range reporter.GetVulnerabilityReports() {
-				lineColor := severityTableColor(v)
-				row := []string{v.SeverityLevelString(), v.Name, v.Description}
+				row := []string{v.SeverityLevelString(), v.OWASP2023Category, v.Name}
 				if cmd.Name() == "openapi" {
 					row = append(row, fmt.Sprintf("%s %s", v.Operation.Method, v.Operation.Request.URL.String()))
 				}
 
 				tableColors := make([]tablewriter.Colors, len(headers))
 				for i := range tableColors {
-					tableColors[i] = tablewriter.Colors{tablewriter.Bold, lineColor}
+					if i == 0 {
+						tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(v)}
+					} else {
+						tableColors[i] = tablewriter.Colors{}
+					}
 				}
 
 				table.Rich(row, tableColors)
@@ -114,7 +122,6 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			})
 
 			table.Render()
-			outputColor.Fprintln(outputStream, outputMessage)
 
 			fmt.Println()
 			fmt.Println(reportUnexpectedError)

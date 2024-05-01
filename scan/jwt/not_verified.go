@@ -9,12 +9,15 @@ import (
 )
 
 const (
-	NotVerifiedJwtScanID   = "jwt.not-verified"
+	NotVerifiedJwtScanID   = "jwt.not_verified"
 	NotVerifiedJwtScanName = "JWT Not Verified"
 
-	NotVerifiedVulnerabilitySeverityLevel = 9
-	NotVerifiedVulnerabilityName          = "JWT Not Verified"
-	NotVerifiedVulnerabilityDescription   = "JWT is not verified allowing attackers to issue valid JWT."
+	NotVerifiedVulnerabilitySeverityLevel     = 9
+	NotVerifiedVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	NotVerifiedVulnerabilityID   = "broken_authentication.jwt_not_verified"
+	NotVerifiedVulnerabilityName = "JWT Not Verified"
+	NotVerifiedVulnerabilityURL  = ""
 )
 
 func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
@@ -51,9 +54,14 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	if attemptOne.Response.StatusCode == attemptTwo.Response.StatusCode {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NotVerifiedVulnerabilitySeverityLevel,
-			Name:          NotVerifiedVulnerabilityName,
-			Description:   NotVerifiedVulnerabilityDescription,
-			Operation:     operation,
+
+			OWASP2023Category: NotVerifiedVulnerabilityOWASP2023Category,
+
+			ID:   NotVerifiedVulnerabilityID,
+			Name: NotVerifiedVulnerabilityName,
+			URL:  NotVerifiedVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 
