@@ -7,10 +7,13 @@ import (
 )
 
 type VulnerabilityReport struct {
-	SeverityLevel float64 `json:"severity"` // https://nvd.nist.gov/vuln-metrics/cvss
-	ID            string  `json:"id"`
-	Name          string  `json:"name"`
-	URL           string  `json:"url"`
+	SeverityLevel float64 `json:"severity"` // TODO: Follow https://www.first.org/cvss/specification-document
+
+	OWASP2023Category string `json:"owasp_2023_category"`
+
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 
 	Operation *request.Operation `json:"operation"`
 }

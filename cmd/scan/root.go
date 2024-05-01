@@ -89,7 +89,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			outputColor.Fprintln(outputStream, outputMessage)
 			fmt.Println()
 
-			headers := []string{"Risk Level", "Vulnerability", "Documentation URL"}
+			headers := []string{"Risk Level", "OWASP", "Vulnerability"}
 			if cmd.Name() == "openapi" {
 				headers = append(headers, "Operation")
 			}
@@ -98,7 +98,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			table.SetHeader(headers)
 
 			for _, v := range reporter.GetVulnerabilityReports() {
-				row := []string{v.SeverityLevelString(), v.Name, v.URL}
+				row := []string{v.SeverityLevelString(), v.OWASP2023Category, v.Name}
 				if cmd.Name() == "openapi" {
 					row = append(row, fmt.Sprintf("%s %s", v.Operation.Method, v.Operation.Request.URL.String()))
 				}

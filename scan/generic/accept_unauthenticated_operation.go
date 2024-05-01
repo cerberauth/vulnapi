@@ -8,28 +8,34 @@ import (
 )
 
 const (
-	NoAuthOperationScanID   = "generic.no-auth-operation"
+	NoAuthOperationScanID   = "generic.no_auth_operation"
 	NoAuthOperationScanName = "No Auth Operation"
 
-	NoAuthOperationVulnerabilityLevel = 0
-	NoAuthOperationVulnerabilityID    = "generic.no-auth-operation"
-	NoAuthOperationVulnerabilityName  = "Operation Accepts Unauthenticated Requests"
-	NoAuthOperationVulnerabilityURL   = ""
+	NoAuthOperationVulnerabilitySeverityLevel     = 0
+	NoAuthOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
 
-	AcceptsUnauthenticatedOperationScanID   = "generic.accept-unauthenticated-operation"
+	NoAuthOperationVulnerabilityID   = "broken_authentication.no_auth_operation"
+	NoAuthOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
+	NoAuthOperationVulnerabilityURL  = ""
+
+	AcceptsUnauthenticatedOperationScanID   = "generic.accept_unauthenticated_operation"
 	AcceptsUnauthenticatedOperationScanName = "Accept Unauthenticated Operation"
 
-	AcceptUnauthenticatedOperationVulnerabilityLevel = 9
-	AcceptUnauthenticatedOperationVulnerabilityID    = "generic.accept-unauthenticated-operation"
-	AcceptUnauthenticatedOperationVulnerabilityName  = "Operation Accepts Unauthenticated Requests"
-	AcceptUnauthenticatedOperationVulnerabilityURL   = ""
+	AcceptUnauthenticatedOperationVulnerabilitySeverityLevel     = 9
+	AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	AcceptUnauthenticatedOperationVulnerabilityID   = "broken_authentication.accept_unauthenticated_operation"
+	AcceptUnauthenticatedOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
+	AcceptUnauthenticatedOperationVulnerabilityURL  = ""
 )
 
 func NoAuthOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: NoAuthOperationVulnerabilityLevel,
+			SeverityLevel: NoAuthOperationVulnerabilitySeverityLevel,
+
+			OWASP2023Category: NoAuthOperationVulnerabilityOWASP2023Category,
 
 			ID:   NoAuthOperationVulnerabilityID,
 			Name: NoAuthOperationVulnerabilityName,
@@ -58,7 +64,9 @@ func AcceptUnauthenticatedOperationScanHandler(operation *request.Operation, sec
 
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: AcceptUnauthenticatedOperationVulnerabilityLevel,
+			SeverityLevel: AcceptUnauthenticatedOperationVulnerabilitySeverityLevel,
+
+			OWASP2023Category: AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category,
 
 			ID:   AcceptUnauthenticatedOperationVulnerabilityID,
 			Name: AcceptUnauthenticatedOperationVulnerabilityName,

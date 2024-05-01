@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	DiscoverServerSignatureScanID   = "discover.server-signature"
+	DiscoverServerSignatureScanID   = "discover.server_signature"
 	DiscoverServerSignatureScanName = "Server Signature Discovery"
 
 	ServerSignatureSeverityLevel     = 0
-	ServerSignatureVulnerabilityID   = "discover.server-signature"
+	ServerSignatureOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	ServerSignatureVulnerabilityID   = "security_misconfiguration.server_signature"
 	ServerSignatureVulnerabilityName = "Server Signature Exposed"
 	ServerSignatureVulnerabilityURL  = ""
 )
@@ -25,6 +26,8 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 		if len(value) > 0 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: ServerSignatureSeverityLevel,
+
+				OWASP2023Category: ServerSignatureOWASP2023Category,
 
 				ID:   ServerSignatureVulnerabilityID,
 				Name: ServerSignatureVulnerabilityName,

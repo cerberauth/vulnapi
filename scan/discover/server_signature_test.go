@@ -23,6 +23,8 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: discover.ServerSignatureSeverityLevel,
 
+		OWASP2023Category: discover.ServerSignatureOWASP2023Category,
+
 		ID:   discover.ServerSignatureVulnerabilityID,
 		Name: discover.ServerSignatureVulnerabilityName,
 		URL:  discover.ServerSignatureVulnerabilityURL,

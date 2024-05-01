@@ -10,26 +10,30 @@ import (
 )
 
 const (
-	HTTPCookiesScanID   = "bestpractices.http-cookies"
+	HTTPCookiesScanID   = "best_practices.http_cookies"
 	HTTPCookiesScanName = "HTTP Cookies Best Practices"
 
 	HTTPCookiesNotHTTPOnlySeverityLevel     = 0
-	HTTPCookiesNotHTTPOnlyVulnerabilityID   = "bestpractices.http-cookies-not-http-only"
+	HTTPCookiesNotHTTPOnlyOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTTPCookiesNotHTTPOnlyVulnerabilityID   = "security_misconfiguration.http_cookies_not_http_only"
 	HTTPCookiesNotHTTPOnlyVulnerabilityName = "Cookies not HTTP-Only"
 	HTTPCookiesNotHTTPOnlyVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 
 	HTTPCookiesNotSecureSeverityLevel     = 0
-	HTTPCookiesNotSecureVulnerabilityID   = "bestpractices.http-cookies-not-secure"
+	HTTPCookiesNotSecureOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTTPCookiesNotSecureVulnerabilityID   = "security_misconfiguration.http_cookies_not_secure"
 	HTTPCookiesNotSecureVulnerabilityName = "Cookies not Secure"
 	HTTPCookiesNotSecureVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 
 	HTTPCookiesSameSiteSeverityLevel     = 0
-	HTTPCookiesSameSiteVulnerabilityID   = "bestpractices.http-cookies-same-site"
+	HTTPCookiesSameSiteOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTTPCookiesSameSiteVulnerabilityID   = "security_misconfiguration.http_cookies_same_site"
 	HTTPCookiesSameSiteVulnerabilityName = "Cookies SameSite not set or set to None"
 	HTTPCookiesSameSiteVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value"
 
 	HTTPCookiesExpiresSeverityLevel     = 0
-	HTTPCookiesExpiresVulnerabilityID   = "bestpractices.http-cookies-expires"
+	HTTPCookiesExpiresOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTTPCookiesExpiresVulnerabilityID   = "security_misconfiguration.http_cookies_expires"
 	HTTPCookiesExpiresVulnerabilityName = "Cookies Expires not set"
 	HTTPCookiesExpiresVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 )
@@ -50,6 +54,8 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesNotSecureSeverityLevel,
 
+				OWASP2023Category: HTTPCookiesNotSecureOWASP2023Category,
+
 				ID:   HTTPCookiesNotSecureVulnerabilityID,
 				Name: HTTPCookiesNotSecureVulnerabilityName,
 				URL:  HTTPCookiesNotSecureVulnerabilityURL,
@@ -61,6 +67,8 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 		if !cookie.HttpOnly {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesNotHTTPOnlySeverityLevel,
+
+				OWASP2023Category: HTTPCookiesNotHTTPOnlyOWASP2023Category,
 
 				ID:   HTTPCookiesNotHTTPOnlyVulnerabilityID,
 				Name: HTTPCookiesNotHTTPOnlyVulnerabilityName,
@@ -74,6 +82,8 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesSameSiteSeverityLevel,
 
+				OWASP2023Category: HTTPCookiesSameSiteOWASP2023Category,
+
 				ID:   HTTPCookiesSameSiteVulnerabilityID,
 				Name: HTTPCookiesSameSiteVulnerabilityName,
 				URL:  HTTPCookiesSameSiteVulnerabilityURL,
@@ -85,6 +95,8 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 		if cookie.Expires.IsZero() {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesExpiresSeverityLevel,
+
+				OWASP2023Category: HTTPCookiesExpiresOWASP2023Category,
 
 				ID:   HTTPCookiesExpiresVulnerabilityID,
 				Name: HTTPCookiesExpiresVulnerabilityName,

@@ -16,17 +16,19 @@ const (
 	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
 
 	DiscoverableGraphQLPathSeverityLevel     = 0
-	DiscoverableGraphQLPathVulnerabilityID   = "discover.graphql"
-	DiscoverableGraphQLPathVulnerabilityName = "Discoverable GraphQL Path"
+	DiscoverableGraphQLPathOWASP2023Category = report.OWASP2023SSRFCategory
+	DiscoverableGraphQLPathVulnerabilityID   = "ssrf.graphql_discover_endpoint"
+	DiscoverableGraphQLPathVulnerabilityName = "Discoverable GraphQL Endpoint"
 	DiscoverableGraphQLPathVulnerabilityURL  = ""
 
-	GraphqlIntrospectionScanID   = "discover.graphql-introspection"
+	GraphqlIntrospectionScanID   = "discover.graphql_introspection"
 	GraphqlIntrospectionScanName = "GraphQL Introspection"
 
 	GraphqlIntrospectionEnabledSeverityLevel     = 0
-	GraphqlIntrospectionEnabledVulnerabilityID   = "discover.graphql-introspection-enabled"
+	GraphqlIntrospectionEnabledOWASP2023Category = report.OWASP2023SSRFCategory
+	GraphqlIntrospectionEnabledVulnerabilityID   = "ssrf.graphql_introspection_enabled"
 	GraphqlIntrospectionEnabledVulnerabilityName = "GraphQL Introspection enabled"
-	GraphqlIntrospectionEnabledVulnerabilityURL  = ""
+	GraphqlIntrospectionEnabledVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection/"
 )
 
 var potentialGraphQLEndpoints = []string{
@@ -81,6 +83,8 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
 
+				OWASP2023Category: GraphqlIntrospectionEnabledOWASP2023Category,
+
 				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
 				Name: GraphqlIntrospectionEnabledVulnerabilityName,
 				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
@@ -109,6 +113,8 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
 
+				OWASP2023Category: GraphqlIntrospectionEnabledOWASP2023Category,
+
 				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
 				Name: GraphqlIntrospectionEnabledVulnerabilityName,
 				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
@@ -128,9 +134,13 @@ func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securitySc
 	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
 
+		OWASP2023Category: DiscoverableGraphQLPathOWASP2023Category,
+
 		ID:   DiscoverableGraphQLPathVulnerabilityID,
 		Name: DiscoverableGraphQLPathVulnerabilityName,
 		URL:  DiscoverableGraphQLPathVulnerabilityURL,
+
+		Operation: operation,
 	})
 
 	return handler(operation, securityScheme)

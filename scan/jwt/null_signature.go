@@ -9,11 +9,13 @@ import (
 )
 
 const (
-	NullSignatureScanID   = "jwt.null-signature"
+	NullSignatureScanID   = "jwt.null_signature"
 	NullSignatureScanName = "JWT Null Signature"
 
-	NullSigSeverityLevel     = 9
-	NullSigVulnerabilityID   = "jwt.null-signature"
+	NullSigVulnerabilitySeverityLevel     = 9
+	NullSigVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
+
+	NullSigVulnerabilityID   = "broken_authentication.jwt_null_signature"
 	NullSigVulnerabilityName = "JWT Null Signature"
 	NullSigVulnerabilityURL  = ""
 )
@@ -38,7 +40,9 @@ func NullSignatureScanHandler(operation *request.Operation, ss auth.SecuritySche
 
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: NullSigSeverityLevel,
+			SeverityLevel: NullSigVulnerabilitySeverityLevel,
+
+			OWASP2023Category: NullSigVulnerabilityOWASP2023Category,
 
 			ID:   NullSigVulnerabilityID,
 			Name: NullSigVulnerabilityName,

@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	HTTPTraceScanID   = "bestpractices.http-trace"
+	HTTPTraceScanID   = "best_practices.http_trace"
 	HTTPTraceScanName = "HTTP Trace Method Best Practices"
 
 	HTTPTraceMethodSeverityLevel     = 0
-	HTTPTraceMethodVulnerabilityID   = "bestpractices.http-trace-method"
+	HTTPTraceMethodOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTTPTraceMethodVulnerabilityID   = "security_misconfiguration.http_trace_method"
 	HTTPTraceMethodVulnerabilityName = "HTTP Trace Method enabled"
 	HTTPTraceMethodVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE"
 )
@@ -32,6 +33,8 @@ func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecuritySc
 	if vsa.Response.StatusCode < 300 {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: HTTPTraceMethodSeverityLevel,
+
+			OWASP2023Category: HTTPTraceMethodOWASP2023Category,
 
 			ID:   HTTPTraceMethodVulnerabilityID,
 			Name: HTTPTraceMethodVulnerabilityName,

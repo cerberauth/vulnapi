@@ -16,10 +16,13 @@ func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: generic.NoAuthOperationVulnerabilityLevel,
-		ID:            generic.NoAuthOperationVulnerabilityID,
-		Name:          generic.NoAuthOperationVulnerabilityName,
-		URL:           generic.NoAuthOperationVulnerabilityURL,
+		SeverityLevel: generic.NoAuthOperationVulnerabilitySeverityLevel,
+
+		OWASP2023Category: generic.NoAuthOperationVulnerabilityOWASP2023Category,
+
+		ID:   generic.NoAuthOperationVulnerabilityID,
+		Name: generic.NoAuthOperationVulnerabilityName,
+		URL:  generic.NoAuthOperationVulnerabilityURL,
 
 		Operation: operation,
 	}
@@ -61,7 +64,9 @@ func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: generic.AcceptUnauthenticatedOperationVulnerabilityLevel,
+		SeverityLevel: generic.AcceptUnauthenticatedOperationVulnerabilitySeverityLevel,
+
+		OWASP2023Category: generic.AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category,
 
 		ID:   generic.AcceptUnauthenticatedOperationVulnerabilityID,
 		Name: generic.AcceptUnauthenticatedOperationVulnerabilityName,

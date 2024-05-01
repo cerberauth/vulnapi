@@ -19,41 +19,48 @@ const (
 )
 
 const (
-	HTTPHeadersScanID   = "bestpractices.http-headers"
+	HTTPHeadersScanID   = "best_practices.http_headers"
 	HTTPHeadersScanName = "HTTP Headers Best Practices"
 
 	CSPHTTPHeaderIsNotSetSeverityLevel     = 0
-	CSPHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-csp-not-set"
+	CSPHTTPHeaderISNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	CSPHTTPHeaderIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_csp_not_set"
 	CSPHTTPHeaderIsNotSetVulnerabilityName = "CSP Header is not set"
 	CSPHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy"
 
 	CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel     = 0
-	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID   = "bestpractices.http-headers-csp-frame-ancestors-not-set"
+	CSPHTTPHeaderFrameAncestorsIsNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_csp_frame_ancestors_not_set"
 	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName = "CSP frame-ancestors policy is not set"
 	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors"
 
 	HTSTHTTPHeaderIsNotSetSeverityLevel     = 0
-	HTSTHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-hsts-not-set"
+	HTSTHTTPHeaderIsNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	HTSTHTTPHeaderIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_hsts_not_set"
 	HSTSHTTPHeaderIsNotSetVulnerabilityName = "HSTS Header is not set"
 	HSTSHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
 
 	CORSHTTPHeaderIsNotSetSeverityLevel     = 0
-	CORSHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-cors-not-set"
-	CORSHTTPHeaderIsNotSetVulnerabilityName = "CORS Header is not set"
+	CORSHTTPHeaderIsNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	CORSHTTPHeaderIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_cors_not_set"
+	CORSHTTPHeaderIsNotSetVulnerabilityName = "CORS Headers are not set"
 	CORSHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin"
 
 	CORSHTTPHeaderIsPermisiveSeverityLevel     = 0
-	CORSHTTPHeaderIsPermisiveVulnerabilityID   = "bestpractices.http-headers-cors-permissive"
+	CORSHTTPHeaderIsPermisiveOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	CORSHTTPHeaderIsPermisiveVulnerabilityID   = "security_misconfiguration.http_headers_cors_permissive"
 	CORSHTTPHeaderIsPermisiveVulnerabilityName = "CORS Header is set but permissive"
 	CORSHTTPHeaderIsPermisiveVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin"
 
 	XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel     = 0
-	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-x-content-type-options-not-set"
+	XContentTypeOptionsHTTPHeaderIsNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_x_content_type_options_not_set"
 	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName = "X-Content-Type-Options Header is not set"
 	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
 
 	XFrameOptionsHTTPHeaderIsNotSetSeverityLevel     = 0
-	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID   = "bestpractice.http-headers-x-frame-options-not-set"
+	XFrameOptionsHTTPHeaderIsNotSetOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
+	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID   = "security_misconfiguration.http_headers_x_frame_options_not_set"
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName = "X-Frame-Options Header is not set"
 	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
 )
@@ -63,6 +70,8 @@ func checkCSPHeader(operation *request.Operation, headers http.Header, r *report
 	if cspHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: CSPHTTPHeaderIsNotSetSeverityLevel,
+
+			OWASP2023Category: CSPHTTPHeaderISNotSetOWASP2023Category,
 
 			ID:   CSPHTTPHeaderIsNotSetVulnerabilityID,
 			Name: CSPHTTPHeaderIsNotSetVulnerabilityName,
@@ -88,6 +97,8 @@ func checkCSPHeader(operation *request.Operation, headers http.Header, r *report
 	r.AddVulnerabilityReport(&report.VulnerabilityReport{
 		SeverityLevel: CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel,
 
+		OWASP2023Category: CSPHTTPHeaderFrameAncestorsIsNotSetOWASP2023Category,
+
 		ID:   CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID,
 		Name: CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		URL:  CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL,
@@ -103,6 +114,8 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 	if allowOrigin == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: CORSHTTPHeaderIsNotSetSeverityLevel,
+
+			OWASP2023Category: CORSHTTPHeaderIsNotSetOWASP2023Category,
 
 			ID:   CORSHTTPHeaderIsNotSetVulnerabilityID,
 			Name: CORSHTTPHeaderIsNotSetVulnerabilityName,
@@ -121,6 +134,8 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 
 	r.AddVulnerabilityReport(&report.VulnerabilityReport{
 		SeverityLevel: CORSHTTPHeaderIsPermisiveSeverityLevel,
+
+		OWASP2023Category: CORSHTTPHeaderIsPermisiveOWASP2023Category,
 
 		ID:   CORSHTTPHeaderIsPermisiveVulnerabilityID,
 		Name: CORSHTTPHeaderIsPermisiveVulnerabilityName,
@@ -153,6 +168,8 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: HTSTHTTPHeaderIsNotSetSeverityLevel,
 
+			OWASP2023Category: HTSTHTTPHeaderIsNotSetOWASP2023Category,
+
 			ID:   HTSTHTTPHeaderIsNotSetVulnerabilityID,
 			Name: HSTSHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  HSTSHTTPHeaderIsNotSetVulnerabilityURL,
@@ -165,6 +182,8 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
 
+			OWASP2023Category: XContentTypeOptionsHTTPHeaderIsNotSetOWASP2023Category,
+
 			ID:   XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID,
 			Name: XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL,
@@ -176,6 +195,8 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 	if xFrameOptionsHeader := vsa.Response.Header.Get(XFrameOptionsHTTPHeader); xFrameOptionsHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
+
+			OWASP2023Category: XFrameOptionsHTTPHeaderIsNotSetOWASP2023Category,
 
 			ID:   XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID,
 			Name: XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
