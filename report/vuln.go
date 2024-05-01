@@ -8,8 +8,9 @@ import (
 
 type VulnerabilityReport struct {
 	SeverityLevel float64 `json:"severity"` // https://nvd.nist.gov/vuln-metrics/cvss
+	ID            string  `json:"id"`
 	Name          string  `json:"name"`
-	Description   string  `json:"description"`
+	URL           string  `json:"url"`
 
 	Operation *request.Operation `json:"operation"`
 }
@@ -37,7 +38,7 @@ func (vr *VulnerabilityReport) IsInfoRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s %s: %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String(), vr.Description)
+	return fmt.Sprintf("[%s][%s] %s %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String())
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {

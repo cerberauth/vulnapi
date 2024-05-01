@@ -13,21 +13,25 @@ const (
 	HTTPCookiesScanID   = "bestpractices.http-cookies"
 	HTTPCookiesScanName = "HTTP Cookies Best Practices"
 
-	HTTPCookiesNotHTTPOnlySeverityLevel            = 0
-	HTTPCookiesNotHTTPOnlyVulnerabilityName        = "Cookies not HTTP-Only"
-	HTTPCookiesNotHTTPOnlyVulnerabilityDescription = "Cookies should be http-only."
+	HTTPCookiesNotHTTPOnlySeverityLevel     = 0
+	HTTPCookiesNotHTTPOnlyVulnerabilityID   = "bestpractices.http-cookies-not-http-only"
+	HTTPCookiesNotHTTPOnlyVulnerabilityName = "Cookies not HTTP-Only"
+	HTTPCookiesNotHTTPOnlyVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 
-	HTTPCookiesNotSecureSeverityLevel            = 0
-	HTTPCookiesNotSecureVulnerabilityName        = "Cookies not Secure"
-	HTTPCookiesNotSecureVulnerabilityDescription = "Cookies should be secure."
+	HTTPCookiesNotSecureSeverityLevel     = 0
+	HTTPCookiesNotSecureVulnerabilityID   = "bestpractices.http-cookies-not-secure"
+	HTTPCookiesNotSecureVulnerabilityName = "Cookies not Secure"
+	HTTPCookiesNotSecureVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 
-	HTTPCookiesSameSiteSeverityLevel            = 0
-	HTTPCookiesSameSiteVulnerabilityName        = "Cookies SameSite not set or set to None"
-	HTTPCookiesSameSiteVulnerabilityDescription = "Cookies should have SameSite attribute set to Strict or Lax."
+	HTTPCookiesSameSiteSeverityLevel     = 0
+	HTTPCookiesSameSiteVulnerabilityID   = "bestpractices.http-cookies-same-site"
+	HTTPCookiesSameSiteVulnerabilityName = "Cookies SameSite not set or set to None"
+	HTTPCookiesSameSiteVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value"
 
-	HTTPCookiesExpiresSeverityLevel            = 0
-	HTTPCookiesExpiresVulnerabilityName        = "Cookies Expires not set"
-	HTTPCookiesExpiresVulnerabilityDescription = "Cookies should have Expires attribute set."
+	HTTPCookiesExpiresSeverityLevel     = 0
+	HTTPCookiesExpiresVulnerabilityID   = "bestpractices.http-cookies-expires"
+	HTTPCookiesExpiresVulnerabilityName = "Cookies Expires not set"
+	HTTPCookiesExpiresVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
 )
 
 func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
@@ -45,36 +49,48 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 		if !cookie.Secure {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesNotSecureSeverityLevel,
-				Name:          HTTPCookiesNotSecureVulnerabilityName,
-				Description:   HTTPCookiesNotSecureVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   HTTPCookiesNotSecureVulnerabilityID,
+				Name: HTTPCookiesNotSecureVulnerabilityName,
+				URL:  HTTPCookiesNotSecureVulnerabilityURL,
+
+				Operation: operation,
 			})
 		}
 
 		if !cookie.HttpOnly {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesNotHTTPOnlySeverityLevel,
-				Name:          HTTPCookiesNotHTTPOnlyVulnerabilityName,
-				Description:   HTTPCookiesNotHTTPOnlyVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   HTTPCookiesNotHTTPOnlyVulnerabilityID,
+				Name: HTTPCookiesNotHTTPOnlyVulnerabilityName,
+				URL:  HTTPCookiesNotHTTPOnlyVulnerabilityURL,
+
+				Operation: operation,
 			})
 		}
 
 		if cookie.SameSite == http.SameSiteNoneMode {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesSameSiteSeverityLevel,
-				Name:          HTTPCookiesSameSiteVulnerabilityName,
-				Description:   HTTPCookiesSameSiteVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   HTTPCookiesSameSiteVulnerabilityID,
+				Name: HTTPCookiesSameSiteVulnerabilityName,
+				URL:  HTTPCookiesSameSiteVulnerabilityURL,
+
+				Operation: operation,
 			})
 		}
 
 		if cookie.Expires.IsZero() {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: HTTPCookiesExpiresSeverityLevel,
-				Name:          HTTPCookiesExpiresVulnerabilityName,
-				Description:   HTTPCookiesExpiresVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   HTTPCookiesExpiresVulnerabilityID,
+				Name: HTTPCookiesExpiresVulnerabilityName,
+				URL:  HTTPCookiesExpiresVulnerabilityURL,
+
+				Operation: operation,
 			})
 		}
 	}

@@ -22,9 +22,12 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: discover.ServerSignatureSeverityLevel,
-		Name:          discover.ServerSignatureVulnerabilityName,
-		Description:   discover.ServerSignatureVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   discover.ServerSignatureVulnerabilityID,
+		Name: discover.ServerSignatureVulnerabilityName,
+		URL:  discover.ServerSignatureVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))

@@ -50,10 +50,13 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
-		Name:          bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityName,
-		Description:   bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.CSPHTTPHeaderIsNotSetSeverityLevel,
+
+		ID:   bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityID,
+		Name: bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityName,
+		URL:  bestpractices.CSPHTTPHeaderIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -76,10 +79,13 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
-		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
-		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel,
+
+		ID:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID,
+		Name: bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
+		URL:  bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -102,10 +108,13 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.CSPHTTPHeaderSeverityLevel,
-		Name:          bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
-		Description:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel,
+
+		ID:   bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID,
+		Name: bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
+		URL:  bestpractices.CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -128,10 +137,13 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
-		Name:          bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityName,
-		Description:   bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.CORSHTTPHeaderIsNotSetSeverityLevel,
+
+		ID:   bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityID,
+		Name: bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityName,
+		URL:  bestpractices.CORSHTTPHeaderIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -154,10 +166,13 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.CORSHTTPHeaderSeverityLevel,
-		Name:          bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityName,
-		Description:   bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.CORSHTTPHeaderIsPermisiveSeverityLevel,
+
+		ID:   bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityID,
+		Name: bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityName,
+		URL:  bestpractices.CORSHTTPHeaderIsPermisiveVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -180,10 +195,13 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
-		SeverityLevel: bestpractices.HSTSHTTPHeaderSeverityLevel,
-		Name:          bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityName,
-		Description:   bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: bestpractices.HTSTHTTPHeaderIsNotSetSeverityLevel,
+
+		ID:   bestpractices.HTSTHTTPHeaderIsNotSetVulnerabilityID,
+		Name: bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityName,
+		URL:  bestpractices.HSTSHTTPHeaderIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -207,9 +225,12 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
-		Name:          bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
-		Description:   bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID,
+		Name: bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
+		URL:  bestpractices.XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)
@@ -233,9 +254,12 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
-		Name:          bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
-		Description:   bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID,
+		Name: bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
+		URL:  bestpractices.XFrameOptionsHTTPHeaderIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	header := getValidHTTPHeaders(operation)

@@ -22,39 +22,53 @@ const (
 	HTTPHeadersScanID   = "bestpractices.http-headers"
 	HTTPHeadersScanName = "HTTP Headers Best Practices"
 
-	CSPHTTPHeaderSeverityLevel                                  = 0
-	CSPHTTPHeaderIsNotSetVulnerabilityName                      = "CSP Header is not set"
-	CSPHTTPHeaderIsNotSetVulnerabilityDescription               = "No Content Security Policy (CSP) Header has been detected in HTTP Response."
-	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName        = "CSP frame-ancestors policy is not set"
-	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription = "No frame-ancestors policy has been set in CSP HTTP Response Header."
+	CSPHTTPHeaderIsNotSetSeverityLevel     = 0
+	CSPHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-csp-not-set"
+	CSPHTTPHeaderIsNotSetVulnerabilityName = "CSP Header is not set"
+	CSPHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy"
 
-	HSTSHTTPHeaderSeverityLevel                    = 0
-	HSTSHTTPHeaderIsNotSetVulnerabilityName        = "HSTS Header is not set"
-	HSTSHTTPHeaderIsNotSetVulnerabilityDescription = "No HSTS Header has been detected in HTTP Response."
+	CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel     = 0
+	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID   = "bestpractices.http-headers-csp-frame-ancestors-not-set"
+	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName = "CSP frame-ancestors policy is not set"
+	CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors"
 
-	CORSHTTPHeaderSeverityLevel                       = 0
-	CORSHTTPHeaderIsNotSetVulnerabilityName           = "CORS Header is not set"
-	CORSHTTPHeaderIsNotSetVulnerabilityDescription    = "No CORS Header has been detected in HTTP Response."
-	CORSHTTPHeaderIsPermisiveVulnerabilityName        = "CORS Header is set but permissive"
-	CORSHTTPHeaderIsPermisiveVulnerabilityDescription = "CORS Header has been detected in HTTP Response but is permissive."
+	HTSTHTTPHeaderIsNotSetSeverityLevel     = 0
+	HTSTHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-hsts-not-set"
+	HSTSHTTPHeaderIsNotSetVulnerabilityName = "HSTS Header is not set"
+	HSTSHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
 
-	XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel            = 0
-	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName        = "X-Content-Type-Options Header is not set"
-	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Content-Type-Options Header has been detected in HTTP Response."
+	CORSHTTPHeaderIsNotSetSeverityLevel     = 0
+	CORSHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-cors-not-set"
+	CORSHTTPHeaderIsNotSetVulnerabilityName = "CORS Header is not set"
+	CORSHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin"
 
-	XFrameOptionsHTTPHeaderIsNotSetSeverityLevel            = 0
-	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName        = "X-Frame-Options Header is not set"
-	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription = "No X-Frame-Options Header has been detected in HTTP Response."
+	CORSHTTPHeaderIsPermisiveSeverityLevel     = 0
+	CORSHTTPHeaderIsPermisiveVulnerabilityID   = "bestpractices.http-headers-cors-permissive"
+	CORSHTTPHeaderIsPermisiveVulnerabilityName = "CORS Header is set but permissive"
+	CORSHTTPHeaderIsPermisiveVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin"
+
+	XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel     = 0
+	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID   = "bestpractices.http-headers-x-content-type-options-not-set"
+	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName = "X-Content-Type-Options Header is not set"
+	XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
+
+	XFrameOptionsHTTPHeaderIsNotSetSeverityLevel     = 0
+	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID   = "bestpractice.http-headers-x-frame-options-not-set"
+	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName = "X-Frame-Options Header is not set"
+	XFrameOptionsHTTPHeaderIsNotSetVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
 )
 
 func checkCSPHeader(operation *request.Operation, headers http.Header, r *report.ScanReport) bool {
 	cspHeader := headers.Get(CSPHTTPHeader)
 	if cspHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: CSPHTTPHeaderSeverityLevel,
-			Name:          CSPHTTPHeaderIsNotSetVulnerabilityName,
-			Description:   CSPHTTPHeaderIsNotSetVulnerabilityDescription,
-			Operation:     operation,
+			SeverityLevel: CSPHTTPHeaderIsNotSetSeverityLevel,
+
+			ID:   CSPHTTPHeaderIsNotSetVulnerabilityID,
+			Name: CSPHTTPHeaderIsNotSetVulnerabilityName,
+			URL:  CSPHTTPHeaderIsNotSetVulnerabilityURL,
+
+			Operation: operation,
 		})
 
 		return false
@@ -72,10 +86,13 @@ func checkCSPHeader(operation *request.Operation, headers http.Header, r *report
 	}
 
 	r.AddVulnerabilityReport(&report.VulnerabilityReport{
-		SeverityLevel: CSPHTTPHeaderSeverityLevel,
-		Name:          CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
-		Description:   CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: CSPHTTPHeaderFrameAncestorsIsNotSetSeverityLevel,
+
+		ID:   CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID,
+		Name: CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
+		URL:  CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL,
+
+		Operation: operation,
 	})
 
 	return false
@@ -85,10 +102,13 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 	allowOrigin := headers.Get(CORSOriginHTTPHeader)
 	if allowOrigin == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: CORSHTTPHeaderSeverityLevel,
-			Name:          CORSHTTPHeaderIsNotSetVulnerabilityName,
-			Description:   CORSHTTPHeaderIsNotSetVulnerabilityDescription,
-			Operation:     operation,
+			SeverityLevel: CORSHTTPHeaderIsNotSetSeverityLevel,
+
+			ID:   CORSHTTPHeaderIsNotSetVulnerabilityID,
+			Name: CORSHTTPHeaderIsNotSetVulnerabilityName,
+			URL:  CORSHTTPHeaderIsNotSetVulnerabilityURL,
+
+			Operation: operation,
 		})
 
 		return false
@@ -100,10 +120,13 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 	}
 
 	r.AddVulnerabilityReport(&report.VulnerabilityReport{
-		SeverityLevel: CORSHTTPHeaderSeverityLevel,
-		Name:          CORSHTTPHeaderIsPermisiveVulnerabilityName,
-		Description:   CORSHTTPHeaderIsPermisiveVulnerabilityDescription,
-		Operation:     operation,
+		SeverityLevel: CORSHTTPHeaderIsPermisiveSeverityLevel,
+
+		ID:   CORSHTTPHeaderIsPermisiveVulnerabilityID,
+		Name: CORSHTTPHeaderIsPermisiveVulnerabilityName,
+		URL:  CORSHTTPHeaderIsPermisiveVulnerabilityURL,
+
+		Operation: operation,
 	})
 
 	return false
@@ -128,28 +151,37 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 
 	if hstsHeader := vsa.Response.Header.Get(HSTSHTTPHeader); hstsHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
-			SeverityLevel: HSTSHTTPHeaderSeverityLevel,
-			Name:          HSTSHTTPHeaderIsNotSetVulnerabilityName,
-			Description:   HSTSHTTPHeaderIsNotSetVulnerabilityDescription,
-			Operation:     operation,
+			SeverityLevel: HTSTHTTPHeaderIsNotSetSeverityLevel,
+
+			ID:   HTSTHTTPHeaderIsNotSetVulnerabilityID,
+			Name: HSTSHTTPHeaderIsNotSetVulnerabilityName,
+			URL:  HSTSHTTPHeaderIsNotSetVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 
 	if xContentTypeOptionsHeader := vsa.Response.Header.Get(XContentTypeOptionsHTTPHeader); xContentTypeOptionsHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: XContentTypeOptionsHTTPHeaderIsNotSetSeverityLevel,
-			Name:          XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
-			Description:   XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-			Operation:     operation,
+
+			ID:   XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID,
+			Name: XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
+			URL:  XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 
 	if xFrameOptionsHeader := vsa.Response.Header.Get(XFrameOptionsHTTPHeader); xFrameOptionsHeader == "" {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: XFrameOptionsHTTPHeaderIsNotSetSeverityLevel,
-			Name:          XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
-			Description:   XFrameOptionsHTTPHeaderIsNotSetVulnerabilityDescription,
-			Operation:     operation,
+
+			ID:   XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID,
+			Name: XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
+			URL:  XFrameOptionsHTTPHeaderIsNotSetVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 

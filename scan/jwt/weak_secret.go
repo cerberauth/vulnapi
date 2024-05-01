@@ -14,8 +14,9 @@ const (
 	BlankSecretVulnerabilityScanName = "JWT Blank Secret"
 
 	BlankSecretVulnerabilitySeverityLevel = 9
+	BlankSecretVulnerabilityID            = "jwt.blank"
 	BlankSecretVulnerabilityName          = "JWT Blank Secret"
-	BlankSecretVulnerabilityDescription   = "JWT secret is blank and can be easily guessed."
+	BlankSecretVulnerabilityURL           = ""
 
 	WeakSecretVulnerabilityScanID   = "jwt.weak-secret"
 	WeakSecretVulnerabilityScanName = "JWT Weak Secret"
@@ -51,9 +52,12 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: BlankSecretVulnerabilitySeverityLevel,
-			Name:          BlankSecretVulnerabilityName,
-			Description:   BlankSecretVulnerabilityDescription,
-			Operation:     operation,
+
+			ID:   BlankSecretVulnerabilityID,
+			Name: BlankSecretVulnerabilityName,
+			URL:  BlankSecretVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 
@@ -101,9 +105,12 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 		if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: WeakSecretVulnerabilitySeverityLevel,
-				Name:          WeakSecretVulnerabilityName,
-				Description:   WeakSecretVulnerabilityDescription,
-				Operation:     o,
+
+				ID:   BlankSecretVulnerabilityID,
+				Name: WeakSecretVulnerabilityName,
+				URL:  BlankSecretVulnerabilityURL,
+
+				Operation: o,
 			})
 			break
 		}

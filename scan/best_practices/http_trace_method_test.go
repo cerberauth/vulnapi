@@ -38,9 +38,12 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPTraceMethodSeverityLevel,
-		Name:          bestpractices.HTTPTraceMethodVulnerabilityName,
-		Description:   bestpractices.HTTPTraceMethodVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.HTTPTraceMethodVulnerabilityID,
+		Name: bestpractices.HTTPTraceMethodVulnerabilityName,
+		URL:  bestpractices.HTTPTraceMethodVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))

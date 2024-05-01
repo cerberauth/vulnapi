@@ -15,15 +15,18 @@ const (
 	DiscoverableGraphQLPathScanID   = "discover.graphql"
 	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
 
-	DiscoverableGraphQLPathSeverityLevel            = 0
-	DiscoverableGraphQLPathVulnerabilityName        = "Discoverable GraphQL Path"
-	DiscoverableGraphQLPathVulnerabilityDescription = "GraphQL path seems discoverable and can lead to information disclosure and security issues"
+	DiscoverableGraphQLPathSeverityLevel     = 0
+	DiscoverableGraphQLPathVulnerabilityID   = "discover.graphql"
+	DiscoverableGraphQLPathVulnerabilityName = "Discoverable GraphQL Path"
+	DiscoverableGraphQLPathVulnerabilityURL  = ""
 
-	GraphqlIntrospectionScanID                          = "scan.graphql-introspection"
-	GraphqlIntrospectionScanName                        = "GraphQL Introspection"
-	GraphqlIntrospectionEnabledSeverityLevel            = 0
-	GraphqlIntrospectionEnabledVulnerabilityName        = "GraphQL Introspection enabled"
-	GraphqlIntrospectionEnabledVulnerabilityDescription = "GraphQL Introspection seems enabled and can lead to information disclosure and security issues"
+	GraphqlIntrospectionScanID   = "discover.graphql-introspection"
+	GraphqlIntrospectionScanName = "GraphQL Introspection"
+
+	GraphqlIntrospectionEnabledSeverityLevel     = 0
+	GraphqlIntrospectionEnabledVulnerabilityID   = "discover.graphql-introspection-enabled"
+	GraphqlIntrospectionEnabledVulnerabilityName = "GraphQL Introspection enabled"
+	GraphqlIntrospectionEnabledVulnerabilityURL  = ""
 )
 
 var potentialGraphQLEndpoints = []string{
@@ -77,9 +80,12 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 		if attempt.Response.StatusCode < 300 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
-				Name:          GraphqlIntrospectionEnabledVulnerabilityName,
-				Description:   GraphqlIntrospectionEnabledVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
+				Name: GraphqlIntrospectionEnabledVulnerabilityName,
+				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return r, nil
@@ -102,9 +108,12 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 		if attempt.Response.StatusCode < 300 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: GraphqlIntrospectionEnabledSeverityLevel,
-				Name:          GraphqlIntrospectionEnabledVulnerabilityName,
-				Description:   GraphqlIntrospectionEnabledVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
+				Name: GraphqlIntrospectionEnabledVulnerabilityName,
+				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return r, nil
@@ -118,8 +127,10 @@ func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securitySc
 	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName)
 	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
-		Name:          DiscoverableGraphQLPathVulnerabilityName,
-		Description:   DiscoverableGraphQLPathVulnerabilityDescription,
+
+		ID:   DiscoverableGraphQLPathVulnerabilityID,
+		Name: DiscoverableGraphQLPathVulnerabilityName,
+		URL:  DiscoverableGraphQLPathVulnerabilityURL,
 	})
 
 	return handler(operation, securityScheme)

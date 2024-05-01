@@ -84,7 +84,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				outputStream = os.Stderr
 			}
 
-			headers := []string{"Risk Level", "Vulnerability", "Description"}
+			headers := []string{"Risk Level", "Vulnerability", "Documentation URL"}
 			if cmd.Name() == "openapi" {
 				headers = append(headers, "Operation")
 			}
@@ -93,15 +93,18 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			table.SetHeader(headers)
 
 			for _, v := range reporter.GetVulnerabilityReports() {
-				lineColor := severityTableColor(v)
-				row := []string{v.SeverityLevelString(), v.Name, v.Description}
+				row := []string{v.SeverityLevelString(), v.Name, v.URL}
 				if cmd.Name() == "openapi" {
 					row = append(row, fmt.Sprintf("%s %s", v.Operation.Method, v.Operation.Request.URL.String()))
 				}
 
 				tableColors := make([]tablewriter.Colors, len(headers))
 				for i := range tableColors {
-					tableColors[i] = tablewriter.Colors{tablewriter.Bold, lineColor}
+					if i == 0 {
+						tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(v)}
+					} else {
+						tableColors[i] = tablewriter.Colors{}
+					}
 				}
 
 				table.Rich(row, tableColors)

@@ -14,8 +14,9 @@ const (
 	AlgNoneJwtScanName = "JWT None Algorithm"
 
 	AlgNoneVulnerabilitySeverityLevel = 9
+	AlgNoneVulnerabilityID            = "jwt.alg-none"
 	AlgNoneVulnerabilityName          = "JWT None Algorithm"
-	AlgNoneVulnerabilityDescription   = "JWT with none algorithm is accepted allowing to bypass authentication."
+	AlgNoneVulnerabilityURL           = "https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/"
 )
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
@@ -43,9 +44,12 @@ func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme)
 	if err := scan.DetectNotExpectedResponse(vsa.Response); err != nil {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: AlgNoneVulnerabilitySeverityLevel,
-			Name:          AlgNoneVulnerabilityName,
-			Description:   AlgNoneVulnerabilityDescription,
-			Operation:     operation,
+
+			ID:   AlgNoneVulnerabilityID,
+			Name: AlgNoneVulnerabilityName,
+			URL:  AlgNoneVulnerabilityURL,
+
+			Operation: operation,
 		})
 	}
 

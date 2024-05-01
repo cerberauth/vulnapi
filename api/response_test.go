@@ -20,12 +20,12 @@ func TestFormatReports(t *testing.T) {
 			EndTime:   endTime,
 			Vulns: []*report.VulnerabilityReport{
 				{
-					Name:        "Vulnerability 1",
-					Description: "This is vulnerability 1",
+					ID:   "vulnerability-1",
+					Name: "Vulnerability 1",
 				},
 				{
-					Name:        "Vulnerability 2",
-					Description: "This is vulnerability 2",
+					ID:   "vulnerability-2",
+					Name: "Vulnerability 2",
 				},
 			},
 		},

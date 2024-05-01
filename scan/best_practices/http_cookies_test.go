@@ -81,9 +81,12 @@ func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesNotHTTPOnlySeverityLevel,
-		Name:          bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityID,
+		Name: bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityName,
+		URL:  bestpractices.HTTPCookiesNotHTTPOnlyVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
@@ -117,9 +120,12 @@ func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesNotSecureSeverityLevel,
-		Name:          bestpractices.HTTPCookiesNotSecureVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesNotSecureVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.HTTPCookiesNotSecureVulnerabilityID,
+		Name: bestpractices.HTTPCookiesNotSecureVulnerabilityName,
+		URL:  bestpractices.HTTPCookiesNotSecureVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
@@ -153,9 +159,12 @@ func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesSameSiteSeverityLevel,
-		Name:          bestpractices.HTTPCookiesSameSiteVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesSameSiteVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.HTTPCookiesSameSiteVulnerabilityID,
+		Name: bestpractices.HTTPCookiesSameSiteVulnerabilityName,
+		URL:  bestpractices.HTTPCookiesSameSiteVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
@@ -189,9 +198,12 @@ func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: bestpractices.HTTPCookiesExpiresSeverityLevel,
-		Name:          bestpractices.HTTPCookiesExpiresVulnerabilityName,
-		Description:   bestpractices.HTTPCookiesExpiresVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   bestpractices.HTTPCookiesExpiresVulnerabilityID,
+		Name: bestpractices.HTTPCookiesExpiresVulnerabilityName,
+		URL:  bestpractices.HTTPCookiesExpiresVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)

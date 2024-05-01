@@ -11,9 +11,10 @@ const (
 	DiscoverServerSignatureScanID   = "discover.server-signature"
 	DiscoverServerSignatureScanName = "Server Signature Discovery"
 
-	ServerSignatureSeverityLevel            = 0
-	ServerSignatureVulnerabilityName        = "Server Signature Exposed"
-	ServerSignatureVulnerabilityDescription = "A Server signature is exposed in an header."
+	ServerSignatureSeverityLevel     = 0
+	ServerSignatureVulnerabilityID   = "discover.server-signature"
+	ServerSignatureVulnerabilityName = "Server Signature Exposed"
+	ServerSignatureVulnerabilityURL  = ""
 )
 
 var signatureHeaders = []string{"Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"}
@@ -24,9 +25,12 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 		if len(value) > 0 {
 			r.AddVulnerabilityReport(&report.VulnerabilityReport{
 				SeverityLevel: ServerSignatureSeverityLevel,
-				Name:          ServerSignatureVulnerabilityName,
-				Description:   ServerSignatureVulnerabilityDescription,
-				Operation:     operation,
+
+				ID:   ServerSignatureVulnerabilityID,
+				Name: ServerSignatureVulnerabilityName,
+				URL:  ServerSignatureVulnerabilityURL,
+
+				Operation: operation,
 			})
 
 			return false

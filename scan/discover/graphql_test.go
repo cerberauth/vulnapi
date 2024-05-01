@@ -64,9 +64,12 @@ func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t 
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: discover.GraphqlIntrospectionEnabledSeverityLevel,
-		Name:          discover.GraphqlIntrospectionEnabledVulnerabilityName,
-		Description:   discover.GraphqlIntrospectionEnabledVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   discover.GraphqlIntrospectionEnabledVulnerabilityID,
+		Name: discover.GraphqlIntrospectionEnabledVulnerabilityName,
+		URL:  discover.GraphqlIntrospectionEnabledVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
@@ -91,9 +94,12 @@ func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: discover.GraphqlIntrospectionEnabledSeverityLevel,
-		Name:          discover.GraphqlIntrospectionEnabledVulnerabilityName,
-		Description:   discover.GraphqlIntrospectionEnabledVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   discover.GraphqlIntrospectionEnabledVulnerabilityID,
+		Name: discover.GraphqlIntrospectionEnabledVulnerabilityName,
+		URL:  discover.GraphqlIntrospectionEnabledVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
@@ -137,9 +143,12 @@ func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
 
 	expectedReport := report.VulnerabilityReport{
 		SeverityLevel: discover.DiscoverableGraphQLPathSeverityLevel,
-		Name:          discover.DiscoverableGraphQLPathVulnerabilityName,
-		Description:   discover.DiscoverableGraphQLPathVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   discover.DiscoverableGraphQLPathVulnerabilityID,
+		Name: discover.DiscoverableGraphQLPathVulnerabilityName,
+		URL:  discover.DiscoverableGraphQLPathVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := discover.DiscoverableGraphQLPathScanHandler(operation, securityScheme)

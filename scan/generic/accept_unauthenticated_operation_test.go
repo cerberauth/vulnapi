@@ -17,9 +17,11 @@ func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: generic.NoAuthOperationVulnerabilityLevel,
+		ID:            generic.NoAuthOperationVulnerabilityID,
 		Name:          generic.NoAuthOperationVulnerabilityName,
-		Description:   generic.NoAuthOperationVulnerabilityDescription,
-		Operation:     operation,
+		URL:           generic.NoAuthOperationVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := generic.NoAuthOperationScanHandler(operation, securityScheme)
@@ -60,9 +62,12 @@ func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: generic.AcceptUnauthenticatedOperationVulnerabilityLevel,
-		Name:          generic.AcceptUnauthenticatedOperationVulnerabilityName,
-		Description:   generic.AcceptUnauthenticatedOperationVulnerabilityDescription,
-		Operation:     operation,
+
+		ID:   generic.AcceptUnauthenticatedOperationVulnerabilityID,
+		Name: generic.AcceptUnauthenticatedOperationVulnerabilityName,
+		URL:  generic.AcceptUnauthenticatedOperationVulnerabilityURL,
+
+		Operation: operation,
 	}
 
 	report, err := generic.AcceptUnauthenticatedOperationScanHandler(operation, securityScheme)
