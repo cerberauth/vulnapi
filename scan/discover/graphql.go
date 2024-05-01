@@ -28,7 +28,7 @@ const (
 	GraphqlIntrospectionEnabledOWASP2023Category = report.OWASP2023SSRFCategory
 	GraphqlIntrospectionEnabledVulnerabilityID   = "ssrf.graphql_introspection_enabled"
 	GraphqlIntrospectionEnabledVulnerabilityName = "GraphQL Introspection enabled"
-	GraphqlIntrospectionEnabledVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection/"
+	GraphqlIntrospectionEnabledVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection/?utm_source=vulnapi"
 )
 
 var potentialGraphQLEndpoints = []string{

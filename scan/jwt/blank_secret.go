@@ -17,7 +17,7 @@ const (
 
 	BlankSecretVulnerabilityID   = "broken_authentication.jwt_blank_secret"
 	BlankSecretVulnerabilityName = "JWT Blank Secret"
-	BlankSecretVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-blank-secret/"
+	BlankSecretVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-blank-secret/?utm_source=vulnapi"
 )
 
 func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {

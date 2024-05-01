@@ -18,7 +18,7 @@ const (
 
 	AlgNoneVulnerabilityID   = "broken_authentication.jwt_alg_none"
 	AlgNoneVulnerabilityName = "JWT None Algorithm"
-	AlgNoneVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-alg-none/"
+	AlgNoneVulnerabilityURL  = "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-alg-none/?utm_source=vulnapi"
 )
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
