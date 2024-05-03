@@ -1,0 +1,19 @@
+openapi: "3.0.2"
+
+servers:
+  - url: "http://localhost:8080"
+paths:
+  "/":
+    get:
+      parameters: []
+      responses:
+        "204":
+          description: "successful operation"
+      security:
+        - bearer_auth: []
+components:
+  securitySchemes:
+    bearer_auth:
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "JWT"
