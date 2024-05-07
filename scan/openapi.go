@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -99,10 +100,10 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 
 	securitySchemes := map[string]auth.SecurityScheme{}
 	for name, scheme := range doc.Components.SecuritySchemes {
-		switch scheme.Value.Type {
+		switch strings.ToLower(scheme.Value.Type) {
 		case "http":
-			if scheme.Value.Scheme == string(auth.BearerScheme) {
-				switch scheme.Value.BearerFormat {
+			if strings.ToLower(scheme.Value.Scheme) == string(auth.BearerScheme) {
+				switch strings.ToLower(scheme.Value.BearerFormat) {
 				case "jwt":
 					securitySchemes[name], err = auth.NewAuthorizationJWTBearerSecurityScheme(name, validToken)
 					if err != nil {
@@ -141,7 +142,12 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 				}
 			}
 
-			operationsSecuritySchemes := getOperationSecuritySchemes(o.Security, securitySchemes)
+			operationsSecuritySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+			if o.Security != nil {
+				operationsSecuritySchemes = getOperationSecuritySchemes(o.Security, securitySchemes)
+			} else if doc.Security != nil {
+				operationsSecuritySchemes = getOperationSecuritySchemes(&doc.Security, securitySchemes)
+			}
 			operationPath, err := getOperationPath(docPath, o.Parameters)
 			if err != nil {
 				return nil, err

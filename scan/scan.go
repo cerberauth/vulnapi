@@ -5,7 +5,6 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -63,10 +62,6 @@ func (s *Scan) AddScanHandler(handler ScanHandler) *Scan {
 }
 
 func (s *Scan) Execute(scanCallback func(operationScan *OperationScan)) (*report.Reporter, []error, error) {
-	if err := s.ValidateOperation(s.Operations[0]); err != nil {
-		return nil, nil, err
-	}
-
 	if scanCallback == nil {
 		scanCallback = func(operationScan *OperationScan) {}
 	}
@@ -86,25 +81,6 @@ func (s *Scan) Execute(scanCallback func(operationScan *OperationScan)) (*report
 	}
 
 	return s.Reporter, errors, nil
-}
-
-func (s *Scan) ValidateOperation(operation *request.Operation) error {
-	attempt, err := scan.ScanURL(operation, &operation.SecuritySchemes[0]) // TODO: handle multiple security schemes
-	if err != nil {
-		return err
-	}
-
-	if attempt.Err != nil {
-		return attempt.Err
-	}
-
-	if scan.DetectNotExpectedResponse(attempt.Response) == nil {
-		fmt.Println("Operation validation failed because of unexpected response:", attempt.Response.StatusCode)
-		fmt.Println("For better results, please make sure the first request is working as expected.")
-		fmt.Println()
-	}
-
-	return nil
 }
 
 func (s *Scan) WithAllScans() *Scan {

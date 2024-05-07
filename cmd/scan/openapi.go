@@ -21,7 +21,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			tracer := otel.Tracer("scan/openapi")
 			openapiUrlOrPath := args[0]
 
-			doc, err := openapi.LoadOpenAPI(openapiUrlOrPath)
+			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

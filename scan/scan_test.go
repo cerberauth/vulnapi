@@ -9,7 +9,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
-	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -104,42 +103,4 @@ func TestScanGetOperationsScans(t *testing.T) {
 	operationsScans := s.GetOperationsScans()
 
 	assert.Equal(t, 1, len(operationsScans))
-}
-
-func TestScanValidateOperation(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(httpmock.NewStringResponse(200, "OK")))
-
-	s, err := scan.NewURLScan(operation.Method, operation.RequestURI, nil, nil, nil)
-
-	err = s.ValidateOperation(operation)
-	assert.NoError(t, err)
-}
-
-func TestScanValidateOperationWhenRequestHasTimeoutError(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	s, err := scan.NewURLScan(operation.Method, operation.RequestURI, nil, nil, nil)
-	err = s.ValidateOperation(operation)
-
-	assert.Error(t, err)
-}
-
-func TestScanValidateOperationWhenRequestHasInternalServerError(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(httpmock.NewStringResponse(500, "Internal Server Error")))
-
-	s, err := scan.NewURLScan(operation.Method, operation.RequestURI, nil, nil, nil)
-	err = s.ValidateOperation(operation)
-
-	assert.NoError(t, err)
 }

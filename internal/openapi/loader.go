@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -12,7 +13,21 @@ import (
 
 var urlPatternRe = regexp.MustCompile(`^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|\/|\/\/)?[A-z0-9_-]*?[:]?[A-z0-9_-]*?[@]?[A-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$`)
 
-func LoadOpenAPI(urlOrPath string) (*openapi3.T, error) {
+func newLoader(ctx context.Context) *openapi3.Loader {
+	loader := openapi3.Loader{
+		Context: ctx,
+
+		IsExternalRefsAllowed: false,
+	}
+
+	return &loader
+}
+
+func LoadFromData(ctx context.Context, data []byte) (*openapi3.T, error) {
+	return newLoader(ctx).LoadFromData(data)
+}
+
+func LoadOpenAPI(ctx context.Context, urlOrPath string) (*openapi3.T, error) {
 	if urlOrPath == "" {
 		return nil, errors.New("url or path must not be empty")
 	}
@@ -23,12 +38,12 @@ func LoadOpenAPI(urlOrPath string) (*openapi3.T, error) {
 			return nil, urlerr
 		}
 
-		return openapi3.NewLoader().LoadFromURI(uri)
+		return newLoader(ctx).LoadFromURI(uri)
 	}
 
 	if _, err := os.Stat(urlOrPath); err != nil {
 		return nil, fmt.Errorf("the openapi file has not been found on %s", urlOrPath)
 	}
 
-	return openapi3.NewLoader().LoadFromFile(urlOrPath)
+	return newLoader(ctx).LoadFromFile(urlOrPath)
 }

@@ -13,20 +13,18 @@ const (
 
 	NoAuthOperationVulnerabilitySeverityLevel     = 0
 	NoAuthOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
-
-	NoAuthOperationVulnerabilityID   = "broken_authentication.no_auth_operation"
-	NoAuthOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
-	NoAuthOperationVulnerabilityURL  = ""
+	NoAuthOperationVulnerabilityID                = "broken_authentication.no_auth_operation"
+	NoAuthOperationVulnerabilityName              = "Operation Accepts Unauthenticated Requests"
+	NoAuthOperationVulnerabilityURL               = ""
 
 	AcceptsUnauthenticatedOperationScanID   = "generic.accept_unauthenticated_operation"
 	AcceptsUnauthenticatedOperationScanName = "Accept Unauthenticated Operation"
 
 	AcceptUnauthenticatedOperationVulnerabilitySeverityLevel     = 9
 	AcceptUnauthenticatedOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
-
-	AcceptUnauthenticatedOperationVulnerabilityID   = "broken_authentication.accept_unauthenticated_operation"
-	AcceptUnauthenticatedOperationVulnerabilityName = "Operation Accepts Unauthenticated Requests"
-	AcceptUnauthenticatedOperationVulnerabilityURL  = ""
+	AcceptUnauthenticatedOperationVulnerabilityID                = "broken_authentication.accept_unauthenticated_operation"
+	AcceptUnauthenticatedOperationVulnerabilityName              = "Operation Accepts Unauthenticated Requests"
+	AcceptUnauthenticatedOperationVulnerabilityURL               = ""
 )
 
 func NoAuthOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
