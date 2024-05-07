@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
-const fakeJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"
-
 func TestNewAuthorizationJWTBearerSecurityScheme(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 
 	assert.NoError(t, err)
@@ -34,7 +33,7 @@ func TestNewAuthorizationJWTBearerSecuritySchemeWithInvalidJWT(t *testing.T) {
 
 func TestJWTBearerSecurityScheme_GetHeaders(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	attackValue := "xyz789"
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	ss.SetAttackValue(attackValue)
@@ -49,7 +48,7 @@ func TestJWTBearerSecurityScheme_GetHeaders(t *testing.T) {
 
 func TestJWTBearerSecurityScheme_GetCookies(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	cookies := ss.GetCookies()
 
@@ -57,9 +56,28 @@ func TestJWTBearerSecurityScheme_GetCookies(t *testing.T) {
 	assert.Empty(t, cookies)
 }
 
+func TestJWTBearerSecurityScheme_HasValidValue(t *testing.T) {
+	name := "token"
+	value := jwt.FakeJWT
+	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
+	hasValidValue := ss.HasValidValue()
+
+	assert.NoError(t, err)
+	assert.True(t, hasValidValue)
+}
+
+func TestJWTBearerSecurityScheme_HasValidValue_WhenNoValue(t *testing.T) {
+	name := "token"
+	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, nil)
+	hasValidValue := ss.HasValidValue()
+
+	assert.NoError(t, err)
+	assert.False(t, hasValidValue)
+}
+
 func TestJWTBearerSecurityScheme_GetValidValue(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	validValue := ss.GetValidValue()
 
@@ -69,7 +87,7 @@ func TestJWTBearerSecurityScheme_GetValidValue(t *testing.T) {
 
 func TestJWTBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	writer := ss.GetValidValueWriter()
 
@@ -79,7 +97,7 @@ func TestJWTBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
 
 func TestJWTBearerSecurityScheme_SetAttackValue(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	attackValue := "xyz789"
 	ss.SetAttackValue(attackValue)
@@ -90,7 +108,7 @@ func TestJWTBearerSecurityScheme_SetAttackValue(t *testing.T) {
 
 func TestJWTBearerSecurityScheme_GetAttackValue(t *testing.T) {
 	name := "token"
-	value := fakeJWT
+	value := jwt.FakeJWT
 	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
 	attackValue := "xyz789"
 	ss.SetAttackValue(attackValue)

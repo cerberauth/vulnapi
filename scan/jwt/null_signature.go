@@ -21,12 +21,18 @@ const (
 )
 
 func NullSignatureScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName)
 	if !ShouldBeScanned(ss) {
-		return r, nil
+		return nil, nil
 	}
 
-	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+	var valueWriter *jwt.JWTWriter
+	if ss.HasValidValue() {
+		valueWriter = ss.GetValidValueWriter().(*jwt.JWTWriter)
+	} else {
+		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+	}
+
+	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName)
 	newToken, err := valueWriter.WithoutSignature()
 	if err != nil {
 		return r, err

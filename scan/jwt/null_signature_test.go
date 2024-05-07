@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -10,19 +11,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNullSignatureScanHandlerWithoutJwt(t *testing.T) {
+func TestNullSignatureScanHandlerWithoutSecurityScheme(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := jwt.NullSignatureScanHandler(operation, securityScheme)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
+	assert.Nil(t, report)
+}
+
+func TestNullSignatureScanHandlerWithoutJWT(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
+
+	report, err := jwt.NullSignatureScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.False(t, report.HasVulnerabilityReport())
 }
 
@@ -34,7 +51,7 @@ func TestNullSignatureScanHandler(t *testing.T) {
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(401, nil))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := jwt.NullSignatureScanHandler(operation, securityScheme)
 

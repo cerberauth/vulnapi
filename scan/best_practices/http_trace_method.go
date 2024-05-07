@@ -19,12 +19,15 @@ const (
 )
 
 func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName)
+	if ss.HasValidValue() {
+		ss.SetAttackValue(ss.GetValidValue())
+	}
+
 	newOperation := operation.Clone()
 	newOperation.Method = "TRACE"
 
-	ss.SetAttackValue(ss.GetValidValue())
 	vsa, err := scan.ScanURL(newOperation, &ss)
+	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err

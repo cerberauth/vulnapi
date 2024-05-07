@@ -43,6 +43,10 @@ func (ss *BearerSecurityScheme) GetCookies() []*http.Cookie {
 	return []*http.Cookie{}
 }
 
+func (ss *BearerSecurityScheme) HasValidValue() bool {
+	return ss.ValidValue != nil
+}
+
 func (ss *BearerSecurityScheme) GetValidValue() interface{} {
 	return *ss.ValidValue
 }

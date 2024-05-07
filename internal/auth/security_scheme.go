@@ -17,6 +17,7 @@ type SecurityScheme interface {
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
 	GetValidValue() interface{}
+	HasValidValue() bool
 	GetValidValueWriter() interface{}
 	SetAttackValue(v interface{})
 	GetAttackValue() interface{}
@@ -36,6 +37,10 @@ func (ss *NoAuthSecurityScheme) GetHeaders() http.Header {
 
 func (ss *NoAuthSecurityScheme) GetCookies() []*http.Cookie {
 	return []*http.Cookie{}
+}
+
+func (ss *NoAuthSecurityScheme) HasValidValue() bool {
+	return false
 }
 
 func (ss *NoAuthSecurityScheme) GetValidValue() interface{} {

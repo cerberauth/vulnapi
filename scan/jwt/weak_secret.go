@@ -26,17 +26,20 @@ var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "chang
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
 
 func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName)
 	if !ShouldBeScanned(ss) {
-		r.End()
-		return r, nil
+		return nil, nil
+	}
+
+	if !ss.HasValidValue() {
+		return nil, nil
 	}
 
 	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
 	if !valueWriter.IsHMACAlg() {
-		return r, nil
+		return nil, nil
 	}
 
+	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName)
 	jwtSecretDictionary := defaultJwtSecretDictionary
 	if secretDictionnaryFromSeclist, err := seclist.NewSecListFromURL("JWT Secrets Dictionnary", jwtSecretDictionarySeclistUrl); err == nil {
 		jwtSecretDictionary = secretDictionnaryFromSeclist.Items

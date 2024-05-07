@@ -56,6 +56,10 @@ func (ss *JWTBearerSecurityScheme) GetCookies() []*http.Cookie {
 	return []*http.Cookie{}
 }
 
+func (ss *JWTBearerSecurityScheme) HasValidValue() bool {
+	return ss.ValidValue != nil
+}
+
 func (ss *JWTBearerSecurityScheme) GetValidValue() interface{} {
 	return *ss.ValidValue
 }
