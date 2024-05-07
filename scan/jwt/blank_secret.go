@@ -21,13 +21,18 @@ const (
 )
 
 func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName)
 	if !ShouldBeScanned(ss) {
-		r.End()
-		return r, nil
+		return nil, nil
 	}
 
-	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+	var valueWriter *jwt.JWTWriter
+	if ss.HasValidValue() {
+		valueWriter = ss.GetValidValueWriter().(*jwt.JWTWriter)
+	} else {
+		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+	}
+
+	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName)
 	newToken, err := valueWriter.SignWithKey([]byte(""))
 	if err != nil {
 		return r, err

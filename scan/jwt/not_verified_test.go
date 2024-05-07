@@ -11,20 +11,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNotVerifiedScanHandlerWithoutJwt(t *testing.T) {
+func TestNotVerifiedScanHandlerWithoutSecurityScheme(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.Nil(t, report)
+}
+
+func TestNotVerifiedScanHandlerWithoutJWT(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
+
+	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 0, httpmock.GetTotalCallCount())
+	assert.Nil(t, report)
 }
 
 func TestNotVerifiedScanHandler(t *testing.T) {
@@ -37,8 +53,8 @@ func TestNotVerifiedScanHandler(t *testing.T) {
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{
-			httpmock.NewBytesResponse(200, nil),
-			httpmock.NewBytesResponse(401, nil),
+			httpmock.NewBytesResponse(http.StatusOK, nil),
+			httpmock.NewBytesResponse(http.StatusUnauthorized, nil),
 		}, t.Log),
 	)
 	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)
@@ -58,8 +74,8 @@ func TestNotVerifiedScanHandlerWithNotVerifiedJWT(t *testing.T) {
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{
-			httpmock.NewBytesResponse(200, nil),
-			httpmock.NewBytesResponse(200, nil),
+			httpmock.NewBytesResponse(http.StatusOK, nil),
+			httpmock.NewBytesResponse(http.StatusOK, nil),
 		}, t.Log),
 	)
 	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)
@@ -79,8 +95,8 @@ func TestNotVerifiedScanHandlerWhenHTTPCodeIs401(t *testing.T) {
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{
-			httpmock.NewBytesResponse(401, nil),
-			httpmock.NewBytesResponse(401, nil),
+			httpmock.NewBytesResponse(http.StatusUnauthorized, nil),
+			httpmock.NewBytesResponse(http.StatusUnauthorized, nil),
 		}, t.Log),
 	)
 	report, err := jwt.NotVerifiedScanHandler(operation, securityScheme)

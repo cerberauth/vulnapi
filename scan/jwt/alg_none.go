@@ -22,16 +22,21 @@ const (
 )
 
 func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName)
 	if !ShouldBeScanned(ss) {
-		return r, nil
+		return nil, nil
 	}
 
-	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
-	if valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
-		return r, nil
+	var valueWriter *jwt.JWTWriter
+	if ss.HasValidValue() {
+		valueWriter = ss.GetValidValueWriter().(*jwt.JWTWriter)
+		if valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+			return nil, nil
+		}
+	} else {
+		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
 
+	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName)
 	newToken, err := valueWriter.WithAlgNone()
 	if err != nil {
 		return r, err

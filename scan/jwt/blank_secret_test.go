@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -10,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBlankSecretScanHandlerWithoutJwt(t *testing.T) {
+func TestBlankSecretScanHandlerWithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
@@ -18,6 +19,22 @@ func TestBlankSecretScanHandlerWithoutJwt(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
+	assert.Nil(t, report)
+}
+
+func TestBlankSecretScanHandlerWithoutJWT(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
+	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
+
+	report, err := jwt.BlankSecretScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.False(t, report.HasVulnerabilityReport())
 }
 
@@ -29,7 +46,7 @@ func TestBlankSecretScanHandler(t *testing.T) {
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
 	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(401, nil))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := jwt.BlankSecretScanHandler(operation, securityScheme)
 

@@ -21,12 +21,17 @@ const (
 )
 
 func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName)
 	if !ShouldBeScanned(ss) {
-		return r, nil
+		return nil, nil
+	}
+
+	if !ss.HasValidValue() {
+		return nil, nil
 	}
 
 	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
+
+	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName)
 	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.Token.Method)
 	if err != nil {
 		return r, err
