@@ -41,10 +41,10 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				httpHeader.Add(parts[0], strings.TrimLeft(parts[1], " "))
 			}
 
-			var httpCookies []http.Cookie
+			var httpCookies []*http.Cookie
 			for _, c := range cookies {
 				parts := strings.SplitN(c, ":", 2)
-				httpCookies = append(httpCookies, http.Cookie{
+				httpCookies = append(httpCookies, &http.Cookie{
 					Name:  parts[0],
 					Value: parts[1],
 				})

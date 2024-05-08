@@ -17,15 +17,13 @@ func TestDiscoverableScannerWithNoDiscoverableOpenAPI(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
-	report, err := discover.DiscoverableOpenAPIScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableOpenAPIScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 10)
@@ -36,11 +34,10 @@ func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/openapi.yaml", "GET", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/openapi.yaml", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
 	expectedReport := report.VulnerabilityReport{
@@ -53,7 +50,7 @@ func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
 		Operation: operation,
 	}
 
-	report, err := discover.DiscoverableOpenAPIScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableOpenAPIScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)

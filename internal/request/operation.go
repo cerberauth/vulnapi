@@ -19,28 +19,30 @@ func (o Operations) Less(i, j int) bool {
 }
 
 type Operation struct {
-	*http.Request
+	*Request
 
 	SecuritySchemes []auth.SecurityScheme `json:"security_schemes"`
 }
 
-func NewOperation(url, method string, header http.Header, cookies []http.Cookie, securitySchemes []auth.SecurityScheme) *Operation {
-	request, _ := http.NewRequest(method, url, nil)
-	request.Header = header
-	for _, cookie := range cookies {
-		request.AddCookie(&cookie)
+func NewOperation(method string, url string, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) (*Operation, error) {
+	r, err := NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	return NewOperationFromRequest(request, securitySchemes)
+	r = r.WithHTTPHeaders(header).WithCookies(cookies)
+
+	return NewOperationFromRequest(r, securitySchemes), nil
 }
 
-func NewOperationFromRequest(r *http.Request, securitySchemes []auth.SecurityScheme) *Operation {
+func NewOperationFromRequest(r *Request, securitySchemes []auth.SecurityScheme) *Operation {
 	if len(securitySchemes) == 0 {
 		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 
 	return &Operation{
-		Request:         r,
+		Request: r,
+
 		SecuritySchemes: securitySchemes,
 	}
 }

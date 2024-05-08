@@ -48,16 +48,16 @@ const graphqlQuery = `{
 
 var graphqlSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/graphql.txt"
 
-func newPostGraphqlIntrospectionRequest(endpoint *url.URL) (*http.Request, error) {
-	return http.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)))
+func newPostGraphqlIntrospectionRequest(endpoint *url.URL) (*request.Request, error) {
+	return request.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)))
 }
 
-func newGetGraphqlIntrospectionRequest(endpoint *url.URL) (*http.Request, error) {
+func newGetGraphqlIntrospectionRequest(endpoint *url.URL) (*request.Request, error) {
 	values := url.Values{}
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
 
-	return http.NewRequest(http.MethodGet, endpoint.String(), nil)
+	return request.NewRequest(http.MethodGet, endpoint.String(), nil)
 }
 
 func GraphqlIntrospectionScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {

@@ -18,9 +18,8 @@ func TestHTTPCookiesScanHandlerWhenNoCookies(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := bestpractices.HTTPCookiesScanHandler(operation, securityScheme)
 
@@ -34,9 +33,8 @@ func TestHTTPCookiesScanHandlerWhenNoUnsecrurePractices(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	resp := httpmock.NewStringResponse(200, "OK")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
 		Value:    "cookie_value",
@@ -62,9 +60,8 @@ func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	resp := httpmock.NewStringResponse(200, "OK")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
 		Value:    "cookie_value",
@@ -90,9 +87,8 @@ func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	resp := httpmock.NewStringResponse(200, "OK")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
 		Value:    "cookie_value",
@@ -118,9 +114,8 @@ func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	resp := httpmock.NewStringResponse(200, "OK")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
 		Value:    "cookie_value",
@@ -146,9 +141,8 @@ func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	resp := httpmock.NewStringResponse(200, "OK")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
 		Value:    "cookie_value",

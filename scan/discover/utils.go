@@ -31,7 +31,10 @@ func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, 
 
 		base := ExtractBaseURL(operation.Request.URL)
 		for _, path := range scanUrls {
-			newRequest, _ := http.NewRequest(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil)
+			newRequest, err := request.NewRequest(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil)
+			if err != nil {
+				return r, err
+			}
 			newOperation := request.NewOperationFromRequest(newRequest, []auth.SecurityScheme{securityScheme})
 
 			attempt, err := scan.ScanURL(newOperation, &securityScheme)

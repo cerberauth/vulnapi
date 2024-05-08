@@ -19,7 +19,7 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: discover.ServerSignatureSeverityLevel,
 
@@ -48,8 +48,7 @@ func TestCheckSignatureHeaderWithoutSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
 
 	report, err := discover.ServerSignatureScanHandler(operation, securityScheme)

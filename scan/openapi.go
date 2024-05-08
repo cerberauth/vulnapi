@@ -120,7 +120,7 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 	for docPath, p := range doc.Paths.Map() {
 		for method, o := range p.Operations() {
 			header := http.Header{}
-			cookies := []http.Cookie{}
+			cookies := []*http.Cookie{}
 			for _, h := range o.Parameters {
 				if !h.Value.Required {
 					continue
@@ -135,7 +135,7 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 				if h.Value.In == "header" {
 					header.Add(name, value)
 				} else if h.Value.In == "cookie" {
-					cookies = append(cookies, http.Cookie{
+					cookies = append(cookies, &http.Cookie{
 						Name:  name,
 						Value: value,
 					})
@@ -156,7 +156,11 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 			operationUrl := *baseUrl
 			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
 
-			operations = append(operations, request.NewOperation(operationUrl.String(), method, header, cookies, operationsSecuritySchemes))
+			operation, err := request.NewOperation(method, operationUrl.String(), header, cookies, operationsSecuritySchemes)
+			if err != nil {
+				return nil, err
+			}
+			operations = append(operations, operation)
 		}
 	}
 

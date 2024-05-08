@@ -13,7 +13,7 @@ import (
 
 func TestWeakHMACSecretScanHandlerWithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	report, err := jwt.WeakHMACSecretScanHandler(operation, securityScheme)
 
@@ -25,7 +25,7 @@ func TestWeakHMACSecretScanHandlerWithoutSecurityScheme(t *testing.T) {
 func TestWeakHMACSecretScanHandlerWithJWTUsingOtherAlg(t *testing.T) {
 	token := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmMxMjMifQ.vLBmArLmAKEshqJa3px6qYfrkAfiwBrKPs5dCMxqj9bdiEKR5W4o0Srxt6VHZKzsxIGMTTsqpW21lKnYsLw5DA"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	report, err := jwt.WeakHMACSecretScanHandler(operation, securityScheme)
 
@@ -35,11 +35,8 @@ func TestWeakHMACSecretScanHandlerWithJWTUsingOtherAlg(t *testing.T) {
 }
 
 func TestWeakHMACSecretScanHandlerWithoutJWT(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
@@ -56,7 +53,7 @@ func TestWeakHMACSecretScanHandlerWithWeakJWT(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
@@ -68,12 +65,9 @@ func TestWeakHMACSecretScanHandlerWithWeakJWT(t *testing.T) {
 }
 
 func TestWeakHMACSecretScanHandlerWithStrongerJWT(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MWUarT7Q4e5DqnZbdr7VKw3rx9VW-CrvoVkfpllS4CY"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 

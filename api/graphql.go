@@ -36,9 +36,9 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		httpHeaders.Add(header.Name, header.Value)
 	}
 
-	httpCookies := make([]http.Cookie, 0)
+	httpCookies := make([]*http.Cookie, 0)
 	for _, cookie := range form.Cookies {
-		httpCookies = append(httpCookies, http.Cookie{Name: cookie.Name, Value: cookie.Value})
+		httpCookies = append(httpCookies, &http.Cookie{Name: cookie.Name, Value: cookie.Value})
 	}
 
 	analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Scan GraphQL", []attribute.KeyValue{})

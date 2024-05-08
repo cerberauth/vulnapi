@@ -17,15 +17,13 @@ func TestGraphqlIntrospectionScanHandler(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080", http.MethodPost, nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
-	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
+	report, err := discover.GraphqlIntrospectionScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 1)
@@ -36,15 +34,13 @@ func TestGetGraphqlIntrospectionScanHandler(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080", http.MethodGet, nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
-	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
+	report, err := discover.GraphqlIntrospectionScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 1)
@@ -55,11 +51,10 @@ func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/graphql", http.MethodPost, nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
 	expectedReport := report.VulnerabilityReport{
@@ -72,7 +67,7 @@ func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t 
 		Operation: operation,
 	}
 
-	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
+	report, err := discover.GraphqlIntrospectionScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
@@ -85,11 +80,10 @@ func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/graphql", http.MethodGet, nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
 	expectedReport := report.VulnerabilityReport{
@@ -102,7 +96,7 @@ func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint
 		Operation: operation,
 	}
 
-	report, err := discover.GraphqlIntrospectionScanHandler(operation, securityScheme)
+	report, err := discover.GraphqlIntrospectionScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
@@ -115,15 +109,13 @@ func TestDiscoverableScannerWithNoDiscoverableGraphqlPath(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", http.MethodGet, nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
-	report, err := discover.DiscoverableGraphQLPathScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableGraphQLPathScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 7)
@@ -134,11 +126,10 @@ func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/graphql", http.MethodGet, nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
 	expectedReport := report.VulnerabilityReport{
@@ -151,7 +142,7 @@ func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
 		Operation: operation,
 	}
 
-	report, err := discover.DiscoverableGraphQLPathScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableGraphQLPathScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)

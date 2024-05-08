@@ -1,6 +1,7 @@
 package bestpractices_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -15,13 +16,10 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
-	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(405, nil))
-
-	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -32,13 +30,10 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
-	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
-
-	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, securityScheme)
+	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())

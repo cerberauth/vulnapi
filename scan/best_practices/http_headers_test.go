@@ -29,10 +29,9 @@ func TestHTTPHeadersBestPracticesScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -47,11 +46,10 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.CSPHTTPHeader)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -66,11 +64,10 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -85,11 +82,10 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'; frame-ancestors 'http://example.com'")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -104,11 +100,10 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.CORSOriginHTTPHeader)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -123,11 +118,10 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Set(bestpractices.CORSOriginHTTPHeader, "*")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -142,11 +136,10 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.HSTSHTTPHeader)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -161,11 +154,10 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.XContentTypeOptionsHTTPHeader)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
@@ -180,11 +172,10 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	header := getValidHTTPHeaders(operation)
 	header.Del(bestpractices.XFrameOptionsHTTPHeader)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(*header))
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(*header))
 
 	report, err := bestpractices.HTTPHeadersBestPracticesScanHandler(operation, securityScheme)
 
