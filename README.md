@@ -84,6 +84,12 @@ All the vulnerabilities detected by the project are listed at this URL: [Vulnera
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 
+## Proxy Support
+
+The scanner supports proxy configurations for scanning APIs behind a proxy server. To use a proxy, set the `HTTP_PROXY` or `HTTPS_PROXY` environment variables with the proxy URL.
+
+A command arg `--proxy` is also available to specify the proxy URL.
+
 ## Additional Options
 
 The VulnAPI may support additional options for customizing scans or output formatting. Run `vulnapi -h` or `vulnapi help` command to view available options and their descriptions.

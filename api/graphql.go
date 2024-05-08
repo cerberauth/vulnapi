@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
@@ -12,14 +13,8 @@ import (
 
 type NewGraphQLScanRequest struct {
 	Endpoint string `form:"endpoint" json:"endpoint" binding:"required"`
-	Headers  []struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-	} `form:"headers" json:"headers"`
-	Cookies []struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-	} `form:"cookies" json:"cookies"`
+
+	Opts *ScanOptions `json:"options"`
 }
 
 var serverApiGraphQLTracer = otel.Tracer("server/api/graphql")
@@ -31,18 +26,12 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		return
 	}
 
-	httpHeaders := make(http.Header)
-	for _, header := range form.Headers {
-		httpHeaders.Add(header.Name, header.Value)
-	}
-
-	httpCookies := make([]http.Cookie, 0)
-	for _, cookie := range form.Cookies {
-		httpCookies = append(httpCookies, http.Cookie{Name: cookie.Name, Value: cookie.Value})
-	}
-
 	analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Scan GraphQL", []attribute.KeyValue{})
-	s, err := scan.NewGraphQLScan(form.Endpoint, httpHeaders, httpCookies, nil)
+	opts := parseScanOptions(form.Opts)
+	opts.Header = ctx.Request.Header
+	opts.Cookies = ctx.Request.Cookies()
+	client := request.NewClient(opts)
+	s, err := scan.NewGraphQLScan(form.Endpoint, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiGraphQLTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

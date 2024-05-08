@@ -2,9 +2,7 @@ package api
 
 import "github.com/gin-gonic/gin"
 
-type Handler struct {
-	// This is a placeholder for the actual implementation.
-}
+type Handler struct{}
 
 func NewHandler() *Handler {
 	return &Handler{}

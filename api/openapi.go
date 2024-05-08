@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,8 @@ import (
 type NewOpenAPIScanRequest struct {
 	Schema     string `json:"schema" binding:"required"`
 	ValidToken string `json:"valid_token"`
+
+	Opts *ScanOptions `json:"options"`
 }
 
 var serverApiOpenAPITracer = otel.Tracer("server/api/openapi")
@@ -33,7 +36,11 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	}
 
 	analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Scan OpenAPI", []attribute.KeyValue{})
-	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, nil)
+	opts := parseScanOptions(form.Opts)
+	opts.Header = ctx.Request.Header
+	opts.Cookies = ctx.Request.Cookies()
+	client := request.NewClient(opts)
+	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

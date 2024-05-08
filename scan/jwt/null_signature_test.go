@@ -12,11 +12,8 @@ import (
 )
 
 func TestNullSignatureScanHandlerWithoutSecurityScheme(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
@@ -28,11 +25,12 @@ func TestNullSignatureScanHandlerWithoutSecurityScheme(t *testing.T) {
 }
 
 func TestNullSignatureScanHandlerWithoutJWT(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
@@ -44,12 +42,13 @@ func TestNullSignatureScanHandlerWithoutJWT(t *testing.T) {
 }
 
 func TestNullSignatureScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 

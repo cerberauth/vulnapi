@@ -14,18 +14,17 @@ import (
 )
 
 func TestDiscoverableScannerWithNoDiscoverableOpenAPI(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
-	report, err := discover.DiscoverableOpenAPIScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableOpenAPIScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 10)
@@ -33,14 +32,14 @@ func TestDiscoverableScannerWithNoDiscoverableOpenAPI(t *testing.T) {
 }
 
 func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/openapi.yaml", "GET", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/swagger/v1/swagger.json", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, "Not Found"), nil
+		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
 	})
 
 	expectedReport := report.VulnerabilityReport{
@@ -53,11 +52,14 @@ func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
 		Operation: operation,
 	}
 
-	report, err := discover.DiscoverableOpenAPIScanHandler(operation, securityScheme)
+	report, err := discover.DiscoverableOpenAPIScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
+	hasVulnerabilityReport := report.HasVulnerabilityReport()
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.HasVulnerabilityReport())
-	assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
-	assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
+	assert.True(t, hasVulnerabilityReport)
+	if hasVulnerabilityReport {
+		assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
+		assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
+	}
 }

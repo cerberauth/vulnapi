@@ -16,7 +16,7 @@ import (
 func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 	token := "token"
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	s, err := scan.NewOpenAPIScan(doc, &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -30,7 +30,7 @@ func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer_jwt.openapi.json")
 	expectedSecurityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("bearer_auth", &token)
-	s, err := scan.NewOpenAPIScan(doc, &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -47,7 +47,7 @@ func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/basic_http_bearer.openapi.json")
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 
-	s, err := scan.NewOpenAPIScan(doc, &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
@@ -63,7 +63,7 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/basic_http_bearer.openapi.json")
 	securitySchemes := []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 
-	s, err := scan.NewOpenAPIScan(doc, &token, nil)
+	s, err := scan.NewOpenAPIScan(doc, &token, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))

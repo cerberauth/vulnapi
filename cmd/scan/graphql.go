@@ -2,8 +2,6 @@ package scan
 
 import (
 	"log"
-	"net/http"
-	"strings"
 
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
@@ -25,23 +23,9 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			tracer := otel.Tracer("scan/graphql")
 			graphqlEndpoint := args[0]
 
-			httpHeader := http.Header{}
-			for _, h := range headers {
-				parts := strings.SplitN(h, ":", 2)
-				httpHeader.Add(parts[0], strings.TrimLeft(parts[1], " "))
-			}
-
-			var httpCookies []http.Cookie
-			for _, c := range cookies {
-				parts := strings.SplitN(c, ":", 2)
-				httpCookies = append(httpCookies, http.Cookie{
-					Name:  parts[0],
-					Value: parts[1],
-				})
-			}
-
 			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
-			s, err := scan.NewGraphQLScan(graphqlEndpoint, httpHeader, httpCookies, nil)
+			client := NewHTTPClientFromArgs(rate, proxy, headers, cookies)
+			s, err := scan.NewGraphQLScan(graphqlEndpoint, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -61,6 +45,8 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 
 	scanCmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Pass custom header(s) to target API")
 	scanCmd.Flags().StringArrayVarP(&cookies, "cookie", "b", nil, "Send cookies from string")
+	scanCmd.Flags().StringVarP(&rate, "rate", "r", "10/s", "Specify the transfer rate")
+	scanCmd.Flags().StringVarP(&proxy, "proxy", "x", "", "Use the specified HTTP proxy")
 
 	// The following flags are not implemented yet
 	scanCmd.Flags().StringVarP(&placeholderString, "data", "d", "", "HTTP POST data")

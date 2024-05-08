@@ -2,7 +2,6 @@ package scan_test
 
 import (
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -20,15 +19,8 @@ func TestNewScanWithNoOperations(t *testing.T) {
 }
 
 func TestNewScan(t *testing.T) {
-	operations := request.Operations{{
-		Request: &http.Request{
-			Method: "GET",
-			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
-			Header: http.Header{},
-		},
-
-		SecuritySchemes: []auth.SecurityScheme{},
-	}}
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operations := request.Operations{operation}
 	expected := scan.Scan{
 		Operations:      operations,
 		Reporter:        report.NewReporter(),
@@ -44,15 +36,8 @@ func TestNewScan(t *testing.T) {
 }
 
 func TestNewScanWithReporter(t *testing.T) {
-	operations := request.Operations{{
-		Request: &http.Request{
-			Method: "GET",
-			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
-			Header: http.Header{},
-		},
-
-		SecuritySchemes: []auth.SecurityScheme{},
-	}}
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operations := request.Operations{operation}
 	reporter := report.NewReporter()
 	expected := scan.Scan{
 		Operations:      operations,
@@ -69,15 +54,8 @@ func TestNewScanWithReporter(t *testing.T) {
 }
 
 func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
-	operations := request.Operations{{
-		Request: &http.Request{
-			Method: "GET",
-			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
-			Header: http.Header{},
-		},
-
-		SecuritySchemes: []auth.SecurityScheme{},
-	}}
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
 
 	operationsScans := s.GetOperationsScans()
@@ -86,15 +64,8 @@ func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
 }
 
 func TestScanGetOperationsScans(t *testing.T) {
-	operations := request.Operations{{
-		Request: &http.Request{
-			Method: "GET",
-			URL:    &url.URL{Scheme: "http", Host: "localhost:8080", Path: "/"},
-			Header: http.Header{},
-		},
-
-		SecuritySchemes: []auth.SecurityScheme{},
-	}}
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
 	s.AddOperationScanHandler(func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 		return nil, nil

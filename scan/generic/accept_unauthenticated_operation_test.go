@@ -1,6 +1,7 @@
 package generic_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -14,7 +15,7 @@ import (
 
 func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: generic.NoAuthOperationVulnerabilitySeverityLevel,
 
@@ -37,7 +38,7 @@ func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 func TestCheckNoAuthOperationScanHandlerWhenAuthConfigured(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	report, err := generic.NoAuthOperationScanHandler(operation, securityScheme)
 
@@ -47,7 +48,7 @@ func TestCheckNoAuthOperationScanHandlerWhenAuthConfigured(t *testing.T) {
 
 func TestAcceptUnauthenticatedOperationScanHandlerWhenNoAuthConfigured(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 
 	report, err := generic.AcceptUnauthenticatedOperationScanHandler(operation, securityScheme)
 
@@ -56,13 +57,14 @@ func TestAcceptUnauthenticatedOperationScanHandlerWhenNoAuthConfigured(t *testin
 }
 
 func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation := request.NewOperation("http://localhost:8080/", "GET", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil))
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	vulnerabilityReport := report.VulnerabilityReport{
 		SeverityLevel: generic.AcceptUnauthenticatedOperationVulnerabilitySeverityLevel,
 

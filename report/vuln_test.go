@@ -2,7 +2,6 @@ package report_test
 
 import (
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -12,12 +11,7 @@ import (
 
 func TestVulnerabilityReport_WithOperation(t *testing.T) {
 	vr := &report.VulnerabilityReport{}
-	operation := &request.Operation{
-		Request: &http.Request{
-			Method: "POST",
-			URL:    &url.URL{Scheme: "https", Host: "example.com", Path: "/vulnerability"},
-		},
-	}
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "https://example.com/vulnerability", nil, nil, nil)
 
 	vr.WithOperation(operation)
 
@@ -40,18 +34,14 @@ func TestVulnerabilityReport_IsHighRiskSeverity(t *testing.T) {
 }
 
 func TestVulnerabilityReport_String(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "https://example.com/vulnerability", nil, nil, nil)
 	vr := &report.VulnerabilityReport{
 		SeverityLevel: 7.5,
 		ID:            "test-vulnerability",
 		Name:          "Test Vulnerability",
 		URL:           "https://example.com/docs/vulnerability",
 
-		Operation: &request.Operation{
-			Request: &http.Request{
-				Method: "GET",
-				URL:    &url.URL{Scheme: "https", Host: "example.com", Path: "/vulnerability"},
-			},
-		},
+		Operation: operation,
 	}
 	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability"
 	assert.Equal(t, expected, vr.String())
