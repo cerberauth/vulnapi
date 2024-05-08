@@ -92,7 +92,7 @@ func getOperationPath(p string, params openapi3.Parameters) (string, error) {
 	return stduritemplate.Expand(p, subs)
 }
 
-func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Reporter) (*Scan, error) {
+func NewOpenAPIScan(doc *openapi3.T, validToken *string, client *request.Client, reporter *report.Reporter) (*Scan, error) {
 	baseUrl, err := getBaseUrl(doc)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func NewOpenAPIScan(doc *openapi3.T, validToken *string, reporter *report.Report
 			operationUrl := *baseUrl
 			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
 
-			operation, err := request.NewOperation(method, operationUrl.String(), header, cookies, operationsSecuritySchemes)
+			operation, err := request.NewOperation(client, method, operationUrl.String(), header, cookies, operationsSecuritySchemes)
 			if err != nil {
 				return nil, err
 			}

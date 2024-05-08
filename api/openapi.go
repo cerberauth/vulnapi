@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,8 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	}
 
 	analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Scan OpenAPI", []attribute.KeyValue{})
-	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, nil)
+	client := request.NewClient(nil, nil)
+	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

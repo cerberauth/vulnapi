@@ -28,14 +28,14 @@ func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, 
 
 	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 		securityScheme.SetAttackValue(securityScheme.GetValidValue())
+		securitySchemes := []auth.SecurityScheme{securityScheme}
 
 		base := ExtractBaseURL(operation.Request.URL)
 		for _, path := range scanUrls {
-			newRequest, err := request.NewRequest(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil)
+			newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, nil, securitySchemes)
 			if err != nil {
 				return r, err
 			}
-			newOperation := request.NewOperationFromRequest(newRequest, []auth.SecurityScheme{securityScheme})
 
 			attempt, err := scan.ScanURL(newOperation, &securityScheme)
 			r.AddScanAttempt(attempt).End()

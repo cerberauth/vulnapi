@@ -48,16 +48,16 @@ const graphqlQuery = `{
 
 var graphqlSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/graphql.txt"
 
-func newPostGraphqlIntrospectionRequest(endpoint *url.URL) (*request.Request, error) {
-	return request.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)))
+func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
+	return request.NewRequest(client, http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)))
 }
 
-func newGetGraphqlIntrospectionRequest(endpoint *url.URL) (*request.Request, error) {
+func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
 	values := url.Values{}
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
 
-	return request.NewRequest(http.MethodGet, endpoint.String(), nil)
+	return request.NewRequest(client, http.MethodGet, endpoint.String(), nil)
 }
 
 func GraphqlIntrospectionScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
@@ -69,7 +69,7 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName)
 	for _, path := range potentialGraphQLEndpoints {
-		newRequest, err := newPostGraphqlIntrospectionRequest(base.ResolveReference(&url.URL{Path: path}))
+		newRequest, err := newPostGraphqlIntrospectionRequest(operation.Client, base.ResolveReference(&url.URL{Path: path}))
 		if err != nil {
 			return r, err
 		}
@@ -99,7 +99,7 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 	}
 
 	for _, path := range potentialGraphQLEndpoints {
-		newRequest, err := newGetGraphqlIntrospectionRequest(base.ResolveReference(&url.URL{Path: path}))
+		newRequest, err := newGetGraphqlIntrospectionRequest(operation.Client, base.ResolveReference(&url.URL{Path: path}))
 		if err != nil {
 			return r, err
 		}

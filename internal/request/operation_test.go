@@ -25,7 +25,7 @@ func TestNewOperation(t *testing.T) {
 	}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation, err := request.NewOperation(method, url, header, cookies, securitySchemes)
+	operation, err := request.NewOperation(request.DefaultClient, method, url, header, cookies, securitySchemes)
 
 	assert.NoError(t, err)
 	assert.Equal(t, url, operation.Request.URL.String())
@@ -49,7 +49,7 @@ func TestNewOperationWithNoSecuritySchemes(t *testing.T) {
 		},
 	}
 
-	operation, err := request.NewOperation(method, url, header, cookies, nil)
+	operation, err := request.NewOperation(request.DefaultClient, method, url, header, cookies, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, url, operation.Request.URL.String())
@@ -59,7 +59,7 @@ func TestNewOperationWithNoSecuritySchemes(t *testing.T) {
 }
 
 func TestNewOperationFromRequest(t *testing.T) {
-	r, _ := request.NewRequest(http.MethodGet, "http://example.com", nil)
+	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://example.com", nil)
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
 	operation := request.NewOperationFromRequest(r, securitySchemes)
@@ -71,7 +71,7 @@ func TestNewOperationFromRequest(t *testing.T) {
 func TestOperationCloneWithSecuritySchemes(t *testing.T) {
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation, err := request.NewOperation(http.MethodGet, "http://example.com", nil, nil, securitySchemes)
+	operation, err := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com", nil, nil, securitySchemes)
 
 	clonedOperation := operation.Clone()
 

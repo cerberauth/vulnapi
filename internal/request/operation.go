@@ -24,8 +24,8 @@ type Operation struct {
 	SecuritySchemes []auth.SecurityScheme `json:"security_schemes"`
 }
 
-func NewOperation(method string, url string, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) (*Operation, error) {
-	r, err := NewRequest(method, url, nil)
+func NewOperation(client *Client, method string, url string, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) (*Operation, error) {
+	r, err := NewRequest(client, method, url, nil)
 	if err != nil {
 		return nil, err
 	}

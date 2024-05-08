@@ -2,8 +2,6 @@ package scan
 
 import (
 	"log"
-	"net/http"
-	"strings"
 
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
@@ -35,25 +33,11 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			tracer := otel.Tracer("scan/curl")
 			url = args[0]
 
-			httpHeader := http.Header{}
-			for _, h := range headers {
-				parts := strings.SplitN(h, ":", 2)
-				httpHeader.Add(parts[0], strings.TrimLeft(parts[1], " "))
-			}
-
-			var httpCookies []*http.Cookie
-			for _, c := range cookies {
-				parts := strings.SplitN(c, ":", 2)
-				httpCookies = append(httpCookies, &http.Cookie{
-					Name:  parts[0],
-					Value: parts[1],
-				})
-			}
-
 			analyticsx.TrackEvent(ctx, tracer, "Scan CURL", []attribute.KeyValue{
 				attribute.String("method", method),
 			})
-			s, err := scan.NewURLScan(method, url, httpHeader, httpCookies, nil)
+			client := NewHTTPClientFromArgs(headers, cookies)
+			s, err := scan.NewURLScan(method, url, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

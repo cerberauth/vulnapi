@@ -1,16 +1,18 @@
 package scan
 
 import (
-	"net/http"
-
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 )
 
-func NewURLScan(method string, url string, header http.Header, cookies []*http.Cookie, reporter *report.Reporter) (*Scan, error) {
+func NewURLScan(method string, url string, client *request.Client, reporter *report.Reporter) (*Scan, error) {
+	if client == nil {
+		client = request.DefaultClient
+	}
+
 	var securitySchemes []auth.SecurityScheme
-	securityScheme, err := detectSecurityScheme(header)
+	securityScheme, err := detectSecurityScheme(client.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +23,7 @@ func NewURLScan(method string, url string, header http.Header, cookies []*http.C
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
-	operation, err := request.NewOperation(method, url, header, cookies, securitySchemes)
+	operation, err := request.NewOperation(client, method, url, nil, nil, securitySchemes)
 	if err != nil {
 		return nil, err
 	}

@@ -13,10 +13,11 @@ import (
 )
 
 func TestHTTPTraceMethodScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, auth.NewNoAuthSecurityScheme())
@@ -27,10 +28,11 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 }
 
 func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder("TRACE", operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	report, err := bestpractices.HTTPTraceMethodScanHandler(operation, auth.NewNoAuthSecurityScheme())

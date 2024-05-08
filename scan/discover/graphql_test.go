@@ -14,10 +14,11 @@ import (
 )
 
 func TestGraphqlIntrospectionScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
@@ -31,10 +32,11 @@ func TestGraphqlIntrospectionScanHandler(t *testing.T) {
 }
 
 func TestGetGraphqlIntrospectionScanHandler(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
@@ -48,10 +50,11 @@ func TestGetGraphqlIntrospectionScanHandler(t *testing.T) {
 }
 
 func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
@@ -77,10 +80,11 @@ func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t 
 }
 
 func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
@@ -106,10 +110,11 @@ func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint
 }
 
 func TestDiscoverableScannerWithNoDiscoverableGraphqlPath(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil
@@ -123,10 +128,11 @@ func TestDiscoverableScannerWithNoDiscoverableGraphqlPath(t *testing.T) {
 }
 
 func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
-	httpmock.Activate()
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(http.StatusNotFound, "Not Found"), nil

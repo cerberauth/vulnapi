@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
@@ -33,7 +34,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			s, err := scan.NewOpenAPIScan(doc, validToken, nil)
+			client := request.NewClient(nil, nil)
+			s, err := scan.NewOpenAPIScan(doc, validToken, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
