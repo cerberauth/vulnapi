@@ -121,7 +121,9 @@ func TestDoWithClientHeaders(t *testing.T) {
 	header := http.Header{
 		"X-Test": []string{"test"},
 	}
-	client := request.NewClient(header, nil)
+	client := request.NewClient(request.NewClientOptions{
+		Header: header,
+	})
 
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()

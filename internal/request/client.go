@@ -3,7 +3,13 @@ package request
 import (
 	"net/http"
 	"time"
+
+	"go.uber.org/ratelimit"
 )
+
+var rl = ratelimit.New(10)
+
+var DefaultClient = NewClient(NewClientOptions{})
 
 type Client struct {
 	*http.Client
@@ -11,15 +17,29 @@ type Client struct {
 	Cookies []*http.Cookie
 }
 
-var DefaultClient = NewClient(nil, nil)
+type NewClientOptions struct {
+	Timeout time.Duration
+	Rate    int // requests per second
 
-func NewClient(header http.Header, cookies []*http.Cookie) *Client {
-	if header == nil {
-		header = http.Header{}
+	Header  http.Header
+	Cookies []*http.Cookie
+}
+
+func NewClient(opts NewClientOptions) *Client {
+	if opts.Timeout == 0 {
+		opts.Timeout = 10 * time.Second
 	}
 
-	if cookies == nil {
-		cookies = []*http.Cookie{}
+	if opts.Rate > 0 {
+		rl = ratelimit.New(opts.Rate)
+	}
+
+	if opts.Header == nil {
+		opts.Header = http.Header{}
+	}
+
+	if opts.Cookies == nil {
+		opts.Cookies = []*http.Cookie{}
 	}
 
 	return &Client{
@@ -31,8 +51,8 @@ func NewClient(header http.Header, cookies []*http.Cookie) *Client {
 				MaxIdleConnsPerHost: 100,
 			},
 		},
-		header,
-		cookies,
+		opts.Header,
+		opts.Cookies,
 	}
 }
 

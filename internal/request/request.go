@@ -75,6 +75,8 @@ func (r *Request) Do() (*http.Response, error) {
 		}
 	}
 
+	rl.Take()
+
 	return r.Client.Do(r.Request)
 }
 

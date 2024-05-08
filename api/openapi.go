@@ -15,6 +15,8 @@ import (
 type NewOpenAPIScanRequest struct {
 	Schema     string `json:"schema" binding:"required"`
 	ValidToken string `json:"valid_token"`
+
+	Opts *ScanOptions `json:"options"`
 }
 
 var serverApiOpenAPITracer = otel.Tracer("server/api/openapi")
@@ -25,6 +27,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	opts := parseScanOptions(form.Opts)
 
 	doc, err := openapi.LoadFromData(ctx, []byte(form.Schema))
 	if err != nil {
@@ -34,7 +37,12 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	}
 
 	analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Scan OpenAPI", []attribute.KeyValue{})
-	client := request.NewClient(nil, nil)
+	client := request.NewClient(request.NewClientOptions{
+		Header:  ctx.Request.Header,
+		Cookies: ctx.Request.Cookies(),
+
+		Rate: opts.Rate,
+	})
 	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)

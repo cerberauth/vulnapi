@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/cerberauth/vulnapi/internal/openapi"
-	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
@@ -34,7 +33,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			client := request.NewClient(nil, nil)
+			client := NewHTTPClientFromArgs(rate, headers, cookies)
 			s, err := scan.NewOpenAPIScan(doc, validToken, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
@@ -52,6 +51,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 		},
 	}
+
+	scanCmd.Flags().StringVarP(&rate, "rate", "r", "10/s", "Specify the transfer rate")
 
 	return scanCmd
 }

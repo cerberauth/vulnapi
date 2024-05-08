@@ -24,7 +24,9 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	header := http.Header{}
 	token := "token"
 	header.Add("Authorization", "Bearer "+token)
-	client := request.NewClient(header, nil)
+	client := request.NewClient(request.NewClientOptions{
+		Header: header,
+	})
 
 	s, err := scan.NewGraphQLScan("http://localhost:8080", client, nil)
 
@@ -38,7 +40,9 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *tes
 	header := http.Header{}
 	token := "token"
 	header.Add("Authorization", "bearer "+token)
-	client := request.NewClient(header, nil)
+	client := request.NewClient(request.NewClientOptions{
+		Header: header,
+	})
 
 	s, err := scan.NewGraphQLScan("http://localhost:8080", client, nil)
 
@@ -52,7 +56,9 @@ func TestNewGraphQLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	header := http.Header{}
 	token := "token"
 	header.Add("authorization", "Bearer "+token)
-	client := request.NewClient(header, nil)
+	client := request.NewClient(request.NewClientOptions{
+		Header: header,
+	})
 
 	s, err := scan.NewGraphQLScan("http://localhost:8080", client, nil)
 

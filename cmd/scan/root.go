@@ -127,6 +127,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			fmt.Println(reportUnexpectedError)
 		},
 	}
+
 	scanCmd.AddCommand(NewCURLScanCmd())
 	scanCmd.AddCommand(NewOpenAPIScanCmd())
 	scanCmd.AddCommand(NewGraphQLScanCmd())

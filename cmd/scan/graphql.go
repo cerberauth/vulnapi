@@ -24,7 +24,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			graphqlEndpoint := args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
-			client := NewHTTPClientFromArgs(headers, cookies)
+			client := NewHTTPClientFromArgs(rate, headers, cookies)
 			s, err := scan.NewGraphQLScan(graphqlEndpoint, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
@@ -45,6 +45,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 
 	scanCmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Pass custom header(s) to target API")
 	scanCmd.Flags().StringArrayVarP(&cookies, "cookie", "b", nil, "Send cookies from string")
+	scanCmd.Flags().StringVarP(&rate, "rate", "r", "10/s", "Specify the transfer rate")
 
 	// The following flags are not implemented yet
 	scanCmd.Flags().StringVarP(&placeholderString, "data", "d", "", "HTTP POST data")
