@@ -25,15 +25,12 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	opts := parseScanOptions(form.Opts)
 
 	analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Scan GraphQL", []attribute.KeyValue{})
-	client := request.NewClient(request.NewClientOptions{
-		Header:  ctx.Request.Header,
-		Cookies: ctx.Request.Cookies(),
-
-		Rate: opts.Rate,
-	})
+	opts := parseScanOptions(form.Opts)
+	opts.Header = ctx.Request.Header
+	opts.Cookies = ctx.Request.Cookies()
+	client := request.NewClient(opts)
 	s, err := scan.NewGraphQLScan(form.Endpoint, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiGraphQLTracer, err)

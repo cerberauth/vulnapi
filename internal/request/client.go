@@ -2,6 +2,7 @@ package request
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"go.uber.org/ratelimit"
@@ -18,8 +19,9 @@ type Client struct {
 }
 
 type NewClientOptions struct {
-	Timeout time.Duration
-	Rate    int // requests per second
+	Timeout  time.Duration
+	Rate     int // requests per second
+	ProxyURL *url.URL
 
 	Header  http.Header
 	Cookies []*http.Cookie
@@ -42,11 +44,20 @@ func NewClient(opts NewClientOptions) *Client {
 		opts.Cookies = []*http.Cookie{}
 	}
 
+	var proxy func(*http.Request) (*url.URL, error) = nil
+	if opts.ProxyURL != nil && opts.ProxyURL.String() != "" {
+		proxy = http.ProxyURL(opts.ProxyURL)
+	} else {
+		proxy = http.ProxyFromEnvironment
+	}
+
 	return &Client{
 		&http.Client{
 			Timeout: 10 * time.Second,
 
 			Transport: &http.Transport{
+				Proxy: proxy,
+
 				MaxIdleConns:        100,
 				MaxIdleConnsPerHost: 100,
 			},

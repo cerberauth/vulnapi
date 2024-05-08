@@ -26,17 +26,14 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	opts := parseScanOptions(form.Opts)
-
 	analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Scan URL", []attribute.KeyValue{
 		attribute.String("method", form.Method),
 	})
-	client := request.NewClient(request.NewClientOptions{
-		Header:  ctx.Request.Header,
-		Cookies: ctx.Request.Cookies(),
 
-		Rate: opts.Rate,
-	})
+	opts := parseScanOptions(form.Opts)
+	opts.Header = ctx.Request.Header
+	opts.Cookies = ctx.Request.Cookies()
+	client := request.NewClient(opts)
 	s, err := scan.NewURLScan(form.Method, form.URL, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiUrlTracer, err)

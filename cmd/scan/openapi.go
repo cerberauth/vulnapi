@@ -33,7 +33,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			client := NewHTTPClientFromArgs(rate, headers, cookies)
+			client := NewHTTPClientFromArgs(rate, proxy, headers, cookies)
 			s, err := scan.NewOpenAPIScan(doc, validToken, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
@@ -53,6 +53,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	}
 
 	scanCmd.Flags().StringVarP(&rate, "rate", "r", "10/s", "Specify the transfer rate")
+	scanCmd.Flags().StringVarP(&proxy, "proxy", "x", "", "Use the specified HTTP proxy")
 
 	return scanCmd
 }

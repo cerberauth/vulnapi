@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	url     string
+	curlUrl string
 	method  string
 	headers []string
 	cookies []string
 	rate    string
+	proxy   string
 
 	placeholderString string
 	placeholderBool   bool
@@ -32,13 +33,13 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := cmd.Context()
 			tracer := otel.Tracer("scan/curl")
-			url = args[0]
+			curlUrl = args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan CURL", []attribute.KeyValue{
 				attribute.String("method", method),
 			})
-			client := NewHTTPClientFromArgs(rate, headers, cookies)
-			s, err := scan.NewURLScan(method, url, client, nil)
+			client := NewHTTPClientFromArgs(rate, proxy, headers, cookies)
+			s, err := scan.NewURLScan(method, curlUrl, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -60,6 +61,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Pass custom header(s) to target API")
 	scanCmd.Flags().StringArrayVarP(&cookies, "cookie", "b", nil, "Send cookies from string")
 	scanCmd.Flags().StringVarP(&rate, "rate", "r", "10/s", "Specify the transfer rate")
+	scanCmd.Flags().StringVarP(&proxy, "proxy", "x", "", "Use the specified HTTP proxy")
 
 	// The following flags are not implemented yet
 	scanCmd.Flags().StringVarP(&placeholderString, "data", "d", "", "HTTP POST data")

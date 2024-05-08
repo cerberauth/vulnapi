@@ -3,6 +3,7 @@ package scan
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -30,9 +31,13 @@ func parseRate(rate string) (int, error) {
 	}
 }
 
-func NewHTTPClientFromArgs(rateArg string, headersArg []string, httpCookiesArg []string) *request.Client {
+func NewHTTPClientFromArgs(rateArg string, proxyArg string, headersArg []string, httpCookiesArg []string) *request.Client {
 	rate, _ := parseRate(rateArg)
-	println(rate)
+
+	var proxyURL *url.URL
+	if proxyArg != "" {
+		proxyURL, _ = url.Parse(proxyArg)
+	}
 
 	httpHeader := http.Header{}
 	for _, h := range headersArg {
@@ -45,12 +50,13 @@ func NewHTTPClientFromArgs(rateArg string, headersArg []string, httpCookiesArg [
 		parts := strings.SplitN(c, ":", 2)
 		httpCookies = append(httpCookies, &http.Cookie{
 			Name:  parts[0],
-			Value: parts[1],
+			Value: strings.TrimLeft(parts[1], " "),
 		})
 	}
 
 	return request.NewClient(request.NewClientOptions{
-		Rate: rate,
+		Rate:     rate,
+		ProxyURL: proxyURL,
 
 		Header:  httpHeader,
 		Cookies: httpCookies,
