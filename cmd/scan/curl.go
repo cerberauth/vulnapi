@@ -18,7 +18,7 @@ var (
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
 		Use:   "curl [URL]",
-		Short: "URL Scan in CURL style",
+		Short: "CURL style Scan",
 		Args:  cobra.ExactArgs(1),
 		FParseErrWhitelist: cobra.FParseErrWhitelist{
 			UnknownFlags: true,

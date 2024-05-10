@@ -13,7 +13,7 @@ import (
 func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
 		Use:   "graphql [endpoint]",
-		Short: "Full GraphQL scan",
+		Short: "GraphQL scan",
 		Args:  cobra.ExactArgs(1),
 		FParseErrWhitelist: cobra.FParseErrWhitelist{
 			UnknownFlags: true,
