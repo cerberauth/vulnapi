@@ -10,10 +10,10 @@ import (
 	"github.com/cerberauth/vulnapi/internal/request"
 )
 
-func parseRate(rate string) (int, error) {
-	parts := strings.Split(rate, "/")
+func parseRateLimit(rateLimit string) (int, error) {
+	parts := strings.Split(rateLimit, "/")
 	if len(parts) != 2 {
-		return 0, fmt.Errorf("invalid rate format")
+		return 0, fmt.Errorf("invalid rate limit format")
 	}
 
 	num, err := strconv.Atoi(parts[0])
@@ -27,12 +27,12 @@ func parseRate(rate string) (int, error) {
 	case "m":
 		return num / 60, nil
 	default:
-		return 0, fmt.Errorf("invalid rate unit")
+		return 0, fmt.Errorf("invalid rate limit unit")
 	}
 }
 
-func NewHTTPClientFromArgs(rateArg string, proxyArg string, headersArg []string, httpCookiesArg []string) *request.Client {
-	rate, _ := parseRate(rateArg)
+func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []string, httpCookiesArg []string) *request.Client {
+	rateLimit, _ := parseRateLimit(rateLimitArg)
 
 	var proxyURL *url.URL
 	if proxyArg != "" {
@@ -55,8 +55,8 @@ func NewHTTPClientFromArgs(rateArg string, proxyArg string, headersArg []string,
 	}
 
 	return request.NewClient(request.NewClientOptions{
-		Rate:     rate,
-		ProxyURL: proxyURL,
+		RateLimit: rateLimit,
+		ProxyURL:  proxyURL,
 
 		Header:  httpHeader,
 		Cookies: httpCookies,

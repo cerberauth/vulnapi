@@ -19,9 +19,9 @@ type Client struct {
 }
 
 type NewClientOptions struct {
-	Timeout  time.Duration
-	Rate     int // requests per second
-	ProxyURL *url.URL
+	Timeout   time.Duration
+	RateLimit int // requests per second
+	ProxyURL  *url.URL
 
 	Header  http.Header
 	Cookies []*http.Cookie
@@ -32,8 +32,8 @@ func NewClient(opts NewClientOptions) *Client {
 		opts.Timeout = 10 * time.Second
 	}
 
-	if opts.Rate > 0 {
-		rl = ratelimit.New(opts.Rate)
+	if opts.RateLimit > 0 {
+		rl = ratelimit.New(opts.RateLimit)
 	}
 
 	if opts.Header == nil {
