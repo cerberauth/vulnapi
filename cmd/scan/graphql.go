@@ -43,20 +43,8 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	scanCmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Pass custom header(s) to target API")
-	scanCmd.Flags().StringArrayVarP(&cookies, "cookie", "b", nil, "Send cookies from string")
-	scanCmd.Flags().StringVarP(&rateLimit, "rate-limit", "r", "10/s", "Specify the transfer rate")
-	scanCmd.Flags().StringVarP(&proxy, "proxy", "x", "", "Use the specified HTTP proxy")
-
-	// The following flags are not implemented yet
-	scanCmd.Flags().StringVarP(&placeholderString, "data", "d", "", "HTTP POST data")
-	scanCmd.Flags().BoolVarP(&placeholderBool, "fail", "f", false, "Fail silently (no output at all) on HTTP errors")
-	scanCmd.Flags().BoolVarP(&placeholderBool, "include", "i", false, "Include protocol headers in the output")
-	scanCmd.Flags().BoolVarP(&placeholderBool, "remote-name", "O", false, "Write output to a file named as the remote file")
-	scanCmd.Flags().BoolVarP(&placeholderBool, "silent", "s", false, "Run in silent mode")
-	scanCmd.Flags().StringVarP(&placeholderString, "upload-file", "T", "", "Transfer file to target API")
-	scanCmd.Flags().StringVarP(&placeholderString, "user", "u", "", "Specify the user name and password to use for server authentication")
-	scanCmd.Flags().StringVarP(&placeholderString, "user-agent", "A", "", "User-Agent to send to server")
+	AddCommonArgs(scanCmd)
+	AddPlaceholderArgs(scanCmd)
 
 	return scanCmd
 }

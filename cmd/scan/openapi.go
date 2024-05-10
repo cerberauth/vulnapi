@@ -57,8 +57,6 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	scanCmd.Flags().StringVarP(&rateLimit, "rate-limit", "r", "10/s", "Specify the transfer rate")
-	scanCmd.Flags().StringVarP(&proxy, "proxy", "x", "", "Use the specified HTTP proxy")
-
+	AddCommonArgs(scanCmd)
 	return scanCmd
 }
