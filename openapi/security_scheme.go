@@ -32,11 +32,15 @@ func NewErrUnsupportedScheme(scheme string) error {
 	return fmt.Errorf("unsupported scheme: %s", scheme)
 }
 
+func NewErrUnsupportedSecuritySchemeType(schemeType string) error {
+	return fmt.Errorf("unsupported security scheme type: %s", schemeType)
+}
+
 func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue interface{}) (auth.SecurityScheme, error) {
 	schemeScheme := strings.ToLower(scheme.Value.Scheme)
 
 	value, ok := securitySchemeValue.(*string)
-	if !ok {
+	if securitySchemeValue != nil && !ok {
 		return nil, fmt.Errorf("invalid security scheme value type: %T", securitySchemeValue)
 	}
 
@@ -59,9 +63,13 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 	}
 }
 
-func (openapi *OpenAPI) SecuritySchemeMap(values auth.SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
+func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
 	var err error
 	var securitySchemeValue interface{}
+
+	if openapi.doc.Components == nil || openapi.doc.Components.SecuritySchemes == nil {
+		return nil, nil
+	}
 
 	securitySchemes := map[string]auth.SecurityScheme{}
 	for name, scheme := range openapi.doc.Components.SecuritySchemes {
@@ -74,6 +82,8 @@ func (openapi *OpenAPI) SecuritySchemeMap(values auth.SecuritySchemeValues) (aut
 		switch schemeType {
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, securitySchemeValue)
+		default:
+			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
 		if err != nil {

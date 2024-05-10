@@ -8,9 +8,7 @@ import (
 )
 
 func NewOpenAPIScan(openapi *openapi.OpenAPI, validToken *string, client *request.Client, reporter *report.Reporter) (*Scan, error) {
-	securitySchemesValues := auth.SecuritySchemeValues{
-		Default: validToken,
-	}
+	securitySchemesValues := auth.NewSecuritySchemeValuesWithDefault(validToken)
 	securitySchemes, err := openapi.SecuritySchemeMap(securitySchemesValues)
 	if err != nil {
 		return nil, err

@@ -1,7 +1,13 @@
 openapi: "3.0.2"
 
+info:
+  title: API
+  version: "1.0"
+  contact: {}
+
 servers:
   - url: "http://localhost:8080"
+
 paths:
   "/":
     get:

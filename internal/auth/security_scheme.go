@@ -4,11 +4,6 @@ import (
 	"net/http"
 )
 
-type SecuritySchemeValues struct {
-	Default interface{}
-	Values  map[string]interface{}
-}
-
 type SecurityScheme interface {
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
