@@ -20,13 +20,14 @@ type JWTBearerSecurityScheme struct {
 var _ SecurityScheme = (*JWTBearerSecurityScheme)(nil)
 
 func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBearerSecurityScheme, error) {
-	var jwtWriter *jwt.JWTWriter
+	if value == nil {
+		fakeJWT := jwt.FakeJWT
+		value = &fakeJWT
+	}
 
-	if value != nil {
-		var err error
-		if jwtWriter, err = jwt.NewJWTWriter(*value); err != nil {
-			return nil, err
-		}
+	jwtWriter, err := jwt.NewJWTWriter(*value)
+	if err != nil {
+		return nil, err
 	}
 
 	return &JWTBearerSecurityScheme{
