@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"

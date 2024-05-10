@@ -23,11 +23,16 @@ func newLoader(ctx context.Context) *openapi3.Loader {
 	return &loader
 }
 
-func LoadFromData(ctx context.Context, data []byte) (*openapi3.T, error) {
-	return newLoader(ctx).LoadFromData(data)
+func LoadFromData(ctx context.Context, data []byte) (*OpenAPI, error) {
+	doc, err := newLoader(ctx).LoadFromData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewOpenAPI(doc), nil
 }
 
-func LoadOpenAPI(ctx context.Context, urlOrPath string) (*openapi3.T, error) {
+func LoadOpenAPI(ctx context.Context, urlOrPath string) (*OpenAPI, error) {
 	if urlOrPath == "" {
 		return nil, errors.New("url or path must not be empty")
 	}
@@ -38,12 +43,22 @@ func LoadOpenAPI(ctx context.Context, urlOrPath string) (*openapi3.T, error) {
 			return nil, urlerr
 		}
 
-		return newLoader(ctx).LoadFromURI(uri)
+		doc, err := newLoader(ctx).LoadFromURI(uri)
+		if err != nil {
+			return nil, err
+		}
+
+		return NewOpenAPI(doc), nil
 	}
 
 	if _, err := os.Stat(urlOrPath); err != nil {
 		return nil, fmt.Errorf("the openapi file has not been found on %s", urlOrPath)
 	}
 
-	return newLoader(ctx).LoadFromFile(urlOrPath)
+	doc, err := newLoader(ctx).LoadFromFile(urlOrPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewOpenAPI(doc), nil
 }

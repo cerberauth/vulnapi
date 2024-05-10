@@ -7,7 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

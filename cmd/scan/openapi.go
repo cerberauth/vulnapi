@@ -3,7 +3,7 @@ package scan
 import (
 	"log"
 
-	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
