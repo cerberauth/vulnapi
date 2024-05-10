@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/openapi"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
@@ -28,8 +28,14 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	doc, err := openapi.LoadFromData(ctx, []byte(form.Schema))
+	openapi, err := openapi.LoadFromData(ctx, []byte(form.Schema))
 	if err != nil {
+		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := openapi.Validate(ctx); err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -40,7 +46,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scan.NewOpenAPIScan(doc, &form.ValidToken, client, nil)
+	s, err := scan.NewOpenAPIScan(openapi, &form.ValidToken, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

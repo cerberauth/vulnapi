@@ -4,15 +4,6 @@ import (
 	"net/http"
 )
 
-type Type string
-
-const (
-	HttpType      Type = "http"
-	OAuth2        Type = "oauth2"
-	OpenIdConnect Type = "openIdConnect"
-	ApiKey        Type = "apiKey"
-)
-
 type SecurityScheme interface {
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
@@ -22,6 +13,7 @@ type SecurityScheme interface {
 	SetAttackValue(v interface{})
 	GetAttackValue() interface{}
 }
+type SecuritySchemesMap map[string]SecurityScheme
 
 type NoAuthSecurityScheme struct{}
 

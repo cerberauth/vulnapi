@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/openapi"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )
@@ -51,7 +51,7 @@ func TestLoadOpenAPIWithNonExistentFile(t *testing.T) {
 }
 
 func TestLoadOpenAPIWithValidFilePath(t *testing.T) {
-	validFilePath := "../../test/stub/simple_http_bearer_jwt.openapi.yaml"
+	validFilePath := "../test/stub/simple_http_bearer_jwt.openapi.yaml"
 	_, err := openapi.LoadOpenAPI(context.Background(), validFilePath)
 
 	assert.NoError(t, err)
