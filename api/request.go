@@ -7,8 +7,8 @@ import (
 )
 
 type ScanOptions struct {
-	Rate     int    `json:"rate"`
-	ProxyURL string `json:"proxy"`
+	RateLimit int    `json:"rateLimit"`
+	ProxyURL  string `json:"proxy"`
 }
 
 func parseScanOptions(opts *ScanOptions) request.NewClientOptions {
@@ -22,8 +22,8 @@ func parseScanOptions(opts *ScanOptions) request.NewClientOptions {
 	}
 
 	return request.NewClientOptions{
-		Rate:     opts.Rate,
-		ProxyURL: proxyURL,
+		RateLimit: opts.RateLimit,
+		ProxyURL:  proxyURL,
 
 		Header:  nil,
 		Cookies: nil,

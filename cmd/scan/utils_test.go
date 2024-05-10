@@ -16,7 +16,7 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 	headersArg := []string{"Content-Type: application/json", "Authorization: Bearer token"}
 	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
 
-	expectedRate := 10
+	expectedRateLimit := 10
 	expectedProxyURL, _ := url.Parse(proxyArg)
 
 	expectedHTTPHeader := http.Header{}
@@ -27,10 +27,10 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 		{Name: "user_id", Value: "123"},
 	}
 	expectedClient := request.NewClient(request.NewClientOptions{
-		Rate:     expectedRate,
-		ProxyURL: expectedProxyURL,
-		Header:   expectedHTTPHeader,
-		Cookies:  expectedHTTPCookies,
+		RateLimit: expectedRateLimit,
+		ProxyURL:  expectedProxyURL,
+		Header:    expectedHTTPHeader,
+		Cookies:   expectedHTTPCookies,
 	})
 
 	actualClient := scan.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
