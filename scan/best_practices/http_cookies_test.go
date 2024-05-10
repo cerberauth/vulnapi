@@ -26,7 +26,8 @@ func TestHTTPCookiesScanHandlerWhenNoCookies(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 0, len(report.GetVulnerabilityReports()))
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPCookiesScanHandlerWhenNoUnsecrurePractices(t *testing.T) {
@@ -54,7 +55,8 @@ func TestHTTPCookiesScanHandlerWhenNoUnsecrurePractices(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 4, len(report.GetVulnerabilityReports()))
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
@@ -82,7 +84,8 @@ func TestHTTPCookiesScanHandlerWhenNotHttpOnly(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 4, len(report.GetVulnerabilityReports()))
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
@@ -110,7 +113,8 @@ func TestHTTPCookiesScanHandlerWhenNotSecure(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 4, len(report.GetVulnerabilityReports()))
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
@@ -138,7 +142,8 @@ func TestHTTPCookiesScanHandlerWhenSameSiteNone(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 4, len(report.GetVulnerabilityReports()))
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
@@ -166,5 +171,6 @@ func TestHTTPCookiesScanHandlerWhenExpiresNotSet(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.Equal(t, 4, len(report.GetVulnerabilityReports()))
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }

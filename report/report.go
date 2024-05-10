@@ -67,6 +67,16 @@ func (sc *ScanReport) GetVulnerabilityReports() []*VulnerabilityReport {
 	return sc.Vulns
 }
 
-func (sc *ScanReport) HasVulnerabilityReport() bool {
-	return len(sc.GetVulnerabilityReports()) > 0
+func (sc *ScanReport) GetFailedVulnerabilityReports() []*VulnerabilityReport {
+	var failedReports []*VulnerabilityReport
+	for _, vr := range sc.GetVulnerabilityReports() {
+		if vr.Status == VulnerabilityReportStatusFail {
+			failedReports = append(failedReports, vr)
+		}
+	}
+	return failedReports
+}
+
+func (sc *ScanReport) HasFailedVulnerabilityReport() bool {
+	return len(sc.GetFailedVulnerabilityReports()) > 0
 }

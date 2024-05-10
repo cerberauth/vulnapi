@@ -29,7 +29,7 @@ func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 	report, err := generic.NoAuthOperationScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0], &vulnerabilityReport)
 }
 
@@ -41,7 +41,7 @@ func TestCheckNoAuthOperationScanHandlerWhenAuthConfigured(t *testing.T) {
 	report, err := generic.NoAuthOperationScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestAcceptUnauthenticatedOperationScanHandlerWhenNoAuthConfigured(t *testing.T) {
@@ -51,7 +51,7 @@ func TestAcceptUnauthenticatedOperationScanHandlerWhenNoAuthConfigured(t *testin
 	report, err := generic.AcceptUnauthenticatedOperationScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
@@ -76,6 +76,6 @@ func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
 	report, err := generic.AcceptUnauthenticatedOperationScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0], &vulnerabilityReport)
 }

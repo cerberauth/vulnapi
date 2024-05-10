@@ -62,7 +62,7 @@ func TestWeakHMACSecretScanHandlerWithWeakJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestWeakHMACSecretScanHandlerWithStrongerJWT(t *testing.T) {
@@ -76,5 +76,5 @@ func TestWeakHMACSecretScanHandlerWithStrongerJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }

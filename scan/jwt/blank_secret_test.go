@@ -36,7 +36,7 @@ func TestBlankSecretScanHandlerWithoutJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestBlankSecretScanHandler(t *testing.T) {
@@ -54,5 +54,5 @@ func TestBlankSecretScanHandler(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }

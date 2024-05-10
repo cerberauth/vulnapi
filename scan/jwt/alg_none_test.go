@@ -38,7 +38,7 @@ func TestAlgNoneJwtScanHandlerWithoutJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestAlgNoneJwtScanHandler(t *testing.T) {
@@ -55,5 +55,5 @@ func TestAlgNoneJwtScanHandler(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }

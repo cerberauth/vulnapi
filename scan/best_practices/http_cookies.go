@@ -48,53 +48,37 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 
 	// Detect every cookies insecure practices
 	for _, cookie := range attempt.Response.Cookies() {
-		if !cookie.Secure {
-			r.AddVulnerabilityReport(&report.VulnerabilityReport{
-				SeverityLevel: HTTPCookiesNotSecureSeverityLevel,
+		r.AddVulnerabilityReport(report.NewVulnerabilityReport(
+			HTTPCookiesNotSecureSeverityLevel,
+			HTTPCookiesNotSecureOWASP2023Category,
+			HTTPCookiesNotSecureVulnerabilityID,
+			HTTPCookiesNotSecureVulnerabilityName,
+			HTTPCookiesNotSecureVulnerabilityURL,
+		).WithOperation(operation).WithSecurityScheme(securityScheme).WithBooleanStatus(cookie.Secure))
 
-				OWASP2023Category: HTTPCookiesNotSecureOWASP2023Category,
+		r.AddVulnerabilityReport(report.NewVulnerabilityReport(
+			HTTPCookiesNotHTTPOnlySeverityLevel,
+			HTTPCookiesNotHTTPOnlyOWASP2023Category,
+			HTTPCookiesNotHTTPOnlyVulnerabilityID,
+			HTTPCookiesNotHTTPOnlyVulnerabilityName,
+			HTTPCookiesNotHTTPOnlyVulnerabilityURL,
+		).WithOperation(operation).WithSecurityScheme(securityScheme).WithBooleanStatus(cookie.HttpOnly))
 
-				ID:   HTTPCookiesNotSecureVulnerabilityID,
-				Name: HTTPCookiesNotSecureVulnerabilityName,
-				URL:  HTTPCookiesNotSecureVulnerabilityURL,
-			})
-		}
+		r.AddVulnerabilityReport(report.NewVulnerabilityReport(
+			HTTPCookiesSameSiteSeverityLevel,
+			HTTPCookiesSameSiteOWASP2023Category,
+			HTTPCookiesSameSiteVulnerabilityID,
+			HTTPCookiesSameSiteVulnerabilityName,
+			HTTPCookiesSameSiteVulnerabilityURL,
+		).WithOperation(operation).WithSecurityScheme(securityScheme).WithBooleanStatus(cookie.SameSite != http.SameSiteNoneMode))
 
-		if !cookie.HttpOnly {
-			r.AddVulnerabilityReport(&report.VulnerabilityReport{
-				SeverityLevel: HTTPCookiesNotHTTPOnlySeverityLevel,
-
-				OWASP2023Category: HTTPCookiesNotHTTPOnlyOWASP2023Category,
-
-				ID:   HTTPCookiesNotHTTPOnlyVulnerabilityID,
-				Name: HTTPCookiesNotHTTPOnlyVulnerabilityName,
-				URL:  HTTPCookiesNotHTTPOnlyVulnerabilityURL,
-			})
-		}
-
-		if cookie.SameSite == http.SameSiteNoneMode {
-			r.AddVulnerabilityReport(&report.VulnerabilityReport{
-				SeverityLevel: HTTPCookiesSameSiteSeverityLevel,
-
-				OWASP2023Category: HTTPCookiesSameSiteOWASP2023Category,
-
-				ID:   HTTPCookiesSameSiteVulnerabilityID,
-				Name: HTTPCookiesSameSiteVulnerabilityName,
-				URL:  HTTPCookiesSameSiteVulnerabilityURL,
-			})
-		}
-
-		if cookie.Expires.IsZero() {
-			r.AddVulnerabilityReport(&report.VulnerabilityReport{
-				SeverityLevel: HTTPCookiesExpiresSeverityLevel,
-
-				OWASP2023Category: HTTPCookiesExpiresOWASP2023Category,
-
-				ID:   HTTPCookiesExpiresVulnerabilityID,
-				Name: HTTPCookiesExpiresVulnerabilityName,
-				URL:  HTTPCookiesExpiresVulnerabilityURL,
-			})
-		}
+		r.AddVulnerabilityReport(report.NewVulnerabilityReport(
+			HTTPCookiesExpiresSeverityLevel,
+			HTTPCookiesExpiresOWASP2023Category,
+			HTTPCookiesExpiresVulnerabilityID,
+			HTTPCookiesExpiresVulnerabilityName,
+			HTTPCookiesExpiresVulnerabilityURL,
+		).WithOperation(operation).WithSecurityScheme(securityScheme).WithBooleanStatus(!cookie.Expires.IsZero()))
 	}
 
 	return r, nil

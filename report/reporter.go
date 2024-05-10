@@ -20,7 +20,7 @@ func (rr *Reporter) GetReports() []*ScanReport {
 
 func (rr *Reporter) HasVulnerability() bool {
 	for _, r := range rr.GetReports() {
-		if r.HasVulnerabilityReport() {
+		if r.HasFailedVulnerabilityReport() {
 			return true
 		}
 	}

@@ -28,7 +28,7 @@ func TestDiscoverableScannerWithNoDiscoverableOpenAPI(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 10)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
@@ -52,9 +52,10 @@ func TestDiscoverableScannerWithOneDiscoverableOpenAPI(t *testing.T) {
 
 	report, err := discover.DiscoverableOpenAPIScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
+	HasFailedVulnerabilityReport := report.HasFailedVulnerabilityReport()
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, HasFailedVulnerabilityReport)
 	assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
-	// assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String()) // TODO: add this field to the report
+	// assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
 }

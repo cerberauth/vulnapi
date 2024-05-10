@@ -28,7 +28,7 @@ func TestGraphqlIntrospectionScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 1)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestGetGraphqlIntrospectionScanHandler(t *testing.T) {
@@ -46,7 +46,7 @@ func TestGetGraphqlIntrospectionScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 1)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t *testing.T) {
@@ -72,7 +72,7 @@ func TestGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint(t 
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
 	// assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
 }
@@ -100,7 +100,7 @@ func TestGetGraphqlIntrospectionScanHandlerWithKnownGraphQLIntrospectionEndpoint
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
 	// assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
 }
@@ -120,7 +120,7 @@ func TestDiscoverableScannerWithNoDiscoverableGraphqlPath(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 7)
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
@@ -146,7 +146,7 @@ func TestDiscoverableScannerWithOneDiscoverableGraphQLPath(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0].Name, expectedReport.Name)
 	// assert.Equal(t, report.GetVulnerabilityReports()[0].Operation.Request.URL.String(), expectedReport.Operation.Request.URL.String())
 }

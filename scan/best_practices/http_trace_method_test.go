@@ -24,7 +24,7 @@ func TestHTTPTraceMethodScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
@@ -39,5 +39,5 @@ func TestHTTPTraceMethodWhenTraceIsEnabledScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }

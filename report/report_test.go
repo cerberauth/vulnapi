@@ -61,14 +61,14 @@ func TestScanReport_AddVulnerabilityReport(t *testing.T) {
 	assert.Equal(t, vulnerabilityReport, sr.GetVulnerabilityReports()[0])
 }
 
-func TestScanReport_HasVulnerabilityReport(t *testing.T) {
+func TestScanReport_HasFailedVulnerabilityReport(t *testing.T) {
 	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	assert.False(t, sr.HasVulnerabilityReport())
+	assert.False(t, sr.HasFailedVulnerabilityReport())
 
 	vulnerabilityReport := &report.VulnerabilityReport{}
 	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.True(t, sr.HasVulnerabilityReport())
+	assert.True(t, sr.HasFailedVulnerabilityReport())
 }
 
 func TestMarshalJSON(t *testing.T) {

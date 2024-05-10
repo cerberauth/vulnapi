@@ -37,7 +37,7 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 	assert.Equal(t, report.GetVulnerabilityReports()[0], &vulnerabilityReport)
 }
 
@@ -55,5 +55,5 @@ func TestCheckSignatureHeaderWithoutSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }

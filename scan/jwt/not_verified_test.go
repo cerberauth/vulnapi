@@ -56,7 +56,7 @@ func TestNotVerifiedScanHandler(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestNotVerifiedScanHandlerWithNotVerifiedJWT(t *testing.T) {
@@ -78,7 +78,7 @@ func TestNotVerifiedScanHandlerWithNotVerifiedJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasVulnerabilityReport())
+	assert.True(t, report.HasFailedVulnerabilityReport())
 }
 
 func TestNotVerifiedScanHandlerWhenHTTPCodeIs401(t *testing.T) {
@@ -100,5 +100,5 @@ func TestNotVerifiedScanHandlerWhenHTTPCodeIs401(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.False(t, report.HasVulnerabilityReport())
+	assert.False(t, report.HasFailedVulnerabilityReport())
 }

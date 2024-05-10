@@ -2,6 +2,16 @@ package report
 
 import (
 	"fmt"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
+)
+
+type VulnerabilityReportStatus string
+
+const (
+	VulnerabilityReportStatusPass VulnerabilityReportStatus = "pass"
+	VulnerabilityReportStatusFail VulnerabilityReportStatus = "fail"
 )
 
 type VulnerabilityReport struct {
@@ -12,6 +22,55 @@ type VulnerabilityReport struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
+
+	Operation      *request.Operation  `json:"operation"`
+	SecurityScheme auth.SecurityScheme `json:"security_scheme"`
+
+	Status VulnerabilityReportStatus `json:"status"`
+}
+
+func NewVulnerabilityReport(severityLevel float64, owasp2023Category, id, name, url string) *VulnerabilityReport {
+	return &VulnerabilityReport{
+		SeverityLevel:     severityLevel,
+		OWASP2023Category: owasp2023Category,
+		ID:                id,
+		Name:              name,
+		URL:               url,
+	}
+}
+
+func (vr *VulnerabilityReport) WithOperation(operation *request.Operation) *VulnerabilityReport {
+	vr.Operation = operation
+	return vr
+}
+
+func (vr *VulnerabilityReport) WithSecurityScheme(ss auth.SecurityScheme) *VulnerabilityReport {
+	vr.SecurityScheme = ss
+	return vr
+}
+
+func (vr *VulnerabilityReport) WithStatus(status VulnerabilityReportStatus) *VulnerabilityReport {
+	vr.Status = status
+	return vr
+}
+
+func (vr *VulnerabilityReport) WithBooleanStatus(status bool) *VulnerabilityReport {
+	if status {
+		vr.Status = VulnerabilityReportStatusPass
+	} else {
+		vr.Status = VulnerabilityReportStatusFail
+	}
+	return vr
+}
+
+func (vr *VulnerabilityReport) Fail() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusFail
+	return vr
+}
+
+func (vr *VulnerabilityReport) Pass() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusPass
+	return vr
 }
 
 func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
