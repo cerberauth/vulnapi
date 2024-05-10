@@ -21,8 +21,13 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			tracer := otel.Tracer("scan/openapi")
 			openapiUrlOrPath := args[0]
 
-			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
+			openapi, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
+			if err := openapi.Validate(ctx); err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
@@ -34,7 +39,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
 			client := NewHTTPClientFromArgs(rate, proxy, headers, cookies)
-			s, err := scan.NewOpenAPIScan(doc, validToken, client, nil)
+			s, err := scan.NewOpenAPIScan(openapi, validToken, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
