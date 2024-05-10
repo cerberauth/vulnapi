@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	HttpSchemeType string = "http"
-	// OAuth2SchemeType        string = "oauth2"
-	// OpenIdConnectSchemeType string = "openIdConnect"
-	// ApiKeySchemeType        string = "apiKey"
+	HttpSchemeType          string = "http"
+	OAuth2SchemeType        string = "oauth2"
+	OpenIdConnectSchemeType string = "openidconnect"
+	ApiKeySchemeType        string = "apikey"
 
 	// BasicScheme  string = "basic"
 	BearerScheme string = "bearer"
@@ -36,24 +36,19 @@ func NewErrUnsupportedSecuritySchemeType(schemeType string) error {
 	return fmt.Errorf("unsupported security scheme type: %s", schemeType)
 }
 
-func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue interface{}) (auth.SecurityScheme, error) {
+func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (auth.SecurityScheme, error) {
 	schemeScheme := strings.ToLower(scheme.Value.Scheme)
-
-	value, ok := securitySchemeValue.(*string)
-	if securitySchemeValue != nil && !ok {
-		return nil, fmt.Errorf("invalid security scheme value type: %T", securitySchemeValue)
-	}
 
 	switch schemeScheme {
 	case BearerScheme:
 		bearerFormat := strings.ToLower(scheme.Value.BearerFormat)
 		if bearerFormat == "" {
-			return auth.NewAuthorizationBearerSecurityScheme(name, value), nil
+			return auth.NewAuthorizationBearerSecurityScheme(name, securitySchemeValue), nil
 		}
 
 		switch bearerFormat {
 		case "jwt":
-			return auth.NewAuthorizationJWTBearerSecurityScheme(name, value)
+			return auth.NewAuthorizationJWTBearerSecurityScheme(name, securitySchemeValue)
 		default:
 			return nil, NewErrUnsupportedBearerFormat(bearerFormat)
 		}
@@ -61,6 +56,32 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 	default:
 		return nil, NewErrUnsupportedScheme(schemeScheme)
 	}
+}
+
+func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (auth.SecurityScheme, error) {
+	if scheme.Value.Flows == nil {
+		return auth.NewOAuthSecurityScheme(name, securitySchemeValue, nil), nil
+	}
+
+	var cfg *auth.OAuthConfig
+	if scheme.Value.Flows.AuthorizationCode != nil {
+		cfg = &auth.OAuthConfig{
+			TokenURL:   scheme.Value.Flows.AuthorizationCode.TokenURL,
+			RefreshURL: scheme.Value.Flows.AuthorizationCode.RefreshURL,
+		}
+	} else if scheme.Value.Flows.Implicit != nil {
+		cfg = &auth.OAuthConfig{
+			TokenURL:   scheme.Value.Flows.Implicit.TokenURL,
+			RefreshURL: scheme.Value.Flows.Implicit.RefreshURL,
+		}
+	} else if scheme.Value.Flows.ClientCredentials != nil {
+		cfg = &auth.OAuthConfig{
+			TokenURL:   scheme.Value.Flows.ClientCredentials.TokenURL,
+			RefreshURL: scheme.Value.Flows.ClientCredentials.RefreshURL,
+		}
+	}
+
+	return auth.NewOAuthSecurityScheme(name, securitySchemeValue, cfg), nil
 }
 
 func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
@@ -78,10 +99,19 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (au
 			securitySchemeValue = values.Default
 		}
 
+		value, ok := securitySchemeValue.(*string)
+		if securitySchemeValue != nil && !ok {
+			return nil, fmt.Errorf("invalid security scheme value type: %T", securitySchemeValue)
+		}
+
 		schemeType := strings.ToLower(scheme.Value.Type)
 		switch schemeType {
 		case HttpSchemeType:
-			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, securitySchemeValue)
+			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
+		case OAuth2SchemeType:
+			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, value)
+		case OpenIdConnectSchemeType:
+			securitySchemes[name] = auth.NewOAuthSecurityScheme(name, value, nil)
 		default:
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
