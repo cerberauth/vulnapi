@@ -12,6 +12,7 @@ type VulnerabilityReportStatus string
 const (
 	VulnerabilityReportStatusPass VulnerabilityReportStatus = "pass"
 	VulnerabilityReportStatusFail VulnerabilityReportStatus = "fail"
+	VulnerabilityReportStatusSkip VulnerabilityReportStatus = "skip"
 )
 
 type VulnerabilityReport struct {
@@ -70,6 +71,11 @@ func (vr *VulnerabilityReport) Fail() *VulnerabilityReport {
 
 func (vr *VulnerabilityReport) Pass() *VulnerabilityReport {
 	vr.Status = VulnerabilityReportStatusPass
+	return vr
+}
+
+func (vr *VulnerabilityReport) Skip() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusSkip
 	return vr
 }
 
