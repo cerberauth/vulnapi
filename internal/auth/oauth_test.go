@@ -58,13 +58,32 @@ func TestNewOAuthSecurityScheme_HasValidValue(t *testing.T) {
 	assert.True(t, result)
 }
 
-func TestNewOAuthSecurityScheme_HasValidValueFalse(t *testing.T) {
+func TestNewOAuthSecurityScheme_HasValidValueFalse_WhenValueIsNil(t *testing.T) {
 	name := "token"
 	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
 
 	result := ss.HasValidValue()
 
 	assert.False(t, result)
+}
+
+func TestNewOAuthSecurityScheme_HasValidValueFalse_WhenValueIsEmptyString(t *testing.T) {
+	name := "token"
+	value := ""
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	result := ss.HasValidValue()
+
+	assert.False(t, result)
+}
+
+func TestNewOAuthSecurityScheme_GetValidValueNil(t *testing.T) {
+	name := "token"
+	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
+
+	validValue := ss.GetValidValue()
+
+	assert.Equal(t, nil, validValue)
 }
 
 func TestNewOAuthSecurityScheme_GetValidValue(t *testing.T) {

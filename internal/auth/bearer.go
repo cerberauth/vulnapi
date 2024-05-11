@@ -30,8 +30,8 @@ func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSec
 func (ss *BearerSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)
-	if attackValue == "" && ss.ValidValue != nil {
-		attackValue = *ss.ValidValue
+	if attackValue == "" && ss.HasValidValue() {
+		attackValue = ss.GetValidValue().(string)
 	}
 
 	header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
@@ -44,10 +44,14 @@ func (ss *BearerSecurityScheme) GetCookies() []*http.Cookie {
 }
 
 func (ss *BearerSecurityScheme) HasValidValue() bool {
-	return ss.ValidValue != nil
+	return ss.ValidValue != nil && *ss.ValidValue != ""
 }
 
 func (ss *BearerSecurityScheme) GetValidValue() interface{} {
+	if !ss.HasValidValue() {
+		return nil
+	}
+
 	return *ss.ValidValue
 }
 

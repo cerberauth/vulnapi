@@ -1,10 +1,15 @@
 package discover_test
 
 import (
+	"net/http"
 	"net/url"
 	"testing"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,4 +39,78 @@ func TestExtractBaseURL(t *testing.T) {
 
 		assert.Equal(t, tc.expected, baseURL.String())
 	}
+}
+
+func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	seclistUrl := "http://localhost:8080/seclist"
+	defaultUrls := []string{"/path1", "/path2"}
+	r := report.NewScanReport("test", "test")
+	vulnReport := &report.VulnerabilityReport{}
+
+	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
+
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+
+	_, err := handler(operation, securitySchemes[0])
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "request has an unexpected error")
+}
+
+func TestCreateURLScanHandler_WithNotFoundURLs(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	seclistUrl := "http://localhost:8080/seclist"
+	defaultUrls := []string{"/path1", "/path2"}
+	r := report.NewScanReport("test", "test")
+	vulnReport := &report.VulnerabilityReport{}
+
+	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
+
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path2", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
+
+	_, err := handler(operation, securitySchemes[0])
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, httpmock.GetTotalCallCount())
+	assert.False(t, r.HasVulnerabilityReport())
+	assert.Equal(t, 0, len(r.GetVulnerabilityReports()))
+}
+
+func TestCreateURLScanHandler_WithExposedURLs(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	seclistUrl := "http://localhost:8080/seclist"
+	defaultUrls := []string{"/path1", "/path2"}
+	r := report.NewScanReport("test", "test")
+	vulnReport := &report.VulnerabilityReport{}
+
+	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
+
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path1", httpmock.NewStringResponder(http.StatusOK, "OK"))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path2", httpmock.NewStringResponder(http.StatusOK, "OK"))
+
+	_, err := handler(operation, securitySchemes[0])
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.True(t, r.HasVulnerabilityReport())
+	assert.Equal(t, 1, len(r.GetVulnerabilityReports()))
 }

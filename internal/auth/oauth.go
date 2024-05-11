@@ -50,8 +50,8 @@ func NewOAuthSecurityScheme(name string, value *string, cfg *OAuthConfig) *OAuth
 func (ss *OAuthSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)
-	if attackValue == "" && ss.ValidValue != nil {
-		attackValue = *ss.ValidValue
+	if attackValue == "" && ss.HasValidValue() {
+		attackValue = ss.GetValidValue().(string)
 	}
 
 	header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
@@ -64,10 +64,14 @@ func (ss *OAuthSecurityScheme) GetCookies() []*http.Cookie {
 }
 
 func (ss *OAuthSecurityScheme) HasValidValue() bool {
-	return ss.ValidValue != nil
+	return ss.ValidValue != nil && *ss.ValidValue != ""
 }
 
 func (ss *OAuthSecurityScheme) GetValidValue() interface{} {
+	if !ss.HasValidValue() {
+		return nil
+	}
+
 	return *ss.ValidValue
 }
 
@@ -76,6 +80,11 @@ func (ss *OAuthSecurityScheme) GetValidValueWriter() interface{} {
 }
 
 func (ss *OAuthSecurityScheme) SetAttackValue(v interface{}) {
+	if v == nil {
+		ss.AttackValue = ""
+		return
+	}
+
 	ss.AttackValue = v.(string)
 }
 

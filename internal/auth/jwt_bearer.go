@@ -43,8 +43,8 @@ func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBe
 func (ss *JWTBearerSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)
-	if attackValue == "" && ss.ValidValue != nil {
-		attackValue = *ss.ValidValue
+	if attackValue == "" && ss.HasValidValue() {
+		attackValue = ss.GetValidValue().(string)
 	}
 
 	header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
@@ -61,6 +61,10 @@ func (ss *JWTBearerSecurityScheme) HasValidValue() bool {
 }
 
 func (ss *JWTBearerSecurityScheme) GetValidValue() interface{} {
+	if !ss.HasValidValue() {
+		return nil
+	}
+
 	return *ss.ValidValue
 }
 
