@@ -12,10 +12,14 @@ func (s *Scan) WithHTTPTraceMethodBestPracticesScan() *Scan {
 	return s.AddScanHandler(bestpractices.HTTPTraceMethodScanHandler)
 }
 
+func (s *Scan) WithHTTPTrackMethodBestPracticesScan() *Scan {
+	return s.AddScanHandler(bestpractices.HTTPTrackMethodScanHandler)
+}
+
 func (s *Scan) WithHTTPCookiesBestPracticesScan() *Scan {
 	return s.AddOperationScanHandler(bestpractices.HTTPCookiesScanHandler)
 }
 
 func (s *Scan) WithAllBestPracticesScans() *Scan {
-	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithHTTPCookiesBestPracticesScan()
+	return s.WithHTTPHeadersBestPracticesScan().WithHTTPTraceMethodBestPracticesScan().WithHTTPTrackMethodBestPracticesScan().WithHTTPCookiesBestPracticesScan()
 }
