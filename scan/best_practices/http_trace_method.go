@@ -1,6 +1,8 @@
 package bestpractices
 
 import (
+	"net/http"
+
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
@@ -9,12 +11,12 @@ import (
 
 const (
 	HTTPTraceScanID   = "best_practices.http_trace"
-	HTTPTraceScanName = "HTTP Trace Method Best Practices"
+	HTTPTraceScanName = "HTTP TRACE Method Best Practices"
 
 	HTTPTraceMethodSeverityLevel     = 0
 	HTTPTraceMethodOWASP2023Category = report.OWASP2023SecurityMisconfigurationCategory
 	HTTPTraceMethodVulnerabilityID   = "security_misconfiguration.http_trace_method"
-	HTTPTraceMethodVulnerabilityName = "HTTP Trace Method enabled"
+	HTTPTraceMethodVulnerabilityName = "HTTP TRACE Method enabled"
 	HTTPTraceMethodVulnerabilityURL  = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE"
 )
 
@@ -24,7 +26,7 @@ func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecuritySc
 	}
 
 	newOperation := operation.Clone()
-	newOperation.Method = "TRACE"
+	newOperation.Method = http.MethodTrace
 
 	vsa, err := scan.ScanURL(newOperation, &ss)
 	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName)
