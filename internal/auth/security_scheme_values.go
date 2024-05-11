@@ -6,10 +6,7 @@ type SecuritySchemeValues struct {
 }
 
 func NewSecuritySchemeValues() *SecuritySchemeValues {
-	return &SecuritySchemeValues{
-		Default: interface{}(nil),
-		Values:  map[string]interface{}{},
-	}
+	return NewSecuritySchemeValuesWithDefault(nil)
 }
 
 func NewSecuritySchemeValuesWithDefault(defaultValue interface{}) *SecuritySchemeValues {
