@@ -9,7 +9,7 @@ func (s *Scan) WithHTTPHeadersBestPracticesScan() *Scan {
 }
 
 func (s *Scan) WithHTTPTraceMethodBestPracticesScan() *Scan {
-	return s.AddOperationScanHandler(bestpractices.HTTPTraceMethodScanHandler)
+	return s.AddScanHandler(bestpractices.HTTPTraceMethodScanHandler)
 }
 
 func (s *Scan) WithHTTPCookiesBestPracticesScan() *Scan {
