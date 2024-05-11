@@ -85,6 +85,15 @@ func TestJWTBearerSecurityScheme_GetValidValue(t *testing.T) {
 	assert.Equal(t, value, validValue)
 }
 
+func TestJWTBearerSecurityScheme_GetValidValue_WhenNoValue(t *testing.T) {
+	name := "token"
+	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, nil)
+	validValue := ss.GetValidValue()
+
+	assert.NoError(t, err)
+	assert.Nil(t, validValue)
+}
+
 func TestJWTBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
 	name := "token"
 	value := jwt.FakeJWT

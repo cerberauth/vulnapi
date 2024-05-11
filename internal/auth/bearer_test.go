@@ -48,7 +48,7 @@ func TestBearerSecurityScheme_GetCookies(t *testing.T) {
 	assert.Empty(t, cookies)
 }
 
-func TestBearerSecurityScheme_HasValidValue(t *testing.T) {
+func TestBearerSecurityScheme_HasValidValue_WhenValueIsNil(t *testing.T) {
 	name := "token"
 	value := "abc123"
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
@@ -56,6 +56,25 @@ func TestBearerSecurityScheme_HasValidValue(t *testing.T) {
 	result := ss.HasValidValue()
 
 	assert.True(t, result)
+}
+
+func TestBearerSecurityScheme_HasValidValueFalse_WhenValueIsEmptyString(t *testing.T) {
+	name := "token"
+	value := ""
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	result := ss.HasValidValue()
+
+	assert.False(t, result)
+}
+
+func TestBearerSecurityScheme_GetValidValueNil(t *testing.T) {
+	name := "token"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, nil)
+
+	validValue := ss.GetValidValue()
+
+	assert.Equal(t, nil, validValue)
 }
 
 func TestBearerSecurityScheme_HasValidValueFalse(t *testing.T) {
