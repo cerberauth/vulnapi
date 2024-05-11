@@ -22,7 +22,7 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 
 func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	scanUrls := defaultUrls
-	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil {
+	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil && urlsFromSeclist != nil {
 		scanUrls = urlsFromSeclist.Items
 	}
 
