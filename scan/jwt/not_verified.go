@@ -37,7 +37,9 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 		return r, err
 	}
 
-	ss.SetAttackValue(ss.GetValidValue())
+	if ss.HasValidValue() {
+		ss.SetAttackValue(ss.GetValidValue())
+	}
 	attemptOne, err := scan.ScanURL(operation, &ss)
 	if err != nil {
 		return r, err

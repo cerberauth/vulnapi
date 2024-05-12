@@ -12,9 +12,6 @@ const (
 	DigestScheme SchemeName = "digest"
 	OAuthScheme  SchemeName = "oauth"
 	PrivateToken SchemeName = "privateToken"
-
-	NoneScheme    SchemeName = "none"
-	UnknownScheme SchemeName = "unknown"
 )
 
 func (s *SchemeName) String() string {
@@ -38,7 +35,6 @@ func (e *SchemeName) Type() string {
 type SchemeIn string
 
 const (
-	InHeader  SchemeIn = "header"
-	InCookie  SchemeIn = "cookie"
-	InUnknown SchemeIn = "unknown"
+	InHeader SchemeIn = "header"
+	InCookie SchemeIn = "cookie"
 )

@@ -148,10 +148,6 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 }
 
 func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	if ss.HasValidValue() {
-		ss.SetAttackValue(ss.GetValidValue())
-	}
-
 	vsa, err := scan.ScanURL(operation, &ss)
 	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName)
 	r.AddScanAttempt(vsa).End()

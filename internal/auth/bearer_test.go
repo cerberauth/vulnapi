@@ -26,7 +26,6 @@ func TestBearerSecurityScheme_GetHeaders(t *testing.T) {
 	name := "token"
 	value := "abc123"
 	attackValue := "xyz789"
-
 	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
 	ss.SetAttackValue(attackValue)
 
@@ -35,6 +34,27 @@ func TestBearerSecurityScheme_GetHeaders(t *testing.T) {
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer xyz789"},
 	}, headers)
+}
+
+func TestBearerSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{
+		"Authorization": []string{"Bearer abc123"},
+	}, headers)
+}
+
+func TestBearerSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
+	name := "token"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{}, headers)
 }
 
 func TestBearerSecurityScheme_GetCookies(t *testing.T) {

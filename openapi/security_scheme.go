@@ -94,24 +94,19 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (au
 
 	securitySchemes := map[string]auth.SecurityScheme{}
 	for name, scheme := range openapi.doc.Components.SecuritySchemes {
-		securitySchemeValue = values.Values[name]
-		if securitySchemeValue == nil {
-			securitySchemeValue = values.Default
-		}
+		securitySchemeValue = values.Get(name)
 
-		value, ok := securitySchemeValue.(*string)
-		if securitySchemeValue != nil && !ok {
-			return nil, fmt.Errorf("invalid security scheme value type: %T", securitySchemeValue)
+		var value *string
+		if securitySchemeValue != nil {
+			value, _ = securitySchemeValue.(*string)
 		}
 
 		schemeType := strings.ToLower(scheme.Value.Type)
 		switch schemeType {
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
-		case OAuth2SchemeType:
+		case OAuth2SchemeType, OpenIdConnectSchemeType:
 			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, value)
-		case OpenIdConnectSchemeType:
-			securitySchemes[name] = auth.NewOAuthSecurityScheme(name, value, nil)
 		default:
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}

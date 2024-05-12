@@ -21,7 +21,6 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 }
 
 func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.ScanReport, vulnReport *report.VulnerabilityReport) (*report.ScanReport, error) {
-	securityScheme.SetAttackValue(securityScheme.GetValidValue())
 	securitySchemes := []auth.SecurityScheme{securityScheme}
 
 	base := ExtractBaseURL(operation.Request.URL)

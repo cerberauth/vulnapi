@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
@@ -13,8 +14,10 @@ import (
 )
 
 type NewOpenAPIScanRequest struct {
-	Schema     string `json:"schema" binding:"required"`
-	ValidToken string `json:"valid_token"`
+	Schema          string `json:"schema" binding:"required"`
+	SecuritySchemes map[string]struct {
+		Value string `json:"value" binding:"required"`
+	} `json:"security_schemes"`
 
 	Opts *ScanOptions `json:"options"`
 }
@@ -46,7 +49,15 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scan.NewOpenAPIScan(openapi, &form.ValidToken, client, nil)
+
+	values := make(map[string]interface{}, len(form.SecuritySchemes))
+	if form.SecuritySchemes != nil {
+		for key, value := range form.SecuritySchemes {
+			values[key] = &value.Value
+		}
+	}
+	securitySchemesValues := auth.NewSecuritySchemeValues(values)
+	s, err := scan.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

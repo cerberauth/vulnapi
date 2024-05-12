@@ -21,7 +21,6 @@ var _ SecurityScheme = (*JWTBearerSecurityScheme)(nil)
 
 func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBearerSecurityScheme, error) {
 	var jwtWriter *jwt.JWTWriter
-
 	if value != nil {
 		var err error
 		if jwtWriter, err = jwt.NewJWTWriter(*value); err != nil {
@@ -47,7 +46,9 @@ func (ss *JWTBearerSecurityScheme) GetHeaders() http.Header {
 		attackValue = ss.GetValidValue().(string)
 	}
 
-	header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
+	if attackValue != "" {
+		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
+	}
 
 	return header
 }

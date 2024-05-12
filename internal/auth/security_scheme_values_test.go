@@ -8,18 +8,56 @@ import (
 )
 
 func TestNewSecuritySchemeValues(t *testing.T) {
-	values := auth.NewSecuritySchemeValues()
+	values := map[string]interface{}{
+		"key": "value",
+	}
+	securitySchemeValues := auth.NewSecuritySchemeValues(values)
 
-	assert.Nil(t, values.Default)
-	assert.NotNil(t, values.Values)
-	assert.Empty(t, values.Values)
+	assert.Nil(t, securitySchemeValues.Default)
+	assert.NotNil(t, securitySchemeValues.Values)
+	assert.Equal(t, values, securitySchemeValues.Values)
 }
 
-func TestNewSecuritySchemeValuesWithDefault(t *testing.T) {
-	defaultValue := "default"
-	values := auth.NewSecuritySchemeValuesWithDefault(&defaultValue)
+func TestNewEmptySecuritySchemeValues(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
 
-	assert.Equal(t, &defaultValue, values.Default)
-	assert.NotNil(t, values.Values)
-	assert.Empty(t, values.Values)
+	assert.Nil(t, securitySchemeValues.Default)
+	assert.NotNil(t, securitySchemeValues.Values)
+	assert.Empty(t, securitySchemeValues.Values)
+}
+
+func TestSecuritySchemeValues_WithDefault(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues.WithDefault("default")
+
+	assert.Equal(t, "default", securitySchemeValues.Default)
+}
+
+func TestSecuritySchemeValues_GetDefault(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues.WithDefault("default")
+
+	assert.Equal(t, "default", securitySchemeValues.GetDefault())
+}
+
+func TestSecuritySchemeValues_Get(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues.WithDefault("default")
+	securitySchemeValues.Set("key", "value")
+
+	assert.Equal(t, "value", securitySchemeValues.Get("key"))
+}
+
+func TestSecuritySchemeValues_Get_WhenNotExist(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues.WithDefault("default")
+
+	assert.Equal(t, "default", securitySchemeValues.Get("key"))
+}
+
+func TestSecuritySchemeValues_Set(t *testing.T) {
+	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues.Set("key", "value")
+
+	assert.Equal(t, "value", securitySchemeValues.Get("key"))
 }

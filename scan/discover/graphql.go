@@ -61,10 +61,6 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL
 }
 
 func GraphqlIntrospectionScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	if securityScheme.HasValidValue() {
-		securityScheme.SetAttackValue(securityScheme.GetValidValue())
-	}
-
 	base := ExtractBaseURL(operation.Request.URL)
 
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName)

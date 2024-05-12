@@ -19,10 +19,6 @@ const (
 )
 
 func HTTPTrackMethodScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-	if ss.HasValidValue() {
-		ss.SetAttackValue(ss.GetValidValue())
-	}
-
 	newOperation := operation.Clone()
 	newOperation.Method = "TRACK"
 

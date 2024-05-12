@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,6 +21,22 @@ func TestNewOAuthSecurityScheme(t *testing.T) {
 	assert.Equal(t, name, ss.Name)
 	assert.Equal(t, &value, ss.ValidValue)
 	assert.Equal(t, "", ss.AttackValue)
+	assert.Nil(t, ss.JWTWriter)
+}
+
+func TestNewOAuthSecurityScheme_WithJWT(t *testing.T) {
+	name := "token"
+	value := jwt.FakeJWT
+
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	assert.Equal(t, auth.HttpType, ss.Type)
+	assert.Equal(t, auth.BearerScheme, ss.Scheme)
+	assert.Equal(t, auth.InHeader, ss.In)
+	assert.Equal(t, name, ss.Name)
+	assert.Equal(t, &value, ss.ValidValue)
+	assert.Equal(t, "", ss.AttackValue)
+	assert.NotNil(t, ss.JWTWriter)
 }
 
 func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
@@ -35,6 +52,28 @@ func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer xyz789"},
 	}, headers)
+}
+
+func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
+	name := "token"
+	value := "abc123"
+
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{
+		"Authorization": []string{"Bearer abc123"},
+	}, headers)
+}
+
+func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
+	name := "token"
+	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{}, headers)
 }
 
 func TestNewOAuthSecurityScheme_GetCookies(t *testing.T) {
@@ -102,7 +141,17 @@ func TestNewOAuthSecurityScheme_GetValidValueWriter(t *testing.T) {
 	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
 	writer := ss.GetValidValueWriter()
 
-	assert.Equal(t, nil, writer)
+	assert.Nil(t, writer)
+}
+
+func TestNewOAuthSecurityScheme_GetValidValueWriter_WithJWT(t *testing.T) {
+	name := "token"
+	value := jwt.FakeJWT
+
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	writer := ss.GetValidValueWriter()
+
+	assert.IsType(t, &jwt.JWTWriter{}, writer)
 }
 
 func TestNewOAuthSecurityScheme_SetAttackValue(t *testing.T) {

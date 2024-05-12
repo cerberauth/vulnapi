@@ -46,6 +46,29 @@ func TestJWTBearerSecurityScheme_GetHeaders(t *testing.T) {
 	}, headers)
 }
 
+func TestJWTBearerSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
+	name := "token"
+	value := jwt.FakeJWT
+	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, &value)
+
+	headers := ss.GetHeaders()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.Header{
+		"Authorization": []string{"Bearer " + jwt.FakeJWT},
+	}, headers)
+}
+
+func TestJWTBearerSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
+	name := "token"
+	ss, err := auth.NewAuthorizationJWTBearerSecurityScheme(name, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.Header{}, headers)
+}
+
 func TestJWTBearerSecurityScheme_GetCookies(t *testing.T) {
 	name := "token"
 	value := jwt.FakeJWT
