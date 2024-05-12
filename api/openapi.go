@@ -16,7 +16,7 @@ import (
 type NewOpenAPIScanRequest struct {
 	Schema          string `json:"schema" binding:"required"`
 	SecuritySchemes map[string]struct {
-		Value string `json:"value"`
+		Value string `json:"value" binding:"required"`
 	} `json:"security_schemes"`
 
 	Opts *ScanOptions `json:"options"`
@@ -51,8 +51,10 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	client := request.NewClient(opts)
 
 	values := make(map[string]interface{}, len(form.SecuritySchemes))
-	for key, value := range form.SecuritySchemes {
-		values[key] = &value.Value
+	if form.SecuritySchemes != nil {
+		for key, value := range form.SecuritySchemes {
+			values[key] = &value.Value
+		}
 	}
 	securitySchemesValues := auth.NewSecuritySchemeValues(values)
 	s, err := scan.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)

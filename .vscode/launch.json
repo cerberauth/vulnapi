@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceRoot}",
-            "args": ["serve"]
+            "args": ["--sqa-opt-out", "serve"]
         }
     ]
 }
