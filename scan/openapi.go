@@ -7,8 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 )
 
-func NewOpenAPIScan(openapi *openapi.OpenAPI, validToken *string, client *request.Client, reporter *report.Reporter) (*Scan, error) {
-	securitySchemesValues := auth.NewSecuritySchemeValuesWithDefault(validToken)
+func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.SecuritySchemeValues, client *request.Client, reporter *report.Reporter) (*Scan, error) {
 	securitySchemes, err := openapi.SecuritySchemeMap(securitySchemesValues)
 	if err != nil {
 		return nil, err

@@ -3,6 +3,8 @@ package auth
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/cerberauth/vulnapi/jwt"
 )
 
 type OAuthFlow string
@@ -27,6 +29,7 @@ type OAuthSecurityScheme struct {
 	In          SchemeIn
 	Name        string
 	ValidValue  *string
+	JWTWriter   *jwt.JWTWriter
 	AttackValue string
 
 	Config *OAuthConfig
@@ -35,12 +38,18 @@ type OAuthSecurityScheme struct {
 var _ SecurityScheme = (*OAuthSecurityScheme)(nil)
 
 func NewOAuthSecurityScheme(name string, value *string, cfg *OAuthConfig) *OAuthSecurityScheme {
+	var jwtWriter *jwt.JWTWriter
+	if value != nil {
+		jwtWriter, _ = jwt.NewJWTWriter(*value)
+	}
+
 	return &OAuthSecurityScheme{
 		Type:        HttpType,
 		Scheme:      BearerScheme,
 		In:          InHeader,
 		Name:        name,
 		ValidValue:  value,
+		JWTWriter:   jwtWriter,
 		AttackValue: "",
 
 		Config: cfg,
@@ -76,7 +85,7 @@ func (ss *OAuthSecurityScheme) GetValidValue() interface{} {
 }
 
 func (ss *OAuthSecurityScheme) GetValidValueWriter() interface{} {
-	return nil
+	return ss.JWTWriter
 }
 
 func (ss *OAuthSecurityScheme) SetAttackValue(v interface{}) {

@@ -1,7 +1,6 @@
 package scan
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
@@ -18,21 +17,6 @@ import (
 const reportUnexpectedError = "If you think that report is not accurate or if you have any suggestions for improvements, please open an issue at: https://github.com/cerberauth/vulnapi/issues/new."
 
 var reporter *report.Reporter
-
-func isStdinOpen() bool {
-	stat, _ := os.Stdin.Stat()
-	return (stat.Mode() & os.ModeCharDevice) == 0
-}
-
-func readStdin() *string {
-	scanner := bufio.NewScanner(os.Stdin)
-	if scanner.Scan() {
-		t := scanner.Text()
-		return &t
-	}
-
-	return nil
-}
 
 func severityTableColor(v *report.VulnerabilityReport) int {
 	if v.IsLowRiskSeverity() || v.IsInfoRiskSeverity() {

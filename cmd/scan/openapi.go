@@ -1,8 +1,11 @@
 package scan
 
 import (
+	"bufio"
 	"log"
+	"os"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/x/analyticsx"
@@ -10,6 +13,25 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
+
+var (
+	securitySchemesValueArg map[string]string
+)
+
+func isStdinOpen() bool {
+	stat, _ := os.Stdin.Stat()
+	return (stat.Mode() & os.ModeCharDevice) == 0
+}
+
+func readStdin() *string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		t := scanner.Text()
+		return &t
+	}
+
+	return nil
+}
 
 func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
@@ -37,9 +59,15 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				validToken = readStdin()
 			}
 
+			values := make(map[string]interface{}, len(securitySchemesValueArg))
+			for key, value := range securitySchemesValueArg {
+				values[key] = &value
+			}
+			securitySchemesValues := auth.NewSecuritySchemeValues(values).WithDefault(validToken)
+
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
 			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
-			s, err := scan.NewOpenAPIScan(openapi, validToken, client, nil)
+			s, err := scan.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -58,5 +86,6 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	}
 
 	AddCommonArgs(scanCmd)
+	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Example value for each security scheme")
 	return scanCmd
 }
