@@ -30,6 +30,8 @@ var potentialOpenAPIPaths = []string{
 	"/v1/api-docs",
 	"/v2/api-docs",
 	"/v3/api-docs",
+	"/.well-known/openapi.yaml",
+	"/.well-known/openapi.json",
 }
 var openapiSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt"
 
