@@ -17,27 +17,35 @@ const (
 	DiscoverableOpenAPIVulnerabilityURL  = ""
 )
 
+// Partly retrieved from: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt
 var potentialOpenAPIPaths = []string{
 	"/openapi",
 	"/swagger.json",
 	"/swagger.yaml",
 	"/openapi.json",
 	"/openapi.yaml",
-	"/api-docs",
+	"/openapi.yml",
+	"/swagger/v1/swagger.json",
+	"/swagger-ui/swagger.json",
+	"/apidocs/swagger.json",
+	"/api-docs/swagger.json",
 	"/api-docs.json",
 	"/api-docs.yaml",
 	"/api-docs.yml",
-	"/v1/api-docs",
-	"/v2/api-docs",
-	"/v3/api-docs",
+	"/v1/swagger.json",
+	"/api/swagger.json",
+	"/api/swagger-ui.json",
+	"/api/v1/swagger-ui.json",
+	"/api/v2/swagger-ui.json",
 	"/.well-known/openapi.yaml",
+	"/.well-known/openapi.yml",
 	"/.well-known/openapi.json",
 }
-var openapiSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt"
 
 func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName)
-	handler := CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, &report.VulnerabilityReport{
+
+	return ScanURLs(potentialOpenAPIPaths, operation, securityScheme, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableOpenAPISeverityLevel,
 
 		OWASP2023Category: DiscoverableOpenAPIOWASP2023Category,
@@ -48,6 +56,4 @@ func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme
 
 		Operation: operation,
 	})
-
-	return handler(operation, securityScheme)
 }

@@ -20,6 +20,33 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	return baseURL
 }
 
+func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.ScanReport, vulnReport *report.VulnerabilityReport) (*report.ScanReport, error) {
+	securityScheme.SetAttackValue(securityScheme.GetValidValue())
+	securitySchemes := []auth.SecurityScheme{securityScheme}
+
+	base := ExtractBaseURL(operation.Request.URL)
+	for _, path := range scanUrls {
+		newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, nil, securitySchemes)
+		if err != nil {
+			return r, err
+		}
+
+		attempt, err := scan.ScanURL(newOperation, &securityScheme)
+		r.AddScanAttempt(attempt).End()
+		if err != nil {
+			return r, err
+		}
+
+		if attempt.Response.StatusCode < 300 {
+			r.AddVulnerabilityReport(vulnReport.WithOperation(newOperation))
+
+			return r, nil
+		}
+	}
+
+	return r, nil
+}
+
 func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	scanUrls := defaultUrls
 	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil && urlsFromSeclist != nil {
@@ -27,29 +54,6 @@ func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, 
 	}
 
 	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-		securityScheme.SetAttackValue(securityScheme.GetValidValue())
-		securitySchemes := []auth.SecurityScheme{securityScheme}
-
-		base := ExtractBaseURL(operation.Request.URL)
-		for _, path := range scanUrls {
-			newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, nil, securitySchemes)
-			if err != nil {
-				return r, err
-			}
-
-			attempt, err := scan.ScanURL(newOperation, &securityScheme)
-			r.AddScanAttempt(attempt).End()
-			if err != nil {
-				return r, err
-			}
-
-			if attempt.Response.StatusCode < 300 {
-				r.AddVulnerabilityReport(vulnReport.WithOperation(newOperation))
-
-				return r, nil
-			}
-		}
-
-		return r, nil
+		return ScanURLs(scanUrls, operation, securityScheme, r, vulnReport)
 	}
 }
