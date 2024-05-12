@@ -14,7 +14,7 @@ const (
 
 var issue = report.Issue{
 	ID:   "discover.server_signature",
-	Name: " Server Signature Exposed",
+	Name: "Server Signature Exposed",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,

@@ -1,6 +1,8 @@
 package scan
 
 import (
+	"fmt"
+
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
@@ -22,6 +24,9 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				return
 			}
 
+			fmt.Println()
+			fmt.Println()
+			ContextualScanReport(reporter)
 			DisplayReportTable(reporter)
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan Report", []attribute.KeyValue{
@@ -35,6 +40,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd.AddCommand(NewCURLScanCmd())
 	scanCmd.AddCommand(NewOpenAPIScanCmd())
 	scanCmd.AddCommand(NewGraphQLScanCmd())
+	scanCmd.AddCommand(NewDiscoverCmd())
 
 	return scanCmd
 }
