@@ -13,10 +13,10 @@ var (
 )
 
 func AddCommonArgs(cmd *cobra.Command) {
-	cmd.Flags().StringP("rate-limit", "r", "", "Rate limit for requests (e.g. 10/s, 1/m)")
-	cmd.Flags().StringP("proxy", "p", "", "Proxy URL for requests")
-	cmd.Flags().StringArrayP("header", "H", nil, "Headers to include in requests")
-	cmd.Flags().StringArrayP("cookie", "c", nil, "Cookies to include in requests")
+	cmd.Flags().StringVarP(&rateLimit, "rate-limit", "r", "", "Rate limit for requests (e.g. 10/s, 1/m)")
+	cmd.Flags().StringVarP(&proxy, "proxy", "p", "", "Proxy URL for requests")
+	cmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Headers to include in requests")
+	cmd.Flags().StringArrayVarP(&cookies, "cookie", "c", nil, "Cookies to include in requests")
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {

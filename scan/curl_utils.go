@@ -44,7 +44,7 @@ func detectSecurityScheme(header http.Header) (auth.SecurityScheme, error) {
 
 	token := getBearerToken(authHeader)
 	if token == "" {
-		return nil, fmt.Errorf("Empty authorization header")
+		return nil, fmt.Errorf("empty authorization header")
 	}
 
 	_, err := jwt.NewJWTWriter(token)
