@@ -54,6 +54,28 @@ func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
 	}, headers)
 }
 
+func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
+	name := "token"
+	value := "abc123"
+
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{
+		"Authorization": []string{"Bearer abc123"},
+	}, headers)
+}
+
+func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
+	name := "token"
+	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
+
+	headers := ss.GetHeaders()
+
+	assert.Equal(t, http.Header{}, headers)
+}
+
 func TestNewOAuthSecurityScheme_GetCookies(t *testing.T) {
 	name := "token"
 	value := "abc123"

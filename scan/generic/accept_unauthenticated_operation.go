@@ -14,7 +14,7 @@ const (
 	NoAuthOperationVulnerabilitySeverityLevel     = 0
 	NoAuthOperationVulnerabilityOWASP2023Category = report.OWASP2023BrokenAuthCategory
 	NoAuthOperationVulnerabilityID                = "broken_authentication.no_auth_operation"
-	NoAuthOperationVulnerabilityName              = "Operation Accepts Unauthenticated Requests"
+	NoAuthOperationVulnerabilityName              = "Operation May Accepts Unauthenticated Requests"
 	NoAuthOperationVulnerabilityURL               = ""
 
 	AcceptsUnauthenticatedOperationScanID   = "generic.accept_unauthenticated_operation"

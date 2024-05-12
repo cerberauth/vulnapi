@@ -44,10 +44,6 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 }
 
 func ServerSignatureScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	if securityScheme.HasValidValue() {
-		securityScheme.SetAttackValue(securityScheme.GetValidValue())
-	}
-
 	vsa, err := scan.ScanURL(operation, &securityScheme)
 	r := report.NewScanReport(DiscoverServerSignatureScanID, DiscoverServerSignatureScanName)
 	r.AddScanAttempt(vsa).End()

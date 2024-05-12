@@ -39,10 +39,6 @@ const (
 )
 
 func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	if securityScheme.HasValidValue() {
-		securityScheme.SetAttackValue(securityScheme.GetValidValue())
-	}
-
 	attempt, err := scan.ScanURL(operation, &securityScheme)
 	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName)
 	r.AddScanAttempt(attempt).End()

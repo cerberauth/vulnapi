@@ -34,7 +34,9 @@ func (ss *BearerSecurityScheme) GetHeaders() http.Header {
 		attackValue = ss.GetValidValue().(string)
 	}
 
-	header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
+	if attackValue != "" {
+		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
+	}
 
 	return header
 }
