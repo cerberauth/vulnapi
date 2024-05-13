@@ -80,6 +80,8 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 
 			table := tablewriter.NewWriter(outputStream)
 			table.SetHeader(headers)
+			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+			table.SetCenterSeparator("|")
 
 			for _, v := range reporter.GetVulnerabilityReports() {
 				row := []string{v.SeverityLevelString(), v.OWASP2023Category, v.Name}
