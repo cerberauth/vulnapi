@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -9,82 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFormatReports(t *testing.T) {
-	startTime := time.Now()
-	endTime := time.Now().Add(time.Second)
-	reports := []*report.ScanReport{
-		{
-			ID:        "123",
-			Name:      "Test Report",
-			StartTime: startTime,
-			EndTime:   endTime,
-			Vulns: []*report.VulnerabilityReport{
-				{
-					OWASP2023Category: report.OWASP2023BFLACategory,
+func TestMarshalHTTPResponseReports(t *testing.T) {
+	sr := report.NewScanReport("id", "test", nil)
+	sr.StartTime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	sr.EndTime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
-					ID:   "vulnerability-1",
-					Name: "Vulnerability 1",
-				},
-				{
-					OWASP2023Category: report.OWASP2023BOPLCategory,
-
-					ID:   "vulnerability-2",
-					Name: "Vulnerability 2",
-				},
-			},
-		},
+	hrr := api.HTTPResponseReports{
+		Reports: []*report.ScanReport{sr},
 	}
 
-	expected := []api.HTTPResponseReport{
-		{
-			ID:        "123",
-			Name:      "Test Report",
-			StartTime: startTime,
-			EndTime:   endTime,
-			Vulns: []api.HTTPResponseVulnerability{
-				{
-					OWASP2023Category: report.OWASP2023BFLACategory,
+	b, err := json.Marshal(hrr)
 
-					ID:   "vulnerability-1",
-					Name: "Vulnerability 1",
-				},
-				{
-					OWASP2023Category: report.OWASP2023BOPLCategory,
-
-					ID:   "vulnerability-2",
-					Name: "Vulnerability 2",
-				},
-			},
-		},
-	}
-	result := api.FormatReports(reports)
-
-	assert.Equal(t, expected, result)
-}
-
-func TestFormatReportsWithNoVulnerabilities(t *testing.T) {
-	startTime := time.Now()
-	endTime := time.Now().Add(time.Second)
-	reports := []*report.ScanReport{
-		{
-			ID:        "123",
-			Name:      "Test Report",
-			StartTime: startTime,
-			EndTime:   endTime,
-			Vulns:     nil,
-		},
-	}
-
-	expected := []api.HTTPResponseReport{
-		{
-			ID:        "123",
-			Name:      "Test Report",
-			StartTime: startTime,
-			EndTime:   endTime,
-			Vulns:     []api.HTTPResponseVulnerability{},
-		},
-	}
-	result := api.FormatReports(reports)
-
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, b)
 }

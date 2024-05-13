@@ -107,6 +107,7 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
 
 			operation, err := request.NewOperation(client, method, operationUrl.String(), header, cookies, operationsSecuritySchemes)
+			operation = operation.WithOpenapiOperation(docPath, *o)
 			if err != nil {
 				return nil, err
 			}

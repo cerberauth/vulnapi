@@ -29,8 +29,6 @@ func TestCheckSignatureHeaderWithSignatureHeader(t *testing.T) {
 		ID:   discover.ServerSignatureVulnerabilityID,
 		Name: discover.ServerSignatureVulnerabilityName,
 		URL:  discover.ServerSignatureVulnerabilityURL,
-
-		Operation: operation,
 	}
 
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(204, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))

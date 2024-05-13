@@ -25,7 +25,7 @@ var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "chang
 
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
 
-func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+func WeakHMACSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	if !ShouldBeScanned(ss) {
 		return nil, nil
 	}
@@ -39,7 +39,7 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 		return nil, nil
 	}
 
-	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName)
+	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName, operation)
 	jwtSecretDictionary := defaultJwtSecretDictionary
 	if secretDictionnaryFromSeclist, err := seclist.NewSecListFromURL("JWT Secrets Dictionnary", jwtSecretDictionarySeclistUrl); err == nil {
 		jwtSecretDictionary = secretDictionnaryFromSeclist.Items
@@ -60,7 +60,7 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 		}
 
 		ss.SetAttackValue(newToken)
-		vsa, err := scan.ScanURL(o, &ss)
+		vsa, err := scan.ScanURL(operation, &ss)
 		r.AddScanAttempt(vsa).End()
 		if err != nil {
 			return r, err
@@ -73,8 +73,6 @@ func WeakHMACSecretScanHandler(o *request.Operation, ss auth.SecurityScheme) (*r
 				ID:   BlankSecretVulnerabilityID,
 				Name: WeakSecretVulnerabilityName,
 				URL:  BlankSecretVulnerabilityURL,
-
-				Operation: o,
 			})
 			break
 		}

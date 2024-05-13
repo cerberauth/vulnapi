@@ -28,7 +28,7 @@ const (
 )
 
 func NoAuthOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName)
+	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName, operation)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		r.AddVulnerabilityReport(&report.VulnerabilityReport{
 			SeverityLevel: NoAuthOperationVulnerabilitySeverityLevel,
@@ -38,8 +38,6 @@ func NoAuthOperationScanHandler(operation *request.Operation, securityScheme aut
 			ID:   NoAuthOperationVulnerabilityID,
 			Name: NoAuthOperationVulnerabilityName,
 			URL:  NoAuthOperationVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 
@@ -48,7 +46,7 @@ func NoAuthOperationScanHandler(operation *request.Operation, securityScheme aut
 }
 
 func AcceptUnauthenticatedOperationScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName)
+	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName, operation)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		return r, nil
 	}
@@ -69,8 +67,6 @@ func AcceptUnauthenticatedOperationScanHandler(operation *request.Operation, sec
 			ID:   AcceptUnauthenticatedOperationVulnerabilityID,
 			Name: AcceptUnauthenticatedOperationVulnerabilityName,
 			URL:  AcceptUnauthenticatedOperationVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

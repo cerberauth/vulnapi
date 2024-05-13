@@ -36,8 +36,8 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 			return r, err
 		}
 
-		if attempt.Response.StatusCode < 300 {
-			r.AddVulnerabilityReport(vulnReport.WithOperation(newOperation))
+		if attempt.Response.StatusCode < 300 { // TODO: check if the response contains the expected content
+			r.AddVulnerabilityReport(vulnReport)
 
 			return r, nil
 		}

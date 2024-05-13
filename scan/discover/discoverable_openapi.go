@@ -43,7 +43,7 @@ var potentialOpenAPIPaths = []string{
 }
 
 func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName)
+	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, operation)
 
 	return ScanURLs(potentialOpenAPIPaths, operation, securityScheme, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableOpenAPISeverityLevel,
@@ -53,7 +53,5 @@ func DiscoverableOpenAPIScanHandler(operation *request.Operation, securityScheme
 		ID:   DiscoverableOpenAPIVulnerabilityID,
 		Name: DiscoverableOpenAPIVulnerabilityName,
 		URL:  DiscoverableOpenAPIVulnerabilityURL,
-
-		Operation: operation,
 	})
 }

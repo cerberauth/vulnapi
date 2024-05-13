@@ -54,7 +54,7 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Vulnerability Found", nil)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"reports": FormatReports(reporter.GetReports()),
+	ctx.JSON(http.StatusOK, HTTPResponseReports{
+		Reports: reporter.GetReports(),
 	})
 }

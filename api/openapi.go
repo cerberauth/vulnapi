@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -77,7 +78,9 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Vulnerability Found", nil)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"reports": FormatReports(reporter.GetReports()),
-	})
+	response := HTTPResponseReports{
+		Reports: reporter.GetReports(),
+	}
+	_, err = json.Marshal(response)
+	ctx.JSON(http.StatusOK, response)
 }

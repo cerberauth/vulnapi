@@ -36,7 +36,7 @@ func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme)
 		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
 
-	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName)
+	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, operation)
 	newToken, err := valueWriter.WithAlgNone()
 	if err != nil {
 		return r, err
@@ -57,8 +57,6 @@ func AlgNoneJwtScanHandler(operation *request.Operation, ss auth.SecurityScheme)
 			ID:   AlgNoneVulnerabilityID,
 			Name: AlgNoneVulnerabilityName,
 			URL:  AlgNoneVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

@@ -25,7 +25,7 @@ func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecuritySc
 	newOperation.Method = http.MethodTrace
 
 	vsa, err := scan.ScanURL(newOperation, &ss)
-	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName)
+	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName, operation)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -40,8 +40,6 @@ func HTTPTraceMethodScanHandler(operation *request.Operation, ss auth.SecuritySc
 			ID:   HTTPTraceMethodVulnerabilityID,
 			Name: HTTPTraceMethodVulnerabilityName,
 			URL:  HTTPTraceMethodVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

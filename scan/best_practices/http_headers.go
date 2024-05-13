@@ -76,8 +76,6 @@ func checkCSPHeader(operation *request.Operation, headers http.Header, r *report
 			ID:   CSPHTTPHeaderIsNotSetVulnerabilityID,
 			Name: CSPHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  CSPHTTPHeaderIsNotSetVulnerabilityURL,
-
-			Operation: operation,
 		})
 
 		return false
@@ -102,8 +100,6 @@ func checkCSPHeader(operation *request.Operation, headers http.Header, r *report
 		ID:   CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityID,
 		Name: CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityName,
 		URL:  CSPHTTPHeaderFrameAncestorsIsNotSetVulnerabilityURL,
-
-		Operation: operation,
 	})
 
 	return false
@@ -120,8 +116,6 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 			ID:   CORSHTTPHeaderIsNotSetVulnerabilityID,
 			Name: CORSHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  CORSHTTPHeaderIsNotSetVulnerabilityURL,
-
-			Operation: operation,
 		})
 
 		return false
@@ -140,8 +134,6 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 		ID:   CORSHTTPHeaderIsPermisiveVulnerabilityID,
 		Name: CORSHTTPHeaderIsPermisiveVulnerabilityName,
 		URL:  CORSHTTPHeaderIsPermisiveVulnerabilityURL,
-
-		Operation: operation,
 	})
 
 	return false
@@ -149,7 +141,7 @@ func CheckCORSAllowOrigin(operation *request.Operation, headers http.Header, r *
 
 func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
 	vsa, err := scan.ScanURL(operation, &ss)
-	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName)
+	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName, operation)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err
@@ -171,8 +163,6 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 			ID:   HTSTHTTPHeaderIsNotSetVulnerabilityID,
 			Name: HSTSHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  HSTSHTTPHeaderIsNotSetVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 
@@ -185,8 +175,6 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 			ID:   XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityID,
 			Name: XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  XContentTypeOptionsHTTPHeaderIsNotSetVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 
@@ -199,8 +187,6 @@ func HTTPHeadersBestPracticesScanHandler(operation *request.Operation, ss auth.S
 			ID:   XFrameOptionsHTTPHeaderIsNotSetVulnerabilityID,
 			Name: XFrameOptionsHTTPHeaderIsNotSetVulnerabilityName,
 			URL:  XFrameOptionsHTTPHeaderIsNotSetVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 
