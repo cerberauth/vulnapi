@@ -32,7 +32,7 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
 
-	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName)
+	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, operation)
 	newToken, err := valueWriter.SignWithKey([]byte(""))
 	if err != nil {
 		return r, err
@@ -53,8 +53,6 @@ func BlankSecretScanHandler(operation *request.Operation, ss auth.SecurityScheme
 			ID:   BlankSecretVulnerabilityID,
 			Name: BlankSecretVulnerabilityName,
 			URL:  BlankSecretVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

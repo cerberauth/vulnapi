@@ -24,15 +24,15 @@ type OAuthConfig struct {
 }
 
 type OAuthSecurityScheme struct {
-	Type        Type
-	Scheme      SchemeName
-	In          SchemeIn
-	Name        string
-	ValidValue  *string
-	JWTWriter   *jwt.JWTWriter
-	AttackValue string
+	Type        Type       `json:"type" yaml:"type"`
+	Scheme      SchemeName `json:"scheme" yaml:"scheme"`
+	In          SchemeIn   `json:"in" yaml:"in"`
+	Name        string     `json:"name" yaml:"name"`
+	ValidValue  *string    `json:"-" yaml:"-"`
+	AttackValue string     `json:"-" yaml:"-"`
 
-	Config *OAuthConfig
+	Config    *OAuthConfig   `json:"config" yaml:"config"`
+	JWTWriter *jwt.JWTWriter `json:"-" yaml:"-"`
 }
 
 var _ SecurityScheme = (*OAuthSecurityScheme)(nil)

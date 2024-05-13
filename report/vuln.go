@@ -2,8 +2,6 @@ package report
 
 import (
 	"fmt"
-
-	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 type VulnerabilityReport struct {
@@ -14,14 +12,6 @@ type VulnerabilityReport struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
-
-	Operation *request.Operation `json:"operation"`
-}
-
-func (vr *VulnerabilityReport) WithOperation(operation *request.Operation) *VulnerabilityReport {
-	vr.Operation = operation
-
-	return vr
 }
 
 func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
@@ -41,7 +31,7 @@ func (vr *VulnerabilityReport) IsInfoRiskSeverity() bool {
 }
 
 func (vr *VulnerabilityReport) String() string {
-	return fmt.Sprintf("[%s][%s] %s %s", vr.SeverityLevelString(), vr.Name, vr.Operation.Method, vr.Operation.Request.URL.String())
+	return fmt.Sprintf("[%s] %s", vr.SeverityLevelString(), vr.Name)
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {

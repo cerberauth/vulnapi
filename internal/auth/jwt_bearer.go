@@ -8,13 +8,14 @@ import (
 )
 
 type JWTBearerSecurityScheme struct {
-	Type        Type
-	Scheme      SchemeName
-	In          SchemeIn
-	Name        string
-	ValidValue  *string
-	JWTWriter   *jwt.JWTWriter
-	AttackValue string
+	Type        Type       `json:"type" yaml:"type"`
+	Scheme      SchemeName `json:"scheme" yaml:"scheme"`
+	In          SchemeIn   `json:"in" yaml:"in"`
+	Name        string     `json:"name" yaml:"name"`
+	ValidValue  *string    `json:"-" yaml:"-"`
+	AttackValue string     `json:"-" yaml:"-"`
+
+	JWTWriter *jwt.JWTWriter `json:"-" yaml:"-"`
 }
 
 var _ SecurityScheme = (*JWTBearerSecurityScheme)(nil)
@@ -34,8 +35,9 @@ func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBe
 		In:          InHeader,
 		Name:        name,
 		ValidValue:  value,
-		JWTWriter:   jwtWriter,
 		AttackValue: "",
+
+		JWTWriter: jwtWriter,
 	}, nil
 }
 

@@ -31,7 +31,7 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 
 	valueWriter := ss.GetValidValueWriter().(*jwt.JWTWriter)
 
-	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName)
+	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, operation)
 	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.Token.Method)
 	if err != nil {
 		return r, err
@@ -67,8 +67,6 @@ func NotVerifiedScanHandler(operation *request.Operation, ss auth.SecurityScheme
 			ID:   NotVerifiedVulnerabilityID,
 			Name: NotVerifiedVulnerabilityName,
 			URL:  NotVerifiedVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

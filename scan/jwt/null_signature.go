@@ -32,7 +32,7 @@ func NullSignatureScanHandler(operation *request.Operation, ss auth.SecuritySche
 		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
 
-	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName)
+	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName, operation)
 	newToken, err := valueWriter.WithoutSignature()
 	if err != nil {
 		return r, err
@@ -53,8 +53,6 @@ func NullSignatureScanHandler(operation *request.Operation, ss auth.SecuritySche
 			ID:   NullSigVulnerabilityID,
 			Name: NullSigVulnerabilityName,
 			URL:  NullSigVulnerabilityURL,
-
-			Operation: operation,
 		})
 	}
 

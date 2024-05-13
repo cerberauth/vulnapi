@@ -24,8 +24,6 @@ func TestCheckNoAuthOperationScanHandler(t *testing.T) {
 		ID:   generic.NoAuthOperationVulnerabilityID,
 		Name: generic.NoAuthOperationVulnerabilityName,
 		URL:  generic.NoAuthOperationVulnerabilityURL,
-
-		Operation: operation,
 	}
 
 	report, err := generic.NoAuthOperationScanHandler(operation, securityScheme)
@@ -73,8 +71,6 @@ func TestAcceptUnauthenticatedOperationScanHandler(t *testing.T) {
 		ID:   generic.AcceptUnauthenticatedOperationVulnerabilityID,
 		Name: generic.AcceptUnauthenticatedOperationVulnerabilityName,
 		URL:  generic.AcceptUnauthenticatedOperationVulnerabilityURL,
-
-		Operation: operation,
 	}
 
 	report, err := generic.AcceptUnauthenticatedOperationScanHandler(operation, securityScheme)

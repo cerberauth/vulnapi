@@ -63,7 +63,7 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL
 func GraphqlIntrospectionScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	base := ExtractBaseURL(operation.Request.URL)
 
-	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName)
+	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, operation)
 	for _, path := range potentialGraphQLEndpoints {
 		newRequest, err := newPostGraphqlIntrospectionRequest(operation.Client, base.ResolveReference(&url.URL{Path: path}))
 		if err != nil {
@@ -86,8 +86,6 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
 				Name: GraphqlIntrospectionEnabledVulnerabilityName,
 				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
-
-				Operation: operation,
 			})
 
 			return r, nil
@@ -116,8 +114,6 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 				ID:   GraphqlIntrospectionEnabledVulnerabilityID,
 				Name: GraphqlIntrospectionEnabledVulnerabilityName,
 				URL:  GraphqlIntrospectionEnabledVulnerabilityURL,
-
-				Operation: operation,
 			})
 
 			return r, nil
@@ -128,7 +124,7 @@ func GraphqlIntrospectionScanHandler(operation *request.Operation, securitySchem
 }
 
 func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName)
+	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName, operation)
 	handler := CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, &report.VulnerabilityReport{
 		SeverityLevel: DiscoverableGraphQLPathSeverityLevel,
 
@@ -137,8 +133,6 @@ func DiscoverableGraphQLPathScanHandler(operation *request.Operation, securitySc
 		ID:   DiscoverableGraphQLPathVulnerabilityID,
 		Name: DiscoverableGraphQLPathVulnerabilityName,
 		URL:  DiscoverableGraphQLPathVulnerabilityURL,
-
-		Operation: operation,
 	})
 
 	return handler(operation, securityScheme)

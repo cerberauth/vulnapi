@@ -3,35 +3,39 @@ package report
 import (
 	"net/http"
 	"time"
+
+	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 type VulnerabilityScanAttempt struct {
-	Request  *http.Request  `json:"request"`
-	Response *http.Response `json:"response"`
+	Request  *http.Request  `json:"-"`
+	Response *http.Response `json:"-"`
 
 	Err error `json:"error"`
 }
 
 type ScanReport struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+
+	Operation *request.Operation `json:"operation"`
 
 	Scans []*VulnerabilityScanAttempt `json:"scans"`
 	Vulns []*VulnerabilityReport      `json:"vulnerabilities"`
-
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
 }
 
-func NewScanReport(id string, name string) *ScanReport {
+func NewScanReport(id string, name string, operaton *request.Operation) *ScanReport {
 	return &ScanReport{
-		ID:   id,
-		Name: name,
+		ID:        id,
+		Name:      name,
+		StartTime: time.Now(),
+
+		Operation: operaton,
 
 		Scans: []*VulnerabilityScanAttempt{},
 		Vulns: []*VulnerabilityReport{},
-
-		StartTime: time.Now(),
 	}
 }
 

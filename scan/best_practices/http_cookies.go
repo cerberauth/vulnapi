@@ -40,7 +40,7 @@ const (
 
 func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	attempt, err := scan.ScanURL(operation, &securityScheme)
-	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName)
+	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName, operation)
 	r.AddScanAttempt(attempt).End()
 	if err != nil {
 		return r, err
@@ -57,8 +57,6 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 				ID:   HTTPCookiesNotSecureVulnerabilityID,
 				Name: HTTPCookiesNotSecureVulnerabilityName,
 				URL:  HTTPCookiesNotSecureVulnerabilityURL,
-
-				Operation: operation,
 			})
 		}
 
@@ -71,8 +69,6 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 				ID:   HTTPCookiesNotHTTPOnlyVulnerabilityID,
 				Name: HTTPCookiesNotHTTPOnlyVulnerabilityName,
 				URL:  HTTPCookiesNotHTTPOnlyVulnerabilityURL,
-
-				Operation: operation,
 			})
 		}
 
@@ -85,8 +81,6 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 				ID:   HTTPCookiesSameSiteVulnerabilityID,
 				Name: HTTPCookiesSameSiteVulnerabilityName,
 				URL:  HTTPCookiesSameSiteVulnerabilityURL,
-
-				Operation: operation,
 			})
 		}
 
@@ -99,8 +93,6 @@ func HTTPCookiesScanHandler(operation *request.Operation, securityScheme auth.Se
 				ID:   HTTPCookiesExpiresVulnerabilityID,
 				Name: HTTPCookiesExpiresVulnerabilityName,
 				URL:  HTTPCookiesExpiresVulnerabilityURL,
-
-				Operation: operation,
 			})
 		}
 	}

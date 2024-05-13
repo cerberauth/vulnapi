@@ -32,8 +32,6 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 				ID:   ServerSignatureVulnerabilityID,
 				Name: ServerSignatureVulnerabilityName,
 				URL:  ServerSignatureVulnerabilityURL,
-
-				Operation: operation,
 			})
 
 			return false
@@ -45,7 +43,7 @@ func checkSignatureHeader(operation *request.Operation, headers map[string][]str
 
 func ServerSignatureScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	vsa, err := scan.ScanURL(operation, &securityScheme)
-	r := report.NewScanReport(DiscoverServerSignatureScanID, DiscoverServerSignatureScanName)
+	r := report.NewScanReport(DiscoverServerSignatureScanID, DiscoverServerSignatureScanName, operation)
 	r.AddScanAttempt(vsa).End()
 	if err != nil {
 		return r, err

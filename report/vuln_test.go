@@ -1,22 +1,11 @@
 package report_test
 
 import (
-	"net/http"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestVulnerabilityReport_WithOperation(t *testing.T) {
-	vr := &report.VulnerabilityReport{}
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "https://example.com/vulnerability", nil, nil, nil)
-
-	vr.WithOperation(operation)
-
-	assert.Equal(t, operation, vr.Operation)
-}
 
 func TestVulnerabilityReport_IsLowRiskSeverity(t *testing.T) {
 	vr := &report.VulnerabilityReport{SeverityLevel: 3.5}
@@ -34,16 +23,13 @@ func TestVulnerabilityReport_IsHighRiskSeverity(t *testing.T) {
 }
 
 func TestVulnerabilityReport_String(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "https://example.com/vulnerability", nil, nil, nil)
 	vr := &report.VulnerabilityReport{
 		SeverityLevel: 7.5,
 		ID:            "test-vulnerability",
 		Name:          "Test Vulnerability",
 		URL:           "https://example.com/docs/vulnerability",
-
-		Operation: operation,
 	}
-	expected := "[High][Test Vulnerability] GET https://example.com/vulnerability"
+	expected := "[High] Test Vulnerability"
 	assert.Equal(t, expected, vr.String())
 }
 
