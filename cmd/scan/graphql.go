@@ -32,7 +32,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllGraphQLScans()
-			bar := newProgressBar(len(s.GetOperationsScans()))
+			bar := NewProgressBar(len(s.GetOperationsScans()))
 
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
