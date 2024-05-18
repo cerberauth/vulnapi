@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
+	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -31,14 +32,12 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scan.NewGraphQLScan(form.Endpoint, client, nil)
+	s, err := scenario.NewGraphQLScan(form.Endpoint, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiGraphQLTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllGraphQLScans()
 
 	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
 	if err != nil {

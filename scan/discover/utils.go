@@ -31,18 +31,18 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 		}
 
 		attempt, err := scan.ScanURL(newOperation, &securityScheme)
-		r.AddScanAttempt(attempt).End()
 		if err != nil {
 			return r, err
 		}
 
-		if attempt.Response.StatusCode < 300 { // TODO: check if the response contains the expected content
-			r.AddVulnerabilityReport(vulnReport)
-
+		r.AddScanAttempt(attempt)
+		if attempt.Response.StatusCode == http.StatusOK { // TODO: check if the response contains the expected content
+			r.AddVulnerabilityReport(vulnReport.Fail()).End()
 			return r, nil
 		}
 	}
 
+	r.AddVulnerabilityReport(vulnReport.Pass()).End()
 	return r, nil
 }
 

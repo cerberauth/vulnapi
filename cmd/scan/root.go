@@ -27,7 +27,7 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 			analyticsx.TrackEvent(ctx, tracer, "Scan Report", []attribute.KeyValue{
 				attribute.Int("vulnerabilityCount", len(reporter.GetVulnerabilityReports())),
 				attribute.Bool("hasVulnerability", reporter.HasVulnerability()),
-				attribute.Bool("hasHighRiskSeverityVulnerability", reporter.HasHighRiskSeverityVulnerability()),
+				attribute.Bool("hasHighRiskSeverityVulnerability", reporter.HasHighRiskOrHigherSeverityVulnerability()),
 			})
 		},
 	}

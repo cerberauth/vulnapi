@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/cerberauth/vulnapi/scan"
+	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -25,15 +26,13 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
 			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
-			s, err := scan.NewGraphQLScan(graphqlEndpoint, client, nil)
+			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllGraphQLScans()
 			bar := NewProgressBar(len(s.GetOperationsScans()))
-
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
 			}); err != nil {
