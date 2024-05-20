@@ -1,0 +1,9 @@
+id: expectedID
+name: expectedName
+url: expectedURL
+
+cvss:
+  version: 4.0
+  vector: AV:N/AC:L/Au:N/C:P/I:N/A:N
+  score: 7.5
+

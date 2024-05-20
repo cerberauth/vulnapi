@@ -62,7 +62,7 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 	assert.EqualError(t, err, "request has an unexpected error")
 }
 
-func TestCreateURLScanHandler_WithNotFoundURLs(t *testing.T) {
+func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 	client := request.DefaultClient
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -83,11 +83,10 @@ func TestCreateURLScanHandler_WithNotFoundURLs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.False(t, r.HasVulnerabilityReport())
-	assert.Equal(t, 0, len(r.GetVulnerabilityReports()))
+	assert.True(t, r.Vulns[0].HasPassed())
 }
 
-func TestCreateURLScanHandler_WithExposedURLs(t *testing.T) {
+func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 	client := request.DefaultClient
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -109,6 +108,5 @@ func TestCreateURLScanHandler_WithExposedURLs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, r.HasVulnerabilityReport())
-	assert.Equal(t, 1, len(r.GetVulnerabilityReports()))
+	assert.True(t, r.Vulns[0].HasFailed())
 }

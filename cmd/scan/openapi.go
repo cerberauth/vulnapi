@@ -8,6 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
+	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -67,15 +68,13 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
 			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
-			s, err := scan.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
+			s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllOpenAPIDiscoverScans()
 			bar := NewProgressBar(len(s.GetOperationsScans()))
-
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
 			}); err != nil {

@@ -82,7 +82,3 @@ func (s *Scan) Execute(scanCallback func(operationScan *OperationScan)) (*report
 
 	return s.Reporter, errors, nil
 }
-
-func (s *Scan) WithAllScans() *Scan {
-	return s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllDiscoverScans()
-}

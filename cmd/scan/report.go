@@ -24,7 +24,7 @@ func (a SortByPathAndSeverity) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a SortByPathAndSeverity) Less(i, j int) bool {
 	if a[i].OperationPath == a[j].OperationPath {
 		if a[i].OperationMethod == a[j].OperationMethod {
-			return a[i].Vuln.SeverityLevel > a[j].Vuln.SeverityLevel
+			return a[i].Vuln.Issue.CVSS.Score > a[j].Vuln.Issue.CVSS.Score
 		}
 
 		return a[i].OperationMethod < a[j].OperationMethod
@@ -65,6 +65,8 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 		return tablewriter.BgYellowColor
 	} else if v.IsHighRiskSeverity() {
 		return tablewriter.BgRedColor
+	} else if v.IsCriticalRiskSeverity() {
+		return tablewriter.BgHiRedColor
 	}
 
 	return tablewriter.BgWhiteColor
@@ -78,7 +80,7 @@ func DisplayReportTable(reporter *report.Reporter) {
 		outputColor = color.New(color.FgGreen)
 		outputMessage = "Congratulations! No issues were found."
 		outputStream = os.Stdout
-	} else if reporter.HasHighRiskSeverityVulnerability() {
+	} else if reporter.HasHighRiskOrHigherSeverityVulnerability() {
 		outputColor = color.New(color.BgRed, color.FgWhite)
 		outputMessage = "Warning: Critical vulnerabilities detected!"
 		outputStream = os.Stderr
@@ -93,7 +95,7 @@ func DisplayReportTable(reporter *report.Reporter) {
 	outputColor.Fprintln(outputStream, outputMessage)
 	fmt.Println()
 
-	headers := []string{"Operation", "Risk Level", "OWASP", "Vulnerability"}
+	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Vulnerability"}
 
 	table := tablewriter.NewWriter(outputStream)
 	table.SetHeader(headers)
@@ -103,10 +105,15 @@ func DisplayReportTable(reporter *report.Reporter) {
 
 	vulnerabilityReports := NewFullScanVulnerabilityReports(reporter.GetReports())
 	for _, vulnReport := range vulnerabilityReports {
+		if vulnReport.Vuln.HasBeenSkipped() || vulnReport.Vuln.HasPassed() {
+			continue
+		}
+
 		row := []string{
 			fmt.Sprintf("%s %s", vulnReport.OperationMethod, vulnReport.OperationPath),
 			vulnReport.Vuln.SeverityLevelString(),
-			vulnReport.Vuln.OWASP2023Category,
+			fmt.Sprintf("%.1f", vulnReport.Vuln.Issue.CVSS.Score),
+			string(vulnReport.Vuln.Classifications.OWASP),
 			vulnReport.Vuln.Name,
 		}
 
@@ -120,6 +127,15 @@ func DisplayReportTable(reporter *report.Reporter) {
 		}
 
 		table.Rich(row, tableColors)
+	}
+
+	errors := reporter.GetErrors()
+	if len(errors) > 0 {
+		fmt.Println()
+		fmt.Println("Errors:")
+		for _, err := range errors {
+			fmt.Printf("  - %s\n", err)
+		}
 	}
 
 	table.Render()

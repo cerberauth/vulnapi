@@ -2,32 +2,104 @@ package report
 
 import (
 	"fmt"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
+)
+
+type VulnerabilityReportStatus string
+
+const (
+	VulnerabilityReportStatusPass VulnerabilityReportStatus = "pass"
+	VulnerabilityReportStatusFail VulnerabilityReportStatus = "fail"
+	VulnerabilityReportStatusSkip VulnerabilityReportStatus = "skip"
+	VulnerabilityReportStatusNone VulnerabilityReportStatus = "none"
 )
 
 type VulnerabilityReport struct {
-	SeverityLevel float64 `json:"severity"` // TODO: Follow https://www.first.org/cvss/specification-document
+	Issue `json:",inline" yaml:",inline"`
 
-	OWASP2023Category string `json:"owasp_2023_category"`
+	Operation      *request.Operation  `json:"operation" yaml:"operation"`
+	SecurityScheme auth.SecurityScheme `json:"security_scheme" yaml:"security_scheme"`
 
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Status VulnerabilityReportStatus `json:"status" yaml:"status"`
 }
 
-func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
-	return vr.SeverityLevel < 4
+func NewVulnerabilityReport(issue Issue) *VulnerabilityReport {
+	return &VulnerabilityReport{
+		Issue: issue,
+
+		Status: VulnerabilityReportStatusNone,
+	}
 }
 
-func (vr *VulnerabilityReport) IsMediumRiskSeverity() bool {
-	return vr.SeverityLevel > 4 && vr.SeverityLevel < 7
+func (vr *VulnerabilityReport) WithOperation(operation *request.Operation) *VulnerabilityReport {
+	vr.Operation = operation
+	return vr
 }
 
-func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
-	return vr.SeverityLevel > 7
+func (vr *VulnerabilityReport) WithSecurityScheme(ss auth.SecurityScheme) *VulnerabilityReport {
+	vr.SecurityScheme = ss
+	return vr
+}
+
+func (vr *VulnerabilityReport) WithStatus(status VulnerabilityReportStatus) *VulnerabilityReport {
+	vr.Status = status
+	return vr
+}
+
+func (vr *VulnerabilityReport) WithBooleanStatus(status bool) *VulnerabilityReport {
+	if status {
+		return vr.Pass()
+	}
+	return vr.Fail()
+}
+
+func (vr *VulnerabilityReport) Fail() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusFail
+	return vr
+}
+
+func (vr *VulnerabilityReport) HasFailed() bool {
+	return vr.Status == VulnerabilityReportStatusFail
+}
+
+func (vr *VulnerabilityReport) Pass() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusPass
+	return vr
+}
+
+func (vr *VulnerabilityReport) HasPassed() bool {
+	return vr.Status == VulnerabilityReportStatusPass
+}
+
+func (vr *VulnerabilityReport) Skip() *VulnerabilityReport {
+	vr.Status = VulnerabilityReportStatusSkip
+	return vr
+}
+
+func (vr *VulnerabilityReport) HasBeenSkipped() bool {
+	return vr.Status == VulnerabilityReportStatusSkip
 }
 
 func (vr *VulnerabilityReport) IsInfoRiskSeverity() bool {
-	return vr.SeverityLevel == 0
+	return vr.CVSS.Score == 0
+}
+
+func (vr *VulnerabilityReport) IsLowRiskSeverity() bool {
+	return vr.CVSS.Score < 4 && vr.CVSS.Score > 0
+}
+
+func (vr *VulnerabilityReport) IsMediumRiskSeverity() bool {
+	return vr.CVSS.Score > 4 && vr.CVSS.Score < 7
+}
+
+func (vr *VulnerabilityReport) IsHighRiskSeverity() bool {
+	return vr.CVSS.Score > 7 && vr.CVSS.Score < 9
+}
+
+func (vr *VulnerabilityReport) IsCriticalRiskSeverity() bool {
+	return vr.CVSS.Score > 9
 }
 
 func (vr *VulnerabilityReport) String() string {
@@ -35,17 +107,21 @@ func (vr *VulnerabilityReport) String() string {
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {
-	if vr.SeverityLevel >= 9 {
+	if vr.IsCriticalRiskSeverity() {
 		return "Critical"
-	} else if vr.SeverityLevel < 9 && vr.SeverityLevel >= 7 {
+	} else if vr.IsHighRiskSeverity() {
 		return "High"
-	} else if vr.SeverityLevel < 7 && vr.SeverityLevel >= 4 {
+	} else if vr.IsMediumRiskSeverity() {
 		return "Medium"
-	} else if vr.SeverityLevel < 4 && vr.SeverityLevel >= 0.1 {
+	} else if vr.IsLowRiskSeverity() {
 		return "Low"
-	} else if vr.SeverityLevel == 0 {
+	} else if vr.IsInfoRiskSeverity() {
 		return "Info"
 	} else {
 		return "None"
 	}
+}
+
+func (vr *VulnerabilityReport) Clone() *VulnerabilityReport {
+	return NewVulnerabilityReport(vr.Issue).WithOperation(vr.Operation).WithSecurityScheme(vr.SecurityScheme).WithStatus(vr.Status)
 }

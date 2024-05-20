@@ -2,6 +2,7 @@ package report_test
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"testing"
 	"time"
@@ -61,14 +62,57 @@ func TestScanReport_AddVulnerabilityReport(t *testing.T) {
 	assert.Equal(t, vulnerabilityReport, sr.GetVulnerabilityReports()[0])
 }
 
-func TestScanReport_HasVulnerabilityReport(t *testing.T) {
+func TestScanReport_HasFailedVulnerabilityReport(t *testing.T) {
 	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	assert.False(t, sr.HasVulnerabilityReport())
+	assert.False(t, sr.HasFailedVulnerabilityReport())
 
-	vulnerabilityReport := &report.VulnerabilityReport{}
+	issue := report.Issue{
+		Name: "test",
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
 	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.True(t, sr.HasVulnerabilityReport())
+	assert.True(t, sr.HasFailedVulnerabilityReport())
+}
+
+func TestScanReport_HasOnlyFailedVulnerabilityReport(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	assert.False(t, sr.HasFailedVulnerabilityReport())
+
+	issue := report.Issue{
+		Name: "test",
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
+	sr.AddVulnerabilityReport(vulnerabilityReport)
+	assert.True(t, sr.HasFailedVulnerabilityReport())
+}
+
+func TestScanReport_HasOnlyPassedVulnerabilityReport(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	assert.False(t, sr.HasFailedVulnerabilityReport())
+
+	issue := report.Issue{
+		Name: "test",
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Pass()
+	sr.AddVulnerabilityReport(vulnerabilityReport)
+	assert.False(t, sr.HasFailedVulnerabilityReport())
+}
+
+func TestScanReport_GetErrors(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	assert.Empty(t, sr.GetErrors())
+
+	sr.AddScanAttempt(&report.VulnerabilityScanAttempt{
+		Request:  &http.Request{},
+		Response: &http.Response{},
+		Err:      errors.New("test"),
+	})
+	assert.NotEmpty(t, sr.GetErrors())
+	assert.Equal(t, 1, len(sr.GetErrors()))
 }
 
 func TestMarshalJSON(t *testing.T) {

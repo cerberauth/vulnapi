@@ -8,6 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
+	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -58,14 +59,12 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		}
 	}
 	securitySchemesValues := auth.NewSecuritySchemeValues(values)
-	s, err := scan.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
+	s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	s.WithAllVulnsScans().WithAllBestPracticesScans().WithAllOpenAPIDiscoverScans()
 
 	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
 	if err != nil {

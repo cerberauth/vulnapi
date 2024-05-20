@@ -18,9 +18,18 @@ func (rr *Reporter) GetReports() []*ScanReport {
 	return rr.Reports
 }
 
+func (rr *Reporter) GetErrors() []error {
+	var errors []error
+	for _, r := range rr.GetReports() {
+		errors = append(errors, r.GetErrors()...)
+	}
+
+	return errors
+}
+
 func (rr *Reporter) HasVulnerability() bool {
 	for _, r := range rr.GetReports() {
-		if r.HasVulnerabilityReport() {
+		if r.HasFailedVulnerabilityReport() {
 			return true
 		}
 	}
@@ -37,9 +46,9 @@ func (rr *Reporter) GetVulnerabilityReports() []*VulnerabilityReport {
 	return vrs
 }
 
-func (rr *Reporter) HasHighRiskSeverityVulnerability() bool {
+func (rr *Reporter) HasHighRiskOrHigherSeverityVulnerability() bool {
 	for _, r := range rr.GetVulnerabilityReports() {
-		if r.IsHighRiskSeverity() {
+		if r.IsHighRiskSeverity() || r.IsCriticalRiskSeverity() {
 			return true
 		}
 	}

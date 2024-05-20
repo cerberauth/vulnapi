@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
+	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -34,14 +35,12 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scan.NewURLScan(form.Method, form.URL, client, nil)
+	s, err := scenario.NewURLScan(form.Method, form.URL, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	s.WithAllScans()
 
 	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
 	if err != nil {
