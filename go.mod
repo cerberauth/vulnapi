@@ -20,7 +20,6 @@ require (
 	go.opentelemetry.io/otel v1.26.0
 	go.opentelemetry.io/otel/sdk v1.25.0
 	go.uber.org/ratelimit v0.3.1
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
