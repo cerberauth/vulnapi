@@ -21,6 +21,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.25.0
 	go.uber.org/ratelimit v0.3.1
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -78,5 +79,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/grpc v1.63.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
