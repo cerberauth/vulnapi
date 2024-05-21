@@ -47,9 +47,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, operation)
 
 	if !ShouldBeScanned(securityScheme) {
-		vulnReport.Skip()
-		r.AddVulnerabilityReport(vulnReport).End()
-		return r, nil
+		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), nil
 	}
 
 	var valueWriter *jwt.JWTWriter
@@ -68,10 +66,8 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(vsa).End()
-
 	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	r.AddVulnerabilityReport(vulnReport)
+	r.AddScanAttempt(vsa).AddVulnerabilityReport(vulnReport).End()
 
 	return r, nil
 }
