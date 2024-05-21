@@ -18,6 +18,16 @@ func (rr *Reporter) GetReports() []*ScanReport {
 	return rr.Reports
 }
 
+func (rr *Reporter) GetReportByID(id string) *ScanReport {
+	for _, r := range rr.GetReports() {
+		if r.ID == id {
+			return r
+		}
+	}
+
+	return nil
+}
+
 func (rr *Reporter) GetErrors() []error {
 	var errors []error
 	for _, r := range rr.GetReports() {

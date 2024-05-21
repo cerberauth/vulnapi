@@ -40,6 +40,38 @@ func TestScanReport_End(t *testing.T) {
 	assert.NotEqual(t, endTime, sr.EndTime)
 }
 
+func TestScanReport_WithData(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	data := map[string]string{
+		"test": "test",
+	}
+	sr.WithData(data)
+	assert.Equal(t, data, sr.Data)
+}
+
+func TestScanReport_GetData(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	data := map[string]string{
+		"test": "test",
+	}
+	sr.WithData(data)
+	assert.Equal(t, data, sr.GetData())
+}
+
+func TestScanReport_HasData(t *testing.T) {
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	assert.False(t, sr.HasData())
+
+	data := map[string]string{
+		"test": "test",
+	}
+	sr.WithData(data)
+	assert.True(t, sr.HasData())
+}
+
 func TestScanReport_AddScanAttempt(t *testing.T) {
 	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
 	sr := report.NewScanReport("id", "test", operation)

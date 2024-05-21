@@ -22,6 +22,7 @@ type ScanReport struct {
 
 	Operation *request.Operation `json:"operation"`
 
+	Data  interface{}                 `json:"data" yaml:"data"`
 	Scans []*VulnerabilityScanAttempt `json:"scans"`
 	Vulns []*VulnerabilityReport      `json:"vulnerabilities"`
 }
@@ -47,6 +48,19 @@ func (sc *ScanReport) Start() *ScanReport {
 func (sc *ScanReport) End() *ScanReport {
 	sc.EndTime = time.Now()
 	return sc
+}
+
+func (sc *ScanReport) WithData(data interface{}) *ScanReport {
+	sc.Data = data
+	return sc
+}
+
+func (sc *ScanReport) GetData() interface{} {
+	return sc.Data
+}
+
+func (sc *ScanReport) HasData() bool {
+	return sc.Data != nil
 }
 
 func (sc *ScanReport) AddScanAttempt(a *VulnerabilityScanAttempt) *ScanReport {

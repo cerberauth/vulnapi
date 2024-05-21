@@ -12,6 +12,8 @@ const (
 	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
 )
 
+type DiscoverableGraphQLPathData = discover.DiscoverData
+
 var issue = report.Issue{
 	ID:   "discover.discoverable_graphql",
 	Name: "Discoverable GraphQL Endpoint",

@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	"github.com/cerberauth/vulnapi/report"
+	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
+	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
@@ -70,6 +72,31 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 	}
 
 	return tablewriter.BgWhiteColor
+}
+
+func ContextualScanReport(reporter *report.Reporter) {
+	openapiReport := reporter.GetReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
+	if openapiReport != nil && openapiReport.HasData() {
+		openapiData, ok := openapiReport.Data.(discoverableopenapi.DiscoverableOpenAPIData)
+		if !ok {
+			fmt.Println("Failed to get OpenAPI data")
+			return
+		}
+
+		fmt.Println("OpenAPI URL:", openapiData.URL)
+
+	}
+
+	graphqlReport := reporter.GetReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
+	if graphqlReport != nil && graphqlReport.HasData() {
+		graphqlData, ok := graphqlReport.Data.(discoverablegraphql.DiscoverableGraphQLPathData)
+		if !ok {
+			fmt.Println("Failed to get GraphQL data")
+			return
+		}
+
+		fmt.Println("GraphQL URL:", graphqlData.URL)
+	}
 }
 
 func DisplayReportTable(reporter *report.Reporter) {

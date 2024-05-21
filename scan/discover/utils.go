@@ -11,6 +11,10 @@ import (
 	"github.com/cerberauth/vulnapi/seclist"
 )
 
+type DiscoverData struct {
+	URL string
+}
+
 func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	baseURL := &url.URL{
 		Scheme: inputURL.Scheme,
@@ -37,7 +41,9 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 
 		r.AddScanAttempt(attempt)
 		if attempt.Response.StatusCode == http.StatusOK { // TODO: check if the response contains the expected content
-			r.AddVulnerabilityReport(vulnReport.Fail()).End()
+			r.WithData(DiscoverData{
+				URL: attempt.Request.URL.String(),
+			}).AddVulnerabilityReport(vulnReport.Fail()).End()
 			return r, nil
 		}
 	}

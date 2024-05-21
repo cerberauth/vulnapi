@@ -12,6 +12,8 @@ const (
 	DiscoverableOpenAPIScanName = "Discoverable OpenAPI"
 )
 
+type DiscoverableOpenAPIData = discover.DiscoverData
+
 var issue = report.Issue{
 	ID:   "discover.discoverable_openapi",
 	Name: "Discoverable OpenAPI Path",
