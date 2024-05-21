@@ -9,7 +9,7 @@ import (
 	nullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
 	weaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
 	acceptunauthenticated "github.com/cerberauth/vulnapi/scan/discover/accept_unauthenticated"
-	serversignature "github.com/cerberauth/vulnapi/scan/discover/server_signature"
+	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 	httpcookies "github.com/cerberauth/vulnapi/scan/misconfiguration/http_cookies"
 	httpheaders "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers"
 	httptrace "github.com/cerberauth/vulnapi/scan/misconfiguration/http_trace"
@@ -17,7 +17,7 @@ import (
 )
 
 func WithAllCommonScans(s *scan.Scan) *scan.Scan {
-	s.AddScanHandler(serversignature.ScanHandler)
+	s.AddScanHandler(fingerprint.ScanHandler)
 	s.AddOperationScanHandler(acceptunauthenticated.ScanHandler)
 
 	s.AddOperationScanHandler(authenticationbypass.ScanHandler)
