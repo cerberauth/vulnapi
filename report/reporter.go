@@ -56,8 +56,17 @@ func (rr *Reporter) GetVulnerabilityReports() []*VulnerabilityReport {
 	return vrs
 }
 
+func (rr *Reporter) GetFailedVulnerabilityReports() []*VulnerabilityReport {
+	var vrs []*VulnerabilityReport
+	for _, r := range rr.GetReports() {
+		vrs = append(vrs, r.GetFailedVulnerabilityReports()...)
+	}
+
+	return vrs
+}
+
 func (rr *Reporter) HasHighRiskOrHigherSeverityVulnerability() bool {
-	for _, r := range rr.GetVulnerabilityReports() {
+	for _, r := range rr.GetFailedVulnerabilityReports() {
 		if r.IsHighRiskSeverity() || r.IsCriticalRiskSeverity() {
 			return true
 		}

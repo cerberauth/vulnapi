@@ -16,12 +16,20 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 			{
 				Issue: report.Issue{
 					Name: "Vuln1",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 			{
 				Issue: report.Issue{
 					Name: "Vuln2",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 		},
 
@@ -46,12 +54,20 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 			{
 				Issue: report.Issue{
 					Name: "Vuln1",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 			{
 				Issue: report.Issue{
 					Name: "Vuln2",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 		},
 
@@ -62,12 +78,20 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 			{
 				Issue: report.Issue{
 					Name: "Vuln3",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 			{
 				Issue: report.Issue{
 					Name: "Vuln4",
+					CVSS: report.CVSS{
+						Score: 5.0,
+					},
 				},
+				Status: report.VulnerabilityReportStatusFail,
 			},
 		},
 
