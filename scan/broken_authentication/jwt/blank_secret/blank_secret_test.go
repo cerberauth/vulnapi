@@ -38,6 +38,22 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 	assert.True(t, report.Vulns[0].HasPassed())
 }
 
+func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+
+	report, err := blanksecret.ScanHandler(operation, securityScheme)
+
+	require.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.True(t, report.Vulns[0].HasFailed())
+}
+
 func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 	client := request.DefaultClient
 	httpmock.ActivateNonDefault(client.Client)

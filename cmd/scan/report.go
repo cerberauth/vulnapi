@@ -36,8 +36,9 @@ func (a SortByPathAndSeverity) Less(i, j int) bool {
 }
 
 func NewScanVulnerabilityReports(report *report.ScanReport) []*ScanVulnerabilityReport {
-	vulns := make([]*ScanVulnerabilityReport, 0, len(report.GetVulnerabilityReports()))
-	for _, vr := range report.GetVulnerabilityReports() {
+	reports := report.GetFailedVulnerabilityReports()
+	vulns := make([]*ScanVulnerabilityReport, 0, len(reports))
+	for _, vr := range reports {
 		vulns = append(vulns, &ScanVulnerabilityReport{
 			OperationMethod: report.Operation.Method,
 			OperationPath:   report.Operation.Path,
@@ -132,10 +133,6 @@ func DisplayReportTable(reporter *report.Reporter) {
 
 	vulnerabilityReports := NewFullScanVulnerabilityReports(reporter.GetReports())
 	for _, vulnReport := range vulnerabilityReports {
-		if vulnReport.Vuln.HasBeenSkipped() || vulnReport.Vuln.HasPassed() {
-			continue
-		}
-
 		row := []string{
 			fmt.Sprintf("%s %s", vulnReport.OperationMethod, vulnReport.OperationPath),
 			vulnReport.Vuln.SeverityLevelString(),
