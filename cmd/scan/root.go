@@ -1,8 +1,6 @@
 package scan
 
 import (
-	"fmt"
-
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/x/analyticsx"
 	"github.com/spf13/cobra"
@@ -11,6 +9,8 @@ import (
 )
 
 var reporter *report.Reporter
+
+var noFullReport bool = false
 
 func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
@@ -24,10 +24,12 @@ func NewScanCmd() (scanCmd *cobra.Command) {
 				return
 			}
 
-			fmt.Println()
-			fmt.Println()
+			WellKnownPathsScanReport(reporter)
 			ContextualScanReport(reporter)
-			DisplayReportTable(reporter)
+
+			if !noFullReport {
+				DisplayReportTable(reporter)
+			}
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan Report", []attribute.KeyValue{
 				attribute.Int("vulnerabilityCount", len(reporter.GetVulnerabilityReports())),

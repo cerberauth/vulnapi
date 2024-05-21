@@ -7,7 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
-	serversignature "github.com/cerberauth/vulnapi/scan/discover/server_signature"
+	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 )
 
 func NewDiscoverScan(method string, url string, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
@@ -26,7 +26,7 @@ func NewDiscoverScan(method string, url string, client *request.Client, reporter
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(discoverableopenapi.ScanHandler).AddScanHandler(discoverablegraphql.ScanHandler).AddScanHandler(serversignature.ScanHandler)
+	urlScan.AddScanHandler(fingerprint.ScanHandler).AddScanHandler(discoverableopenapi.ScanHandler).AddScanHandler(discoverablegraphql.ScanHandler)
 
 	return urlScan, nil
 }

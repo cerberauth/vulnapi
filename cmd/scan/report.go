@@ -8,6 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
+	"github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
@@ -75,29 +76,109 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 	return tablewriter.BgWhiteColor
 }
 
-func ContextualScanReport(reporter *report.Reporter) {
+func WellKnownPathsScanReport(reporter *report.Reporter) {
+	openapiURL := "N/A"
 	openapiReport := reporter.GetReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
 	if openapiReport != nil && openapiReport.HasData() {
 		openapiData, ok := openapiReport.Data.(discoverableopenapi.DiscoverableOpenAPIData)
-		if !ok {
-			fmt.Println("Failed to get OpenAPI data")
-			return
+		if ok {
+			openapiURL = openapiData.URL
 		}
-
-		fmt.Println("OpenAPI URL:", openapiData.URL)
-
 	}
 
+	graphqlURL := "N/A"
 	graphqlReport := reporter.GetReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
 	if graphqlReport != nil && graphqlReport.HasData() {
 		graphqlData, ok := graphqlReport.Data.(discoverablegraphql.DiscoverableGraphQLPathData)
-		if !ok {
-			fmt.Println("Failed to get GraphQL data")
-			return
+		if ok {
+			graphqlURL = graphqlData.URL
 		}
-
-		fmt.Println("GraphQL URL:", graphqlData.URL)
 	}
+
+	fmt.Println()
+	fmt.Println()
+	headers := []string{"Well-Known Paths", "URL"}
+	table := CreateTable(headers)
+
+	tableColors := make([]tablewriter.Colors, len(headers))
+	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
+	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
+
+	table.Rich([]string{"OpenAPI", openapiURL}, tableColors)
+	table.Rich([]string{"GraphQL", graphqlURL}, tableColors)
+
+	table.Render()
+}
+
+func ContextualScanReport(reporter *report.Reporter) {
+	report := reporter.GetReportByID(fingerprint.DiscoverFingerPrintScanID)
+	if report == nil || !report.HasData() {
+		return
+	}
+
+	data, ok := report.Data.(fingerprint.FingerPrintData)
+	if !ok {
+		return
+	}
+
+	fmt.Println()
+	fmt.Println()
+	headers := []string{"Technologie/Service", "Value"}
+	table := CreateTable(headers)
+
+	tableColors := make([]tablewriter.Colors, len(headers))
+	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
+	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
+
+	for _, fp := range data.AuthServices {
+		table.Rich([]string{"Authentication Service", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.CDNs {
+		table.Rich([]string{"CDN", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Caching {
+		table.Rich([]string{"Caching", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.CertificateAuthority {
+		table.Rich([]string{"Certificate Authority", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Databases {
+		table.Rich([]string{"Database", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Frameworks {
+		table.Rich([]string{"Framework", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Hosting {
+		table.Rich([]string{"Hosting", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Languages {
+		table.Rich([]string{"Language", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.OS {
+		table.Rich([]string{"Operating System", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.SecurityServices {
+		table.Rich([]string{"Security Service", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.ServerExtensions {
+		table.Rich([]string{"Server Extension", fp.Name}, tableColors)
+	}
+
+	for _, fp := range data.Servers {
+		table.Rich([]string{"Server", fp.Name}, tableColors)
+	}
+
+	table.Render()
 }
 
 func DisplayReportTable(reporter *report.Reporter) {
@@ -124,12 +205,7 @@ func DisplayReportTable(reporter *report.Reporter) {
 	fmt.Println()
 
 	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Vulnerability"}
-
-	table := tablewriter.NewWriter(outputStream)
-	table.SetHeader(headers)
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
-	table.SetAutoMergeCellsByColumnIndex([]int{0})
+	table := CreateTable(headers)
 
 	vulnerabilityReports := NewFullScanVulnerabilityReports(reporter.GetReports())
 	for _, vulnReport := range vulnerabilityReports {
@@ -163,6 +239,16 @@ func DisplayReportTable(reporter *report.Reporter) {
 	}
 
 	table.Render()
+}
+
+func CreateTable(headers []string) *tablewriter.Table {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(headers)
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	table.SetAutoMergeCellsByColumnIndex([]int{0})
+
+	return table
 }
 
 func DisplayUnexpectedErrorMessage() {

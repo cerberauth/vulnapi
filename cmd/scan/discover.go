@@ -21,6 +21,7 @@ func NewDiscoverCmd() (scanCmd *cobra.Command) {
 			ctx := cmd.Context()
 			tracer := otel.Tracer("discover")
 			baseUrl := args[0]
+			noFullReport = true
 
 			analyticsx.TrackEvent(ctx, tracer, "Discover", []attribute.KeyValue{})
 			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
