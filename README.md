@@ -1,3 +1,13 @@
+<p align="center">
+    <img src="https://vulnapi.cerberauth.com/logo-ascii-text-art.png" height="150" alt="authentik logo">
+</p>
+
+---
+
+[![Join Discord](https://img.shields.io/discord/1242773130137833493?label=Discord&style=for-the-badge)](https://vulnapi.cerberauth.com/discord)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/cerberauth/vulnapi/ci.yml?branch=main&label=core%20build&style=for-the-badge)](https://github.com/goauthentik/authentik/actions/workflows/ci-main.yml)
+![Latest version](https://img.shields.io/docker/v/cerberauth/vulnapi?sort=semver&style=for-the-badge)
+
 # VulnAPI: An API Security Vulnerability Scanner
 
 VulnAPI is an Open-Source DAST designed to help you scan your APIs for common security vulnerabilities and weaknesses.
@@ -10,9 +20,35 @@ You can test the scanner against example [vulnerability challenges](https://gith
 
 ## Documentation
 
+Before scanning, you can discover target API useful information by using the `discover` command.
+
 The Vulnerability Scanner CLI offers two methods for scanning APIs:
 * **Using Curl-like CLI**: This method involves directly invoking the CLI with parameters resembling curl commands.
 * **Using OpenAPI Contracts**: This method utilizes OpenAPI contracts to specify API endpoints for scanning.
+
+### Discover Command
+
+To discover target API useful information, execute the following command:
+
+```bash
+vulnapi scan discover [API_URL]
+```
+
+Example output:
+
+```bash
+| WELL-KNOWN PATHS |                URL                 |
+|------------------|------------------------------------|
+| OpenAPI          | http://localhost:5000/openapi.json |
+| GraphQL          | N/A                                |
+
+
+| TECHNOLOGIE/SERVICE |     VALUE     |
+|---------------------|---------------|
+| Framework           | Flask:2.2.3   |
+| Language            | Python:3.7.17 |
+| Server              | Flask:2.2.3   |
+```
 
 ### Using Curl-like CLI
 
@@ -98,6 +134,36 @@ The VulnAPI may support additional options for customizing scans or output forma
 
 The scanner collects anonymous usage data to help improve the tool. This data includes the number of scans performed, number of detected vulnerabilities, and the severity of vulnerabilities. No sensitive information is collected. You can opt-out of telemetry by passing the `--sqa-opt-out` flag.
 
+## Complete CLI Help
+
+To view the complete CLI help, execute the following command:
+
+```bash
+vulnapi -h
+```
+
+Here is the output of the help command:
+
+```bash
+vulnapi
+
+Usage:
+  vulnapi [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  jwt         Generate JWT tokens
+  scan        API Scan
+  serve       Start the server
+
+Flags:
+  -h, --help          help for vulnapi
+      --sqa-opt-out   Opt out of sending anonymous usage statistics and crash reports to help improve the tool
+
+Use "vulnapi [command] --help" for more information about a command.
+```
+
 ## Disclaimer
 
 This scanner is provided for educational and informational purposes only. It should not be used for malicious purposes or to attack any system without proper authorization. Always respect the security and privacy of others.
@@ -106,6 +172,7 @@ This scanner is provided for educational and informational purposes only. It sho
 
 This project used the following open-source libraries:
 * [SecLists](https://github.com/danielmiessler/SecLists)
+* [projectdiscovery/wappalyzergo](https://github.com/projectdiscovery/wappalyzergo)
 
 ## License
 
