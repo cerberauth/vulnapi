@@ -9,10 +9,11 @@ import (
 
 var tracerProvider *sdktrace.TracerProvider
 
-func NewAnalytics(ctx context.Context) (*sdktrace.TracerProvider, error) {
+func NewAnalytics(ctx context.Context, projectVersion string) (*sdktrace.TracerProvider, error) {
 	var err error
 	tracerProvider, err = analyticsx.NewAnalytics(ctx, analyticsx.AppInfo{
-		Name: "vulnapi",
+		Name:    "vulnapi",
+		Version: projectVersion,
 	})
 	if err != nil {
 		return nil, err
