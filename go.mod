@@ -15,7 +15,7 @@ require (
 	github.com/projectdiscovery/wappalyzergo v0.1.3
 	github.com/schollz/progressbar/v3 v3.14.3
 	github.com/spf13/cobra v1.8.0
-	github.com/std-uritemplate/std-uritemplate/go v0.0.57
+	github.com/std-uritemplate/std-uritemplate/go v0.0.59
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.52.0
 	go.opentelemetry.io/otel v1.27.0

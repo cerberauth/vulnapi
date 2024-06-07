@@ -163,6 +163,8 @@ github.com/std-uritemplate/std-uritemplate/go v0.0.56 h1:+qEclC/hVQTg6vH+Z5DluTM
 github.com/std-uritemplate/std-uritemplate/go v0.0.56/go.mod h1:rG/bqh/ThY4xE5de7Rap3vaDkYUT76B0GPJ0loYeTTc=
 github.com/std-uritemplate/std-uritemplate/go v0.0.57 h1:GHGjptrsmazP4IVDlUprssiEf9ESVkbjx15xQXXzvq4=
 github.com/std-uritemplate/std-uritemplate/go v0.0.57/go.mod h1:rG/bqh/ThY4xE5de7Rap3vaDkYUT76B0GPJ0loYeTTc=
+github.com/std-uritemplate/std-uritemplate/go v0.0.59 h1:YZwm+F2/6Q6Xqjw2opfo7TZgr9ldvsE6ONfWh70erS8=
+github.com/std-uritemplate/std-uritemplate/go v0.0.59/go.mod h1:rG/bqh/ThY4xE5de7Rap3vaDkYUT76B0GPJ0loYeTTc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
