@@ -3,7 +3,7 @@ module github.com/cerberauth/vulnapi
 go 1.22.2
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.0.3
+	github.com/brianvoe/gofakeit/v7 v7.0.4
 	github.com/cerberauth/x v0.0.0-20240531174118-09dc474aca50
 	github.com/fatih/color v1.17.0
 	github.com/getkin/kin-openapi v0.125.0
