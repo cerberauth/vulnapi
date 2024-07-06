@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
     - go generate ./...
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -38,6 +39,13 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+
+milestones:
+  - repo:
+      owner: cerberauth
+      name: vulnapi
+    close: true
+    fail_on_error: false
 
 brews:
   - name: "{{ .ProjectName }}"
