@@ -71,10 +71,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
+      # https://github.com/goreleaser/goreleaser/issues/4816
       - name: Install Snapcraft
         run: |
           sudo apt-get --quiet update
           sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapcraft
+          sudo snap refresh snapcraft --revision 11040
           mkdir -p $HOME/.cache/snapcraft/download
           mkdir -p $HOME/.cache/snapcraft/stage-packages
 
