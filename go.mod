@@ -12,8 +12,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.1.12
-	github.com/schollz/progressbar/v3 v3.14.5
+	github.com/projectdiscovery/wappalyzergo v0.1.13
+	github.com/schollz/progressbar/v3 v3.14.6
 	github.com/spf13/cobra v1.8.1
 	github.com/std-uritemplate/std-uritemplate/go v1.0.5
 	github.com/stretchr/testify v1.9.0
