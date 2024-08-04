@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://vulnapi.cerberauth.com/logo-ascii-text-art.png" height="150" alt="authentik logo">
+    <img src="https://vulnapi.cerberauth.com/logo-ascii-text-art.png" height="150" alt="vulnapi logo">
 </p>
 
 ---
