@@ -13,8 +13,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-func NewAPICmd() (scanCmd *cobra.Command) {
-	scanCmd = &cobra.Command{
+func NewAPICmd() (apiCmd *cobra.Command) {
+	apiCmd = &cobra.Command{
 		Use:   "api [url]",
 		Short: "Discover api endpoints and server information",
 		Args:  cobra.ExactArgs(1),
@@ -41,5 +41,7 @@ func NewAPICmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	return scanCmd
+	internalCmd.AddCommonArgs(apiCmd)
+
+	return apiCmd
 }

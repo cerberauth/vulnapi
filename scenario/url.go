@@ -26,6 +26,7 @@ func NewURLScan(method string, url string, client *request.Client, reporter *rep
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
+	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(client, method, url, nil, nil, securitySchemes)
 	if err != nil {
 		return nil, err

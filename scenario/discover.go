@@ -15,6 +15,7 @@ func NewDiscoverScan(method string, url string, client *request.Client, reporter
 		client = request.DefaultClient
 	}
 
+	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(client, method, url, nil, nil, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()})
 	if err != nil {
 		return nil, err
