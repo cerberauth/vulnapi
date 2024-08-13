@@ -1,4 +1,4 @@
-package scan
+package cmd
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/schollz/progressbar/v3"
 )
 
 func parseRateLimit(rateLimit string) (int, error) {
@@ -62,13 +61,4 @@ func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []st
 		Header:  httpHeader,
 		Cookies: httpCookies,
 	})
-}
-
-func NewProgressBar(max int) *progressbar.ProgressBar {
-	return progressbar.NewOptions(max,
-		progressbar.OptionFullWidth(),
-		progressbar.OptionSetElapsedTime(false),
-		progressbar.OptionSetPredictTime(false),
-		progressbar.OptionShowCount(),
-	)
 }

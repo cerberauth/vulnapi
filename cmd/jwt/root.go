@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/cerberauth/vulnapi/jwt"
@@ -60,7 +59,7 @@ func GetAlgorithm(alg string) (jwtlib.SigningMethod, error) {
 	}
 }
 
-func NewRootCmd() (cmd *cobra.Command) {
+func NewJWTCmd() (cmd *cobra.Command) {
 	rootCmd := &cobra.Command{
 		Use:   "jwt",
 		Short: "Generate JWT tokens",
@@ -127,12 +126,4 @@ func NewRootCmd() (cmd *cobra.Command) {
 	rootCmd.AddCommand(generateCmd)
 
 	return rootCmd
-}
-
-func Execute() {
-	c := NewRootCmd()
-
-	if err := c.Execute(); err != nil {
-		os.Exit(1)
-	}
 }
