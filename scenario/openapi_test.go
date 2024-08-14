@@ -2,7 +2,9 @@ package scenario_test
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -12,6 +14,33 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var server *http.Server
+
+func TestMain(m *testing.M) {
+	// Start the HTTP server
+	server = &http.Server{
+		Addr:    ":8080",
+		Handler: http.DefaultServeMux,
+	}
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// Run the tests
+	code := m.Run()
+
+	// Shutdown the server
+	err := server.Shutdown(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	os.Exit(code)
+}
 
 func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 	token := "token"
@@ -25,7 +54,7 @@ func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
 	assert.Equal(t, "http://localhost:8080/", s.Operations[0].Request.URL.String())
-	assert.Equal(t, "GET", s.Operations[0].Request.Method)
+	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
 	assert.Equal(t, http.Header{}, s.Operations[0].Request.Header)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}, s.Operations[0].SecuritySchemes)
 }
@@ -43,7 +72,7 @@ func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
 	assert.Equal(t, "http://localhost:8080/", s.Operations[0].Request.URL.String())
-	assert.Equal(t, "GET", s.Operations[0].Request.Method)
+	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
 	assert.Equal(t, http.Header{}, s.Operations[0].Request.Header)
 	assert.Equal(t, []auth.SecurityScheme{expectedSecurityScheme}, s.Operations[0].SecuritySchemes)
 }

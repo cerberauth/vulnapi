@@ -3,6 +3,7 @@ package request_test
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -36,10 +37,58 @@ func TestNewOperation(t *testing.T) {
 	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
 }
 
+func TestOperation_IsReachable(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	url := server.URL
+	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, url, nil)
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation := request.NewOperationFromRequest(r, securitySchemes)
+
+	err := operation.IsReachable()
+
+	assert.NoError(t, err)
+}
+
+func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
+	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost:8009", nil)
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation := request.NewOperationFromRequest(r, securitySchemes)
+
+	err := operation.IsReachable()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), ":8009: connect: connection refused")
+}
+
+func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
+	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "https://localhost", nil)
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation := request.NewOperationFromRequest(r, securitySchemes)
+
+	err := operation.IsReachable()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), ":443: connect: connection refused")
+}
+
+func TestOperation_IsReachableWhenHTTPAndNoPort(t *testing.T) {
+	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost", nil)
+	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	operation := request.NewOperationFromRequest(r, securitySchemes)
+
+	err := operation.IsReachable()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), ":80: connect: connection refused")
+}
+
 func TestNewOperationFromRequest(t *testing.T) {
 	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://example.com", nil)
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-
 	operation := request.NewOperationFromRequest(r, securitySchemes)
 
 	assert.Equal(t, r, operation.Request)

@@ -19,6 +19,13 @@ func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.Securi
 		return nil, err
 	}
 
+	if len(operations) == 0 {
+		return nil, nil
+	}
+	if err := operations[0].IsReachable(); err != nil {
+		return nil, err
+	}
+
 	openapiScan, err := scan.NewScan(operations, reporter)
 	if err != nil {
 		return nil, err

@@ -8,8 +8,8 @@ import (
 
 var reporter *report.Reporter
 
-func NewDiscoverCmd() (scanCmd *cobra.Command) {
-	scanCmd = &cobra.Command{
+func NewDiscoverCmd() (discoverCmd *cobra.Command) {
+	discoverCmd = &cobra.Command{
 		Use:   "discover [type]",
 		Short: "Discover APIs, API endpoints and server information",
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
@@ -22,7 +22,7 @@ func NewDiscoverCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	scanCmd.AddCommand(NewAPICmd())
+	discoverCmd.AddCommand(NewAPICmd())
 
-	return scanCmd
+	return discoverCmd
 }

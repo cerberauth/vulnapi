@@ -32,8 +32,12 @@ func NewGraphQLScan(url string, client *request.Client, reporter *report.Reporte
 	if err != nil {
 		return nil, err
 	}
-	operations := request.Operations{operation}
 
+	if err := operation.IsReachable(); err != nil {
+		return nil, err
+	}
+
+	operations := request.Operations{operation}
 	graphqlScan, err := scan.NewScan(operations, reporter)
 	if err != nil {
 		return nil, err
