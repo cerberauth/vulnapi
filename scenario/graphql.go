@@ -27,6 +27,7 @@ func NewGraphQLScan(url string, client *request.Client, reporter *report.Reporte
 		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
 	}
 
+	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(client, http.MethodPost, url, nil, nil, securitySchemes)
 	if err != nil {
 		return nil, err

@@ -54,3 +54,10 @@ func detectSecurityScheme(header http.Header) (auth.SecurityScheme, error) {
 		return auth.NewAuthorizationJWTBearerSecurityScheme("default", &token)
 	}
 }
+
+func addDefaultProtocolWhenMissing(url string) string {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "https://" + url
+	}
+	return url
+}
