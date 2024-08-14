@@ -1,6 +1,7 @@
 package request
 
 import (
+	"net"
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -39,6 +40,20 @@ func NewOperation(client *Client, method string, url string, header http.Header,
 	r = r.WithHTTPHeaders(header).WithCookies(cookies)
 
 	return NewOperationFromRequest(r, securitySchemes), nil
+}
+
+func (operation *Operation) IsReachable() error {
+	host := operation.Request.URL.Host
+	if _, _, err := net.SplitHostPort(host); err != nil {
+		if operation.Request.URL.Scheme == "http" {
+			host += ":80"
+		} else if operation.Request.URL.Scheme == "https" {
+			host += ":443"
+		}
+	}
+
+	_, err := net.DialTimeout("tcp", host, operation.Request.Client.Timeout)
+	return err
 }
 
 func NewOperationFromRequest(r *Request, securitySchemes []auth.SecurityScheme) *Operation {

@@ -20,8 +20,12 @@ func NewDiscoverScan(method string, url string, client *request.Client, reporter
 	if err != nil {
 		return nil, err
 	}
-	operations := request.Operations{operation}
 
+	if err := operation.IsReachable(); err != nil {
+		return nil, err
+	}
+
+	operations := request.Operations{operation}
 	urlScan, err := scan.NewScan(operations, reporter)
 	if err != nil {
 		return nil, err
