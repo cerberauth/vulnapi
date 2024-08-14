@@ -1,9 +1,9 @@
-package scan_test
+package cmd_test
 
 import (
 	"testing"
 
-	"github.com/cerberauth/vulnapi/cmd/scan"
+	"github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +36,7 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 		Operation: operation,
 	}
 
-	vulns := scan.NewScanVulnerabilityReports(sr)
+	vulns := cmd.NewScanVulnerabilityReports(sr)
 
 	assert.Len(t, vulns, 2)
 	assert.Equal(t, "GET", vulns[0].OperationMethod)
@@ -98,7 +98,7 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 		Operation: operation,
 	}
 
-	vulns := scan.NewFullScanVulnerabilityReports([]*report.ScanReport{sr1, sr2})
+	vulns := cmd.NewFullScanVulnerabilityReports([]*report.ScanReport{sr1, sr2})
 
 	assert.Len(t, vulns, 4)
 	assert.Equal(t, "GET", vulns[0].OperationMethod)

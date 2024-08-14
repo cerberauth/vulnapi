@@ -3,6 +3,7 @@ package scan
 import (
 	"log"
 
+	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -25,14 +26,14 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			graphqlEndpoint := args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
-			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
+			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			bar := NewProgressBar(len(s.GetOperationsScans()))
+			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
 			}); err != nil {
@@ -42,8 +43,8 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	AddCommonArgs(scanCmd)
-	AddPlaceholderArgs(scanCmd)
+	internalCmd.AddCommonArgs(scanCmd)
+	internalCmd.AddPlaceholderArgs(scanCmd)
 
 	return scanCmd
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -67,14 +68,14 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			securitySchemesValues := auth.NewSecuritySchemeValues(values).WithDefault(validToken)
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
-			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
+			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			bar := NewProgressBar(len(s.GetOperationsScans()))
+			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
 			}); err != nil {
@@ -84,7 +85,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	AddCommonArgs(scanCmd)
+	internalCmd.AddCommonArgs(scanCmd)
 	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Example value for each security scheme")
 	return scanCmd
 }

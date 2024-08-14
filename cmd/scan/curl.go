@@ -3,6 +3,7 @@ package scan
 import (
 	"log"
 
+	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -32,14 +33,14 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			analyticsx.TrackEvent(ctx, tracer, "Scan CURL", []attribute.KeyValue{
 				attribute.String("method", curlMethod),
 			})
-			client := NewHTTPClientFromArgs(rateLimit, proxy, headers, cookies)
+			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			s, err := scenario.NewURLScan(curlMethod, curlUrl, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
-			bar := NewProgressBar(len(s.GetOperationsScans()))
+			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
 			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
 			}); err != nil {
@@ -49,8 +50,8 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 		},
 	}
 
-	AddCommonArgs(scanCmd)
-	AddPlaceholderArgs(scanCmd)
+	internalCmd.AddCommonArgs(scanCmd)
+	internalCmd.AddPlaceholderArgs(scanCmd)
 	scanCmd.Flags().StringVarP(&curlMethod, "request", "X", "GET", "Specify request method to use")
 
 	return scanCmd

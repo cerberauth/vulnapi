@@ -1,11 +1,11 @@
-package scan_test
+package cmd_test
 
 import (
 	"net/http"
 	"net/url"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/cmd/scan"
+	"github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +33,7 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 		Cookies:   expectedHTTPCookies,
 	})
 
-	actualClient := scan.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	actualClient := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
 
 	assert.Equal(t, expectedClient.Timeout, actualClient.Timeout)
 	assert.Equal(t, expectedClient.Header, actualClient.Header)
