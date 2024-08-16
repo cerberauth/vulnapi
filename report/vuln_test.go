@@ -36,7 +36,7 @@ func TestVulnerabilityReport_WithOperation(t *testing.T) {
 		},
 	}
 	vr := report.NewVulnerabilityReport(issue)
-	operation, _ := request.NewOperation(request.DefaultClient, "GET", "/api/v1/")
+	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
 	vr.WithOperation(operation)
 	assert.Equal(t, "GET", vr.Operation.Method)
 	assert.Equal(t, "/api/v1/", vr.Operation.URL.Path)

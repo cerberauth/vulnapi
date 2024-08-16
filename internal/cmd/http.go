@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -33,12 +34,14 @@ func parseRateLimit(rateLimit string) (int, error) {
 	}
 }
 
-func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []string, httpCookiesArg []string) *request.Client {
-	rateLimit, _ := parseRateLimit(rateLimitArg)
+func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []string, httpCookiesArg []string) (*request.Client, error) {
+	if rateLimitArg == "" {
+		rateLimitArg = defaultRateLimit
+	}
 
-	var proxyURL *url.URL
-	if proxyArg != "" {
-		proxyURL, _ = url.Parse(proxyArg)
+	rateLimit, err := parseRateLimit(rateLimitArg)
+	if err != nil {
+		return nil, err
 	}
 
 	httpHeader := http.Header{}
@@ -56,11 +59,19 @@ func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []st
 		})
 	}
 
+	var proxyURL *url.URL
+	if proxyArg != "" {
+		proxyURL, err = url.Parse(proxyArg)
+		if err != nil || proxyURL.Scheme == "" || proxyURL.Host == "" {
+			return nil, errors.New("invalid proxy URL")
+		}
+	}
+
 	return request.NewClient(request.NewClientOptions{
 		RateLimit: rateLimit,
 		ProxyURL:  proxyURL,
 
 		Header:  httpHeader,
 		Cookies: httpCookies,
-	})
+	}), nil
 }

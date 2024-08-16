@@ -9,6 +9,10 @@ import (
 )
 
 func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.SecuritySchemeValues, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
+	if client == nil {
+		client = request.DefaultClient
+	}
+
 	securitySchemes, err := openapi.SecuritySchemeMap(securitySchemesValues)
 	if err != nil {
 		return nil, err

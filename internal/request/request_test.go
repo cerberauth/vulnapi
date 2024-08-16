@@ -1,7 +1,8 @@
 package request_test
 
 import (
-	"context"
+	"bytes"
+	"io"
 	"net/http"
 	"testing"
 
@@ -14,26 +15,28 @@ import (
 func TestNewRequest(t *testing.T) {
 	method := http.MethodGet
 	url := "http://localhost:8080/"
+	body := io.NopCloser(bytes.NewReader([]byte("test")))
 
-	request, err := request.NewRequest(nil, method, url, nil)
+	request, err := request.NewRequest(method, url, body, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, method, request.Method)
 	assert.Equal(t, url, request.URL.String())
+	assert.Equal(t, body, request.Body)
 }
 
-func TestWithHTTPHeaders(t *testing.T) {
+func TestWithHeader(t *testing.T) {
 	method := http.MethodGet
 	url := "http://localhost:8080/"
-	headers := http.Header{
+	header := http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 
-	request, err := request.NewRequest(request.DefaultClient, method, url, nil)
-	request = request.WithHTTPHeaders(headers)
+	request, err := request.NewRequest(method, url, nil, nil)
+	request = request.WithHeader(header)
 
 	assert.NoError(t, err)
-	assert.Equal(t, headers, request.Header)
+	assert.Equal(t, header.Get("Content-Type"), request.Request.Header.Get("Content-Type"))
 }
 
 func TestWithHTTPCookies(t *testing.T) {
@@ -44,23 +47,25 @@ func TestWithHTTPCookies(t *testing.T) {
 		Value: "value1",
 	}}
 
-	request, err := request.NewRequest(request.DefaultClient, method, url, nil)
+	request, err := request.NewRequest(method, url, nil, nil)
 	request = request.WithCookies(cookies)
 
 	assert.NoError(t, err)
-	assert.Equal(t, cookies, request.Cookies)
+	assert.Equal(t, cookies[0].Name, request.Request.Cookies()[0].Name)
+	assert.Equal(t, cookies[0].Value, request.Request.Cookies()[0].Value)
 }
 
 func TestWithSecurityScheme(t *testing.T) {
 	method := http.MethodGet
 	url := "http://localhost:8080/"
-	securityScheme := auth.SecurityScheme(auth.NewNoAuthSecurityScheme())
+	token := "token"
+	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
 
-	request, err := request.NewRequest(request.DefaultClient, method, url, nil)
-	request = request.WithSecurityScheme(&securityScheme)
+	request, err := request.NewRequest(method, url, nil, nil)
+	request = request.WithSecurityScheme(securityScheme)
 
 	assert.NoError(t, err)
-	assert.Equal(t, &securityScheme, request.SecurityScheme)
+	assert.Equal(t, "Bearer "+token, request.Request.Header.Get("Authorization"))
 }
 
 func TestDo(t *testing.T) {
@@ -70,7 +75,7 @@ func TestDo(t *testing.T) {
 
 	method := http.MethodGet
 	url := "http://localhost:8080/"
-	request, _ := request.NewRequest(client, method, url, nil)
+	request, _ := request.NewRequest(method, url, nil, nil)
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
@@ -97,8 +102,8 @@ func TestDoWithHeaders(t *testing.T) {
 	header := http.Header{
 		"X-Test": []string{"test"},
 	}
-	request, _ := request.NewRequest(client, method, url, nil)
-	request = request.WithHTTPHeaders(header)
+	request, _ := request.NewRequest(method, url, nil, nil)
+	request = request.WithHeader(header)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
@@ -128,14 +133,40 @@ func TestDoWithClientHeaders(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	request, _ := request.NewRequest(client, method, url, nil)
-	request = request.WithHTTPHeaders(header)
+	request, _ := request.NewRequest(method, url, nil, client)
+	request = request.WithHeader(header)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
 		assert.Equal(t, header.Get("X-Test"), req.Header.Get("X-Test"))
+
+		return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
+	})
+
+	response, err := request.Do()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+}
+
+func TestDoWithBody(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	body := []byte(`{"key": "value"}`)
+	method := http.MethodPost
+	url := "http://localhost:8080/"
+	request, _ := request.NewRequest(method, url, bytes.NewReader(body), client)
+
+	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
+		reqBody, _ := io.ReadAll(req.Body)
+
+		assert.Equal(t, method, req.Method)
+		assert.Equal(t, url, req.URL.String())
+		assert.Equal(t, body, reqBody)
 
 		return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
 	})
@@ -155,8 +186,8 @@ func TestDoWithSecuritySchemeHeaders(t *testing.T) {
 	url := "http://localhost:8080/"
 	token := "token"
 	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
-	request, _ := request.NewRequest(client, method, url, nil)
-	request = request.WithSecurityScheme(&securityScheme)
+	request, _ := request.NewRequest(method, url, nil, client)
+	request = request.WithSecurityScheme(securityScheme)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
@@ -185,9 +216,9 @@ func TestDoWithHeadersSecuritySchemeHeaders(t *testing.T) {
 	}
 	token := "token"
 	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
-	request, _ := request.NewRequest(client, method, url, nil)
-	request = request.WithHTTPHeaders(header)
-	request = request.WithSecurityScheme(&securityScheme)
+	request, _ := request.NewRequest(method, url, nil, client)
+	request = request.WithHeader(header)
+	request = request.WithSecurityScheme(securityScheme)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
@@ -217,9 +248,9 @@ func TestDoWithCookiesSecuritySchemeHeaders(t *testing.T) {
 	}}
 	token := "token"
 	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
-	request, _ := request.NewRequest(client, method, url, nil)
+	request, _ := request.NewRequest(method, url, nil, client)
 	request = request.WithCookies(cookies)
-	request = request.WithSecurityScheme(&securityScheme)
+	request = request.WithSecurityScheme(securityScheme)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
 		assert.Equal(t, method, req.Method)
@@ -248,7 +279,7 @@ func TestDoWithCookies(t *testing.T) {
 		Name:  "cookie1",
 		Value: "value1",
 	}}
-	request, _ := request.NewRequest(client, method, url, nil)
+	request, _ := request.NewRequest(method, url, nil, client)
 	request = request.WithCookies(cookies)
 
 	httpmock.RegisterResponder(method, url, func(req *http.Request) (*http.Response, error) {
@@ -265,14 +296,4 @@ func TestDoWithCookies(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-}
-
-func TestClone(t *testing.T) {
-	method := http.MethodGet
-	url := "http://localhost:8080/"
-	request, _ := request.NewRequest(request.DefaultClient, method, url, nil)
-	clone := request.Clone(context.Background())
-
-	assert.Equal(t, request.Method, clone.Method)
-	assert.Equal(t, request.URL.String(), clone.URL.String())
 }

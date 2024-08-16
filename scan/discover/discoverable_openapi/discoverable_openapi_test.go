@@ -17,8 +17,8 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
 	report, err := discoverableopenapi.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
@@ -33,8 +33,8 @@ func TestDiscoverableScanner_Failed_WhenOneOpenAPIFound(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/swagger/v1/swagger.json")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/swagger/v1/swagger.json", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
 	report, err := discoverableopenapi.ScanHandler(operation, auth.NewNoAuthSecurityScheme())

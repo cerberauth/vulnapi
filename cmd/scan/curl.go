@@ -12,12 +12,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-var (
-	curlUrl    string
-	curlMethod string
-)
-
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
+	var (
+		curlUrl    string
+		curlMethod string
+		curlData   string
+	)
+
 	scanCmd = &cobra.Command{
 		Use:   "curl [URL]",
 		Short: "CURL style Scan",
@@ -33,8 +34,13 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			analyticsx.TrackEvent(ctx, tracer, "Scan CURL", []attribute.KeyValue{
 				attribute.String("method", curlMethod),
 			})
-			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
-			s, err := scenario.NewURLScan(curlMethod, curlUrl, client, nil)
+			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
+			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -53,6 +59,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	internalCmd.AddCommonArgs(scanCmd)
 	internalCmd.AddPlaceholderArgs(scanCmd)
 	scanCmd.Flags().StringVarP(&curlMethod, "request", "X", "GET", "Specify request method to use")
+	scanCmd.Flags().StringVarP(&curlData, "data", "d", "", "HTTP POST data")
 
 	return scanCmd
 }

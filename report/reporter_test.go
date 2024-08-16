@@ -16,7 +16,7 @@ func TestReporter_NoHasHighRiskOrHigherSeverityVulnerability_WhenNoReport(t *tes
 
 func TestReporter_NoHasVulnerability_WhenNoFailedReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -30,7 +30,7 @@ func TestReporter_NoHasVulnerability_WhenNoFailedReport(t *testing.T) {
 
 func TestReporter_HasVulnerability_WhenFailedReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -44,7 +44,7 @@ func TestReporter_HasVulnerability_WhenFailedReport(t *testing.T) {
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenLowRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -61,7 +61,7 @@ func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenLowRiskReport(t 
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenHighRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -78,7 +78,7 @@ func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenHighRiskReport(t
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenCriticalRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",

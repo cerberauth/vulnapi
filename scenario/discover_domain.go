@@ -76,7 +76,7 @@ func getAllFQDNs(domain string) []string {
 }
 
 func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation, error) {
-	operation, err := request.NewOperation(client, http.MethodGet, "https://"+fqdn)
+	operation, err := request.NewOperation(http.MethodGet, "https://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation,
 		return operation, nil
 	}
 
-	operation, err = request.NewOperation(client, http.MethodGet, "http://"+fqdn)
+	operation, err = request.NewOperation(http.MethodGet, "http://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}

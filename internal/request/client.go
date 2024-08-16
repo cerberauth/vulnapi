@@ -67,7 +67,7 @@ func NewClient(opts NewClientOptions) *Client {
 	}
 }
 
-func (c *Client) WithHTTPHeaders(header http.Header) *Client {
+func (c *Client) WithHeader(header http.Header) *Client {
 	c.Header = header
 	return c
 }

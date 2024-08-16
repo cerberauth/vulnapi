@@ -19,9 +19,9 @@ func TestCheckSignatureHeader_Failed_WithServerSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -40,9 +40,9 @@ func TestCheckSignatureHeader_Failed_WithOSSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Ubuntu"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Ubuntu"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -61,9 +61,9 @@ func TestCheckSignatureHeader_Failed_WithHostingSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"platform": []string{"hostinger"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"platform": []string{"hostinger"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -82,9 +82,9 @@ func TestCheckSignatureHeader_Failed_WithAuthenticationSignatureHeader(t *testin
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-auth0-requestid": []string{"id"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-auth0-requestid": []string{"id"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -103,9 +103,9 @@ func TestCheckSignatureHeader_Failed_WithCDNSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"cf-cache-status": []string{"HIT"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"cf-cache-status": []string{"HIT"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -124,9 +124,9 @@ func TestCheckSignatureHeader_Failed_WithLanguageSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"PHP 7.4.3"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"PHP 7.4.3"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -145,9 +145,9 @@ func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) 
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"express"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"express"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -167,9 +167,9 @@ func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"next.js"}}))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"next.js"}}))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 	data, _ := report.GetData().(fingerprint.FingerPrintData)
@@ -187,8 +187,8 @@ func TestCheckSignatureHeader_Passed_WithoutSignatureHeader(t *testing.T) {
 
 	token := "token"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := fingerprint.ScanHandler(operation, securityScheme)
 

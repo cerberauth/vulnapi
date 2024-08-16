@@ -19,7 +19,7 @@ func TestNewScanWithNoOperations(t *testing.T) {
 }
 
 func TestNewScan(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	expected := scan.Scan{
 		Operations:      operations,
@@ -36,7 +36,7 @@ func TestNewScan(t *testing.T) {
 }
 
 func TestNewScanWithReporter(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	reporter := report.NewReporter()
 	expected := scan.Scan{
@@ -54,7 +54,7 @@ func TestNewScanWithReporter(t *testing.T) {
 }
 
 func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
 
@@ -64,7 +64,7 @@ func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
 }
 
 func TestScanGetOperationsScans(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
 	s.AddOperationScanHandler(func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {

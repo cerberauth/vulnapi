@@ -24,7 +24,12 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 			domain := args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Discover Domain", []attribute.KeyValue{})
-			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
 			fmt.Printf("Discovering APIs for %s\n", domain)
 			scans, err := scenario.NewDiscoverDomainsScan(domain, client, nil)
 			if err != nil {

@@ -1,10 +1,10 @@
 package openapi
 
 import (
+	"bytes"
 	"net/http"
 	"path"
 
-	"github.com/brianvoe/gofakeit/v7"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -41,23 +41,7 @@ func getOperationPath(p string, params openapi3.Parameters) (string, error) {
 			continue
 		}
 
-		var value interface{}
-		if v.Value.Example != nil {
-			value = v.Value.Example
-		} else if len(v.Value.Schema.Value.Enum) > 0 {
-			value = v.Value.Schema.Value.Enum[0]
-		}
-
-		// if there is no example generate random param
-		if value == nil {
-			if v.Value.Schema.Value.Type.Is("string") {
-				value = gofakeit.Word()
-			} else if v.Value.Schema.Value.Type.Is("number") || v.Value.Schema.Value.Type.Is("integer") {
-				value = gofakeit.Number(0, 5)
-			}
-		}
-
-		subs[v.Value.Name] = value
+		subs[v.Value.Name] = getSchemaValue(v.Value.Schema.Value)
 	}
 
 	return stduritemplate.Expand(p, subs)
@@ -69,6 +53,14 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 	operations := request.Operations{}
 	for docPath, p := range openapi.doc.Paths.Map() {
 		for method, o := range p.Operations() {
+			operationPath, err := getOperationPath(docPath, o.Parameters)
+			if err != nil {
+				return nil, err
+			}
+
+			operationUrl := *baseUrl
+			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
+
 			header := http.Header{}
 			cookies := []*http.Cookie{}
 			for _, h := range o.Parameters {
@@ -77,10 +69,7 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				}
 
 				name := h.Value.Name
-				value := ""
-				if h.Value.Example != nil {
-					value = ""
-				}
+				value := getParameterValue(h.Value)
 
 				if h.Value.In == "header" {
 					header.Add(name, value)
@@ -92,26 +81,26 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				}
 			}
 
-			operationsSecuritySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+			body := bytes.NewBuffer(nil)
+			if o.RequestBody != nil {
+				mediaType := "application/json"
+				body, mediaType = getRequestBodyValue(o.RequestBody.Value)
+				header.Set("Content-Type", mediaType)
+			}
+
+			operation, err := request.NewOperation(method, operationUrl.String(), body, client)
+			if err != nil {
+				return nil, err
+			}
+			operation.WithOpenapiOperation(*o)
+			operation.WithCookies(cookies).WithHeader(header)
+
 			if o.Security != nil {
-				operationsSecuritySchemes = getOperationSecuritySchemes(o.Security, securitySchemes)
+				operation.SetSecuritySchemes(getOperationSecuritySchemes(o.Security, securitySchemes))
 			} else if openapi.doc.Security != nil {
-				operationsSecuritySchemes = getOperationSecuritySchemes(&openapi.doc.Security, securitySchemes)
-			}
-			operationPath, err := getOperationPath(docPath, o.Parameters)
-			if err != nil {
-				return nil, err
+				operation.SetSecuritySchemes(getOperationSecuritySchemes(&openapi.doc.Security, securitySchemes))
 			}
 
-			operationUrl := *baseUrl
-			operationUrl.Path = path.Join(operationUrl.Path, operationPath)
-
-			operation, err := request.NewOperation(client, method, operationUrl.String())
-			operation = operation.WithOpenapiOperation(docPath, *o).SetSecuritySchemes(operationsSecuritySchemes)
-			operation.GetRequest().WithCookies(cookies).WithHTTPHeaders(header)
-			if err != nil {
-				return nil, err
-			}
 			operations = append(operations, operation)
 		}
 	}

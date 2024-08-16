@@ -15,7 +15,7 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, repor
 	}
 
 	url = addDefaultProtocolWhenMissing(url)
-	operation, err := request.NewOperation(client, method, url)
+	operation, err := request.NewOperation(method, url, nil, client)
 	if err != nil {
 		return nil, err
 	}
