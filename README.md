@@ -71,10 +71,10 @@ vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer eyJhbGciOiJub2
 To perform a scan using OpenAPI contracts, execute the following command:
 
 ```bash
-echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_TO_OPENAPI_FILE]
+echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE]
 ```
 
-Replace [PATH_TO_OPENAPI_FILE] with the path to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.
+Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.
 
 Example:
 

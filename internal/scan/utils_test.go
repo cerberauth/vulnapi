@@ -15,6 +15,7 @@ func TestIsUnauthorizedStatusCodeOrSimilar(t *testing.T) {
 	}{
 		{http.StatusUnauthorized, true},
 		{http.StatusForbidden, true},
+		{http.StatusBadRequest, true},
 		{http.StatusNotFound, true},
 		{http.StatusInternalServerError, true},
 		{http.StatusOK, false},
