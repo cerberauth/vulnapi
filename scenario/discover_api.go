@@ -10,7 +10,7 @@ import (
 	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 )
 
-func NewDiscoverScan(method string, url string, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
+func NewDiscoverAPIScan(method string, url string, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
 	if client == nil {
 		client = request.DefaultClient
 	}

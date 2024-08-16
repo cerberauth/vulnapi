@@ -18,7 +18,7 @@ func TestNewDiscoverScan(t *testing.T) {
 	}))
 	defer server.Close()
 
-	s, err := scenario.NewDiscoverScan(http.MethodGet, server.URL, nil, nil)
+	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, server.URL, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
@@ -33,7 +33,7 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 	defer server.Close()
 
 	url := strings.TrimPrefix(server.URL, "http://")
-	s, err := scenario.NewDiscoverScan(http.MethodGet, url, nil, nil)
+	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, url, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://"+url, s.Operations[0].Request.URL.String())
@@ -42,7 +42,7 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 }
 
 func TestNewDiscoverScanWhenNotReachable(t *testing.T) {
-	_, err := scenario.NewDiscoverScan(http.MethodGet, "http://localhost:8009", nil, nil)
+	_, err := scenario.NewDiscoverAPIScan(http.MethodGet, "http://localhost:8009", nil, nil)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")

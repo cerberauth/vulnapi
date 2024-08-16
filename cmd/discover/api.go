@@ -23,21 +23,29 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			tracer := otel.Tracer("discover")
 			baseUrl := args[0]
 
-			analyticsx.TrackEvent(ctx, tracer, "Discover", []attribute.KeyValue{})
+			analyticsx.TrackEvent(ctx, tracer, "Discover API", []attribute.KeyValue{})
 			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
-			s, err := scenario.NewDiscoverScan(http.MethodGet, baseUrl, client, nil)
+			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, baseUrl, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
 
 			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
-			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
+			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
-			}); err != nil {
+			})
+			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
+
+			if reporter == nil {
+				log.Fatal("no report")
+			}
+
+			internalCmd.WellKnownPathsScanReport(reporter)
+			internalCmd.ContextualScanReport(reporter)
 		},
 	}
 
