@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewScanVulnerabilityReports(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, "GET", "/api/v1/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, "GET", "/api/v1/")
 	sr := &report.ScanReport{
 		Vulns: []*report.VulnerabilityReport{
 			{
@@ -48,7 +48,7 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 }
 
 func TestNewFullScanVulnerabilityReports(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, "GET", "/api/v1/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, "GET", "/api/v1/")
 	sr1 := &report.ScanReport{
 		Vulns: []*report.VulnerabilityReport{
 			{

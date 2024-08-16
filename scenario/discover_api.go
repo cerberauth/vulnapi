@@ -1,7 +1,6 @@
 package scenario
 
 import (
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
@@ -16,7 +15,7 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, repor
 	}
 
 	url = addDefaultProtocolWhenMissing(url)
-	operation, err := request.NewOperation(client, method, url, nil, nil, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()})
+	operation, err := request.NewOperation(client, method, url)
 	if err != nil {
 		return nil, err
 	}

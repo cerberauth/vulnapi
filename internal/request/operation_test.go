@@ -28,7 +28,9 @@ func TestNewOperation(t *testing.T) {
 	}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation, err := request.NewOperation(request.DefaultClient, method, url, header, cookies, securitySchemes)
+	operation, err := request.NewOperation(request.DefaultClient, http.MethodGet, url)
+	operation.SetSecuritySchemes(securitySchemes)
+	operation.GetRequest().WithCookies(cookies).WithHTTPHeaders(header)
 
 	assert.NoError(t, err)
 	assert.Equal(t, url, operation.Request.URL.String())
@@ -44,9 +46,7 @@ func TestOperation_IsReachable(t *testing.T) {
 	defer server.Close()
 
 	url := server.URL
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, url, nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, url)
 
 	err := operation.IsReachable()
 
@@ -54,9 +54,7 @@ func TestOperation_IsReachable(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost:8009", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8009")
 
 	err := operation.IsReachable()
 
@@ -65,9 +63,7 @@ func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "https://localhost", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "https://localhost")
 
 	err := operation.IsReachable()
 
@@ -76,9 +72,7 @@ func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenHTTPAndNoPort(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost")
 
 	err := operation.IsReachable()
 
@@ -89,7 +83,7 @@ func TestOperation_IsReachableWhenHTTPAndNoPort(t *testing.T) {
 func TestNewOperationFromRequest(t *testing.T) {
 	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://example.com", nil)
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation := request.NewOperationFromRequest(r)
 
 	assert.Equal(t, r, operation.Request)
 	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
@@ -98,7 +92,8 @@ func TestNewOperationFromRequest(t *testing.T) {
 func TestOperationCloneWithSecuritySchemes(t *testing.T) {
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation, err := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com", nil, nil, securitySchemes)
+	operation, err := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com")
+	operation.SetSecuritySchemes(securitySchemes)
 
 	clonedOperation := operation.Clone()
 
@@ -147,9 +142,7 @@ func TestOperation_SetTags(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com")
 
 	_, err := json.Marshal(operation)
 

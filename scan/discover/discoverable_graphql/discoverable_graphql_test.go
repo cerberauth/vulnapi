@@ -17,7 +17,7 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
@@ -33,7 +33,7 @@ func TestDiscoverableScanner_Failed_WhenOneGraphQLPathFound(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/graphql", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/graphql")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 

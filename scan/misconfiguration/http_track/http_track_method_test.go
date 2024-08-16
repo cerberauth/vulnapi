@@ -17,7 +17,7 @@ func TestHTTPTrackMethodScanHandler_Passed_WhenNotOKResponse(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(httptrack.TrackMethod, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := httptrack.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
@@ -32,7 +32,7 @@ func TestHTTPTrackMethodScanHandler_Failed_WhenTrackIsEnabled(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(httptrack.TrackMethod, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := httptrack.ScanHandler(operation, auth.NewNoAuthSecurityScheme())

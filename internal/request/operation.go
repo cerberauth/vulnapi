@@ -2,7 +2,6 @@ package request
 
 import (
 	"net"
-	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -31,15 +30,13 @@ type Operation struct {
 	SecuritySchemes []auth.SecurityScheme `json:"security_schemes" yaml:"security_schemes"`
 }
 
-func NewOperation(client *Client, method string, url string, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) (*Operation, error) {
+func NewOperation(client *Client, method string, url string) (*Operation, error) {
 	r, err := NewRequest(client, method, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	r = r.WithHTTPHeaders(header).WithCookies(cookies)
-
-	return NewOperationFromRequest(r, securitySchemes), nil
+	return NewOperationFromRequest(r), nil
 }
 
 func (operation *Operation) IsReachable() error {
@@ -56,7 +53,7 @@ func (operation *Operation) IsReachable() error {
 	return err
 }
 
-func NewOperationFromRequest(r *Request, securitySchemes []auth.SecurityScheme) *Operation {
+func NewOperationFromRequest(r *Request) *Operation {
 	return &Operation{
 		Request: r,
 
@@ -65,7 +62,7 @@ func NewOperationFromRequest(r *Request, securitySchemes []auth.SecurityScheme) 
 		Method: r.Method,
 		Path:   r.URL.Path,
 
-		SecuritySchemes: securitySchemes,
+		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 	}
 }
 
@@ -77,24 +74,48 @@ func (operation *Operation) WithOpenapiOperation(path string, openapiOperation o
 	return operation
 }
 
-func (operation *Operation) SetPath(path string) {
+func (operation *Operation) GetRequest() *Request {
+	return operation.Request
+}
+
+func (operation *Operation) GetSecuritySchemes() []auth.SecurityScheme {
+	if operation.SecuritySchemes == nil {
+		return []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	}
+
+	return operation.SecuritySchemes
+}
+
+func (operation *Operation) SetSecuritySchemes(securitySchemes []auth.SecurityScheme) *Operation {
+	operation.SecuritySchemes = securitySchemes
+
+	return operation
+}
+
+func (operation *Operation) SetPath(path string) *Operation {
 	operation.Path = path
+
+	return operation
 }
 
 func (operation *Operation) GetPath() string {
 	return operation.Path
 }
 
-func (operation *Operation) SetID(id string) {
+func (operation *Operation) SetID(id string) *Operation {
 	operation.ID = id
+
+	return operation
 }
 
 func (operation *Operation) GetID() string {
 	return operation.ID
 }
 
-func (operation *Operation) SetTags(tags []string) {
+func (operation *Operation) SetTags(tags []string) *Operation {
 	operation.Tags = tags
+
+	return operation
 }
 
 func (operation *Operation) GetTags() []string {
@@ -110,5 +131,5 @@ func (o *Operation) Clone() *Operation {
 		copy(clonedSecuritySchemes, o.SecuritySchemes)
 	}
 
-	return NewOperationFromRequest(o.Request, clonedSecuritySchemes)
+	return NewOperationFromRequest(o.Request).SetSecuritySchemes(clonedSecuritySchemes)
 }

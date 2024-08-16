@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewScanReport(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.NotNil(t, sr)
 	assert.Equal(t, "id", sr.ID)
@@ -23,7 +23,7 @@ func TestNewScanReport(t *testing.T) {
 }
 
 func TestScanReport_Start(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	startTime := sr.StartTime
 	time.Sleep(1 * time.Second)
@@ -32,7 +32,7 @@ func TestScanReport_Start(t *testing.T) {
 }
 
 func TestScanReport_End(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	endTime := sr.EndTime
 	time.Sleep(1 * time.Second)
@@ -41,7 +41,7 @@ func TestScanReport_End(t *testing.T) {
 }
 
 func TestScanReport_WithData(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	data := map[string]string{
 		"test": "test",
@@ -51,7 +51,7 @@ func TestScanReport_WithData(t *testing.T) {
 }
 
 func TestScanReport_GetData(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	data := map[string]string{
 		"test": "test",
@@ -61,7 +61,7 @@ func TestScanReport_GetData(t *testing.T) {
 }
 
 func TestScanReport_HasData(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasData())
 
@@ -73,7 +73,7 @@ func TestScanReport_HasData(t *testing.T) {
 }
 
 func TestScanReport_AddScanAttempt(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	scanAttempt := &report.VulnerabilityScanAttempt{
 		Request:  &http.Request{},
@@ -86,7 +86,7 @@ func TestScanReport_AddScanAttempt(t *testing.T) {
 }
 
 func TestScanReport_AddVulnerabilityReport(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	vulnerabilityReport := &report.VulnerabilityReport{}
 	sr.AddVulnerabilityReport(vulnerabilityReport)
@@ -95,7 +95,7 @@ func TestScanReport_AddVulnerabilityReport(t *testing.T) {
 }
 
 func TestScanReport_HasFailedVulnerabilityReport(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedVulnerabilityReport())
 
@@ -108,7 +108,7 @@ func TestScanReport_HasFailedVulnerabilityReport(t *testing.T) {
 }
 
 func TestScanReport_HasOnlyFailedVulnerabilityReport(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedVulnerabilityReport())
 
@@ -121,7 +121,7 @@ func TestScanReport_HasOnlyFailedVulnerabilityReport(t *testing.T) {
 }
 
 func TestScanReport_HasOnlyPassedVulnerabilityReport(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedVulnerabilityReport())
 
@@ -134,7 +134,7 @@ func TestScanReport_HasOnlyPassedVulnerabilityReport(t *testing.T) {
 }
 
 func TestScanReport_GetErrors(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetErrors())
 
@@ -148,7 +148,7 @@ func TestScanReport_GetErrors(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodPost, "http://localhost:8080/")
 	sr := report.NewScanReport("id", "test", operation)
 	scanAttempt := &report.VulnerabilityScanAttempt{
 		Request:  &http.Request{},

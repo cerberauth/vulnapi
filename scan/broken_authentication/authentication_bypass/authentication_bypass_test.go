@@ -14,7 +14,7 @@ import (
 
 func TestAuthenticationByPassScanHandler_Skipped_WhenNoAuthSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
 
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
 
@@ -29,7 +29,7 @@ func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T)
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
@@ -45,7 +45,7 @@ func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)

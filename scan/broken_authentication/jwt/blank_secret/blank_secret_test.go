@@ -14,7 +14,7 @@ import (
 
 func TestBlankSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://localhost:8080/")
 
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
 
@@ -28,7 +28,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
@@ -44,7 +44,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
@@ -61,7 +61,7 @@ func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
@@ -78,7 +78,7 @@ func TestBlankSecretScanHandler_Failed_WhenOKResponse(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/")
 	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := blanksecret.ScanHandler(operation, securityScheme)

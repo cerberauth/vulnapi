@@ -49,7 +49,8 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080")
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
@@ -70,7 +71,8 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080")
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
@@ -94,7 +96,8 @@ func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080")
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 

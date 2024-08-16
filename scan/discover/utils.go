@@ -29,7 +29,8 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 
 	base := ExtractBaseURL(operation.Request.URL)
 	for _, path := range scanUrls {
-		newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, nil, securitySchemes)
+		newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String())
+		newOperation.SetSecuritySchemes(securitySchemes)
 		if err != nil {
 			return r, err
 		}
