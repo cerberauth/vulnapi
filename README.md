@@ -14,11 +14,9 @@
 
 VulnAPI is an Open-Source DAST designed to help you scan your APIs for common security vulnerabilities and weaknesses.
 
-By using this tool, you can detect that some API potential vulnerabilities and fix security issues.
+By using this tool, you can detect and mitigate security vulnerabilities in your APIs before they are exploited by attackers.
 
 ![Demo](demo.gif)
-
-You can test the scanner against example [vulnerability challenges](https://github.com/cerberauth/api-vulns-challenges).
 
 ## Documentation
 
@@ -33,7 +31,7 @@ The Vulnerability Scanner CLI offers two methods for scanning APIs:
 To discover target API useful information, execute the following command:
 
 ```bash
-vulnapi scan discover [API_URL]
+vulnapi discover api [API_URL]
 ```
 
 Example output:
