@@ -1,8 +1,14 @@
 package openapi
 
-import "github.com/getkin/kin-openapi/openapi3"
+import (
+	"net/url"
+
+	"github.com/getkin/kin-openapi/openapi3"
+)
 
 type OpenAPI struct {
+	baseUrl *url.URL
+
 	doc *openapi3.T
 }
 

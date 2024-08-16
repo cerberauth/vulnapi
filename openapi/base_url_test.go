@@ -43,23 +43,3 @@ func TestBaseUrlWithBasePath(t *testing.T) {
 
 	assert.Equal(t, expectedURL, baseURL)
 }
-
-func TestBaseUrlWithQueryParameter(t *testing.T) {
-	openapi, _ := openapi.LoadFromData(
-		context.Background(),
-		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080?test'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}}}}}`),
-	)
-	baseURL := openapi.BaseUrl()
-
-	assert.Nil(t, baseURL)
-}
-
-func TestBaseUrlWithFragment(t *testing.T) {
-	openapi, _ := openapi.LoadFromData(
-		context.Background(),
-		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080#test'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}}}}}`),
-	)
-	baseURL := openapi.BaseUrl()
-
-	assert.Nil(t, baseURL)
-}

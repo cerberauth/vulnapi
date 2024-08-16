@@ -5,14 +5,17 @@ import (
 )
 
 func (openapi *OpenAPI) BaseUrl() *url.URL {
-	var baseUrl *url.URL
+	if openapi.baseUrl != nil {
+		return openapi.baseUrl
+	}
+
 	for _, server := range openapi.doc.Servers {
 		if server.URL == "" {
 			continue
 		}
 
 		serverUrl, err := url.Parse(server.URL)
-		if err != nil || serverUrl.Host == "" || serverUrl.Scheme == "" || len(serverUrl.Query()) > 0 || serverUrl.Fragment != "" {
+		if err != nil || serverUrl.Host == "" || serverUrl.Scheme == "" {
 			continue
 		}
 
@@ -20,9 +23,14 @@ func (openapi *OpenAPI) BaseUrl() *url.URL {
 			serverUrl.Path = "/"
 		}
 
-		baseUrl = serverUrl
-		break
+		openapi.SetBaseUrl(serverUrl)
+		return serverUrl
 	}
 
-	return baseUrl
+	return nil
+}
+
+func (openapi *OpenAPI) SetBaseUrl(baseUrl *url.URL) *OpenAPI {
+	openapi.baseUrl = baseUrl
+	return openapi
 }

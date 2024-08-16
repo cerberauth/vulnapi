@@ -40,7 +40,14 @@ func LoadOpenAPI(ctx context.Context, urlOrPath string) (*OpenAPI, error) {
 			return nil, err
 		}
 
-		return NewOpenAPI(doc), nil
+		openapi := NewOpenAPI(doc)
+		if openapi.BaseUrl() == nil {
+			baseUri := uri
+			baseUri.Path = "/"
+			openapi.SetBaseUrl(baseUri)
+		}
+
+		return openapi, nil
 	}
 
 	if _, err := os.Stat(urlOrPath); err != nil {
