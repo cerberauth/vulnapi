@@ -18,7 +18,6 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 
 	expectedRateLimit := 10
 	expectedProxyURL, _ := url.Parse(proxyArg)
-
 	expectedHTTPHeader := http.Header{}
 	expectedHTTPHeader.Add("Content-Type", "application/json")
 	expectedHTTPHeader.Add("Authorization", "Bearer token")

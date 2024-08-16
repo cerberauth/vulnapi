@@ -12,13 +12,15 @@ import (
 
 func parseRateLimit(rateLimit string) (int, error) {
 	parts := strings.Split(rateLimit, "/")
-	if len(parts) != 2 {
-		return 0, fmt.Errorf("invalid rate limit format")
-	}
-
 	num, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return 0, err
+	}
+
+	if len(parts) == 1 {
+		return num, nil
+	} else if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid rate limit format")
 	}
 
 	switch parts[1] {
