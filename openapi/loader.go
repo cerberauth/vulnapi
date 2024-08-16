@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"regexp"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
-
-var urlPatternRe = regexp.MustCompile(`^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|\/|\/\/)?[A-z0-9_-]*?[:]?[A-z0-9_-]*?[@]?[A-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$`)
 
 func newLoader(ctx context.Context) *openapi3.Loader {
 	loader := openapi3.Loader{
@@ -37,12 +34,7 @@ func LoadOpenAPI(ctx context.Context, urlOrPath string) (*OpenAPI, error) {
 		return nil, errors.New("url or path must not be empty")
 	}
 
-	if urlPatternRe.MatchString(urlOrPath) {
-		uri, urlerr := url.Parse(urlOrPath)
-		if urlerr != nil {
-			return nil, urlerr
-		}
-
+	if uri, urlerr := url.Parse(urlOrPath); urlerr == nil && uri.Hostname() != "" {
 		doc, err := newLoader(ctx).LoadFromURI(uri)
 		if err != nil {
 			return nil, err
