@@ -161,6 +161,25 @@ func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) 
 	assert.Equal(t, data.Frameworks[0].Name, "Express")
 }
 
+func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	securityScheme := auth.NewNoAuthSecurityScheme()
+	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+
+	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"next.js"}}))
+
+	report, err := fingerprint.ScanHandler(operation, securityScheme)
+	data, _ := report.GetData().(fingerprint.FingerPrintData)
+
+	require.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.True(t, report.Vulns[0].HasFailed())
+	assert.Equal(t, 2, len(data.Frameworks))
+}
+
 func TestCheckSignatureHeader_Passed_WithoutSignatureHeader(t *testing.T) {
 	client := request.DefaultClient
 	httpmock.ActivateNonDefault(client.Client)

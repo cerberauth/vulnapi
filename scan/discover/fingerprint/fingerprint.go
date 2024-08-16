@@ -51,6 +51,15 @@ var issue = report.Issue{
 	},
 }
 
+func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintApp {
+	for _, element := range slice {
+		if element.Name == app.Name {
+			return slice
+		}
+	}
+	return append(slice, app)
+}
+
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, operation)
@@ -77,7 +86,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	reportData := FingerPrintData{}
 	fingerPrintIdentifier := false
 	for name, fingerprint := range fingerprints {
-		if fingerprint.Categories == nil || len(fingerprint.Categories) == 0 {
+		if len(fingerprint.Categories) == 0 {
 			continue
 		}
 
@@ -85,43 +94,43 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 			switch category {
 			case "SSL/TLS certificate authorities":
 				fingerPrintIdentifier = true
-				reportData.CertificateAuthority = append(reportData.CertificateAuthority, FingerPrintApp{Name: name})
+				reportData.CertificateAuthority = appendIfMissing(reportData.CertificateAuthority, FingerPrintApp{Name: name})
 			case "Operating systems":
 				fingerPrintIdentifier = true
-				reportData.OS = append(reportData.OS, FingerPrintApp{Name: name})
+				reportData.OS = appendIfMissing(reportData.OS, FingerPrintApp{Name: name})
 			case "Containers", "PaaS", "IaaS", "Hosting":
 				fingerPrintIdentifier = true
-				reportData.Hosting = append(reportData.Hosting, FingerPrintApp{Name: name})
+				reportData.Hosting = appendIfMissing(reportData.Hosting, FingerPrintApp{Name: name})
 			case "CMS", "Ecommerce", "Wikis", "Blogs", "LMS", "DMS", "Page builders", "Static site generator":
 				fingerPrintIdentifier = true
-				reportData.Softwares = append(reportData.Softwares, FingerPrintApp{Name: name})
+				reportData.Softwares = appendIfMissing(reportData.Softwares, FingerPrintApp{Name: name})
 			case "Databases":
 				fingerPrintIdentifier = true
-				reportData.Databases = append(reportData.Databases, FingerPrintApp{Name: name})
+				reportData.Databases = appendIfMissing(reportData.Databases, FingerPrintApp{Name: name})
 			case "Web servers", "Reverse proxies":
 				fingerPrintIdentifier = true
-				reportData.Servers = append(reportData.Servers, FingerPrintApp{Name: name})
+				reportData.Servers = appendIfMissing(reportData.Servers, FingerPrintApp{Name: name})
 			case "Web server extensions":
 				fingerPrintIdentifier = true
-				reportData.ServerExtensions = append(reportData.ServerExtensions, FingerPrintApp{Name: name})
+				reportData.ServerExtensions = appendIfMissing(reportData.ServerExtensions, FingerPrintApp{Name: name})
 			case "Authentication":
 				fingerPrintIdentifier = true
-				reportData.AuthServices = append(reportData.AuthServices, FingerPrintApp{Name: name})
+				reportData.AuthServices = appendIfMissing(reportData.AuthServices, FingerPrintApp{Name: name})
 			case "CDN":
 				fingerPrintIdentifier = true
-				reportData.CDNs = append(reportData.CDNs, FingerPrintApp{Name: name})
+				reportData.CDNs = appendIfMissing(reportData.CDNs, FingerPrintApp{Name: name})
 			case "Caching":
 				fingerPrintIdentifier = true
-				reportData.Caching = append(reportData.Caching, FingerPrintApp{Name: name})
+				reportData.Caching = appendIfMissing(reportData.Caching, FingerPrintApp{Name: name})
 			case "JavaScript frameworks", "Web frameworks":
 				fingerPrintIdentifier = true
-				reportData.Frameworks = append(reportData.Frameworks, FingerPrintApp{Name: name})
+				reportData.Frameworks = appendIfMissing(reportData.Frameworks, FingerPrintApp{Name: name})
 			case "Programming languages":
 				fingerPrintIdentifier = true
-				reportData.Languages = append(reportData.Languages, FingerPrintApp{Name: name})
+				reportData.Languages = appendIfMissing(reportData.Languages, FingerPrintApp{Name: name})
 			case "Security":
 				fingerPrintIdentifier = true
-				reportData.SecurityServices = append(reportData.SecurityServices, FingerPrintApp{Name: name})
+				reportData.SecurityServices = appendIfMissing(reportData.SecurityServices, FingerPrintApp{Name: name})
 			}
 		}
 	}
