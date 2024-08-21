@@ -1,6 +1,7 @@
 package request_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -15,26 +16,14 @@ import (
 func TestNewOperation(t *testing.T) {
 	url := "http://example.com"
 	method := http.MethodGet
-	header := http.Header{}
-	cookies := []*http.Cookie{
-		{
-			Name:  "cookie1",
-			Value: "value1",
-		},
-		{
-			Name:  "cookie2",
-			Value: "value2",
-		},
-	}
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	body := bytes.NewBufferString("test")
 
-	operation, err := request.NewOperation(request.DefaultClient, method, url, header, cookies, securitySchemes)
+	operation, err := request.NewOperation(http.MethodGet, url, body, nil)
 
 	assert.NoError(t, err)
-	assert.Equal(t, url, operation.Request.URL.String())
-	assert.Equal(t, method, operation.Request.Method)
-	assert.Equal(t, header, operation.Request.Header)
-	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
+	assert.Equal(t, url, operation.URL.String())
+	assert.Equal(t, method, operation.Method)
+	assert.Equal(t, body, operation.Body)
 }
 
 func TestOperation_IsReachable(t *testing.T) {
@@ -44,9 +33,7 @@ func TestOperation_IsReachable(t *testing.T) {
 	defer server.Close()
 
 	url := server.URL
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, url, nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, url, nil, nil)
 
 	err := operation.IsReachable()
 
@@ -54,9 +41,7 @@ func TestOperation_IsReachable(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost:8009", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8009", nil, nil)
 
 	err := operation.IsReachable()
 
@@ -65,9 +50,7 @@ func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "https://localhost", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "https://localhost", nil, nil)
 
 	err := operation.IsReachable()
 
@@ -76,9 +59,7 @@ func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
 }
 
 func TestOperation_IsReachableWhenHTTPAndNoPort(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://localhost", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost", nil, nil)
 
 	err := operation.IsReachable()
 
@@ -86,48 +67,76 @@ func TestOperation_IsReachableWhenHTTPAndNoPort(t *testing.T) {
 	assert.Contains(t, err.Error(), ":80: connect: connection refused")
 }
 
-func TestNewOperationFromRequest(t *testing.T) {
-	r, _ := request.NewRequest(request.DefaultClient, http.MethodGet, "http://example.com", nil)
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation := request.NewOperationFromRequest(r, securitySchemes)
+func TestOperation_IsReachableWhenUnsupportedScheme(t *testing.T) {
+	operation, _ := request.NewOperation(http.MethodGet, "ftp://localhost", nil, nil)
 
-	assert.Equal(t, r, operation.Request)
-	assert.Equal(t, securitySchemes, operation.SecuritySchemes)
+	err := operation.IsReachable()
+
+	assert.Error(t, err)
+	assert.Equal(t, "unsupported scheme", err.Error())
+}
+
+func TestNewOperationFromRequest(t *testing.T) {
+	body := bytes.NewBufferString("test")
+	r, _ := request.NewRequest(http.MethodGet, "http://example.com", body, nil)
+	header := http.Header{}
+	r.WithHeader(header)
+	cookies := []*http.Cookie{}
+	r.WithCookies(cookies)
+	operation := request.NewOperationFromRequest(r)
+
+	assert.Equal(t, r.URL.String(), operation.URL.String())
+	assert.Equal(t, r.Method, operation.Method)
 }
 
 func TestOperationCloneWithSecuritySchemes(t *testing.T) {
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 
-	operation, err := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com", nil, nil, securitySchemes)
+	operation, err := request.NewOperation(http.MethodGet, "http://example.com", nil, nil)
+	operation.SetSecuritySchemes(securitySchemes)
 
 	clonedOperation := operation.Clone()
 
 	assert.NoError(t, err)
-	assert.Equal(t, operation.Request, clonedOperation.Request)
+	assert.Equal(t, operation.URL, clonedOperation.URL)
+	assert.Equal(t, operation.Method, clonedOperation.Method)
 	assert.Equal(t, operation.SecuritySchemes, clonedOperation.SecuritySchemes)
 }
 
 func TestOperation_WithOpenapiOperation(t *testing.T) {
 	operation := &request.Operation{}
-	path := "/test"
 	openapiOperation := openapi3.Operation{
 		OperationID: "testOperation",
 		Tags:        []string{"tag1", "tag2"},
 	}
 
-	operation.WithOpenapiOperation(path, openapiOperation)
+	operation.WithOpenapiOperation(openapiOperation)
 
-	assert.Equal(t, path, operation.GetPath())
 	assert.Equal(t, openapiOperation.OperationID, operation.GetID())
 	assert.Equal(t, openapiOperation.Tags, operation.GetTags())
 }
 
-func TestOperation_SetPath(t *testing.T) {
+func TestOperation_WithHeader(t *testing.T) {
 	operation := &request.Operation{}
+	header := http.Header{
+		"Content-Type": []string{"application/json"},
+	}
 
-	operation.SetPath("/test")
+	operation.WithHeader(header)
 
-	assert.Equal(t, "/test", operation.GetPath())
+	assert.Equal(t, header, operation.Header)
+}
+
+func TestOperation_WithCookies(t *testing.T) {
+	operation := &request.Operation{}
+	cookies := []*http.Cookie{{
+		Name:  "cookie1",
+		Value: "value1",
+	}}
+
+	operation.WithCookies(cookies)
+
+	assert.Equal(t, cookies, operation.Cookies)
 }
 
 func TestOperation_SetId(t *testing.T) {
@@ -147,9 +156,7 @@ func TestOperation_SetTags(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-
-	operation, _ := request.NewOperation(request.DefaultClient, http.MethodGet, "http://example.com", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://example.com", nil, nil)
 
 	_, err := json.Marshal(operation)
 

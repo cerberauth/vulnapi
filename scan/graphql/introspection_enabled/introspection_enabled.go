@@ -38,7 +38,7 @@ const graphqlQuery = `{
 }`
 
 func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
-	return request.NewRequest(client, http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)))
+	return request.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)), client)
 }
 
 func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
@@ -46,10 +46,11 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
 
-	return request.NewRequest(client, http.MethodGet, endpoint.String(), nil)
+	return request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
 }
 
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	securitySchemes := []auth.SecurityScheme{securityScheme}
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, operation)
@@ -57,7 +58,8 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	newOperation := request.NewOperationFromRequest(newRequest, []auth.SecurityScheme{securityScheme})
+	newOperation := request.NewOperationFromRequest(newRequest)
+	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err := scan.ScanURL(newOperation, &securityScheme)
 	if err != nil {
 		return r, err
@@ -73,7 +75,8 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	newOperation = request.NewOperationFromRequest(newRequest, []auth.SecurityScheme{securityScheme})
+	newOperation = request.NewOperationFromRequest(newRequest)
+	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err = scan.ScanURL(newOperation, &securityScheme)
 	if err != nil {
 		return r, err

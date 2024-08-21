@@ -26,7 +26,12 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			graphqlEndpoint := args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
-			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
 			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)

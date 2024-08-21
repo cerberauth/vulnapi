@@ -42,7 +42,7 @@ func NewScanVulnerabilityReports(report *report.ScanReport) []*ScanVulnerability
 	for _, vr := range reports {
 		vulns = append(vulns, &ScanVulnerabilityReport{
 			OperationMethod: report.Operation.Method,
-			OperationPath:   report.Operation.Path,
+			OperationPath:   report.Operation.URL.Path,
 
 			Vuln: vr,
 		})

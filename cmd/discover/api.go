@@ -24,7 +24,12 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			baseUrl := args[0]
 
 			analyticsx.TrackEvent(ctx, tracer, "Discover API", []attribute.KeyValue{})
-			client := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
 			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, baseUrl, client, nil)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)

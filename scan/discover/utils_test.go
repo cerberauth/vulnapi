@@ -49,12 +49,13 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	_, err := handler(operation, securitySchemes[0])
 
@@ -70,12 +71,13 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path2", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 
@@ -94,13 +96,14 @@ func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080", nil, nil, securitySchemes)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.VulnerabilityReport{}
 
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path1", httpmock.NewStringResponder(http.StatusOK, "OK"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:8080/path2", httpmock.NewStringResponder(http.StatusOK, "OK"))
 

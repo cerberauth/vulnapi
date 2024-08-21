@@ -9,12 +9,17 @@ import (
 )
 
 func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
-	req, err := request.NewRequest(operation.Client, operation.Method, operation.Request.URL.String(), nil)
+	req, err := operation.NewRequest()
 	if err != nil {
 		return nil, errors.New("request has an unexpected error")
 	}
 
-	req = req.WithSecurityScheme(securityScheme)
+	if securityScheme != nil {
+		req.WithSecurityScheme(*securityScheme)
+	} else if len(operation.GetSecuritySchemes()) > 0 {
+		req.WithSecurityScheme(operation.GetSecuritySchemes()[0])
+	}
+
 	resp, err := req.Do()
 	if err != nil {
 		return nil, errors.New("request has an unexpected error")

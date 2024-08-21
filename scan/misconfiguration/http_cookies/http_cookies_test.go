@@ -19,8 +19,8 @@ func TestHTTPCookiesScanHandler_Skipped_WhenNoCookies(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -37,7 +37,7 @@ func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -50,7 +50,7 @@ func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -66,7 +66,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -79,7 +79,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -95,7 +95,7 @@ func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -108,7 +108,7 @@ func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -124,7 +124,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -137,7 +137,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -153,7 +153,7 @@ func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -165,7 +165,7 @@ func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 
@@ -181,7 +181,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenExpiresNotSet(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
 	cookie := &http.Cookie{
 		Name:     "cookie_name",
@@ -194,7 +194,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenExpiresNotSet(t *testing.T) {
 		Expires:  time.Time{},
 	}
 	resp.Header.Add("Set-Cookie", cookie.String())
-	httpmock.RegisterResponder(operation.Method, operation.Request.URL.String(), httpmock.ResponderFromResponse(resp))
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromResponse(resp))
 
 	report, err := httpcookies.ScanHandler(operation, securityScheme)
 

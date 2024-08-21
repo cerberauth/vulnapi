@@ -18,11 +18,11 @@ func TestNewURLScan(t *testing.T) {
 	}))
 	defer server.Close()
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, nil, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", nil, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
 }
 
@@ -39,11 +39,11 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
@@ -60,11 +60,11 @@ func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
@@ -81,10 +81,10 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }

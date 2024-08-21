@@ -15,6 +15,7 @@ import (
 type NewURLScanRequest struct {
 	URL    string `form:"url" json:"url" binding:"required"`
 	Method string `form:"method" json:"method" binding:"required"`
+	Data   string `form:"data" json:"data"`
 
 	Opts *ScanOptions `json:"options"`
 }
@@ -35,7 +36,7 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scenario.NewURLScan(form.Method, form.URL, client, nil)
+	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, nil)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

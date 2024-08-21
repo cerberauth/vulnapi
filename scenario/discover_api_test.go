@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,9 +20,8 @@ func TestNewDiscoverScan(t *testing.T) {
 	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, server.URL, nil, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 }
 
 func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
@@ -36,9 +34,8 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, url, nil, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, "https://"+url, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, "https://"+url, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 }
 
 func TestNewDiscoverScanWhenNotReachable(t *testing.T) {

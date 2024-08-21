@@ -17,9 +17,9 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *tes
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
-	httpmock.RegisterResponder(http.MethodPost, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
@@ -33,9 +33,9 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenNotFoundStatus(t *testing.T)
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(client, http.MethodGet, "http://localhost:8080/", nil, nil, nil)
-	httpmock.RegisterResponder(http.MethodPost, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.Request.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
 

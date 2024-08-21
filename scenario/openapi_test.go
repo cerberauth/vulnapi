@@ -53,9 +53,8 @@ func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
-	assert.Equal(t, "http://localhost:8080/", s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
-	assert.Equal(t, http.Header{}, s.Operations[0].Request.Header)
+	assert.Equal(t, "http://localhost:8080/", s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("bearer_auth", &token)}, s.Operations[0].SecuritySchemes)
 }
 
@@ -71,9 +70,8 @@ func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
-	assert.Equal(t, "http://localhost:8080/", s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodGet, s.Operations[0].Request.Method)
-	assert.Equal(t, http.Header{}, s.Operations[0].Request.Header)
+	assert.Equal(t, "http://localhost:8080/", s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{expectedSecurityScheme}, s.Operations[0].SecuritySchemes)
 }
 

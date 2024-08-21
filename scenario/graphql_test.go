@@ -22,8 +22,8 @@ func TestNewGraphQLScan(t *testing.T) {
 	s, err := scenario.NewGraphQLScan(server.URL, nil, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodPost, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodPost, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
 }
 
@@ -37,8 +37,8 @@ func TestNewGraphQLScanWithoutURLProto(t *testing.T) {
 	s, err := scenario.NewGraphQLScan(url, nil, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, "https://"+url, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodPost, s.Operations[0].Request.Method)
+	assert.Equal(t, "https://"+url, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodPost, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
 }
 
@@ -65,8 +65,8 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodPost, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodPost, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
@@ -86,8 +86,8 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *tes
 	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodPost, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodPost, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
@@ -107,7 +107,7 @@ func TestNewGraphQLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, server.URL, s.Operations[0].Request.URL.String())
-	assert.Equal(t, http.MethodPost, s.Operations[0].Request.Method)
+	assert.Equal(t, server.URL, s.Operations[0].URL.String())
+	assert.Equal(t, http.MethodPost, s.Operations[0].Method)
 	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }

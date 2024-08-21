@@ -32,9 +32,45 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 		Cookies:   expectedHTTPCookies,
 	})
 
-	actualClient := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	actualClient, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedClient.Timeout, actualClient.Timeout)
 	assert.Equal(t, expectedClient.Header, actualClient.Header)
 	assert.Equal(t, expectedClient.Cookies, actualClient.Cookies)
+}
+
+func TestNewHTTPClientFromArgsWhenRateLimitIsEmptyString(t *testing.T) {
+	rateArg := ""
+	proxyArg := "http://proxy.example.com"
+	headersArg := []string{"Content-Type: application/json", "Authorization: Bearer token"}
+	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
+
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+
+	assert.NoError(t, err)
+}
+
+func TestNewHTTPClientFromArgsWhenInvalidRateLimit(t *testing.T) {
+	rateArg := "10/h"
+	proxyArg := "http://proxy.example.com"
+	headersArg := []string{"Content-Type: application/json", "Authorization: Bearer token"}
+	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
+
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid rate limit unit")
+}
+
+func TestNewHTTPClientFromArgsWhenInvalidProxyURL(t *testing.T) {
+	rateArg := "10/s"
+	proxyArg := "invalid"
+	headersArg := []string{"Content-Type: application/json", "Authorization : Bearer token"}
+	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
+
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid proxy URL")
 }

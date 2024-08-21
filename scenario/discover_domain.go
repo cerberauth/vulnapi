@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
@@ -77,7 +76,7 @@ func getAllFQDNs(domain string) []string {
 }
 
 func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation, error) {
-	operation, err := request.NewOperation(client, http.MethodGet, "https://"+fqdn, nil, nil, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()})
+	operation, err := request.NewOperation(http.MethodGet, "https://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +85,7 @@ func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation,
 		return operation, nil
 	}
 
-	operation, err = request.NewOperation(client, http.MethodGet, "http://"+fqdn, nil, nil, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()})
+	operation, err = request.NewOperation(http.MethodGet, "http://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}

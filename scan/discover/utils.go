@@ -16,20 +16,19 @@ type DiscoverData struct {
 }
 
 func ExtractBaseURL(inputURL *url.URL) *url.URL {
-	baseURL := &url.URL{
+	return &url.URL{
 		Scheme: inputURL.Scheme,
 		Host:   inputURL.Host,
 	}
-
-	return baseURL
 }
 
 func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.ScanReport, vulnReport *report.VulnerabilityReport) (*report.ScanReport, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
 
-	base := ExtractBaseURL(operation.Request.URL)
+	base := ExtractBaseURL(operation.URL)
 	for _, path := range scanUrls {
-		newOperation, err := request.NewOperation(operation.Client, http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, nil, securitySchemes)
+		newOperation, err := request.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, operation.Client)
+		newOperation.SetSecuritySchemes(securitySchemes)
 		if err != nil {
 			return r, err
 		}
