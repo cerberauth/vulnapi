@@ -86,31 +86,45 @@ echo "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30." | vulnapi scan openapi ./test/st
 
 The CLI provides detailed reports on any vulnerabilities detected during the scan. Below is an example of the output format:
 
-```bash
-+------------+--------------------------------+--------------------------------+----------------------------+
-| RISK LEVEL |         VULNERABILITY          |          DESCRIPTION           |         OPERATION          |
-+------------+--------------------------------+--------------------------------+----------------------------+
-| Critical   | JWT None Algorithm             | JWT with none algorithm is     | GET http://localhost:8080/ |
-|            |                                | accepted allowing to bypass    |                            |
-|            |                                | authentication.                |                            |
-| Low        | CSP Header is not set          | No Content Security Policy     | GET http://localhost:8080/ |
-|            |                                | (CSP) Header has been detected |                            |
-|            |                                | in HTTP Response.              |                            |
-| Low        | CORS Header is not set         | No CORS Header has been        | GET http://localhost:8080/ |
-|            |                                | detected in HTTP Response.     |                            |
-| Low        | HSTS Header is not set         | No HSTS Header has been        | GET http://localhost:8080/ |
-|            |                                | detected in HTTP Response.     |                            |
-| Low        | X-Content-Type-Options Header  | No X-Content-Type-Options      | GET http://localhost:8080/ |
-|            | is not set                     | Header has been detected in    |                            |
-|            |                                | HTTP Response.                 |                            |
-| Low        | X-Frame-Options Header is not  | No X-Frame-Options Header      | GET http://localhost:8080/ |
-|            | set                            | has been detected in HTTP      |                            |
-|            |                                | Response.                      |                            |
-| Low        | HTTP Trace Method enabled      | HTTP Trace method seems        | GET http://localhost:8080/ |
-|            |                                | enabled for this request.      |                            |
-+------------+--------------------------------+--------------------------------+----------------------------+
-Warning: Critical vulnerabilities detected!
-```
+| TECHNOLOGIE/SERVICE |     VALUE     |
+|---------------------|---------------|
+| Framework           | Flask:2.2.3   |
+| Language            | Python:3.11.9 |
+| Server              | Flask:2.2.3   |
+
+
+Advice: There are some low-risk issues. It's advised to take a look.
+
+|          OPERATION           | RISK LEVEL | CVSS 4.0 SCORE |             OWASP              |         VULNERABILITY          |
+|------------------------------|------------|----------------|--------------------------------|--------------------------------|
+| GET /                        | Medium     |            5.1 | API8:2023 Security             | X-Frame-Options Header is      |
+|                              |            |                | Misconfiguration               | missing                        |
+|                              | Medium     |            5.1 | API8:2023 Security             | CORS Headers are missing       |
+|                              |            |                | Misconfiguration               |                                |
+|                              | Medium     |            5.1 | API8:2023 Security             | CSP frame-ancestors policy is  |
+|                              |            |                | Misconfiguration               | not set                        |
+|                              | Info       |            0.0 | API8:2023 Security             | X-Content-Type-Options Header  |
+|                              |            |                | Misconfiguration               | is missing                     |
+|                              | Info       |            0.0 | API8:2023 Security             | Operation May Accepts          |
+|                              |            |                | Misconfiguration               | Unauthenticated Requests       |
+|                              | Info       |            0.0 | API8:2023 Security             | HSTS Header is missing         |
+|                              |            |                | Misconfiguration               |                                |
+|                              | Info       |            0.0 | API8:2023 Security             | CSP Header is not set          |
+|                              |            |                | Misconfiguration               |                                |
+| GET /books/v1                | Medium     |            5.1 | API8:2023 Security             | CSP frame-ancestors policy is  |
+|                              |            |                | Misconfiguration               | not set                        |
+|                              | Medium     |            5.1 | API8:2023 Security             | X-Frame-Options Header is      |
+|                              |            |                | Misconfiguration               | missing                        |
+|                              | Medium     |            5.1 | API8:2023 Security             | CORS Headers are missing       |
+|                              |            |                | Misconfiguration               |                                |
+|                              | Info       |            0.0 | API8:2023 Security             | CSP Header is not set          |
+|                              |            |                | Misconfiguration               |                                |
+|                              | Info       |            0.0 | API8:2023 Security             | HSTS Header is missing         |
+|                              |            |                | Misconfiguration               |                                |
+|                              | Info       |            0.0 | API8:2023 Security             | X-Content-Type-Options Header  |
+|                              |            |                | Misconfiguration               | is missing                     |
+|                              | Info       |            0.0 | API8:2023 Security             | Operation May Accepts          |
+|                              |            |                | Misconfiguration               | Unauthenticated Requests 
 
 In this example, each line represents a detected vulnerability, severity level (critical), vulnerability type, affected operation (GET http://localhost:8080/), and a description of the vulnerability.
 
