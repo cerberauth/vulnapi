@@ -130,7 +130,7 @@ In this example, each line represents a detected vulnerability, severity level (
 
 ## Vulnerabilities Detected
 
-All the vulnerabilities detected by the project are listed at this URL: [Vulnerabilities Detected](https://vulnapi.cerberauth.com/docs/vulnerabilities/?utm_source=github&utm_medium=readme).
+All the vulnerabilities detected by the project are listed at this URL: [API Vulnerabilities Detected](https://vulnapi.cerberauth.com/docs/vulnerabilities?utm_source=github&utm_medium=readme).
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 

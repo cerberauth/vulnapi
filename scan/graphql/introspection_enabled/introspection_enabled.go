@@ -19,7 +19,7 @@ const (
 var issue = report.Issue{
 	ID:   "graphql.introspection_enabled",
 	Name: "GraphQL Introspection enabled",
-	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection/?utm_source=vulnapi",
+	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/graphql-introspection?utm_source=vulnapi",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,

@@ -1,0 +1,8 @@
+{
+  "jwt": {
+    "title": "JWT Best Practices"
+  },
+  "security-headers": {
+    "title": "API Security Headers"
+  }
+}

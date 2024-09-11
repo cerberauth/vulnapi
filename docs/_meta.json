@@ -1,0 +1,18 @@
+{
+  "index": {
+    "title": "Introduction"
+  },
+  "installation": {
+    "title": "Installation",
+    "display": "hidden"
+  },
+  "getting-started": {
+    "title": "Getting Started"
+  },
+  "best-practices": {
+    "title": "Best Practices"
+  },
+  "vulnerabilities": {
+    "title": "Vulnerabilities"
+  }
+}
