@@ -17,7 +17,7 @@ const (
 var issue = report.Issue{
 	ID:   "broken_authentication.alg_none",
 	Name: "JWT Algorithm None is accepted",
-	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-alg-none/?utm_source=vulnapi",
+	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-alg-none?utm_source=vulnapi",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_BrokenAuthentication,
