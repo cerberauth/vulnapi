@@ -16,6 +16,7 @@ const (
 var issue = report.Issue{
 	ID:   "broken_authentication.null_signature",
 	Name: "JWT Token has a null signature",
+	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/broken-authentication/jwt-null-signature?utm_source=vulnapi",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_BrokenAuthentication,

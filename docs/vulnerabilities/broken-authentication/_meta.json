@@ -10,5 +10,8 @@
   },
   "jwt-null-signature": {
     "title": "JWT Null Signature"
+  },
+  "jwt-weak-secret": {
+    "title": "JWT Weak Secret"
   }
 }

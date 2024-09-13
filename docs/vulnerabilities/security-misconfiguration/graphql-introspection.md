@@ -17,7 +17,7 @@ description: GraphQL introspection is a feature that allows clients to query the
         <th>Classifications</th>
         <td>
             <ul>
-                <li><a href="https://cwe.mitre.org/data/definitions/200.html">CWE-200: Information Exposure</a></li>
+                <a href="https://cwe.mitre.org/data/definitions/200.html">CWE-200: Information Exposure</a>
             </ul>
         </td>
     </tr>
