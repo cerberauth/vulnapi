@@ -22,7 +22,7 @@ description: A vulnerability occurs when a JSON Web Token (JWT) is signed with a
         <th>Classifications</th>
         <td>
             <ul>
-                <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+                <a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a>
             </ul>
         </td>
     </tr>
@@ -38,16 +38,46 @@ A vulnerability occurs when a JSON Web Token (JWT) is signed with an empty secre
 
 ## Example
 
-TODO: write an example
+Here is a valid JWT signed with HS256 algorithm:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyNDI2MjIsImlhdCI6MTUxNjIzOTAyMiwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.SCC35SSgMSMr0kV1i_TuPAhiSGtsC1cFGCfvaus5GyU
+```
+
+This decoded JWT contains, this parts:
+
+```json:header
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+```json:payload
+{
+  "iat": 1516239022,
+  "exp": 1516242622,
+  "name": "John Doe",
+  "sub": "2cb307ba-bb46-4194-854f-4774046d9c9b"
+}
+```
+
+The following JWT is signed with an empty secret:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyNDI2MjIsImlhdCI6MTUxNjIzOTAyMiwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.SCC35SSgMSMr0kV1i_TuPAhiSGtsC1cFGCfvaus5GyU
+```
+
+# What is the impact?
+
+Signing a JWT with a blank secret has a significant impact on the security of the token. A blank secret means that there is no secret key used to sign the token, making it vulnerable to tampering and unauthorized access.
+
+By signing a JWT with a blank secret, anyone with access to the token can modify its contents without detection. This can lead to various security risks, such as impersonation, data tampering, and unauthorized access to protected resources.
 
 ## How to test?
 
 TODO: VulnAPI Command
 
-## What is the impact?
-
-TODO: write the impact
-
 ## How to remediate?
 
-TODO: write the remediation
+To remediate the JWT blank secret vulnerability, ensure that all JWTs are signed with a secure secret key. Use strong cryptographic algorithms and keep the secret key confidential to prevent unauthorized access and tampering of the tokens.
