@@ -1,5 +1,7 @@
 version: 2
 
+project_name: vulnapi
+
 before:
   hooks:
     - go mod tidy
@@ -12,6 +14,15 @@ builds:
       - linux
       - windows
       - darwin
+
+gomod:
+  proxy: true
+
+checksum:
+  name_template: "checksums.txt"
+
+source:
+  enabled: true
 
 archives:
   - format: tar.gz
@@ -27,11 +38,26 @@ archives:
     - goos: windows
       format: zip
 
-checksum:
-  name_template: 'checksums.txt'
-
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
+sboms:
+  - id: syft-archive
+    artifacts: archive
+
+signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
 
 changelog:
   sort: asc
@@ -110,3 +136,14 @@ dockers:
       - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
       - "ghcr.io/cerberauth/vulnapi:latest"
     dockerfile: .docker/Dockerfile-goreleaser
+
+docker_signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    artifacts: images
+    output: true
+    args:
+      - "sign"
+      - "${artifact}"
+      - "--yes"
