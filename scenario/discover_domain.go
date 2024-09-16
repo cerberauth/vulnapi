@@ -115,7 +115,9 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, reporter 
 				return nil, err
 			}
 
-			domainScan.AddScanHandler(fingerprint.ScanHandler).AddScanHandler(discoverableopenapi.ScanHandler).AddScanHandler(discoverablegraphql.ScanHandler)
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
 			domainsScan = append(domainsScan, domainScan)
 		}
 	}

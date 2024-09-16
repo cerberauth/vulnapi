@@ -39,7 +39,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
 			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
-			})
+			}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans())
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

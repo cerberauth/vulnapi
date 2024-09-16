@@ -66,7 +66,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
+	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {}, form.Opts.Scans, form.Opts.ExcludeScans)
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -81,5 +81,11 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		Reports: reporter.GetReports(),
 	}
 	_, err = json.Marshal(response)
+	if err != nil {
+		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, response)
 }
