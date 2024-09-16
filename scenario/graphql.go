@@ -44,7 +44,7 @@ func NewGraphQLScan(url string, client *request.Client, reporter *report.Reporte
 		return nil, err
 	}
 
-	graphqlScan.AddScanHandler(introspectionenabled.ScanHandler)
+	graphqlScan.AddScanHandler(scan.NewOperationScanHandler(introspectionenabled.GraphqlIntrospectionScanID, introspectionenabled.ScanHandler))
 	WithAllCommonScans(graphqlScan)
 
 	return graphqlScan, nil

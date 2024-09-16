@@ -8,6 +8,9 @@ var (
 	rateLimit string
 	proxy     string
 
+	includeScans = []string{"*"}
+	excludeScans = []string{}
+
 	placeholderString string
 	placeholderBool   bool
 )
@@ -17,8 +20,11 @@ var defaultRateLimit = "10/s"
 func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&rateLimit, "rate-limit", "r", defaultRateLimit, "Rate limit for requests (e.g. 10/s, 1/m)")
 	cmd.Flags().StringVarP(&proxy, "proxy", "p", "", "Proxy URL for requests")
-	cmd.Flags().StringArrayVarP(&headers, "header", "H", nil, "Headers to include in requests")
-	cmd.Flags().StringArrayVarP(&cookies, "cookie", "c", nil, "Cookies to include in requests")
+	cmd.Flags().StringArrayVarP(&headers, "header", "H", headers, "Headers to include in requests")
+	cmd.Flags().StringArrayVarP(&cookies, "cookie", "c", cookies, "Cookies to include in requests")
+
+	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
+	cmd.Flags().StringArrayVarP(&excludeScans, "exclude-scans", "e", excludeScans, "Exclude specific scans")
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {
@@ -45,4 +51,12 @@ func GetRateLimit() string {
 
 func GetProxy() string {
 	return proxy
+}
+
+func GetIncludeScans() []string {
+	return includeScans
+}
+
+func GetExcludeScans() []string {
+	return excludeScans
 }

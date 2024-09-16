@@ -30,7 +30,9 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, repor
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(fingerprint.ScanHandler).AddScanHandler(discoverableopenapi.ScanHandler).AddScanHandler(discoverablegraphql.ScanHandler)
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
 
 	return urlScan, nil
 }

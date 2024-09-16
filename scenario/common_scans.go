@@ -17,20 +17,20 @@ import (
 )
 
 func WithAllCommonScans(s *scan.Scan) *scan.Scan {
-	s.AddScanHandler(fingerprint.ScanHandler)
-	s.AddOperationScanHandler(acceptunauthenticated.ScanHandler)
+	s.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
 
-	s.AddOperationScanHandler(authenticationbypass.ScanHandler)
-	s.AddOperationScanHandler(algnone.ScanHandler)
-	s.AddOperationScanHandler(blanksecret.ScanHandler)
-	s.AddOperationScanHandler(notverified.ScanHandler)
-	s.AddOperationScanHandler(nullsignature.ScanHandler)
-	s.AddOperationScanHandler(weaksecret.ScanHandler)
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(acceptunauthenticated.NoAuthOperationScanID, acceptunauthenticated.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(authenticationbypass.AcceptsUnauthenticatedOperationScanID, authenticationbypass.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(algnone.AlgNoneJwtScanID, algnone.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(blanksecret.BlankSecretVulnerabilityScanID, blanksecret.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(notverified.NotVerifiedJwtScanID, notverified.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(nullsignature.NullSignatureScanID, nullsignature.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(weaksecret.WeakSecretVulnerabilityScanID, weaksecret.ScanHandler))
 
-	s.AddOperationScanHandler(httpcookies.ScanHandler)
-	s.AddOperationScanHandler(httpheaders.ScanHandler)
-	s.AddOperationScanHandler(httptrace.ScanHandler)
-	s.AddOperationScanHandler(httptrack.ScanHandler)
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(httpcookies.HTTPCookiesScanID, httpcookies.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(httpheaders.HTTPHeadersScanID, httpheaders.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(httptrace.HTTPTraceScanID, httptrace.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(httptrack.HTTPTrackScanID, httptrack.ScanHandler))
 
 	return s
 }

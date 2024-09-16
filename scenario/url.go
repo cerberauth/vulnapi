@@ -47,7 +47,8 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(discoverableopenapi.ScanHandler).AddScanHandler(discoverablegraphql.ScanHandler)
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
 	WithAllCommonScans(urlScan)
 
 	return urlScan, nil
