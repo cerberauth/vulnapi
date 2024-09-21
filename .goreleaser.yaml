@@ -93,7 +93,7 @@ chocolateys:
     license_url: https://github.com/cerberauth/vulnapi/blob/main/LICENSE
     require_license_acceptance: false
     project_source_url: https://github.com/cerberauth/vulnapi
-    docs_url: https://vulnapi.cerberauth.com/docs/?utm_source=chocolatey
+    docs_url: https://vulnapi.cerberauth.com/docs?utm_source=chocolatey
     bug_tracker_url: https://github.com/cerberauth/vulnapi/issues
     tags: "security vulnerability developer"
     summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
