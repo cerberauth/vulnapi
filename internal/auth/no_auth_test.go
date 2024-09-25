@@ -12,6 +12,30 @@ func TestNewNoAuthSecurityScheme(t *testing.T) {
 	assert.NotNil(t, ss)
 }
 
+func TestNoAuthSecurityScheme_GetScheme(t *testing.T) {
+	ss := auth.NewNoAuthSecurityScheme()
+
+	scheme := ss.GetScheme()
+
+	assert.Equal(t, auth.NoneScheme, scheme)
+}
+
+func TestNoAuthSecurityScheme_GetType(t *testing.T) {
+	ss := auth.NewNoAuthSecurityScheme()
+
+	scheme := ss.GetType()
+
+	assert.Equal(t, auth.None, scheme)
+}
+
+func TestNoAuthSecurityScheme_GetName(t *testing.T) {
+	ss := auth.NewNoAuthSecurityScheme()
+
+	scheme := ss.GetName()
+
+	assert.Equal(t, "", scheme)
+}
+
 func TestNoAuthSecurityScheme_GetHeaders(t *testing.T) {
 	ss := &auth.NoAuthSecurityScheme{}
 	headers := ss.GetHeaders()

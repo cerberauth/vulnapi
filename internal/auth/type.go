@@ -7,4 +7,5 @@ const (
 	OAuth2        Type = "oauth2"
 	OpenIdConnect Type = "openIdConnect"
 	ApiKey        Type = "apiKey"
+	None          Type = "none"
 )

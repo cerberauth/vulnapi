@@ -28,7 +28,7 @@ type Operation struct {
 	*Client `json:"-" yaml:"-"`
 
 	Method          string                `json:"method" yaml:"method"`
-	URL             *url.URL              `json:"url" yaml:"url"`
+	URL             url.URL               `json:"url,string" yaml:"url,string"`
 	Body            *bytes.Buffer         `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies         []*http.Cookie        `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header          http.Header           `json:"header,omitempty" yaml:"header,omitempty"`
@@ -52,7 +52,7 @@ func NewOperation(method string, operationUrl string, body *bytes.Buffer, client
 		Client: client,
 
 		Method:          method,
-		URL:             parsedUrl,
+		URL:             *parsedUrl,
 		Body:            body,
 		Cookies:         []*http.Cookie{},
 		Header:          http.Header{},
@@ -87,7 +87,7 @@ func NewOperationFromRequest(r *Request) *Operation {
 		ID:     r.URL.String(),
 		Tags:   []string{},
 		Method: r.Method,
-		URL:    r.URL,
+		URL:    *r.URL,
 		Body:   &body,
 
 		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},

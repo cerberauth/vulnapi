@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
+	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -45,12 +46,9 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			if reporter == nil {
-				log.Fatal("no report")
-			}
-
-			internalCmd.WellKnownPathsScanReport(reporter)
-			internalCmd.ContextualScanReport(reporter)
+			internalCmd.TrackScanReport(ctx, tracer, reporter)
+			printtable.WellKnownPathsScanReport(reporter)
+			printtable.ContextualScanReport(reporter)
 		},
 	}
 

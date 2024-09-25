@@ -22,10 +22,10 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	}
 }
 
-func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.ScanReport, vulnReport *report.VulnerabilityReport) (*report.ScanReport, error) {
+func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.Report, vulnReport *report.VulnerabilityReport) (*report.Report, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
 
-	base := ExtractBaseURL(operation.URL)
+	base := ExtractBaseURL(&operation.URL)
 	for _, path := range scanUrls {
 		newOperation, err := request.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, operation.Client)
 		newOperation.SetSecuritySchemes(securitySchemes)
@@ -51,13 +51,13 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 	return r, nil
 }
 
-func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.Report, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	scanUrls := defaultUrls
 	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil && urlsFromSeclist != nil {
 		scanUrls = urlsFromSeclist.Items
 	}
 
-	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 		return ScanURLs(scanUrls, operation, securityScheme, r, vulnReport)
 	}
 }

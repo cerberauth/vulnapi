@@ -5,5 +5,5 @@ import (
 )
 
 type HTTPResponseReports struct {
-	Reports []*report.ScanReport `json:"reports"`
+	Reports []*report.Report `json:"reports"`
 }

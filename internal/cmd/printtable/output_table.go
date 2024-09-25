@@ -1,7 +1,8 @@
-package cmd
+package printtable
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 
@@ -36,13 +37,18 @@ func (a SortByPathAndSeverity) Less(i, j int) bool {
 	return a[i].OperationPath < a[j].OperationPath
 }
 
-func NewScanVulnerabilityReports(report *report.ScanReport) []*ScanVulnerabilityReport {
+func NewScanVulnerabilityReports(report *report.Report) []*ScanVulnerabilityReport {
 	reports := report.GetFailedVulnerabilityReports()
 	vulns := make([]*ScanVulnerabilityReport, 0, len(reports))
 	for _, vr := range reports {
+		url, urlErr := url.Parse(report.Operation.URL)
+		if urlErr != nil {
+			continue
+		}
+
 		vulns = append(vulns, &ScanVulnerabilityReport{
 			OperationMethod: report.Operation.Method,
-			OperationPath:   report.Operation.URL.Path,
+			OperationPath:   url.Path,
 
 			Vuln: vr,
 		})
@@ -51,7 +57,7 @@ func NewScanVulnerabilityReports(report *report.ScanReport) []*ScanVulnerability
 	return vulns
 }
 
-func NewFullScanVulnerabilityReports(reports []*report.ScanReport) []*ScanVulnerabilityReport {
+func NewFullScanVulnerabilityReports(reports []*report.Report) []*ScanVulnerabilityReport {
 	vulns := make([]*ScanVulnerabilityReport, 0)
 	for _, r := range reports {
 		vulns = append(vulns, NewScanVulnerabilityReports(r)...)
@@ -77,7 +83,7 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 }
 
 func WellKnownPathsScanReport(reporter *report.Reporter) {
-	openapiURL := "N/A"
+	openapiURL := ""
 	openapiReport := reporter.GetReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
 	if openapiReport != nil && openapiReport.HasData() {
 		openapiData, ok := openapiReport.Data.(discoverableopenapi.DiscoverableOpenAPIData)
@@ -86,7 +92,7 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 		}
 	}
 
-	graphqlURL := "N/A"
+	graphqlURL := ""
 	graphqlReport := reporter.GetReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
 	if graphqlReport != nil && graphqlReport.HasData() {
 		graphqlData, ok := graphqlReport.Data.(discoverablegraphql.DiscoverableGraphQLPathData)
@@ -95,7 +101,11 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 		}
 	}
 
-	fmt.Println()
+	if openapiURL == "" && graphqlURL == "" {
+		fmt.Println("No well-known paths were found.")
+		return
+	}
+
 	fmt.Println()
 	headers := []string{"Well-Known Paths", "URL"}
 	table := CreateTable(headers)
@@ -104,10 +114,15 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
 	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
 
-	table.Rich([]string{"OpenAPI", openapiURL}, tableColors)
-	table.Rich([]string{"GraphQL", graphqlURL}, tableColors)
+	if openapiURL != "" {
+		table.Rich([]string{"OpenAPI", openapiURL}, tableColors)
+	}
+	if graphqlURL != "" {
+		table.Rich([]string{"GraphQL", graphqlURL}, tableColors)
+	}
 
 	table.Render()
+	fmt.Println()
 }
 
 func ContextualScanReport(reporter *report.Reporter) {
@@ -121,7 +136,6 @@ func ContextualScanReport(reporter *report.Reporter) {
 		return
 	}
 
-	fmt.Println()
 	fmt.Println()
 	headers := []string{"Technologie/Service", "Value"}
 	table := CreateTable(headers)
@@ -179,9 +193,14 @@ func ContextualScanReport(reporter *report.Reporter) {
 	}
 
 	table.Render()
+	fmt.Println()
 }
 
 func DisplayReportTable(reporter *report.Reporter) {
+	if reporter == nil || len(reporter.GetReports()) == 0 {
+		return
+	}
+
 	var outputColor *color.Color
 	var outputMessage string
 	var outputStream *os.File
@@ -199,7 +218,6 @@ func DisplayReportTable(reporter *report.Reporter) {
 		outputStream = os.Stderr
 	}
 
-	fmt.Println()
 	fmt.Println()
 	outputColor.Fprintln(outputStream, outputMessage)
 	fmt.Println()
@@ -239,6 +257,7 @@ func DisplayReportTable(reporter *report.Reporter) {
 	}
 
 	table.Render()
+	fmt.Println()
 }
 
 func CreateTable(headers []string) *tablewriter.Table {

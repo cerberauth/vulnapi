@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,6 @@ func TestNewScanReport(t *testing.T) {
 	assert.NotNil(t, sr)
 	assert.Equal(t, "id", sr.ID)
 	assert.Equal(t, "test", sr.Name)
-	assert.Equal(t, operation, sr.Operation)
 	assert.NotZero(t, sr.StartTime)
 }
 
@@ -75,14 +75,12 @@ func TestScanReport_HasData(t *testing.T) {
 func TestScanReport_AddScanAttempt(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	scanAttempt := &report.VulnerabilityScanAttempt{
-		Request:  &http.Request{},
-		Response: &http.Response{},
-		Err:      nil,
-	}
-	sr.AddScanAttempt(scanAttempt)
+	expectedScanAttempt := report.ReportScan{}
+
+	sr.AddScanAttempt(&scan.VulnerabilityScanAttempt{})
+
 	assert.Equal(t, 1, len(sr.GetScanAttempts()))
-	assert.Equal(t, scanAttempt, sr.GetScanAttempts()[0])
+	assert.Equal(t, expectedScanAttempt, sr.GetScanAttempts()[0])
 }
 
 func TestScanReport_AddVulnerabilityReport(t *testing.T) {
@@ -138,10 +136,8 @@ func TestScanReport_GetErrors(t *testing.T) {
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetErrors())
 
-	sr.AddScanAttempt(&report.VulnerabilityScanAttempt{
-		Request:  &http.Request{},
-		Response: &http.Response{},
-		Err:      errors.New("test"),
+	sr.AddScanAttempt(&scan.VulnerabilityScanAttempt{
+		Err: errors.New("test"),
 	})
 	assert.NotEmpty(t, sr.GetErrors())
 	assert.Equal(t, 1, len(sr.GetErrors()))
@@ -150,10 +146,8 @@ func TestScanReport_GetErrors(t *testing.T) {
 func TestMarshalJSON(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	scanAttempt := &report.VulnerabilityScanAttempt{
-		Request:  &http.Request{},
-		Response: &http.Response{},
-		Err:      nil,
+	scanAttempt := &scan.VulnerabilityScanAttempt{
+		Err: nil,
 	}
 	sr.AddScanAttempt(scanAttempt)
 	vulnerabilityReport := &report.VulnerabilityReport{}

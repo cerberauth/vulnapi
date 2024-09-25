@@ -4,96 +4,174 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/scan"
 )
 
-type VulnerabilityScanAttempt struct {
-	Request  *http.Request  `json:"-"`
-	Response *http.Response `json:"-"`
-
-	Err error `json:"error"`
+type ReportRequest struct {
+	Method  string         `json:"method" yaml:"method"`
+	URL     string         `json:"url" yaml:"url"`
+	Body    *string        `json:"body,omitempty" yaml:"body,omitempty"`
+	Cookies []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
+	Header  http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
-type ScanReport struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-
-	Operation *request.Operation `json:"operation"`
-
-	Data  interface{}                 `json:"data" yaml:"data"`
-	Scans []*VulnerabilityScanAttempt `json:"scans"`
-	Vulns []*VulnerabilityReport      `json:"vulnerabilities"`
+type ReportResponse struct {
+	StatusCode int            `json:"statusCode" yaml:"statusCode"`
+	Body       string         `json:"body" yaml:"body"`
+	Cookies    []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
+	Header     http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
-func NewScanReport(id string, name string, operaton *request.Operation) *ScanReport {
-	return &ScanReport{
+type ReportScan struct {
+	Request  *ReportRequest  `json:"request,omitempty" yaml:"request,omitempty"`
+	Response *ReportResponse `json:"response,omitempty" yaml:"response,omitempty"`
+	Err      error           `json:"error,omitempty" yaml:"error,omitempty"`
+}
+
+type ReportOperationSecurityScheme struct {
+	Type   auth.Type       `json:"type" yaml:"type"`
+	Scheme auth.SchemeName `json:"scheme" yaml:"scheme"`
+	In     *auth.SchemeIn  `json:"in,omitempty" yaml:"in,omitempty"`
+	Name   string          `json:"name" yaml:"name"`
+}
+
+type ReportOperation struct {
+	ID   string   `json:"id" yaml:"id"`
+	Tags []string `json:"tags" yaml:"tags"`
+
+	Method  string         `json:"method" yaml:"method"`
+	URL     string         `json:"url" yaml:"url"`
+	Cookies []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
+	Header  http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
+
+	SecuritySchemes []ReportOperationSecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
+}
+
+type Report struct {
+	ID        string    `json:"id" yaml:"id"`
+	Name      string    `json:"name" yaml:"name"`
+	StartTime time.Time `json:"startTime" yaml:"startTime"`
+	EndTime   time.Time `json:"endTime,omitempty" yaml:"endTime,omitempty"`
+
+	Operation ReportOperation `json:"operation" yaml:"operation"`
+
+	Data  interface{}            `json:"data,omitempty" yaml:"data,omitempty"`
+	Scans []ReportScan           `json:"scans" yaml:"scans"`
+	Vulns []*VulnerabilityReport `json:"vulnerabilities" yaml:"vulnerabilities"`
+}
+
+func NewScanReport(id string, name string, operation *request.Operation) *Report {
+	securitySchemes := []ReportOperationSecurityScheme{}
+	for _, ss := range operation.SecuritySchemes {
+		securitySchemes = append(securitySchemes, ReportOperationSecurityScheme{
+			Type:   ss.GetType(),
+			Scheme: ss.GetScheme(),
+			In:     ss.GetIn(),
+			Name:   ss.GetName(),
+		})
+	}
+
+	return &Report{
 		ID:        id,
 		Name:      name,
 		StartTime: time.Now(),
 
-		Operation: operaton,
+		Operation: ReportOperation{
+			ID:   operation.ID,
+			Tags: operation.Tags,
 
-		Scans: []*VulnerabilityScanAttempt{},
+			Method:  operation.Method,
+			URL:     operation.URL.String(),
+			Cookies: operation.Cookies,
+			Header:  operation.Header,
+
+			SecuritySchemes: securitySchemes,
+		},
+
+		Scans: []ReportScan{},
 		Vulns: []*VulnerabilityReport{},
 	}
 }
 
-func (sc *ScanReport) Start() *ScanReport {
-	sc.StartTime = time.Now()
-	return sc
+func (r *Report) Start() *Report {
+	r.StartTime = time.Now()
+	return r
 }
 
-func (sc *ScanReport) End() *ScanReport {
-	sc.EndTime = time.Now()
-	return sc
+func (r *Report) End() *Report {
+	r.EndTime = time.Now()
+	return r
 }
 
-func (sc *ScanReport) WithData(data interface{}) *ScanReport {
-	sc.Data = data
-	return sc
+func (r *Report) WithData(data interface{}) *Report {
+	r.Data = data
+	return r
 }
 
-func (sc *ScanReport) GetData() interface{} {
-	return sc.Data
+func (r *Report) GetData() interface{} {
+	return r.Data
 }
 
-func (sc *ScanReport) HasData() bool {
-	return sc.Data != nil
+func (r *Report) HasData() bool {
+	return r.Data != nil
 }
 
-func (sc *ScanReport) AddScanAttempt(a *VulnerabilityScanAttempt) *ScanReport {
-	sc.Scans = append(sc.Scans, a)
-	return sc
+func (r *Report) AddScanAttempt(a *scan.VulnerabilityScanAttempt) *Report {
+	var reportRequest *ReportRequest = nil
+	if a.Request != nil {
+		reportRequest = &ReportRequest{
+			Method:  a.Request.Method,
+			URL:     a.Request.URL.String(),
+			Cookies: a.Request.Cookies(),
+			Header:  a.Request.Header,
+		}
+	}
+
+	var reportResponse *ReportResponse = nil
+	if a.Response != nil {
+		reportResponse = &ReportResponse{
+			StatusCode: a.Response.StatusCode,
+			Cookies:    a.Response.Cookies(),
+			Header:     a.Response.Header,
+		}
+	}
+
+	r.Scans = append(r.Scans, ReportScan{
+		Request:  reportRequest,
+		Response: reportResponse,
+		Err:      a.Err,
+	})
+	return r
 }
 
-func (sc *ScanReport) GetScanAttempts() []*VulnerabilityScanAttempt {
-	return sc.Scans
+func (r *Report) GetScanAttempts() []ReportScan {
+	return r.Scans
 }
 
-func (sc *ScanReport) AddVulnerabilityReport(vr *VulnerabilityReport) *ScanReport {
-	sc.Vulns = append(sc.Vulns, vr)
-	return sc
+func (r *Report) AddVulnerabilityReport(vr *VulnerabilityReport) *Report {
+	r.Vulns = append(r.Vulns, vr)
+	return r
 }
 
-func (sc *ScanReport) GetVulnerabilityReports() []*VulnerabilityReport {
-	return sc.Vulns
+func (r *Report) GetVulnerabilityReports() []*VulnerabilityReport {
+	return r.Vulns
 }
 
-func (sc *ScanReport) GetErrors() []error {
+func (r *Report) GetErrors() []error {
 	var errors []error
-	for _, sa := range sc.GetScanAttempts() {
-		if sa != nil && sa.Err != nil {
+	for _, sa := range r.GetScanAttempts() {
+		if sa.Err != nil {
 			errors = append(errors, sa.Err)
 		}
 	}
 	return errors
 }
 
-func (sc *ScanReport) GetFailedVulnerabilityReports() []*VulnerabilityReport {
+func (r *Report) GetFailedVulnerabilityReports() []*VulnerabilityReport {
 	var failedReports []*VulnerabilityReport
-	for _, vr := range sc.GetVulnerabilityReports() {
+	for _, vr := range r.GetVulnerabilityReports() {
 		if vr.HasFailed() {
 			failedReports = append(failedReports, vr)
 		}
@@ -101,6 +179,6 @@ func (sc *ScanReport) GetFailedVulnerabilityReports() []*VulnerabilityReport {
 	return failedReports
 }
 
-func (sc *ScanReport) HasFailedVulnerabilityReport() bool {
-	return len(sc.GetFailedVulnerabilityReports()) > 0
+func (r *Report) HasFailedVulnerabilityReport() bool {
+	return len(r.GetFailedVulnerabilityReports()) > 0
 }

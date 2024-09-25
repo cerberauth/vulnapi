@@ -11,6 +11,11 @@ var (
 	includeScans = []string{"*"}
 	excludeScans = []string{}
 
+	outputFormat    string
+	outputTransport string
+	outputPath      string
+	outputURL       string
+
 	placeholderString string
 	placeholderBool   bool
 )
@@ -25,6 +30,11 @@ func AddCommonArgs(cmd *cobra.Command) {
 
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVarP(&excludeScans, "exclude-scans", "e", excludeScans, "Exclude specific scans")
+
+	cmd.Flags().StringVarP(&outputFormat, "format", "", "table", "Output format (table, json, yaml)")
+	cmd.Flags().StringVarP(&outputTransport, "output-transport", "", "file", "The transport to use for output (e.g. file, http)")
+	cmd.Flags().StringVarP(&outputPath, "output-path", "", "", "The file to write the output to")
+	cmd.Flags().StringVarP(&outputURL, "output-url", "", "", "The URL to send the output to")
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {
@@ -59,4 +69,12 @@ func GetIncludeScans() []string {
 
 func GetExcludeScans() []string {
 	return excludeScans
+}
+
+func GetOutputFormat() string {
+	return outputFormat
+}
+
+func GetOutputTransport() string {
+	return outputTransport
 }

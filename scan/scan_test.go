@@ -67,7 +67,7 @@ func TestScanGetOperationsScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	s.AddOperationScanHandler(scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+	s.AddOperationScanHandler(scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return nil, nil
 	}))
 
@@ -92,8 +92,8 @@ func TestScanExecuteWithHandler(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -109,8 +109,8 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -126,8 +126,8 @@ func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -143,8 +143,8 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -159,8 +159,8 @@ func TestScanExecuteWithExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -175,8 +175,8 @@ func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
@@ -191,8 +191,8 @@ func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
+	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 

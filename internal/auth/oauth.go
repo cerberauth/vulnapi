@@ -56,6 +56,22 @@ func NewOAuthSecurityScheme(name string, value *string, cfg *OAuthConfig) *OAuth
 	}
 }
 
+func (ss *OAuthSecurityScheme) GetType() Type {
+	return ss.Type
+}
+
+func (ss *OAuthSecurityScheme) GetScheme() SchemeName {
+	return ss.Scheme
+}
+
+func (ss *OAuthSecurityScheme) GetIn() *SchemeIn {
+	return &ss.In
+}
+
+func (ss *OAuthSecurityScheme) GetName() string {
+	return ss.Name
+}
+
 func (ss *OAuthSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)

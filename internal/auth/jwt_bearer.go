@@ -41,6 +41,22 @@ func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBe
 	}, nil
 }
 
+func (ss *JWTBearerSecurityScheme) GetType() Type {
+	return ss.Type
+}
+
+func (ss *JWTBearerSecurityScheme) GetScheme() SchemeName {
+	return ss.Scheme
+}
+
+func (ss *JWTBearerSecurityScheme) GetIn() *SchemeIn {
+	return &ss.In
+}
+
+func (ss *JWTBearerSecurityScheme) GetName() string {
+	return ss.Name
+}
+
 func (ss *JWTBearerSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)

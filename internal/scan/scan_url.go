@@ -2,13 +2,19 @@ package scan
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*report.VulnerabilityScanAttempt, error) {
+type VulnerabilityScanAttempt struct {
+	Request  *http.Request
+	Response *http.Response
+	Err      error
+}
+
+func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*VulnerabilityScanAttempt, error) {
 	req, err := operation.NewRequest()
 	if err != nil {
 		return nil, errors.New("request has an unexpected error")
@@ -26,7 +32,7 @@ func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) 
 	}
 	defer resp.Body.Close()
 
-	return &report.VulnerabilityScanAttempt{
+	return &VulnerabilityScanAttempt{
 		Request:  req.Request,
 		Response: resp,
 		Err:      err,

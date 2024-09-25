@@ -10,19 +10,18 @@ import (
 type VulnerabilityReportStatus string
 
 const (
-	VulnerabilityReportStatusPass VulnerabilityReportStatus = "pass"
-	VulnerabilityReportStatusFail VulnerabilityReportStatus = "fail"
-	VulnerabilityReportStatusSkip VulnerabilityReportStatus = "skip"
-	VulnerabilityReportStatusNone VulnerabilityReportStatus = "none"
+	VulnerabilityReportStatusPassed  VulnerabilityReportStatus = "passed"
+	VulnerabilityReportStatusFailed  VulnerabilityReportStatus = "failed"
+	VulnerabilityReportStatusSkipped VulnerabilityReportStatus = "skipped"
+	VulnerabilityReportStatusNone    VulnerabilityReportStatus = "none"
 )
 
 type VulnerabilityReport struct {
-	Issue `json:",inline" yaml:",inline"`
-
-	Operation      *request.Operation  `json:"operation" yaml:"operation"`
-	SecurityScheme auth.SecurityScheme `json:"security_scheme" yaml:"security_scheme"`
-
+	Issue  `json:",inline" yaml:",inline"`
 	Status VulnerabilityReportStatus `json:"status" yaml:"status"`
+
+	Operation      *request.Operation  `json:"-" yaml:"-"`
+	SecurityScheme auth.SecurityScheme `json:"-" yaml:"-"`
 }
 
 func NewVulnerabilityReport(issue Issue) *VulnerabilityReport {
@@ -56,30 +55,30 @@ func (vr *VulnerabilityReport) WithBooleanStatus(status bool) *VulnerabilityRepo
 }
 
 func (vr *VulnerabilityReport) Fail() *VulnerabilityReport {
-	vr.Status = VulnerabilityReportStatusFail
+	vr.Status = VulnerabilityReportStatusFailed
 	return vr
 }
 
 func (vr *VulnerabilityReport) HasFailed() bool {
-	return vr.Status == VulnerabilityReportStatusFail
+	return vr.Status == VulnerabilityReportStatusFailed
 }
 
 func (vr *VulnerabilityReport) Pass() *VulnerabilityReport {
-	vr.Status = VulnerabilityReportStatusPass
+	vr.Status = VulnerabilityReportStatusPassed
 	return vr
 }
 
 func (vr *VulnerabilityReport) HasPassed() bool {
-	return vr.Status == VulnerabilityReportStatusPass
+	return vr.Status == VulnerabilityReportStatusPassed
 }
 
 func (vr *VulnerabilityReport) Skip() *VulnerabilityReport {
-	vr.Status = VulnerabilityReportStatusSkip
+	vr.Status = VulnerabilityReportStatusSkipped
 	return vr
 }
 
 func (vr *VulnerabilityReport) HasBeenSkipped() bool {
-	return vr.Status == VulnerabilityReportStatusSkip
+	return vr.Status == VulnerabilityReportStatusSkipped
 }
 
 func (vr *VulnerabilityReport) IsInfoRiskSeverity() bool {
