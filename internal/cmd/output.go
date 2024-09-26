@@ -7,7 +7,7 @@ import (
 
 	printtable "github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/report"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func PrintOrExportReport(format string, transport string, report *report.Reporter) error {
