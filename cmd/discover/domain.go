@@ -5,6 +5,7 @@ import (
 	"log"
 
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
+	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -36,11 +37,11 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
-			fmt.Printf("Found %d APIs\n", len(scans))
+			fmt.Printf("Found %d Domains\n", len(scans))
 
 			for _, s := range scans {
 				fmt.Println()
-				fmt.Printf("Scanning %s\n", s.Operations[0].URL)
+				fmt.Printf("Scanning %s\n", s.Operations[0].URL.String())
 
 				bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
 				reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
@@ -51,12 +52,9 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					log.Fatal(err)
 				}
 
-				if reporter == nil {
-					log.Fatal("no report")
-				}
-
-				internalCmd.WellKnownPathsScanReport(reporter)
-				internalCmd.ContextualScanReport(reporter)
+				internalCmd.TrackScanReport(ctx, tracer, reporter)
+				printtable.WellKnownPathsScanReport(reporter)
+				printtable.ContextualScanReport(reporter)
 			}
 		},
 	}

@@ -1,17 +1,15 @@
-package cmd_test
+package printtable_test
 
 import (
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/cmd"
-	"github.com/cerberauth/vulnapi/internal/request"
+	printtable "github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewScanVulnerabilityReports(t *testing.T) {
-	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
-	sr := &report.ScanReport{
+	sr := &report.Report{
 		Vulns: []*report.VulnerabilityReport{
 			{
 				Issue: report.Issue{
@@ -20,7 +18,7 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 			{
 				Issue: report.Issue{
@@ -29,14 +27,17 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 		},
 
-		Operation: operation,
+		Operation: report.ReportOperation{
+			Method: "GET",
+			URL:    "/api/v1/",
+		},
 	}
 
-	vulns := cmd.NewScanVulnerabilityReports(sr)
+	vulns := printtable.NewScanVulnerabilityReports(sr)
 
 	assert.Len(t, vulns, 2)
 	assert.Equal(t, "GET", vulns[0].OperationMethod)
@@ -48,8 +49,7 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 }
 
 func TestNewFullScanVulnerabilityReports(t *testing.T) {
-	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
-	sr1 := &report.ScanReport{
+	sr1 := &report.Report{
 		Vulns: []*report.VulnerabilityReport{
 			{
 				Issue: report.Issue{
@@ -58,7 +58,7 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 			{
 				Issue: report.Issue{
@@ -67,13 +67,16 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 		},
 
-		Operation: operation,
+		Operation: report.ReportOperation{
+			Method: "GET",
+			URL:    "/api/v1/",
+		},
 	}
-	sr2 := &report.ScanReport{
+	sr2 := &report.Report{
 		Vulns: []*report.VulnerabilityReport{
 			{
 				Issue: report.Issue{
@@ -82,7 +85,7 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 			{
 				Issue: report.Issue{
@@ -91,14 +94,17 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFail,
+				Status: report.VulnerabilityReportStatusFailed,
 			},
 		},
 
-		Operation: operation,
+		Operation: report.ReportOperation{
+			Method: "GET",
+			URL:    "/api/v1/",
+		},
 	}
 
-	vulns := cmd.NewFullScanVulnerabilityReports([]*report.ScanReport{sr1, sr2})
+	vulns := printtable.NewFullScanVulnerabilityReports([]*report.Report{sr1, sr2})
 
 	assert.Len(t, vulns, 4)
 	assert.Equal(t, "GET", vulns[0].OperationMethod)

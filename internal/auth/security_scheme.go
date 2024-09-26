@@ -5,6 +5,11 @@ import (
 )
 
 type SecurityScheme interface {
+	GetType() Type
+	GetScheme() SchemeName
+	GetIn() *SchemeIn
+	GetName() string
+
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
 	GetValidValue() interface{}

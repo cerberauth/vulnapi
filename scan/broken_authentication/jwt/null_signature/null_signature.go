@@ -42,7 +42,7 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName, operation)
 

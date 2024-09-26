@@ -12,6 +12,7 @@ const (
 	DigestScheme SchemeName = "digest"
 	OAuthScheme  SchemeName = "oauth"
 	PrivateToken SchemeName = "privateToken"
+	NoneScheme   SchemeName = "none"
 )
 
 func (s *SchemeName) String() string {

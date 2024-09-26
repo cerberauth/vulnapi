@@ -156,7 +156,7 @@ func CheckCSPFrameAncestors(cspHeader string) bool {
 	return false
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	contentOptionsMissing := report.NewVulnerabilityReport(contentOptionsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	corsMissing := report.NewVulnerabilityReport(corsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	corsWildcard := report.NewVulnerabilityReport(corsWildcardIssue).WithOperation(operation).WithSecurityScheme(securityScheme)

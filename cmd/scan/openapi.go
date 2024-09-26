@@ -81,9 +81,16 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			bar := internalCmd.NewProgressBar(len(s.GetOperationsScans()))
-			if reporter, _, err = s.Execute(func(operationScan *scan.OperationScan) {
+			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
 				bar.Add(1)
-			}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans()); err != nil {
+			}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans())
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
+
+			internalCmd.TrackScanReport(ctx, tracer, reporter)
+			if err = internalCmd.PrintOrExportReport(internalCmd.GetOutputFormat(), internalCmd.GetOutputTransport(), reporter); err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}

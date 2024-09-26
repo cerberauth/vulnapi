@@ -68,8 +68,8 @@ func TestVulnerabilityReport_WithStatus(t *testing.T) {
 		},
 	}
 	vr := report.NewVulnerabilityReport(issue)
-	vr.WithStatus(report.VulnerabilityReportStatusFail)
-	assert.Equal(t, report.VulnerabilityReportStatusFail, vr.Status)
+	vr.WithStatus(report.VulnerabilityReportStatusFailed)
+	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
 }
 
 func TestVulnerabilityReport_WithBooleanStatus_WhenFalse(t *testing.T) {
@@ -83,7 +83,7 @@ func TestVulnerabilityReport_WithBooleanStatus_WhenFalse(t *testing.T) {
 	}
 	vr := report.NewVulnerabilityReport(issue)
 	vr.WithBooleanStatus(false)
-	assert.Equal(t, report.VulnerabilityReportStatusFail, vr.Status)
+	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
 }
 
 func TestVulnerabilityReport_WithBooleanStatus_WhenTrue(t *testing.T) {
@@ -97,7 +97,7 @@ func TestVulnerabilityReport_WithBooleanStatus_WhenTrue(t *testing.T) {
 	}
 	vr := report.NewVulnerabilityReport(issue)
 	vr.WithBooleanStatus(true)
-	assert.Equal(t, report.VulnerabilityReportStatusPass, vr.Status)
+	assert.Equal(t, report.VulnerabilityReportStatusPassed, vr.Status)
 }
 
 func TestVulnerabilityReport_Fail(t *testing.T) {
@@ -111,7 +111,7 @@ func TestVulnerabilityReport_Fail(t *testing.T) {
 	}
 	vr := report.NewVulnerabilityReport(issue)
 	vr.Fail()
-	assert.Equal(t, report.VulnerabilityReportStatusFail, vr.Status)
+	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
 }
 
 func TestVulnerabilityReport_HasFailed(t *testing.T) {
@@ -139,7 +139,7 @@ func TestVulnerabilityReport_Pass(t *testing.T) {
 	}
 	vr := report.NewVulnerabilityReport(issue)
 	vr.Pass()
-	assert.Equal(t, report.VulnerabilityReportStatusPass, vr.Status)
+	assert.Equal(t, report.VulnerabilityReportStatusPassed, vr.Status)
 }
 
 func TestVulnerabilityReport_HasPassed(t *testing.T) {
@@ -167,7 +167,7 @@ func TestVulnerabilityReport_Skip(t *testing.T) {
 	}
 	vr := report.NewVulnerabilityReport(issue)
 	vr.Skip()
-	assert.Equal(t, report.VulnerabilityReportStatusSkip, vr.Status)
+	assert.Equal(t, report.VulnerabilityReportStatusSkipped, vr.Status)
 }
 
 func TestVulnerabilityReport_HasBeenSkipped(t *testing.T) {

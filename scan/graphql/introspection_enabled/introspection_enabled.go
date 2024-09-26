@@ -37,11 +37,11 @@ const graphqlQuery = `{
 	{queryType{name}}}"
 }`
 
-func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
+func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
 	return request.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)), client)
 }
 
-func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL) (*request.Request, error) {
+func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
 	values := url.Values{}
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
@@ -49,7 +49,7 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint *url.URL
 	return request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 

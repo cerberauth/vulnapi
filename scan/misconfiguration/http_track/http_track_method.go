@@ -33,7 +33,7 @@ var issue = report.Issue{
 
 const TrackMethod = "TRACK"
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTrackScanID, HTTPTrackScanName, operation)
 

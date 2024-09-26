@@ -22,6 +22,46 @@ func TestNewAuthorizationBearerSecurityScheme(t *testing.T) {
 	assert.Equal(t, "", ss.AttackValue)
 }
 
+func TestBearerSecurityScheme_GetScheme(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	scheme := ss.GetScheme()
+
+	assert.Equal(t, auth.BearerScheme, scheme)
+}
+
+func TestBearerSecurityScheme_GetType(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	scheme := ss.GetType()
+
+	assert.Equal(t, auth.HttpType, scheme)
+}
+
+func TestBearerSecurityScheme_GetIn(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	scheme := ss.GetIn()
+
+	assert.Equal(t, auth.InHeader, *scheme)
+}
+
+func TestBearerSecurityScheme_GetName(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	scheme := ss.GetName()
+
+	assert.Equal(t, name, scheme)
+}
+
 func TestBearerSecurityScheme_GetHeaders(t *testing.T) {
 	name := "token"
 	value := "abc123"

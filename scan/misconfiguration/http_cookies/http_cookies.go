@@ -103,7 +103,7 @@ var withoutExpiresIssue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	httpOnlyVulnReport := report.NewVulnerabilityReport(httpNotHttpOnlyIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	notSecureVulnReport := report.NewVulnerabilityReport(notSecureIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	sameSiteNoneVulnReport := report.NewVulnerabilityReport(sameSiteNoneIssue).WithOperation(operation).WithSecurityScheme(securityScheme)

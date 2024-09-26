@@ -27,6 +27,22 @@ func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSec
 	}
 }
 
+func (ss *BearerSecurityScheme) GetType() Type {
+	return ss.Type
+}
+
+func (ss *BearerSecurityScheme) GetScheme() SchemeName {
+	return ss.Scheme
+}
+
+func (ss *BearerSecurityScheme) GetIn() *SchemeIn {
+	return &ss.In
+}
+
+func (ss *BearerSecurityScheme) GetName() string {
+	return ss.Name
+}
+
 func (ss *BearerSecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	attackValue := ss.GetAttackValue().(string)

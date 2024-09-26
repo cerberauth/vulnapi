@@ -39,6 +39,46 @@ func TestNewOAuthSecurityScheme_WithJWT(t *testing.T) {
 	assert.NotNil(t, ss.JWTWriter)
 }
 
+func TestOAuthSecurityScheme_GetScheme(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	scheme := ss.GetScheme()
+
+	assert.Equal(t, auth.BearerScheme, scheme)
+}
+
+func TestOAuthSecurityScheme_GetType(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	scheme := ss.GetType()
+
+	assert.Equal(t, auth.HttpType, scheme)
+}
+
+func TestOAuthSecurityScheme_GetIn(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	scheme := ss.GetIn()
+
+	assert.Equal(t, auth.InHeader, *scheme)
+}
+
+func TestOAuthSecurityScheme_GetName(t *testing.T) {
+	name := "token"
+	value := "abc123"
+	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+
+	scheme := ss.GetName()
+
+	assert.Equal(t, name, scheme)
+}
+
 func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
 	name := "token"
 	value := "abc123"

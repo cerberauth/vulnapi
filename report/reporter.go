@@ -1,24 +1,24 @@
 package report
 
 type Reporter struct {
-	Reports []*ScanReport `json:"reports"`
+	Reports []*Report `json:"reports"`
 }
 
 func NewReporter() *Reporter {
 	return &Reporter{
-		Reports: []*ScanReport{},
+		Reports: []*Report{},
 	}
 }
 
-func (rr *Reporter) AddReport(r *ScanReport) {
+func (rr *Reporter) AddReport(r *Report) {
 	rr.Reports = append(rr.Reports, r)
 }
 
-func (rr *Reporter) GetReports() []*ScanReport {
+func (rr *Reporter) GetReports() []*Report {
 	return rr.Reports
 }
 
-func (rr *Reporter) GetReportByID(id string) *ScanReport {
+func (rr *Reporter) GetReportByID(id string) *Report {
 	for _, r := range rr.GetReports() {
 		if r.ID == id {
 			return r
