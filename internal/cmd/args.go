@@ -8,8 +8,8 @@ var (
 	rateLimit string
 	proxy     string
 
-	includeScans = []string{"*"}
-	excludeScans = []string{}
+	includeScans []string
+	excludeScans []string
 
 	outputFormat    string
 	outputTransport string
@@ -64,11 +64,23 @@ func GetProxy() string {
 }
 
 func GetIncludeScans() []string {
-	return includeScans
+	var filteredScans []string
+	for _, scan := range includeScans {
+		if scan != "" {
+			filteredScans = append(filteredScans, scan)
+		}
+	}
+	return filteredScans
 }
 
 func GetExcludeScans() []string {
-	return excludeScans
+	var filteredScans []string
+	for _, scan := range excludeScans {
+		if scan != "" {
+			filteredScans = append(filteredScans, scan)
+		}
+	}
+	return filteredScans
 }
 
 func GetOutputFormat() string {
