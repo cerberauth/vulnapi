@@ -40,15 +40,23 @@ You can install VulnAPI on Linux by downloading the latest [VulnAPI release](htt
 
 ## Windows
 
-You can install VulnAPI on Windows by downloading the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=windows) and extracting the contents of the ZIP file. After extracting the contents, you can run the `vulnapi.exe` binary from the command line.
+### Chocolatey
+
+You can install VulnAPI on Windows using [Chocolatey](https://chocolatey.org/packages/vulnapi).
+
+```bash
+choco install vulnapi
+```
+
+You can also install VulnAPI on Windows by downloading the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=windows) and extracting the contents of the ZIP file. After extracting the contents, you can run the `vulnapi.exe` binary from the command line.
 
 ## MacOS (Homebrew)
 
 You can install VulnAPI on MacOS using Homebrew. To do so, run the following command:
 
 ```bash
-brew tap cerberauth/vulnapi
-brew install vulnapi
+brew tap cerberauth/vulnapi https://github.com/cerberauth/vulnapi
+brew install $(brew --repository cerberauth/vulnapi)/vulnapi.rb
 ```
 
 ## Docker
@@ -61,4 +69,4 @@ docker run --rm cerberauth/vulnapi scan curl [API_URL] [CURL_OPTIONS]
 
 ## GitHub Action
 
-VulnAPI can be integrated into your CI/CD pipeline using [GitHub Actions](./github-action.md). Integrating VulnAPI with GitHub Actions enables you to scan your APIs for vulnerabilities and security risks as part of your CI/CD pipeline. This allows you to automate security testing and vulnerability scanning of your APIs as part of your development workflow, ensuring that your APIs are **secure** and free from vulnerabilities **before they are deployed to production**.
+VulnAPI can be integrated into your CI/CD pipeline using [GitHub Actions](./getting-started/github-action.md). Integrating VulnAPI with GitHub Actions enables you to scan your APIs for vulnerabilities and security risks as part of your CI/CD pipeline. This allows you to automate security testing and vulnerability scanning of your APIs as part of your development workflow, ensuring that your APIs are **secure** and free from vulnerabilities **before they are deployed to production**.
