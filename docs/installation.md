@@ -47,8 +47,8 @@ You can install VulnAPI on Windows by downloading the latest [VulnAPI release](h
 You can install VulnAPI on MacOS using Homebrew. To do so, run the following command:
 
 ```bash
-brew tap cerberauth/vulnapi
-brew install vulnapi
+brew tap cerberauth/vulnapi https://github.com/cerberauth/vulnapi
+brew install $(brew --repository cerberauth/vulnapi)/vulnapi.rb
 ```
 
 ## Docker
