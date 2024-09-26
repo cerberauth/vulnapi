@@ -122,6 +122,23 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 	assert.Equal(t, "test-report", reporter.Reports[0].ID)
 }
 
+func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := request.Operations{operation}
+	s, _ := scan.NewScan(operations, nil)
+	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
+		return &report.Report{ID: "test-report"}, nil
+	})
+	s.AddOperationScanHandler(handler)
+
+	reporter, errors, err := s.Execute(nil, []string{""}, nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errors)
+	assert.Equal(t, 1, len(reporter.Reports))
+	assert.Equal(t, "test-report", reporter.Reports[0].ID)
+}
+
 func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
