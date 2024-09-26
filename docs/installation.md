@@ -40,7 +40,15 @@ You can install VulnAPI on Linux by downloading the latest [VulnAPI release](htt
 
 ## Windows
 
-You can install VulnAPI on Windows by downloading the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=windows) and extracting the contents of the ZIP file. After extracting the contents, you can run the `vulnapi.exe` binary from the command line.
+### Chocolatey
+
+You can install VulnAPI on Windows using [Chocolatey](https://chocolatey.org/packages/vulnapi).
+
+```bash
+choco install vulnapi
+```
+
+You can also install VulnAPI on Windows by downloading the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=windows) and extracting the contents of the ZIP file. After extracting the contents, you can run the `vulnapi.exe` binary from the command line.
 
 ## MacOS (Homebrew)
 
