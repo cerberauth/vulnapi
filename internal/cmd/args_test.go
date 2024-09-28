@@ -13,43 +13,46 @@ func TestAddCommonArgs(t *testing.T) {
 		name     string
 		args     []string
 		expected struct {
-			rateLimit       string
-			proxy           string
-			headers         []string
-			cookies         []string
-			includeScans    []string
-			excludeScans    []string
-			outputFormat    string
-			outputTransport string
-			outputPath      string
-			outputURL       string
+			rateLimit         string
+			proxy             string
+			headers           []string
+			cookies           []string
+			includeScans      []string
+			excludeScans      []string
+			outputFormat      string
+			outputTransport   string
+			outputPath        string
+			outputURL         string
+			severityThreshold float64
 		}
 	}{
 		{
 			name: "default values",
 			args: []string{},
 			expected: struct {
-				rateLimit       string
-				proxy           string
-				headers         []string
-				cookies         []string
-				includeScans    []string
-				excludeScans    []string
-				outputFormat    string
-				outputTransport string
-				outputPath      string
-				outputURL       string
+				rateLimit         string
+				proxy             string
+				headers           []string
+				cookies           []string
+				includeScans      []string
+				excludeScans      []string
+				outputFormat      string
+				outputTransport   string
+				outputPath        string
+				outputURL         string
+				severityThreshold float64
 			}{
-				rateLimit:       "10/s",
-				proxy:           "",
-				headers:         nil,
-				cookies:         nil,
-				includeScans:    nil,
-				excludeScans:    nil,
-				outputFormat:    "table",
-				outputTransport: "file",
-				outputPath:      "",
-				outputURL:       "",
+				rateLimit:         "10/s",
+				proxy:             "",
+				headers:           nil,
+				cookies:           nil,
+				includeScans:      nil,
+				excludeScans:      nil,
+				outputFormat:      "table",
+				outputTransport:   "file",
+				outputPath:        "",
+				outputURL:         "",
+				severityThreshold: 1,
 			},
 		},
 		{
@@ -65,29 +68,32 @@ func TestAddCommonArgs(t *testing.T) {
 				"--output-transport=http",
 				"--output-path=/tmp/output",
 				"--output-url=http://example.com/output",
+				"--severity-threshold=5",
 			},
 			expected: struct {
-				rateLimit       string
-				proxy           string
-				headers         []string
-				cookies         []string
-				includeScans    []string
-				excludeScans    []string
-				outputFormat    string
-				outputTransport string
-				outputPath      string
-				outputURL       string
+				rateLimit         string
+				proxy             string
+				headers           []string
+				cookies           []string
+				includeScans      []string
+				excludeScans      []string
+				outputFormat      string
+				outputTransport   string
+				outputPath        string
+				outputURL         string
+				severityThreshold float64
 			}{
-				rateLimit:       "5/m",
-				proxy:           "http://proxy.example.com",
-				headers:         []string{"Authorization: Bearer token"},
-				cookies:         []string{"sessionid=12345"},
-				includeScans:    []string{"scan1", "scan2"},
-				excludeScans:    nil,
-				outputFormat:    "json",
-				outputTransport: "http",
-				outputPath:      "/tmp/output",
-				outputURL:       "http://example.com/output",
+				rateLimit:         "5/m",
+				proxy:             "http://proxy.example.com",
+				headers:           []string{"Authorization: Bearer token"},
+				cookies:           []string{"sessionid=12345"},
+				includeScans:      []string{"scan1", "scan2"},
+				excludeScans:      nil,
+				outputFormat:      "json",
+				outputTransport:   "http",
+				outputPath:        "/tmp/output",
+				outputURL:         "http://example.com/output",
+				severityThreshold: 5,
 			},
 		},
 	}
@@ -107,6 +113,7 @@ func TestAddCommonArgs(t *testing.T) {
 			assert.Equal(t, tt.expected.excludeScans, cmd.GetExcludeScans())
 			assert.Equal(t, tt.expected.outputFormat, cmd.GetOutputFormat())
 			assert.Equal(t, tt.expected.outputTransport, cmd.GetOutputTransport())
+			assert.Equal(t, tt.expected.severityThreshold, cmd.GetSeverityThreshold())
 		})
 	}
 }

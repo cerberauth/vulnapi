@@ -11,9 +11,25 @@ import (
 )
 
 func PrintOrExportReport(format string, transport string, report *report.Reporter) error {
+	outputStream := os.Stdout
+	if report.HasHigherThanSeverityThresholdVulnerability(GetSeverityThreshold()) {
+		outputStream = os.Stderr
+	}
+
+	var outputMessage string
+	if !report.HasVulnerability() {
+		outputMessage = "Success: No vulnerabilities detected!"
+	} else if report.HasHighRiskOrHigherSeverityVulnerability() {
+		outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
+	} else {
+		outputMessage = "Warning: There are some issues. It's advised to take action."
+	}
+
+	fmt.Println()
+	fmt.Fprintln(outputStream, outputMessage)
+
 	var output []byte
 	var err error
-
 	switch format {
 	case "json":
 		output, err = ExportJSON(report)

@@ -92,3 +92,59 @@ func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenCriticalRiskRepo
 
 	assert.True(t, reporter.HasHighRiskOrHigherSeverityVulnerability())
 }
+
+func TestReporter_HasHigherThanSeverityThresholdVulnerability_WhenNoReports(t *testing.T) {
+	reporter := report.NewReporter()
+	assert.False(t, reporter.HasHigherThanSeverityThresholdVulnerability(5.0))
+}
+
+func TestReporter_HasHigherThanSeverityThresholdVulnerability_WhenBelowThreshold(t *testing.T) {
+	reporter := report.NewReporter()
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	issue := report.Issue{
+		Name: "test",
+		CVSS: report.CVSS{
+			Score: 4.0,
+		},
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
+	sr.AddVulnerabilityReport(vulnerabilityReport)
+	reporter.AddReport(sr)
+
+	assert.False(t, reporter.HasHigherThanSeverityThresholdVulnerability(5.0))
+}
+
+func TestReporter_HasHigherThanSeverityThresholdVulnerability_WhenAtThreshold(t *testing.T) {
+	reporter := report.NewReporter()
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	issue := report.Issue{
+		Name: "test",
+		CVSS: report.CVSS{
+			Score: 5.0,
+		},
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
+	sr.AddVulnerabilityReport(vulnerabilityReport)
+	reporter.AddReport(sr)
+
+	assert.True(t, reporter.HasHigherThanSeverityThresholdVulnerability(5.0))
+}
+
+func TestReporter_HasHigherThanSeverityThresholdVulnerability_WhenAboveThreshold(t *testing.T) {
+	reporter := report.NewReporter()
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	issue := report.Issue{
+		Name: "test",
+		CVSS: report.CVSS{
+			Score: 7.0,
+		},
+	}
+	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
+	sr.AddVulnerabilityReport(vulnerabilityReport)
+	reporter.AddReport(sr)
+
+	assert.True(t, reporter.HasHigherThanSeverityThresholdVulnerability(5.0))
+}
