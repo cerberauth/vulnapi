@@ -2,15 +2,30 @@ package seclist
 
 import (
 	"bufio"
+	"embed"
 	"errors"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
+	"path"
 )
+
+//go:embed lists/*.txt
+var sectlistsFolder embed.FS
 
 type SecList struct {
 	Name  string
 	Items []string
+}
+
+func fileNameFromURL(url string) string {
+	return path.Base(url)
+}
+
+func hasSecList(name string) bool {
+	_, err := sectlistsFolder.Open("lists/" + name)
+	return err == nil
 }
 
 func NewSecList(name string) *SecList {
@@ -20,16 +35,13 @@ func NewSecList(name string) *SecList {
 	}
 }
 
-func NewSecListFromFile(name, filepath string) (*SecList, error) {
-	s := NewSecList(name)
-	err := s.ImportFromFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
 func NewSecListFromURL(name, url string) (*SecList, error) {
+	filename := fileNameFromURL(url)
+	println(filename)
+	if hasSecList(filename) {
+		return NewSecListFromEmbeddedFile(name, filename)
+	}
+
 	s := NewSecList(name)
 	err := s.DownloadFromURL(url)
 	if err != nil {
@@ -38,13 +50,7 @@ func NewSecListFromURL(name, url string) (*SecList, error) {
 	return s, nil
 }
 
-func (s *SecList) ImportFromFile(filepath string) error {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
+func (s *SecList) loadFile(file fs.File) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -56,6 +62,34 @@ func (s *SecList) ImportFromFile(filepath string) error {
 	}
 
 	return nil
+}
+
+func (s *SecList) loadFromEmbeddedFile(filepath string) error {
+	file, err := sectlistsFolder.Open("lists/" + filepath)
+	if err != nil {
+		return err
+	}
+
+	return s.loadFile(file)
+}
+
+func NewSecListFromEmbeddedFile(name, filename string) (*SecList, error) {
+	s := NewSecList(name)
+	err := s.loadFromEmbeddedFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (s *SecList) loadFromTmpFile(filepath string) error {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return s.loadFile(file)
 }
 
 func (s *SecList) DownloadFromURL(url string) error {
@@ -81,7 +115,7 @@ func (s *SecList) DownloadFromURL(url string) error {
 	}
 
 	filepath := tempFile.Name()
-	err = s.ImportFromFile(filepath)
+	err = s.loadFromTmpFile(filepath)
 	if err != nil {
 		return err
 	}

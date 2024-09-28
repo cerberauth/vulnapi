@@ -29,6 +29,7 @@ var issue = report.Issue{
 	},
 }
 
+var graphqlSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/graphql.txt"
 var potentialGraphQLEndpoints = []string{
 	"/graphql",
 	"/graph",
@@ -36,10 +37,7 @@ var potentialGraphQLEndpoints = []string{
 	"/graphql/console",
 	"/v1/graphql",
 	"/v1/graphiql",
-	"/v1/explorer",
 }
-
-var graphqlSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/graphql.txt"
 
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
