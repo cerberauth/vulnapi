@@ -10,7 +10,6 @@ import (
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 	"github.com/cerberauth/vulnapi/scan/discover/fingerprint"
-	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -200,27 +199,6 @@ func DisplayReportTable(reporter *report.Reporter) {
 	if reporter == nil || len(reporter.GetReports()) == 0 {
 		return
 	}
-
-	var outputColor *color.Color
-	var outputMessage string
-	var outputStream *os.File
-	if !reporter.HasVulnerability() {
-		outputColor = color.New(color.FgGreen)
-		outputMessage = "Congratulations! No issues were found."
-		outputStream = os.Stdout
-	} else if reporter.HasHighRiskOrHigherSeverityVulnerability() {
-		outputColor = color.New(color.BgRed, color.FgWhite)
-		outputMessage = "Warning: Critical vulnerabilities detected!"
-		outputStream = os.Stderr
-	} else {
-		outputColor = color.New(color.BgYellow, color.FgBlack)
-		outputMessage = "Advice: There are some low-risk issues. It's advised to take a look."
-		outputStream = os.Stderr
-	}
-
-	fmt.Println()
-	outputColor.Fprintln(outputStream, outputMessage)
-	fmt.Println()
 
 	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Vulnerability"}
 	table := CreateTable(headers)

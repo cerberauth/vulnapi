@@ -74,3 +74,13 @@ func (rr *Reporter) HasHighRiskOrHigherSeverityVulnerability() bool {
 
 	return false
 }
+
+func (rr *Reporter) HasHigherThanSeverityThresholdVulnerability(threshold float64) bool {
+	for _, r := range rr.GetFailedVulnerabilityReports() {
+		if r.Issue.CVSS.Score >= threshold {
+			return true
+		}
+	}
+
+	return false
+}

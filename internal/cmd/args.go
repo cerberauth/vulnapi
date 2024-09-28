@@ -16,6 +16,8 @@ var (
 	outputPath      string
 	outputURL       string
 
+	severityThreshold float64
+
 	placeholderString string
 	placeholderBool   bool
 )
@@ -35,6 +37,8 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&outputTransport, "output-transport", "", "file", "The transport to use for output (e.g. file, http)")
 	cmd.Flags().StringVarP(&outputPath, "output-path", "", "", "The file to write the output to")
 	cmd.Flags().StringVarP(&outputURL, "output-url", "", "", "The URL to send the output to")
+
+	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {
@@ -89,4 +93,8 @@ func GetOutputFormat() string {
 
 func GetOutputTransport() string {
 	return outputTransport
+}
+
+func GetSeverityThreshold() float64 {
+	return severityThreshold
 }
