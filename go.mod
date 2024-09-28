@@ -12,8 +12,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.1.19
-	github.com/schollz/progressbar/v3 v3.15.0
+	github.com/projectdiscovery/wappalyzergo v0.1.20
+	github.com/schollz/progressbar/v3 v3.16.0
 	github.com/spf13/cobra v1.8.1
 	github.com/std-uritemplate/std-uritemplate/go v1.0.6
 	github.com/stretchr/testify v1.9.0
@@ -54,7 +54,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
