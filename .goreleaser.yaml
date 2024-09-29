@@ -75,7 +75,7 @@ milestones:
 
 brews:
   - name: "{{ .ProjectName }}"
-    description: "Scan your APIs for security vulnerabilities and weaknesses."
+    description: "Scan your APIs for security vulnerabilities and weaknesses"
     license: "MIT"
     repository:
       owner: cerberauth
@@ -85,7 +85,8 @@ brews:
       name: Emmanuel Gautier
       email: emmanuel@cerberauth.com
     test: |
-      system "#{bin}/vulnapi help"
+      assert_match "vulnapi version #{version}", shell_output("#{bin}/vulnapi version")
+      assert_match "Usage", shell_output("#{bin}/vulnapi --help")
 
 chocolateys:
   - owners: CerberAuth
