@@ -9,8 +9,6 @@ github.com/bytedance/sonic/loader v0.2.0 h1:zNprn+lsIP06C/IqCHs3gPQIvnvpKbbxyXQP
 github.com/bytedance/sonic/loader v0.2.0/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
-github.com/cerberauth/x v0.0.0-20240911111527-d0ec204e5d48 h1:6EzPQiCmEALpj8tREFA72uKSCVEzus6YWd9fBlXYIEM=
-github.com/cerberauth/x v0.0.0-20240911111527-d0ec204e5d48/go.mod h1:l3nkeJfebGk9Rn2Uaz/xhKMkfHHp3K2ILl4f5WI7/uk=
 github.com/cerberauth/x v0.0.0-20240929131055-0a38dd31aeda h1:D2Zg/XW7L/ErDZjA9sj+GMaKdvaadTaYKiqv4iUO8Do=
 github.com/cerberauth/x v0.0.0-20240929131055-0a38dd31aeda/go.mod h1:l3nkeJfebGk9Rn2Uaz/xhKMkfHHp3K2ILl4f5WI7/uk=
 github.com/chengxilo/virtualterm v1.0.4 h1:Z6IpERbRVlfB8WkOmtbHiDbBANU7cimRIof7mk9/PwM=
@@ -109,8 +107,6 @@ github.com/perimeterx/marshmallow v1.1.5 h1:a2LALqQ1BlHM8PZblsDdidgv1mWi1DgC2UmX
 github.com/perimeterx/marshmallow v1.1.5/go.mod h1:dsXbUu8CRzfYP5a87xpp0xq9S3u0Vchtcl8we9tYaXw=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/projectdiscovery/wappalyzergo v0.1.20 h1:EbpBSIj6E+dBoKf3J1XPNygDBdwApXWNPFwWv5ugTSU=
-github.com/projectdiscovery/wappalyzergo v0.1.20/go.mod h1:wnvmbC10pQTOoCKnCTmWKP20rpEtqrMJZvzuTuleeyw=
 github.com/projectdiscovery/wappalyzergo v0.1.21 h1:IBzws+/YyXctWMZOjADRIG3ghv076rT54jbO548/+q4=
 github.com/projectdiscovery/wappalyzergo v0.1.21/go.mod h1:wnvmbC10pQTOoCKnCTmWKP20rpEtqrMJZvzuTuleeyw=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=

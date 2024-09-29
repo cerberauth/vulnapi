@@ -2,8 +2,10 @@ package analytics
 
 import (
 	"context"
+	"time"
 
 	"github.com/cerberauth/x/analyticsx"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -14,9 +16,13 @@ func NewAnalytics(ctx context.Context, projectVersion string) (*sdktrace.TracerP
 	tracerProvider, err = analyticsx.NewAnalytics(ctx, analyticsx.AppInfo{
 		Name:    "vulnapi",
 		Version: projectVersion,
-	})
+	}, otlptracehttp.WithTimeout(time.Second*2), otlptracehttp.WithRetry(otlptracehttp.RetryConfig{Enabled: false}))
 	if err != nil {
 		return nil, err
 	}
 	return tracerProvider, err
+}
+
+func Close() {
+	tracerProvider.Shutdown(context.Background())
 }
