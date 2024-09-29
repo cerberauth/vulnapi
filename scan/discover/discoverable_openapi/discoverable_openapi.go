@@ -29,34 +29,19 @@ var issue = report.Issue{
 	},
 }
 
-// Partly retrieved from: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt
+var openapiSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt"
 var potentialOpenAPIPaths = []string{
 	"/openapi",
-	"/swagger.json",
-	"/swagger.yaml",
-	"/openapi.json",
-	"/openapi.yaml",
-	"/openapi.yml",
-	"/swagger/v1/swagger.json",
-	"/swagger-ui/swagger.json",
-	"/apidocs/swagger.json",
-	"/api-docs/swagger.json",
 	"/api-docs.json",
 	"/api-docs.yaml",
 	"/api-docs.yml",
-	"/v1/swagger.json",
-	"/api/swagger.json",
-	"/api/swagger-ui.json",
-	"/api/v1/swagger-ui.json",
-	"/api/v2/swagger-ui.json",
-	"/.well-known/openapi.yaml",
 	"/.well-known/openapi.yml",
-	"/.well-known/openapi.json",
 }
 
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
 	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, operation)
+	handler := discover.CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, vulnReport)
 
-	return discover.ScanURLs(potentialOpenAPIPaths, operation, securityScheme, r, vulnReport)
+	return handler(operation, securityScheme)
 }

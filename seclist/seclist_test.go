@@ -1,32 +1,13 @@
 package seclist_test
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/seclist"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestNewSecListFromFile(t *testing.T) {
-	file := "line 1\nline 2\nline 3\n"
-	f, err := os.CreateTemp("", "seclist")
-	assert.NoError(t, err)
-	defer os.Remove(f.Name())
-
-	io.WriteString(f, file)
-
-	seclist, err := seclist.NewSecListFromFile("seclist", f.Name())
-
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(seclist.Items))
-	assert.Equal(t, "line 1", seclist.Items[0])
-	assert.Equal(t, "line 2", seclist.Items[1])
-	assert.Equal(t, "line 3", seclist.Items[2])
-}
 
 func TestNewSecListFromURL(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,4 +35,13 @@ func TestNewSecListFromURLWhenResponseNotOk(t *testing.T) {
 	_, err := seclist.NewSecListFromURL("seclist", server.URL)
 
 	assert.Error(t, err)
+}
+
+func TestNewSecListFromURLWhenEmbeddedFileExists(t *testing.T) {
+	seclist, err := seclist.NewSecListFromURL("seclist", "http://example.com/graphql.txt")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "___graphql", seclist.Items[0])
+	assert.Equal(t, "altair", seclist.Items[1])
+	assert.Equal(t, "explorer", seclist.Items[2])
 }
