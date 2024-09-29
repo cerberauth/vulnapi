@@ -34,6 +34,11 @@ func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 				analytics.NewAnalytics(ctx, projectVersion)
 			}
 		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			if !sqaOptOut {
+				analytics.Close()
+			}
+		},
 	}
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(discover.NewDiscoverCmd())
