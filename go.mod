@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.4
-	github.com/cerberauth/x v0.0.0-20240911111527-d0ec204e5d48
+	github.com/cerberauth/x v0.0.0-20240929131055-0a38dd31aeda
 	github.com/getkin/kin-openapi v0.127.0
 	github.com/gin-contrib/requestid v1.0.3
 	github.com/gin-gonic/gin v1.10.0
