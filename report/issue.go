@@ -15,7 +15,7 @@ type CVSS struct {
 type Issue struct {
 	ID   string `json:"id" yaml:"id"`
 	Name string `json:"name" yaml:"name"`
-	URL  string `json:"url" yaml:"url"`
+	URL  string `json:"url,omitempty" yaml:"url,omitempty"`
 	CVSS CVSS   `json:"cvss" yaml:"cvss"`
 
 	Classifications *Classifications `json:"classifications,omitempty" yaml:"classifications,omitempty"`

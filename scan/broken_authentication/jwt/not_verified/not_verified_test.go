@@ -19,7 +19,7 @@ func TestNotVerifiedScanHandler_WithoutSecurityScheme(t *testing.T) {
 	report, err := notverified.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestNotVerifiedScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
@@ -29,7 +29,7 @@ func TestNotVerifiedScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 	report, err := notverified.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenOK(t *testing.T) {
@@ -51,7 +51,7 @@ func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenOK(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
 
 func TestNotVerifiedScanHandler_Skipped_WhenOKFirstRequest(t *testing.T) {
@@ -73,7 +73,7 @@ func TestNotVerifiedScanHandler_Skipped_WhenOKFirstRequest(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenUnauthorized(t *testing.T) {
@@ -95,5 +95,5 @@ func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenUnauthorized(t *testi
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }

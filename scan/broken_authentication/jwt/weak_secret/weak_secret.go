@@ -56,12 +56,12 @@ var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "chang
 
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName, operation)
 
 	if !ShouldBeScanned(securityScheme) {
-		r.AddVulnerabilityReport(vulnReport.Skip()).End()
+		r.AddIssueReport(vulnReport.Skip()).End()
 		return r, nil
 	}
 
@@ -102,7 +102,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		break
 	}
 
-	r.AddVulnerabilityReport(vulnReport.WithBooleanStatus(!secretFound)).End()
+	r.AddIssueReport(vulnReport.WithBooleanStatus(!secretFound)).End()
 
 	return r, nil
 }

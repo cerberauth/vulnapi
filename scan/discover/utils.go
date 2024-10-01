@@ -22,7 +22,7 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	}
 }
 
-func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.Report, vulnReport *report.VulnerabilityReport) (*report.Report, error) {
+func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme auth.SecurityScheme, r *report.ScanReport, vulnReport *report.IssueReport) (*report.ScanReport, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
 
 	base := ExtractBaseURL(&operation.URL)
@@ -42,22 +42,22 @@ func ScanURLs(scanUrls []string, operation *request.Operation, securityScheme au
 		if attempt.Response.StatusCode == http.StatusOK { // TODO: check if the response contains the expected content
 			r.WithData(DiscoverData{
 				URL: attempt.Request.URL.String(),
-			}).AddVulnerabilityReport(vulnReport.Fail()).End()
+			}).AddIssueReport(vulnReport.Fail()).End()
 			return r, nil
 		}
 	}
 
-	r.AddVulnerabilityReport(vulnReport.Pass()).End()
+	r.AddIssueReport(vulnReport.Pass()).End()
 	return r, nil
 }
 
-func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.Report, vulnReport *report.VulnerabilityReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
+func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.IssueReport) func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	scanUrls := defaultUrls
 	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil && urlsFromSeclist != nil {
 		scanUrls = urlsFromSeclist.Items
 	}
 
-	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
+	return func(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 		return ScanURLs(scanUrls, operation, securityScheme, r, vulnReport)
 	}
 }

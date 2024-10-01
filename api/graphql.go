@@ -49,11 +49,11 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		return
 	}
 
-	if reporter.HasVulnerability() {
-		analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Vulnerability Found", nil)
+	if reporter.HasIssue() {
+		analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Issue Found", nil)
 	}
 
 	ctx.JSON(http.StatusOK, HTTPResponseReports{
-		Reports: reporter.GetReports(),
+		Reports: reporter.GetScanReports(),
 	})
 }

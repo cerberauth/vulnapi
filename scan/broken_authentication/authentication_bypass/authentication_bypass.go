@@ -27,12 +27,12 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 
 	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName, operation)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
-		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), nil
+		return r.AddIssueReport(vulnReport.Skip()).End(), nil
 	}
 
 	noAuthSecurityScheme := auth.SecurityScheme(auth.NewNoAuthSecurityScheme())
@@ -41,7 +41,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r, err
 	}
 	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	r.AddVulnerabilityReport(vulnReport).AddScanAttempt(vsa).End()
+	r.AddIssueReport(vulnReport).AddScanAttempt(vsa).End()
 
 	return r, nil
 }

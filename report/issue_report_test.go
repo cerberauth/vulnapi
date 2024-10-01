@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewVulnerabilityReport(t *testing.T) {
+func TestNewIssueReport(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -19,14 +19,14 @@ func TestNewVulnerabilityReport(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	assert.Equal(t, "id", vr.ID)
 	assert.Equal(t, "Test Vulnerability", vr.Name)
 	assert.Equal(t, "http://test.com", vr.URL)
 	assert.Equal(t, 7.5, vr.CVSS.Score)
 }
 
-func TestVulnerabilityReport_WithOperation(t *testing.T) {
+func TestIssueReport_WithOperation(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -35,14 +35,14 @@ func TestVulnerabilityReport_WithOperation(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
 	vr.WithOperation(operation)
 	assert.Equal(t, "GET", vr.Operation.Method)
 	assert.Equal(t, "/api/v1/", vr.Operation.URL.Path)
 }
 
-func TestVulnerabilityReport_WithSecurityScheme(t *testing.T) {
+func TestIssueReport_WithSecurityScheme(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -51,14 +51,14 @@ func TestVulnerabilityReport_WithSecurityScheme(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	value := jwt.FakeJWT
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &value)
 	vr.WithSecurityScheme(securityScheme)
 	assert.Equal(t, jwt.FakeJWT, vr.SecurityScheme.GetValidValue())
 }
 
-func TestVulnerabilityReport_WithStatus(t *testing.T) {
+func TestIssueReport_WithStatus(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -67,12 +67,12 @@ func TestVulnerabilityReport_WithStatus(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
-	vr.WithStatus(report.VulnerabilityReportStatusFailed)
-	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
+	vr := report.NewIssueReport(issue)
+	vr.WithStatus(report.IssueReportStatusFailed)
+	assert.Equal(t, report.IssueReportStatusFailed, vr.Status)
 }
 
-func TestVulnerabilityReport_WithBooleanStatus_WhenFalse(t *testing.T) {
+func TestIssueReport_WithBooleanStatus_WhenFalse(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -81,12 +81,12 @@ func TestVulnerabilityReport_WithBooleanStatus_WhenFalse(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.WithBooleanStatus(false)
-	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
+	assert.Equal(t, report.IssueReportStatusFailed, vr.Status)
 }
 
-func TestVulnerabilityReport_WithBooleanStatus_WhenTrue(t *testing.T) {
+func TestIssueReport_WithBooleanStatus_WhenTrue(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -95,12 +95,12 @@ func TestVulnerabilityReport_WithBooleanStatus_WhenTrue(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.WithBooleanStatus(true)
-	assert.Equal(t, report.VulnerabilityReportStatusPassed, vr.Status)
+	assert.Equal(t, report.IssueReportStatusPassed, vr.Status)
 }
 
-func TestVulnerabilityReport_Fail(t *testing.T) {
+func TestIssueReport_Fail(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -109,12 +109,12 @@ func TestVulnerabilityReport_Fail(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Fail()
-	assert.Equal(t, report.VulnerabilityReportStatusFailed, vr.Status)
+	assert.Equal(t, report.IssueReportStatusFailed, vr.Status)
 }
 
-func TestVulnerabilityReport_HasFailed(t *testing.T) {
+func TestIssueReport_HasFailed(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -123,12 +123,12 @@ func TestVulnerabilityReport_HasFailed(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Fail()
 	assert.True(t, vr.HasFailed())
 }
 
-func TestVulnerabilityReport_Pass(t *testing.T) {
+func TestIssueReport_Pass(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -137,12 +137,12 @@ func TestVulnerabilityReport_Pass(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Pass()
-	assert.Equal(t, report.VulnerabilityReportStatusPassed, vr.Status)
+	assert.Equal(t, report.IssueReportStatusPassed, vr.Status)
 }
 
-func TestVulnerabilityReport_HasPassed(t *testing.T) {
+func TestIssueReport_HasPassed(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -151,12 +151,12 @@ func TestVulnerabilityReport_HasPassed(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Pass()
 	assert.True(t, vr.HasPassed())
 }
 
-func TestVulnerabilityReport_Skip(t *testing.T) {
+func TestIssueReport_Skip(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -165,12 +165,12 @@ func TestVulnerabilityReport_Skip(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Skip()
-	assert.Equal(t, report.VulnerabilityReportStatusSkipped, vr.Status)
+	assert.Equal(t, report.IssueReportStatusSkipped, vr.Status)
 }
 
-func TestVulnerabilityReport_HasBeenSkipped(t *testing.T) {
+func TestIssueReport_HasBeenSkipped(t *testing.T) {
 	issue := report.Issue{
 		ID:   "id",
 		Name: "Test Vulnerability",
@@ -179,13 +179,13 @@ func TestVulnerabilityReport_HasBeenSkipped(t *testing.T) {
 			Score: 7.5,
 		},
 	}
-	vr := report.NewVulnerabilityReport(issue)
+	vr := report.NewIssueReport(issue)
 	vr.Skip()
 	assert.True(t, vr.HasBeenSkipped())
 }
 
-func TestVulnerabilityReport_IsInfoRiskSeverity(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_IsInfoRiskSeverity(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{
 				Score: 0,
@@ -195,8 +195,8 @@ func TestVulnerabilityReport_IsInfoRiskSeverity(t *testing.T) {
 	assert.True(t, vr.IsInfoRiskSeverity())
 }
 
-func TestVulnerabilityReport_IsLowRiskSeverity(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_IsLowRiskSeverity(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{
 				Score: 3.5,
@@ -206,8 +206,8 @@ func TestVulnerabilityReport_IsLowRiskSeverity(t *testing.T) {
 	assert.True(t, vr.IsLowRiskSeverity())
 }
 
-func TestVulnerabilityReport_IsMediumRiskSeverity(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_IsMediumRiskSeverity(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{
 				Score: 5.5,
@@ -217,8 +217,8 @@ func TestVulnerabilityReport_IsMediumRiskSeverity(t *testing.T) {
 	assert.True(t, vr.IsMediumRiskSeverity())
 }
 
-func TestVulnerabilityReport_IsHighRiskSeverity(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_IsHighRiskSeverity(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{
 				Score: 8.5,
@@ -228,8 +228,8 @@ func TestVulnerabilityReport_IsHighRiskSeverity(t *testing.T) {
 	assert.True(t, vr.IsHighRiskSeverity())
 }
 
-func TestVulnerabilityReport_IsCriticalRiskSeverity(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_IsCriticalRiskSeverity(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{
 				Score: 9.5,
@@ -239,8 +239,8 @@ func TestVulnerabilityReport_IsCriticalRiskSeverity(t *testing.T) {
 	assert.True(t, vr.IsCriticalRiskSeverity())
 }
 
-func TestVulnerabilityReport_String(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_String(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			Name: "Test Vulnerability",
 
@@ -253,8 +253,8 @@ func TestVulnerabilityReport_String(t *testing.T) {
 	assert.Equal(t, expected, vr.String())
 }
 
-func TestVulnerabilityReport_SeverityLevelString(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_SeverityLevelString(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			CVSS: report.CVSS{},
 		},
@@ -281,8 +281,8 @@ func TestVulnerabilityReport_SeverityLevelString(t *testing.T) {
 	assert.Equal(t, "None", vr.SeverityLevelString())
 }
 
-func TestVulnerabilityReport_Clone(t *testing.T) {
-	vr := &report.VulnerabilityReport{
+func TestIssueReport_Clone(t *testing.T) {
+	vr := &report.IssueReport{
 		Issue: report.Issue{
 			Name: "Test Vulnerability",
 			URL:  "http://test.com",

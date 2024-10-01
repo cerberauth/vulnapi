@@ -11,8 +11,8 @@ import (
 
 func TrackScanReport(ctx context.Context, tracer trace.Tracer, reporter *report.Reporter) {
 	analyticsx.TrackEvent(ctx, tracer, "Scan Report", []attribute.KeyValue{
-		attribute.Int("vulnerabilityCount", len(reporter.GetVulnerabilityReports())),
-		attribute.Bool("hasVulnerability", reporter.HasVulnerability()),
-		attribute.Bool("hasHighRiskSeverityVulnerability", reporter.HasHighRiskOrHigherSeverityVulnerability()),
+		attribute.Int("issuesCount", len(reporter.GetIssueReports())),
+		attribute.Bool("hasIssue", reporter.HasIssue()),
+		attribute.Bool("hasHighRiskSeverityIssue", reporter.HasHighRiskOrHigherSeverityIssue()),
 	})
 }

@@ -9,9 +9,9 @@ import (
 type OpenAPI struct {
 	baseUrl *url.URL
 
-	doc *openapi3.T
+	Doc *openapi3.T
 }
 
 func NewOpenAPI(doc *openapi3.T) *OpenAPI {
-	return &OpenAPI{doc: doc}
+	return &OpenAPI{Doc: doc}
 }

@@ -19,7 +19,7 @@ func TestAuthenticationByPassScanHandler_Skipped_WhenNoAuthSecurityScheme(t *tes
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T) {
@@ -35,7 +35,7 @@ func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T)
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
 
 func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing.T) {
@@ -51,5 +51,5 @@ func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }

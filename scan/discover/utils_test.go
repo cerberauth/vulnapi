@@ -52,7 +52,7 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.VulnerabilityReport{}
+	vulnReport := &report.IssueReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -74,7 +74,7 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.VulnerabilityReport{}
+	vulnReport := &report.IssueReport{}
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -85,7 +85,7 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, r.Vulns[0].HasPassed())
+	assert.True(t, r.Issues[0].HasPassed())
 }
 
 func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
@@ -99,7 +99,7 @@ func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.VulnerabilityReport{}
+	vulnReport := &report.IssueReport{}
 
 	handler := discover.CreateURLScanHandler("test", seclistUrl, defaultUrls, r, vulnReport)
 
@@ -111,5 +111,5 @@ func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, r.Vulns[0].HasFailed())
+	assert.True(t, r.Issues[0].HasFailed())
 }

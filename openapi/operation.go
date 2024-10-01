@@ -34,7 +34,7 @@ func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirem
 	return operationsSecuritySchemes
 }
 
-func getOperationPath(p string, params openapi3.Parameters) (string, error) {
+func GetOperationPath(p string, params openapi3.Parameters) (string, error) {
 	subs := map[string]interface{}{}
 	for _, v := range params {
 		if v.Value.In != "path" {
@@ -51,9 +51,9 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 	baseUrl := openapi.BaseUrl()
 
 	operations := request.Operations{}
-	for docPath, p := range openapi.doc.Paths.Map() {
+	for docPath, p := range openapi.Doc.Paths.Map() {
 		for method, o := range p.Operations() {
-			operationPath, err := getOperationPath(docPath, o.Parameters)
+			operationPath, err := GetOperationPath(docPath, o.Parameters)
 			if err != nil {
 				return nil, err
 			}
@@ -94,13 +94,13 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 			if err != nil {
 				return nil, err
 			}
-			operation.WithOpenapiOperation(*o)
+			operation.WithOpenapiOperation(docPath, o)
 			operation.WithCookies(cookies).WithHeader(header)
 
 			if o.Security != nil {
 				operation.SetSecuritySchemes(getOperationSecuritySchemes(o.Security, securitySchemes))
-			} else if openapi.doc.Security != nil {
-				operation.SetSecuritySchemes(getOperationSecuritySchemes(&openapi.doc.Security, securitySchemes))
+			} else if openapi.Doc.Security != nil {
+				operation.SetSecuritySchemes(getOperationSecuritySchemes(&openapi.Doc.Security, securitySchemes))
 			}
 
 			operations = append(operations, operation)

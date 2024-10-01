@@ -7,35 +7,46 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/getkin/kin-openapi/openapi3"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-type Operations []*Operation
-
-func (o Operations) Len() int      { return len(o) }
-func (o Operations) Swap(i, j int) { o[i], o[j] = o[j], o[i] }
-func (o Operations) Less(i, j int) bool {
-	if o[i].URL == o[j].URL {
-		return o[i].Method < o[j].Method
+func GenerateOperationID(method string, path string) string {
+	idSource := strings.ToLower(method)
+	pathParts := strings.Split(path, "/")
+	newPathParts := []string{}
+	caser := cases.Title(language.English)
+	for _, part := range pathParts {
+		if part != "" {
+			newPathParts = append(newPathParts, caser.String(part))
+		}
+	}
+	if len(newPathParts) == 0 {
+		return idSource + "Root"
 	}
 
-	return o[i].URL.String() < o[j].URL.String()
+	idSource += strings.Join(newPathParts, "")
+	re := regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	return re.ReplaceAllString(idSource, "")
 }
 
 type Operation struct {
 	*Client `json:"-" yaml:"-"`
+
+	OpenAPIDocPath *string `json:"-" yaml:"-"`
+	ID             string  `json:"id" yaml:"id"`
 
 	Method          string                `json:"method" yaml:"method"`
 	URL             url.URL               `json:"url" yaml:"url"`
 	Body            *bytes.Buffer         `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies         []*http.Cookie        `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header          http.Header           `json:"header,omitempty" yaml:"header,omitempty"`
-	SecuritySchemes []auth.SecurityScheme `json:"security_schemes" yaml:"security_schemes"`
-
-	ID   string   `json:"id" yaml:"id"`
-	Tags []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	SecuritySchemes []auth.SecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
 }
 
 func NewOperation(method string, operationUrl string, body *bytes.Buffer, client *Client) (*Operation, error) {
@@ -89,7 +100,6 @@ func NewOperationFromRequest(r *Request) (*Operation, error) {
 
 	return &Operation{
 		ID:     r.URL.String(),
-		Tags:   []string{},
 		Method: r.Method,
 		URL:    *r.URL,
 		Body:   &body,
@@ -98,9 +108,14 @@ func NewOperationFromRequest(r *Request) (*Operation, error) {
 	}, nil
 }
 
-func (operation *Operation) WithOpenapiOperation(openapiOperation openapi3.Operation) *Operation {
-	operation.SetID(openapiOperation.OperationID)
-	operation.SetTags(openapiOperation.Tags)
+func (operation *Operation) WithOpenapiOperation(docPath string, openapiOperation *openapi3.Operation) *Operation {
+	if openapiOperation.OperationID != "" {
+		operation.SetID(openapiOperation.OperationID)
+	} else {
+		operation.SetID(GenerateOperationID(operation.Method, docPath))
+	}
+	operation.OpenAPIDocPath = &docPath
+
 	return operation
 }
 
@@ -145,22 +160,22 @@ func (operation *Operation) GetPath() string {
 	return operation.URL.Path
 }
 
+func (operation *Operation) GetOpenAPIDocPath() *string {
+	return operation.OpenAPIDocPath
+}
+
 func (operation *Operation) SetID(id string) *Operation {
 	operation.ID = id
 	return operation
 }
 
-func (operation *Operation) GetID() string {
-	return operation.ID
-}
-
-func (operation *Operation) SetTags(tags []string) *Operation {
-	operation.Tags = tags
+func (operation *Operation) GenerateID() *Operation {
+	operation.SetID(GenerateOperationID(operation.Method, operation.URL.Path))
 	return operation
 }
 
-func (operation *Operation) GetTags() []string {
-	return operation.Tags
+func (operation *Operation) GetID() string {
+	return operation.ID
 }
 
 func (o *Operation) Clone() *Operation {
@@ -180,7 +195,6 @@ func (o *Operation) Clone() *Operation {
 		Header:          o.Header,
 		SecuritySchemes: clonedSecuritySchemes,
 
-		ID:   o.ID,
-		Tags: o.Tags,
+		ID: o.ID,
 	}
 }

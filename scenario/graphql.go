@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
 )
@@ -35,6 +36,14 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 
 	if err := operation.IsReachable(); err != nil {
 		return nil, err
+	}
+
+	if opts == nil {
+		opts = &scan.ScanOptions{}
+	}
+
+	if opts.Reporter == nil {
+		opts.Reporter = report.NewReporterWithGraphQL(url, securitySchemes)
 	}
 
 	operations := request.Operations{operation}
