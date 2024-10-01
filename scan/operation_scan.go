@@ -6,7 +6,7 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 )
 
-type OperationScanHandlerFunc func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error)
+type OperationScanHandlerFunc func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
 
 type OperationScanHandler struct {
 	ID      string

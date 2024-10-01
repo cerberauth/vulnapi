@@ -45,12 +45,12 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, operation)
 
 	if !ShouldBeScanned(securityScheme) {
-		r.AddVulnerabilityReport(vulnReport.Skip()).End()
+		r.AddIssueReport(vulnReport.Skip()).End()
 		return r, nil
 	}
 
@@ -69,7 +69,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	r.AddScanAttempt(attemptOne).End()
 
 	if !scan.IsUnauthorizedStatusCodeOrSimilar(attemptOne.Response) {
-		r.AddVulnerabilityReport(vulnReport.Skip())
+		r.AddIssueReport(vulnReport.Skip())
 		return r, nil
 	}
 
@@ -81,7 +81,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 
 	r.AddScanAttempt(attemptTwo).End()
 	vulnReport.WithBooleanStatus(attemptOne.Response.StatusCode == attemptTwo.Response.StatusCode)
-	r.AddVulnerabilityReport(vulnReport)
+	r.AddIssueReport(vulnReport)
 
 	return r, nil
 }

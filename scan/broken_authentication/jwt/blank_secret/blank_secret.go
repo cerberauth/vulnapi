@@ -42,12 +42,12 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, operation)
 
 	if !ShouldBeScanned(securityScheme) {
-		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), nil
+		return r.AddIssueReport(vulnReport.Skip()).End(), nil
 	}
 
 	var valueWriter *jwt.JWTWriter
@@ -67,7 +67,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r, err
 	}
 	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	r.AddScanAttempt(vsa).AddVulnerabilityReport(vulnReport).End()
+	r.AddScanAttempt(vsa).AddIssueReport(vulnReport).End()
 
 	return r, nil
 }

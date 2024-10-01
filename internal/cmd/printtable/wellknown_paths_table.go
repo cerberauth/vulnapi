@@ -11,7 +11,7 @@ import (
 
 func WellKnownPathsScanReport(reporter *report.Reporter) {
 	openapiURL := ""
-	openapiReport := reporter.GetReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
+	openapiReport := reporter.GetScanReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
 	if openapiReport != nil && openapiReport.HasData() {
 		openapiData, ok := openapiReport.Data.(discoverableopenapi.DiscoverableOpenAPIData)
 		if ok {
@@ -20,7 +20,7 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 	}
 
 	graphqlURL := ""
-	graphqlReport := reporter.GetReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
+	graphqlReport := reporter.GetScanReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
 	if graphqlReport != nil && graphqlReport.HasData() {
 		graphqlData, ok := graphqlReport.Data.(discoverablegraphql.DiscoverableGraphQLPathData)
 		if ok {

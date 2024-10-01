@@ -25,7 +25,7 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *tes
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
 
 func TestGraphqlIntrospectionScanHandler_Passed_WhenNotFoundStatus(t *testing.T) {
@@ -41,5 +41,5 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenNotFoundStatus(t *testing.T)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }

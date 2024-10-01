@@ -9,7 +9,7 @@ import (
 )
 
 func FingerprintScanReport(reporter *report.Reporter) {
-	report := reporter.GetReportByID(fingerprint.DiscoverFingerPrintScanID)
+	report := reporter.GetScanReportByID(fingerprint.DiscoverFingerPrintScanID)
 	if report == nil || !report.HasData() {
 		return
 	}

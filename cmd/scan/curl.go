@@ -68,7 +68,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			internalCmd.TrackScanReport(ctx, tracer, reporter)
-			err = internalCmd.PrintOrExportReport(internalCmd.GetOutputFormat(), internalCmd.GetOutputTransport(), reporter)
+			err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter)
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

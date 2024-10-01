@@ -19,7 +19,7 @@ func TestAlgNoneJwtScanHandler_WithoutSecurityScheme(t *testing.T) {
 	report, err := algnone.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
@@ -34,7 +34,7 @@ func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testin
 	report, err := algnone.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestAlgNoneJwtScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
@@ -50,7 +50,7 @@ func TestAlgNoneJwtScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 	report, err := algnone.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestAlgNoneJwtScanHandler_Failed_WhenOKResponse(t *testing.T) {
@@ -66,5 +66,5 @@ func TestAlgNoneJwtScanHandler_Failed_WhenOKResponse(t *testing.T) {
 	report, err := algnone.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
