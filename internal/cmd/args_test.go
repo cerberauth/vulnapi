@@ -23,6 +23,7 @@ func TestAddCommonArgs(t *testing.T) {
 			outputTransport   string
 			outputPath        string
 			outputURL         string
+			noProgress        bool
 			severityThreshold float64
 		}
 	}{
@@ -40,6 +41,7 @@ func TestAddCommonArgs(t *testing.T) {
 				outputTransport   string
 				outputPath        string
 				outputURL         string
+				noProgress        bool
 				severityThreshold float64
 			}{
 				rateLimit:         "10/s",
@@ -52,6 +54,7 @@ func TestAddCommonArgs(t *testing.T) {
 				outputTransport:   "file",
 				outputPath:        "",
 				outputURL:         "",
+				noProgress:        false,
 				severityThreshold: 1,
 			},
 		},
@@ -68,6 +71,7 @@ func TestAddCommonArgs(t *testing.T) {
 				"--output-transport=http",
 				"--output-path=/tmp/output",
 				"--output-url=http://example.com/output",
+				"--no-progress",
 				"--severity-threshold=5",
 			},
 			expected: struct {
@@ -81,6 +85,7 @@ func TestAddCommonArgs(t *testing.T) {
 				outputTransport   string
 				outputPath        string
 				outputURL         string
+				noProgress        bool
 				severityThreshold float64
 			}{
 				rateLimit:         "5/m",
@@ -93,6 +98,7 @@ func TestAddCommonArgs(t *testing.T) {
 				outputTransport:   "http",
 				outputPath:        "/tmp/output",
 				outputURL:         "http://example.com/output",
+				noProgress:        true,
 				severityThreshold: 5,
 			},
 		},
@@ -113,6 +119,7 @@ func TestAddCommonArgs(t *testing.T) {
 			assert.Equal(t, tt.expected.excludeScans, cmd.GetExcludeScans())
 			assert.Equal(t, tt.expected.outputFormat, cmd.GetOutputFormat())
 			assert.Equal(t, tt.expected.outputTransport, cmd.GetOutputTransport())
+			assert.Equal(t, tt.expected.noProgress, cmd.GetNoProgress())
 			assert.Equal(t, tt.expected.severityThreshold, cmd.GetSeverityThreshold())
 		})
 	}

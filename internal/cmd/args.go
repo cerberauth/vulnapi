@@ -16,6 +16,7 @@ var (
 	outputPath      string
 	outputURL       string
 
+	noProgress        bool
 	severityThreshold float64
 
 	placeholderString string
@@ -38,6 +39,7 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&outputPath, "output-path", "", "", "The file to write the output to")
 	cmd.Flags().StringVarP(&outputURL, "output-url", "", "", "The URL to send the output to")
 
+	cmd.Flags().BoolVarP(&noProgress, "no-progress", "", false, "Disable progress output")
 	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 }
 
@@ -93,6 +95,10 @@ func GetOutputFormat() string {
 
 func GetOutputTransport() string {
 	return outputTransport
+}
+
+func GetNoProgress() bool {
+	return noProgress
 }
 
 func GetSeverityThreshold() float64 {
