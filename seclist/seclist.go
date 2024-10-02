@@ -37,7 +37,6 @@ func NewSecList(name string) *SecList {
 
 func NewSecListFromURL(name, url string) (*SecList, error) {
 	filename := fileNameFromURL(url)
-	println(filename)
 	if hasSecList(filename) {
 		return NewSecListFromEmbeddedFile(name, filename)
 	}
