@@ -41,7 +41,10 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, nil)
+			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, &scan.ScanOptions{
+				IncludeScans: internalCmd.GetIncludeScans(),
+				ExcludeScans: internalCmd.GetExcludeScans(),
+			})
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -56,7 +59,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				if bar != nil {
 					bar.Add(1)
 				}
-			}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans())
+			})
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

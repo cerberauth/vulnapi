@@ -2,14 +2,13 @@ package scenario
 
 import (
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 )
 
-func NewDiscoverAPIScan(method string, url string, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
+func NewDiscoverAPIScan(method string, url string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.DefaultClient
 	}
@@ -25,7 +24,7 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, repor
 	}
 
 	operations := request.Operations{operation}
-	urlScan, err := scan.NewScan(operations, reporter)
+	urlScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err
 	}

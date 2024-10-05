@@ -33,7 +33,10 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 			}
 
 			fmt.Printf("Discovering APIs for %s\n", domain)
-			scans, err := scenario.NewDiscoverDomainsScan(domain, client, nil)
+			scans, err := scenario.NewDiscoverDomainsScan(domain, client, &scan.ScanOptions{
+				IncludeScans: internalCmd.GetIncludeScans(),
+				ExcludeScans: internalCmd.GetExcludeScans(),
+			})
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -53,7 +56,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					if bar != nil {
 						bar.Add(1)
 					}
-				}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans())
+				})
 				if err != nil {
 					analyticsx.TrackError(ctx, tracer, err)
 					log.Fatal(err)

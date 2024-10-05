@@ -36,14 +36,17 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
-	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, nil)
+	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, &scan.ScanOptions{
+		IncludeScans: form.Opts.Scans,
+		ExcludeScans: form.Opts.ExcludeScans,
+	})
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {}, form.Opts.Scans, form.Opts.ExcludeScans)
+	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
