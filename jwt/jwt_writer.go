@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -24,6 +25,18 @@ func NewJWTWriter(token string) (*JWTWriter, error) {
 }
 
 func (j *JWTWriter) SignWithMethodAndKey(method jwt.SigningMethod, key interface{}) (string, error) {
+	// If the token has expired, we will extend it for 5 minutes so that it can pass the verification
+	expirationTime, err := j.Token.Claims.GetExpirationTime()
+	if err == nil && expirationTime != nil && expirationTime.Before(time.Now()) {
+		claims := j.Token.Claims.(jwt.MapClaims)
+		newClaims := jwt.MapClaims{}
+		for k, v := range claims {
+			newClaims[k] = v
+		}
+		newClaims["exp"] = time.Now().Add(5 * time.Minute).Unix()
+		j.Token.Claims = newClaims
+	}
+
 	newToken := jwt.NewWithClaims(method, j.Token.Claims)
 
 	tokenString, err := newToken.SignedString(key)
