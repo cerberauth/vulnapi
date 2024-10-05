@@ -8,65 +8,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsHS256(t *testing.T) {
+func TestJWTWriter_SignWithMethodAndRandomKey_SigningMethodIsHS256(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	tokenParsed, _, _ := new(libjwt.Parser).ParseUnverified(token, libjwt.MapClaims{})
 	writer, _ := jwt.NewJWTWriter(token)
 
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodHS256)
+	newToken, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodHS256)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
+	assert.NotEqual(t, token, newToken)
+
+	newTokenParsed, _, err := new(libjwt.Parser).ParseUnverified(newToken, libjwt.MapClaims{})
+	assert.NoError(t, err)
+	assert.Equal(t, libjwt.SigningMethodHS256, newTokenParsed.Method)
+	assert.Equal(t, tokenParsed.Claims, newTokenParsed.Claims)
 }
 
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsRS256(t *testing.T) {
+func TestJWTWriter_SignWithMethodAndRandomKey_SigningMethodIsHS512(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	tokenParsed, _, _ := new(libjwt.Parser).ParseUnverified(token, libjwt.MapClaims{})
 	writer, _ := jwt.NewJWTWriter(token)
 
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodRS256)
+	newToken, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodHS512)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
+	assert.NotEqual(t, token, newToken)
+
+	newTokenParsed, _, err := new(libjwt.Parser).ParseUnverified(newToken, libjwt.MapClaims{})
+	assert.NoError(t, err)
+	assert.Equal(t, libjwt.SigningMethodHS512, newTokenParsed.Method)
+	assert.Equal(t, tokenParsed.Claims, newTokenParsed.Claims)
 }
 
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsRS384(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+func TestJWTWriter_SignWithMethodAndKey_WhenTokenExpired(t *testing.T) {
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.4Adcj3UFYzPUVaVF43FmMab6RlaQD8A9V8wFzzht-KQ"
+	tokenParsed, _, _ := new(libjwt.Parser).ParseUnverified(token, libjwt.MapClaims{})
 	writer, _ := jwt.NewJWTWriter(token)
 
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodRS384)
+	newToken, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodHS256)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
-}
+	assert.NotEqual(t, token, newToken)
 
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsRS512(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	writer, _ := jwt.NewJWTWriter(token)
-
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodRS512)
+	newTokenParsed, _, err := new(libjwt.Parser).ParseUnverified(newToken, libjwt.MapClaims{})
 	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-}
+	assert.Equal(t, libjwt.SigningMethodHS256, newTokenParsed.Method)
 
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsES256(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	writer, _ := jwt.NewJWTWriter(token)
+	subject, _ := tokenParsed.Claims.GetSubject()
+	newSubject, _ := newTokenParsed.Claims.GetSubject()
+	assert.Equal(t, subject, newSubject)
 
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodES256)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-}
-
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsES384(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	writer, _ := jwt.NewJWTWriter(token)
-
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodES384)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-}
-
-func TestJWTWriter_SignWithMethodAndRandomKey_WhenSigningMethodIsES512(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	writer, _ := jwt.NewJWTWriter(token)
-
-	token, err := writer.SignWithMethodAndRandomKey(libjwt.SigningMethodES512)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
+	expirationTime, _ := tokenParsed.Claims.GetExpirationTime()
+	newExpirationTime, _ := newTokenParsed.Claims.GetExpirationTime()
+	assert.True(t, expirationTime.Before(newExpirationTime.Time))
 }
