@@ -32,7 +32,10 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, baseUrl, client, nil)
+			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, baseUrl, client, &scan.ScanOptions{
+				IncludeScans: internalCmd.GetIncludeScans(),
+				ExcludeScans: internalCmd.GetExcludeScans(),
+			})
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
@@ -47,7 +50,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				if bar != nil {
 					bar.Add(1)
 				}
-			}, internalCmd.GetIncludeScans(), internalCmd.GetExcludeScans())
+			})
 			if err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)

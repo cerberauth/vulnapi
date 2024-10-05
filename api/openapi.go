@@ -59,14 +59,17 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		}
 	}
 	securitySchemesValues := auth.NewSecuritySchemeValues(values)
-	s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, nil)
+	s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, &scan.ScanOptions{
+		IncludeScans: form.Opts.Scans,
+		ExcludeScans: form.Opts.ExcludeScans,
+	})
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {}, form.Opts.Scans, form.Opts.ExcludeScans)
+	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
 	if err != nil {
 		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

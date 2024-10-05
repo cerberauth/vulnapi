@@ -22,8 +22,11 @@ func TestNewScan(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
 	expected := scan.Scan{
+		ScanOptions: &scan.ScanOptions{
+			Reporter: report.NewReporter(),
+		},
+
 		Operations:      operations,
-		Reporter:        report.NewReporter(),
 		OperationsScans: []scan.OperationScan{},
 	}
 
@@ -35,17 +38,20 @@ func TestNewScan(t *testing.T) {
 	assert.Equal(t, expected.OperationsScans, s.OperationsScans)
 }
 
-func TestNewScanWithReporter(t *testing.T) {
+func TestNewScanWithOptions(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	reporter := report.NewReporter()
+	opts := &scan.ScanOptions{
+		Reporter: report.NewReporter(),
+	}
 	expected := scan.Scan{
+		ScanOptions: opts,
+
 		Operations:      operations,
-		Reporter:        reporter,
 		OperationsScans: []scan.OperationScan{},
 	}
 
-	s, err := scan.NewScan(operations, reporter)
+	s, err := scan.NewScan(operations, opts)
 
 	require.NoError(t, err)
 	assert.Equal(t, expected.Operations, s.Operations)
@@ -81,7 +87,7 @@ func TestScanExecuteWithNoHandlers(t *testing.T) {
 	operations := request.Operations{operation}
 	s, _ := scan.NewScan(operations, nil)
 
-	reporter, errors, err := s.Execute(nil, nil, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -97,7 +103,7 @@ func TestScanExecuteWithHandler(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, nil, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -108,13 +114,15 @@ func TestScanExecuteWithHandler(t *testing.T) {
 func TestScanExecuteWithIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"test-handler"},
+	})
 	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, []string{"test-handler"}, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -125,13 +133,15 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{""},
+	})
 	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, []string{""}, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -142,13 +152,15 @@ func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"category.*"},
+	})
 	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, []string{"category.*"}, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -159,13 +171,15 @@ func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"wrong-category.*"},
+	})
 	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, []string{"wrong-category.*"}, nil)
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -175,13 +189,15 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		ExcludeScans: []string{"test-handler"},
+	})
 	handler := scan.NewOperationScanHandler("test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, nil, []string{"test-handler"})
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -191,13 +207,15 @@ func TestScanExecuteWithExcludeScans(t *testing.T) {
 func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		ExcludeScans: []string{"category.*"},
+	})
 	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, nil, []string{"category.*"})
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -207,13 +225,15 @@ func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := request.Operations{operation}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		ExcludeScans: []string{"wrong-category.*"},
+	})
 	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *request.Operation, ss auth.SecurityScheme) (*report.Report, error) {
 		return &report.Report{ID: "test-report"}, nil
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil, nil, []string{"wrong-category.*"})
+	reporter, errors, err := s.Execute(nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)

@@ -5,13 +5,12 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 )
 
-func NewURLScan(method string, url string, data string, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
+func NewURLScan(method string, url string, data string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.DefaultClient
 	}
@@ -42,13 +41,13 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 	}
 
 	operations := request.Operations{operation}
-	urlScan, err := scan.NewScan(operations, reporter)
+	urlScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
+	urlScan.AddOperationScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
+	urlScan.AddOperationScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
 	WithAllCommonScans(urlScan)
 
 	return urlScan, nil

@@ -4,11 +4,10 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 )
 
-func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.SecuritySchemeValues, client *request.Client, reporter *report.Reporter) (*scan.Scan, error) {
+func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.DefaultClient
 	}
@@ -30,11 +29,10 @@ func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.Securi
 		return nil, err
 	}
 
-	openapiScan, err := scan.NewScan(operations, reporter)
+	openapiScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err
 	}
-
 	WithAllCommonScans(openapiScan)
 
 	return openapiScan, nil

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
@@ -97,7 +96,7 @@ func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation,
 	return nil, nil
 }
 
-func NewDiscoverDomainsScan(rootDomain string, client *request.Client, reporter *report.Reporter) ([]*scan.Scan, error) {
+func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *scan.ScanOptions) ([]*scan.Scan, error) {
 	if client == nil {
 		client = request.DefaultClient
 	}
@@ -110,7 +109,7 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, reporter 
 	domainsScan := []*scan.Scan{}
 	for _, domain := range domains {
 		if operation, err := testFqdnReachable(domain, client); operation != nil && err == nil {
-			domainScan, err := scan.NewScan(request.Operations{operation}, reporter)
+			domainScan, err := scan.NewScan(request.Operations{operation}, opts)
 			if err != nil {
 				return nil, err
 			}
