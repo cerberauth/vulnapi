@@ -16,26 +16,26 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		client = request.DefaultClient
 	}
 
-	var securitySchemes []auth.SecurityScheme
 	securityScheme, err := detectSecurityScheme(client.Header)
 	if err != nil {
 		return nil, err
 	}
 
+	var securitySchemes []auth.SecurityScheme
 	if securityScheme != nil {
-		securitySchemes = append(securitySchemes, securityScheme)
+		securitySchemes = []auth.SecurityScheme{securityScheme}
 	} else {
-		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
+		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 
 	body := bytes.NewBuffer([]byte(data))
 
 	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(method, url, body, client)
-	operation.SetSecuritySchemes(securitySchemes)
 	if err != nil {
 		return nil, err
 	}
+	operation.SetSecuritySchemes(securitySchemes)
 
 	if err := operation.IsReachable(); err != nil {
 		return nil, err

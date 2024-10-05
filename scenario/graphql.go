@@ -15,24 +15,24 @@ func NewGraphQLScan(url string, client *request.Client, reporter *report.Reporte
 		client = request.DefaultClient
 	}
 
-	var securitySchemes []auth.SecurityScheme
 	securityScheme, err := detectSecurityScheme(client.Header)
 	if err != nil {
 		return nil, err
 	}
 
+	var securitySchemes []auth.SecurityScheme
 	if securityScheme != nil {
-		securitySchemes = append(securitySchemes, securityScheme)
+		securitySchemes = []auth.SecurityScheme{securityScheme}
 	} else {
-		securitySchemes = append(securitySchemes, auth.NewNoAuthSecurityScheme())
+		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 
 	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(http.MethodPost, url, nil, client)
-	operation.SetSecuritySchemes(securitySchemes)
 	if err != nil {
 		return nil, err
 	}
+	operation.SetSecuritySchemes(securitySchemes)
 
 	if err := operation.IsReachable(); err != nil {
 		return nil, err
