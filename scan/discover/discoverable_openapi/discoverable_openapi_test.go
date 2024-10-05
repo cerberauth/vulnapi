@@ -13,7 +13,9 @@ import (
 )
 
 func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testing.T) {
-	client := request.DefaultClient
+	client := request.NewClient(request.NewClientOptions{
+		RateLimit: 500,
+	})
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -29,7 +31,9 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 }
 
 func TestDiscoverableScanner_Failed_WhenOneOpenAPIFound(t *testing.T) {
-	client := request.DefaultClient
+	client := request.NewClient(request.NewClientOptions{
+		RateLimit: 500,
+	})
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
