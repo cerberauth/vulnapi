@@ -81,11 +81,13 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				}
 			}
 
-			body := bytes.NewBuffer(nil)
+			var body *bytes.Buffer
+			var mediaType string
 			if o.RequestBody != nil {
-				mediaType := "application/json"
 				body, mediaType = getRequestBodyValue(o.RequestBody.Value)
 				header.Set("Content-Type", mediaType)
+			} else {
+				body = bytes.NewBuffer(nil)
 			}
 
 			operation, err := request.NewOperation(method, operationUrl.String(), body, client)

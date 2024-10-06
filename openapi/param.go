@@ -11,13 +11,14 @@ import (
 func getParameterValue(param *openapi3.Parameter) string {
 	if param.Schema != nil {
 		value := getSchemaValue(param.Schema.Value)
-		if param.Schema.Value.Type.Is("string") {
+		switch {
+		case param.Schema.Value.Type.Is("string"):
 			return value.(string)
-		} else if param.Schema.Value.Type.Is("number") {
+		case param.Schema.Value.Type.Is("number"):
 			return strconv.FormatFloat(value.(float64), 'f', -1, 64)
-		} else if param.Schema.Value.Type.Is("integer") {
+		case param.Schema.Value.Type.Is("integer"):
 			return strconv.Itoa(value.(int))
-		} else if param.Schema.Value.Type.Is("boolean") {
+		case param.Schema.Value.Type.Is("boolean"):
 			return strconv.FormatBool(value.(bool))
 		}
 	}
@@ -27,15 +28,16 @@ func getParameterValue(param *openapi3.Parameter) string {
 
 func mapRequestBodyFakeValueToJSON(schema *openapi3.Schema, fakeValue interface{}) *bytes.Buffer {
 	jsonResponse := []byte("{}")
-	if schema.Type.Is("string") {
+	switch {
+	case schema.Type.Is("string"):
 		jsonResponse = []byte("\"" + fakeValue.(string) + "\"")
-	} else if schema.Type.Is("number") {
+	case schema.Type.Is("number"):
 		jsonResponse = []byte(strconv.FormatFloat(fakeValue.(float64), 'f', -1, 64))
-	} else if schema.Type.Is("integer") {
+	case schema.Type.Is("integer"):
 		jsonResponse = []byte(strconv.Itoa(fakeValue.(int)))
-	} else if schema.Type.Is("boolean") {
+	case schema.Type.Is("boolean"):
 		jsonResponse = []byte(strconv.FormatBool(fakeValue.(bool)))
-	} else if schema.Type.Is("array") {
+	case schema.Type.Is("array"):
 		jsonResponse = []byte("[")
 		for i, value := range fakeValue.([]interface{}) {
 			if i > 0 {
@@ -44,7 +46,7 @@ func mapRequestBodyFakeValueToJSON(schema *openapi3.Schema, fakeValue interface{
 			jsonResponse = append(jsonResponse, mapRequestBodyFakeValueToJSON(schema.Items.Value, value).Bytes()...)
 		}
 		jsonResponse = append(jsonResponse, ']')
-	} else if schema.Type.Is("object") {
+	case schema.Type.Is("object"):
 		jsonResponse = []byte("{")
 		i := 0
 		for key, value := range fakeValue.(map[string]interface{}) {
@@ -57,7 +59,6 @@ func mapRequestBodyFakeValueToJSON(schema *openapi3.Schema, fakeValue interface{
 		}
 		jsonResponse = append(jsonResponse, '}')
 	}
-
 	return bytes.NewBuffer(jsonResponse)
 }
 
@@ -69,6 +70,8 @@ func getRequestBodyValue(requestBody *openapi3.RequestBody) (*bytes.Buffer, stri
 				switch mediaType {
 				case "application/json":
 					return mapRequestBodyFakeValueToJSON(mediaTypeValue.Schema.Value, body), "application/json"
+				default:
+					return bytes.NewBuffer([]byte(body.(string))), mediaType
 				}
 			}
 		}
@@ -85,19 +88,20 @@ func getSchemaValue(schema *openapi3.Schema) interface{} {
 	}
 
 	// if there is no example generate random param
-	if schema.Type.Is("number") || schema.Type.Is("integer") {
+	switch {
+	case schema.Type.Is("number") || schema.Type.Is("integer"):
 		return gofakeit.Number(0, 10)
-	} else if schema.Type.Is("boolean") {
+	case schema.Type.Is("boolean"):
 		return gofakeit.Bool()
-	} else if schema.Type.Is("array") {
+	case schema.Type.Is("array"):
 		return []interface{}{getSchemaValue(schema.Items.Value)}
-	} else if schema.Type.Is("object") {
+	case schema.Type.Is("object"):
 		object := map[string]interface{}{}
 		for key, value := range schema.Properties {
 			object[key] = getSchemaValue(value.Value)
 		}
 		return object
-	} else if schema.Type.Is("string") {
+	case schema.Type.Is("string"):
 		switch schema.Format {
 		case "date":
 			return gofakeit.Date().Format("2006-01-02")

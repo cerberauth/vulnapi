@@ -17,11 +17,12 @@ func PrintOrExportReport(format string, transport string, report *report.Reporte
 	}
 
 	var outputMessage string
-	if !report.HasVulnerability() {
+	switch {
+	case !report.HasVulnerability():
 		outputMessage = "Success: No vulnerabilities detected!"
-	} else if report.HasHighRiskOrHigherSeverityVulnerability() {
+	case report.HasHighRiskOrHigherSeverityVulnerability():
 		outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
-	} else {
+	default:
 		outputMessage = "Warning: There are some issues. It's advised to take action."
 	}
 

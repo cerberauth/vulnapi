@@ -44,10 +44,12 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			var bar *progressbar.ProgressBar
 			if !internalCmd.GetNoProgress() {
 				bar = internalCmd.NewProgressBar(len(s.GetOperationsScans()))
+				// nolint:errcheck
 				defer bar.Finish()
 			}
 			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
 				if bar != nil {
+					// nolint:errcheck
 					bar.Add(1)
 				}
 			})

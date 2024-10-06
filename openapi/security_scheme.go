@@ -64,17 +64,18 @@ func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securi
 	}
 
 	var cfg *auth.OAuthConfig
-	if scheme.Value.Flows.AuthorizationCode != nil {
+	switch {
+	case scheme.Value.Flows.AuthorizationCode != nil:
 		cfg = &auth.OAuthConfig{
 			TokenURL:   scheme.Value.Flows.AuthorizationCode.TokenURL,
 			RefreshURL: scheme.Value.Flows.AuthorizationCode.RefreshURL,
 		}
-	} else if scheme.Value.Flows.Implicit != nil {
+	case scheme.Value.Flows.Implicit != nil:
 		cfg = &auth.OAuthConfig{
 			TokenURL:   scheme.Value.Flows.Implicit.TokenURL,
 			RefreshURL: scheme.Value.Flows.Implicit.RefreshURL,
 		}
-	} else if scheme.Value.Flows.ClientCredentials != nil {
+	case scheme.Value.Flows.ClientCredentials != nil:
 		cfg = &auth.OAuthConfig{
 			TokenURL:   scheme.Value.Flows.ClientCredentials.TokenURL,
 			RefreshURL: scheme.Value.Flows.ClientCredentials.RefreshURL,

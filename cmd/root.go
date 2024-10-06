@@ -31,7 +31,10 @@ func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !sqaOptOut {
 				ctx := cmd.Context()
-				analytics.NewAnalytics(ctx, projectVersion)
+				_, err := analytics.NewAnalytics(ctx, projectVersion)
+				if err != nil {
+					fmt.Println("Failed to initialize analytics:", err)
+				}
 			}
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {

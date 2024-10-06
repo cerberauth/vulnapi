@@ -83,8 +83,9 @@ func TestNewOperationFromRequest(t *testing.T) {
 	r.WithHeader(header)
 	cookies := []*http.Cookie{}
 	r.WithCookies(cookies)
-	operation := request.NewOperationFromRequest(r)
+	operation, err := request.NewOperationFromRequest(r)
 
+	assert.NoError(t, err)
 	assert.Equal(t, r.URL.String(), operation.URL.String())
 	assert.Equal(t, r.Method, operation.Method)
 }

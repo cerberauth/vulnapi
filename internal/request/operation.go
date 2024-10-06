@@ -28,7 +28,7 @@ type Operation struct {
 	*Client `json:"-" yaml:"-"`
 
 	Method          string                `json:"method" yaml:"method"`
-	URL             url.URL               `json:"url,string" yaml:"url,string"`
+	URL             url.URL               `json:"url" yaml:"url"`
 	Body            *bytes.Buffer         `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies         []*http.Cookie        `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header          http.Header           `json:"header,omitempty" yaml:"header,omitempty"`
@@ -63,11 +63,12 @@ func NewOperation(method string, operationUrl string, body *bytes.Buffer, client
 func (operation *Operation) IsReachable() error {
 	host := operation.URL.Host
 	if _, _, err := net.SplitHostPort(host); err != nil {
-		if operation.URL.Scheme == "http" {
+		switch operation.URL.Scheme {
+		case "http":
 			host += ":80"
-		} else if operation.URL.Scheme == "https" {
+		case "https":
 			host += ":443"
-		} else {
+		default:
 			return errors.New("unsupported scheme")
 		}
 	}
@@ -76,11 +77,14 @@ func (operation *Operation) IsReachable() error {
 	return err
 }
 
-func NewOperationFromRequest(r *Request) *Operation {
+func NewOperationFromRequest(r *Request) (*Operation, error) {
 	var body bytes.Buffer
 	if r.Body != nil {
 		tee := io.TeeReader(r.Body, &body)
-		io.ReadAll(tee)
+		_, err := io.ReadAll(tee)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Operation{
@@ -91,7 +95,7 @@ func NewOperationFromRequest(r *Request) *Operation {
 		Body:   &body,
 
 		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
-	}
+	}, nil
 }
 
 func (operation *Operation) WithOpenapiOperation(openapiOperation openapi3.Operation) *Operation {
