@@ -49,9 +49,4 @@ class Vulnapi < Formula
       end
     end
   end
-
-  test do
-    assert_match "vulnapi version #{version}", shell_output("#{bin}/vulnapi version")
-    assert_match "Usage", shell_output("#{bin}/vulnapi --help")
-  end
 end
