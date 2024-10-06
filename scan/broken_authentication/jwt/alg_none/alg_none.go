@@ -56,9 +56,11 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	var valueWriter *jwt.JWTWriter
 	if securityScheme.HasValidValue() {
 		valueWriter = securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
-		if valueWriter.Token.Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+		if valueWriter.GetToken().Method.Alg() == jwtlib.SigningMethodNone.Alg() {
 			return nil, nil
 		}
+
+		valueWriter = jwt.NewJWTWriterWithValidClaims(valueWriter)
 	} else {
 		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
