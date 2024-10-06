@@ -28,6 +28,20 @@ func (rr *Reporter) GetReportByID(id string) *Report {
 	return nil
 }
 
+func (rr *Reporter) GetReportsByVulnerabilityStatus(status VulnerabilityReportStatus) []*Report {
+	var reports []*Report
+	for _, r := range rr.GetReports() {
+		for _, vr := range r.GetVulnerabilityReports() {
+			if vr.Status == status {
+				reports = append(reports, r)
+				break
+			}
+		}
+	}
+
+	return reports
+}
+
 func (rr *Reporter) GetErrors() []error {
 	var errors []error
 	for _, r := range rr.GetReports() {

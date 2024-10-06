@@ -9,12 +9,23 @@ import (
 
 type VulnerabilityReportStatus string
 
+func (vrs VulnerabilityReportStatus) String() string {
+	return string(vrs)
+}
+
 const (
 	VulnerabilityReportStatusPassed  VulnerabilityReportStatus = "passed"
 	VulnerabilityReportStatusFailed  VulnerabilityReportStatus = "failed"
 	VulnerabilityReportStatusSkipped VulnerabilityReportStatus = "skipped"
 	VulnerabilityReportStatusNone    VulnerabilityReportStatus = "none"
 )
+
+var VulnerabilityReportStatuses = []VulnerabilityReportStatus{
+	VulnerabilityReportStatusPassed,
+	VulnerabilityReportStatusFailed,
+	VulnerabilityReportStatusSkipped,
+	VulnerabilityReportStatusNone,
+}
 
 type VulnerabilityReport struct {
 	Issue  `json:",inline" yaml:",inline"`
