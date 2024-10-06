@@ -64,7 +64,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 
 				internalCmd.TrackScanReport(ctx, tracer, reporter)
 				printtable.WellKnownPathsScanReport(reporter)
-				printtable.ContextualScanReport(reporter)
+				printtable.FingerprintScanReport(reporter)
 			}
 		},
 	}

@@ -55,7 +55,8 @@ func PrintOrExportReport(format string, transport string, report *report.Reporte
 
 func PrintTable(report *report.Reporter) {
 	printtable.WellKnownPathsScanReport(report)
-	printtable.ContextualScanReport(report)
+	printtable.FingerprintScanReport(report)
+	printtable.DisplayReportSummaryTable(report)
 	printtable.DisplayReportTable(report)
 }
 
