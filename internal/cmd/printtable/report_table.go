@@ -64,13 +64,14 @@ func NewFullScanVulnerabilityReports(reports []*report.Report) []*ScanVulnerabil
 }
 
 func severityTableColor(v *report.VulnerabilityReport) int {
-	if v.IsLowRiskSeverity() || v.IsInfoRiskSeverity() {
+	switch {
+	case v.IsLowRiskSeverity() || v.IsInfoRiskSeverity():
 		return tablewriter.BgBlueColor
-	} else if v.IsMediumRiskSeverity() {
+	case v.IsMediumRiskSeverity():
 		return tablewriter.BgYellowColor
-	} else if v.IsHighRiskSeverity() {
+	case v.IsHighRiskSeverity():
 		return tablewriter.BgRedColor
-	} else if v.IsCriticalRiskSeverity() {
+	case v.IsCriticalRiskSeverity():
 		return tablewriter.BgHiRedColor
 	}
 

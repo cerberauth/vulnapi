@@ -44,7 +44,7 @@ func NewClient(opts NewClientOptions) *Client {
 		opts.Cookies = []*http.Cookie{}
 	}
 
-	var proxy func(*http.Request) (*url.URL, error) = nil
+	var proxy func(*http.Request) (*url.URL, error)
 	if opts.ProxyURL != nil && opts.ProxyURL.String() != "" {
 		proxy = http.ProxyURL(opts.ProxyURL)
 	} else {

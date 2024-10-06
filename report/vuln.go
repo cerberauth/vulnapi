@@ -117,17 +117,18 @@ func (vr *VulnerabilityReport) String() string {
 }
 
 func (vr *VulnerabilityReport) SeverityLevelString() string {
-	if vr.IsCriticalRiskSeverity() {
+	switch {
+	case vr.IsCriticalRiskSeverity():
 		return "Critical"
-	} else if vr.IsHighRiskSeverity() {
+	case vr.IsHighRiskSeverity():
 		return "High"
-	} else if vr.IsMediumRiskSeverity() {
+	case vr.IsMediumRiskSeverity():
 		return "Medium"
-	} else if vr.IsLowRiskSeverity() {
+	case vr.IsLowRiskSeverity():
 		return "Low"
-	} else if vr.IsInfoRiskSeverity() {
+	case vr.IsInfoRiskSeverity():
 		return "Info"
-	} else {
+	default:
 		return "None"
 	}
 }

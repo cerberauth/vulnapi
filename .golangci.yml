@@ -1,0 +1,26 @@
+linters:
+  enable:
+    - errcheck
+    - goconst
+    - gocritic
+    - gofmt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+
+linters-settings:
+  gosec:
+    excludes:
+      - G101
+      - G107
+
+issues:
+  exclude-files:
+    - ".+_test.go"
+
+

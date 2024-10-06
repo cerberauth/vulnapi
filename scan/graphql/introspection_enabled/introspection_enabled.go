@@ -58,7 +58,11 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	newOperation := request.NewOperationFromRequest(newRequest)
+	newOperation, err := request.NewOperationFromRequest(newRequest)
+	if err != nil {
+		return r, err
+	}
+
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err := scan.ScanURL(newOperation, &securityScheme)
 	if err != nil {
@@ -75,7 +79,11 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	newOperation = request.NewOperationFromRequest(newRequest)
+	newOperation, err = request.NewOperationFromRequest(newRequest)
+	if err != nil {
+		return r, err
+	}
+
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err = scan.ScanURL(newOperation, &securityScheme)
 	if err != nil {

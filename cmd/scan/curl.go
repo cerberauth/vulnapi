@@ -53,10 +53,12 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			var bar *progressbar.ProgressBar
 			if !internalCmd.GetNoProgress() {
 				bar = internalCmd.NewProgressBar(len(s.GetOperationsScans()))
+				// nolint:errcheck
 				defer bar.Finish()
 			}
 			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
 				if bar != nil {
+					// nolint:errcheck
 					bar.Add(1)
 				}
 			})
@@ -66,7 +68,11 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			internalCmd.TrackScanReport(ctx, tracer, reporter)
-			internalCmd.PrintOrExportReport(internalCmd.GetOutputFormat(), internalCmd.GetOutputTransport(), reporter)
+			err = internalCmd.PrintOrExportReport(internalCmd.GetOutputFormat(), internalCmd.GetOutputTransport(), reporter)
+			if err != nil {
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
+			}
 		},
 	}
 

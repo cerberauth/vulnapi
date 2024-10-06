@@ -23,6 +23,10 @@ func NewAnalytics(ctx context.Context, projectVersion string) (*sdktrace.TracerP
 	return tracerProvider, err
 }
 
-func Close() {
-	tracerProvider.Shutdown(context.Background())
+func Close() error {
+	if tracerProvider == nil {
+		return nil
+	}
+
+	return tracerProvider.Shutdown(context.Background())
 }
