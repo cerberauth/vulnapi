@@ -48,6 +48,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
+	secret := "secret"
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
 	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
@@ -58,6 +59,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.Vulns[0].HasFailed())
+	assert.Equal(t, &secret, report.Data.(*weaksecret.WeakSecretData).Secret)
 }
 
 func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
@@ -71,4 +73,5 @@ func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
 	assert.True(t, report.Vulns[0].HasPassed())
+	assert.Nil(t, report.Data, nil)
 }
