@@ -9,6 +9,10 @@ import (
 	"github.com/cerberauth/vulnapi/seclist"
 )
 
+type WeakSecretData struct {
+	Secret *string `json:"secret,omitempty"`
+}
+
 const (
 	WeakSecretVulnerabilityScanID   = "jwt.weak_secret"
 	WeakSecretVulnerabilityScanName = "JWT Weak Secret"
@@ -94,6 +98,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		}
 
 		secretFound = true
+		r.WithData(&WeakSecretData{Secret: &secret})
 		break
 	}
 
