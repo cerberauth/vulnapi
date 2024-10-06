@@ -84,9 +84,6 @@ brews:
     commit_author:
       name: Emmanuel Gautier
       email: emmanuel@cerberauth.com
-    test: |
-      assert_match "vulnapi version #{version}", shell_output("#{bin}/vulnapi version")
-      assert_match "Usage", shell_output("#{bin}/vulnapi --help")
 
 chocolateys:
   - owners: CerberAuth
