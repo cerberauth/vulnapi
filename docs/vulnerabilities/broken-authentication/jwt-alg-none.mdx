@@ -77,6 +77,16 @@ Invalid JWT has this header with algorithm set to none.
 }
 ```
 
+## How to test?
+
+If you want to test only the "JWT Alg None" vulnerability, you can use the following command:
+
+```bash
+vulnapi scan <curl|openapi|graphql> --scans jwt.alg_none [url]
+```
+
+VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
+
 ## What is the impact?
 
 The potential security impacts of the JWT "alg none" vulnerability are significant and can include:
@@ -88,10 +98,6 @@ The potential security impacts of the JWT "alg none" vulnerability are significa
 - **Replay Attacks**: Attackers can capture and replay valid JWTs since there's no signature validation, allowing them to reuse the tokens to gain unauthorized access or perform malicious actions.
 - **Denial of Service (DDoS)**: In some cases, attackers may exploit the vulnerability to craft JWTs with payloads that cause unexpected behavior or errors within the application, potentially leading to service disruptions or system crashes.
 - **Bypassing Security Controls**: In systems where JWTs are used for access control (authorization) or authentication, the "alg none" vulnerability can bypass security controls altogether, rendering any security mechanisms relying on JWTs ineffective.
-
-## How to test?
-
-TODO: VulnAPI Command
 
 ## How to remediate?
 
