@@ -5,14 +5,14 @@ go 1.23
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.4
 	github.com/cerberauth/x v0.0.0-20240929131055-0a38dd31aeda
-	github.com/getkin/kin-openapi v0.127.0
+	github.com/getkin/kin-openapi v0.128.0
 	github.com/gin-contrib/requestid v1.0.3
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.1.21
-	github.com/schollz/progressbar/v3 v3.16.0
+	github.com/projectdiscovery/wappalyzergo v0.1.22
+	github.com/schollz/progressbar/v3 v3.16.1
 	github.com/spf13/cobra v1.8.1
 	github.com/std-uritemplate/std-uritemplate/go v1.0.6
 	github.com/stretchr/testify v1.9.0
