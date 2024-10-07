@@ -41,7 +41,13 @@ TODO: write an example
 
 ## How to test?
 
-TODO: VulnAPI Command
+If you want to test only the "JWT Null Signature" vulnerability, you can use the following command:
+
+```bash
+vulnapi scan <curl|openapi|graphql> --scans jwt.null_signature [url]
+```
+
+VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
 
 ## What is the impact?
 
