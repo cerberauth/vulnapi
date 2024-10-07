@@ -14,7 +14,7 @@ Below are the instructions to install VulnAPI on Linux, Windows, MacOS, and Dock
 
 You can install VulnAPI on Linux using [Snap](https://snapcraft.io/vulnapi).
 
-```bash
+```bash copy
 sudo snap install vulnapi
 ```
 
@@ -22,7 +22,7 @@ sudo snap install vulnapi
 
 Download the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=deb) and install it using `dpkg`.
 
-```bash
+```bash copy
 sudo dpkg -i vulnapi.deb
 ```
 
@@ -30,7 +30,7 @@ sudo dpkg -i vulnapi.deb
 
 Download the latest [VulnAPI release](https://github.com/cerberauth/vulnapi/releases?ref=rpm) and install it using `dpkg`.
 
-```bash
+```bash copy
 sudo rpm -i vulnapi.rpm
 ```
 
@@ -44,7 +44,7 @@ You can install VulnAPI on Linux by downloading the latest [VulnAPI release](htt
 
 You can install VulnAPI on Windows using [Chocolatey](https://chocolatey.org/packages/vulnapi).
 
-```bash
+```bash copy
 choco install vulnapi
 ```
 
@@ -54,7 +54,7 @@ You can also install VulnAPI on Windows by downloading the latest [VulnAPI relea
 
 You can install VulnAPI on MacOS using Homebrew. To do so, run the following command:
 
-```bash
+```bash copy
 brew tap cerberauth/vulnapi https://github.com/cerberauth/vulnapi
 brew install $(brew --repository cerberauth/vulnapi)/vulnapi.rb
 ```
@@ -63,7 +63,7 @@ brew install $(brew --repository cerberauth/vulnapi)/vulnapi.rb
 
 You can also use VulnAPI as a Docker container with [VulnaAPI Docker Image](https://hub.docker.com/r/cerberauth/vulnapi). To do so, run the following command:
 
-```bash
+```bash copy
 docker run --rm cerberauth/vulnapi scan curl [API_URL] [CURL_OPTIONS]
 ```
 
