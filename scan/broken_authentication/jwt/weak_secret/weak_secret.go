@@ -72,6 +72,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 
 	secretFound := false
 	valueWriter := securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
+	currentToken := valueWriter.GetToken().Raw
 	for _, secret := range jwtSecretDictionary {
 		if secret == "" {
 			continue
@@ -82,11 +83,16 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 			return r, nil
 		}
 
-		if newToken != valueWriter.Token.Raw {
+		if newToken != currentToken {
 			continue
 		}
 
-		securityScheme.SetAttackValue(newToken)
+		newValidToken, err := jwt.NewJWTWriterWithValidClaims(valueWriter).SignWithKey([]byte(secret))
+		if err != nil {
+			return r, nil
+		}
+
+		securityScheme.SetAttackValue(newValidToken)
 		vsa, err := scan.ScanURL(operation, &securityScheme)
 		if err != nil {
 			return r, err
