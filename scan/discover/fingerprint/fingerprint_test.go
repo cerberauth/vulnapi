@@ -28,7 +28,7 @@ func TestCheckSignatureHeader_Failed_WithServerSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.Servers))
 	assert.Equal(t, data.Servers[0].Name, "Apache HTTP Server:2.4.29")
 }
@@ -49,7 +49,7 @@ func TestCheckSignatureHeader_Failed_WithOSSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.OS))
 	assert.Equal(t, data.OS[0].Name, "Ubuntu")
 }
@@ -70,7 +70,7 @@ func TestCheckSignatureHeader_Failed_WithHostingSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.Hosting))
 	assert.Equal(t, data.Hosting[0].Name, "Hostinger")
 }
@@ -91,7 +91,7 @@ func TestCheckSignatureHeader_Failed_WithAuthenticationSignatureHeader(t *testin
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.AuthServices))
 	assert.Equal(t, data.AuthServices[0].Name, "Auth0")
 }
@@ -112,7 +112,7 @@ func TestCheckSignatureHeader_Failed_WithCDNSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.CDNs))
 	assert.Equal(t, data.CDNs[0].Name, "Cloudflare")
 }
@@ -133,7 +133,7 @@ func TestCheckSignatureHeader_Failed_WithLanguageSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.Languages))
 	assert.Equal(t, data.Languages[0].Name, "PHP")
 }
@@ -154,7 +154,7 @@ func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) 
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 1, len(data.Languages))
 	assert.Equal(t, data.Languages[0].Name, "Node.js")
 	assert.Equal(t, 1, len(data.Frameworks))
@@ -176,7 +176,7 @@ func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, 2, len(data.Frameworks))
 }
 
@@ -194,5 +194,5 @@ func TestCheckSignatureHeader_Passed_WithoutSignatureHeader(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }

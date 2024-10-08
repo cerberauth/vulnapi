@@ -18,7 +18,7 @@ func TestAcceptUnauthenticatedScanHandler_Failed_WhenNoAuthSecurityScheme(t *tes
 	report, err := acceptunauthenticated.ScanHandler(operation, securityScheme)
 
 	assert.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
 
 func TestCheckNoAuthOperationScanHandler_Passed_WhenAuthConfigured(t *testing.T) {
@@ -29,5 +29,5 @@ func TestCheckNoAuthOperationScanHandler_Passed_WhenAuthConfigured(t *testing.T)
 	report, err := acceptunauthenticated.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }

@@ -2,28 +2,27 @@ package printtable
 
 import (
 	"fmt"
-	"net/url"
 	"sort"
 
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/olekukonko/tablewriter"
 )
 
-type ScanVulnerabilityReport struct {
+type ScanIssueReport struct {
 	OperationMethod string `json:"method"`
 	OperationPath   string `json:"path"`
 
-	Vuln *report.VulnerabilityReport `json:"vuln"`
+	Issue *report.IssueReport `json:"issue"`
 }
 
-type SortByPathAndSeverity []*ScanVulnerabilityReport
+type SortByPathAndSeverity []*ScanIssueReport
 
 func (a SortByPathAndSeverity) Len() int      { return len(a) }
 func (a SortByPathAndSeverity) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a SortByPathAndSeverity) Less(i, j int) bool {
 	if a[i].OperationPath == a[j].OperationPath {
 		if a[i].OperationMethod == a[j].OperationMethod {
-			return a[i].Vuln.Issue.CVSS.Score > a[j].Vuln.Issue.CVSS.Score
+			return a[i].Issue.CVSS.Score > a[j].Issue.CVSS.Score
 		}
 
 		return a[i].OperationMethod < a[j].OperationMethod
@@ -32,30 +31,25 @@ func (a SortByPathAndSeverity) Less(i, j int) bool {
 	return a[i].OperationPath < a[j].OperationPath
 }
 
-func NewScanVulnerabilityReports(r *report.Report) []*ScanVulnerabilityReport {
-	vulnReports := r.GetFailedVulnerabilityReports()
-	vulns := make([]*ScanVulnerabilityReport, 0, len(vulnReports))
-	for _, vulnReport := range vulnReports {
-		url, urlErr := url.Parse(r.Operation.URL)
-		if urlErr != nil {
-			continue
-		}
+func NewScanIssueReports(r *report.ScanReport) []*ScanIssueReport {
+	reports := r.GetFailedIssueReports()
+	issues := make([]*ScanIssueReport, 0, len(reports))
+	for _, ir := range reports {
+		issues = append(issues, &ScanIssueReport{
+			OperationMethod: ir.Operation.Method,
+			OperationPath:   ir.Operation.URL.Path,
 
-		vulns = append(vulns, &ScanVulnerabilityReport{
-			OperationMethod: r.Operation.Method,
-			OperationPath:   url.Path,
-
-			Vuln: vulnReport,
+			Issue: ir,
 		})
 	}
 
-	return vulns
+	return issues
 }
 
-func NewFullScanVulnerabilityReports(reports []*report.Report) []*ScanVulnerabilityReport {
-	vulns := make([]*ScanVulnerabilityReport, 0)
+func NewFullScanIssueReports(reports []*report.ScanReport) []*ScanIssueReport {
+	vulns := make([]*ScanIssueReport, 0)
 	for _, r := range reports {
-		vulns = append(vulns, NewScanVulnerabilityReports(r)...)
+		vulns = append(vulns, NewScanIssueReports(r)...)
 	}
 
 	sort.Sort(SortByPathAndSeverity(vulns))
@@ -63,7 +57,7 @@ func NewFullScanVulnerabilityReports(reports []*report.Report) []*ScanVulnerabil
 	return vulns
 }
 
-func severityTableColor(v *report.VulnerabilityReport) int {
+func severityTableColor(v *report.IssueReport) int {
 	switch {
 	case v.IsLowRiskSeverity() || v.IsInfoRiskSeverity():
 		return tablewriter.BgBlueColor
@@ -79,7 +73,7 @@ func severityTableColor(v *report.VulnerabilityReport) int {
 }
 
 func DisplayReportSummaryTable(r *report.Reporter) {
-	if r == nil || len(r.GetReports()) == 0 {
+	if r == nil || len(r.GetScanReports()) == 0 {
 		return
 	}
 
@@ -91,8 +85,8 @@ func DisplayReportSummaryTable(r *report.Reporter) {
 	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
 	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
 
-	for _, status := range report.VulnerabilityReportStatuses {
-		scansNumber := len(r.GetReportsByVulnerabilityStatus(status))
+	for _, status := range report.IssueReportStatuses {
+		scansNumber := len(r.GetReportsByIssueStatus(status))
 
 		row := []string{
 			status.String(),
@@ -107,27 +101,27 @@ func DisplayReportSummaryTable(r *report.Reporter) {
 }
 
 func DisplayReportTable(r *report.Reporter) {
-	if r == nil || !r.HasVulnerability() {
+	if r == nil || !r.HasIssue() {
 		return
 	}
 
-	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Vulnerability"}
+	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Issue"}
 	table := CreateTable(headers)
 
-	vulnerabilityReports := NewFullScanVulnerabilityReports(r.GetReports())
-	for _, vulnReport := range vulnerabilityReports {
+	IssueReports := NewFullScanIssueReports(r.GetScanReports())
+	for _, issueReport := range IssueReports {
 		row := []string{
-			fmt.Sprintf("%s %s", vulnReport.OperationMethod, vulnReport.OperationPath),
-			vulnReport.Vuln.SeverityLevelString(),
-			fmt.Sprintf("%.1f", vulnReport.Vuln.Issue.CVSS.Score),
-			string(vulnReport.Vuln.Classifications.OWASP),
-			vulnReport.Vuln.Name,
+			fmt.Sprintf("%s %s", issueReport.OperationMethod, issueReport.OperationPath),
+			issueReport.Issue.SeverityLevelString(),
+			fmt.Sprintf("%.1f", issueReport.Issue.CVSS.Score),
+			string(issueReport.Issue.Classifications.OWASP),
+			issueReport.Issue.Name,
 		}
 
 		tableColors := make([]tablewriter.Colors, len(headers))
 		for i := range tableColors {
 			if i == 1 {
-				tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(vulnReport.Vuln)}
+				tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(issueReport.Issue)}
 			} else {
 				tableColors[i] = tablewriter.Colors{}
 			}

@@ -39,8 +39,8 @@ var potentialGraphQLEndpoints = []string{
 	"/v1/graphiql",
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName, operation)
 	handler := discover.CreateURLScanHandler("GraphQL", graphqlSeclistUrl, potentialGraphQLEndpoints, r, vulnReport)
 

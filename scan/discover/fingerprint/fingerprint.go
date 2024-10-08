@@ -16,24 +16,24 @@ const (
 )
 
 type FingerPrintApp struct {
-	Name    string  `json:"name"`
+	Name    string  `json:"name" yaml:"name"`
 	Version *string `json:"version,omitempty"`
 }
 
 type FingerPrintData struct {
-	CertificateAuthority []FingerPrintApp `json:"certificate_authority"`
-	Hosting              []FingerPrintApp `json:"hosting"`
-	OS                   []FingerPrintApp `json:"os"`
-	Softwares            []FingerPrintApp `json:"softwares"`
-	Databases            []FingerPrintApp `json:"databases"`
-	Servers              []FingerPrintApp `json:"servers"`
-	ServerExtensions     []FingerPrintApp `json:"server_extensions"`
-	AuthServices         []FingerPrintApp `json:"auth_services"`
-	CDNs                 []FingerPrintApp `json:"cdns"`
-	Caching              []FingerPrintApp `json:"cache"`
-	Languages            []FingerPrintApp `json:"languages"`
-	Frameworks           []FingerPrintApp `json:"frameworks"`
-	SecurityServices     []FingerPrintApp `json:"security_services"`
+	CertificateAuthority []FingerPrintApp `json:"certificate_authority" yaml:"certificate_authority"`
+	Hosting              []FingerPrintApp `json:"hosting" yaml:"hosting"`
+	OS                   []FingerPrintApp `json:"os" yaml:"os"`
+	Softwares            []FingerPrintApp `json:"softwares" yaml:"softwares"`
+	Databases            []FingerPrintApp `json:"databases" yaml:"databases"`
+	Servers              []FingerPrintApp `json:"servers" yaml:"servers"`
+	ServerExtensions     []FingerPrintApp `json:"server_extensions" yaml:"server_extensions"`
+	AuthServices         []FingerPrintApp `json:"auth_services" yaml:"auth_services"`
+	CDNs                 []FingerPrintApp `json:"cdns" yaml:"cdns"`
+	Caching              []FingerPrintApp `json:"cache" yaml:"cache"`
+	Languages            []FingerPrintApp `json:"languages" yaml:"languages"`
+	Frameworks           []FingerPrintApp `json:"frameworks" yaml:"frameworks"`
+	SecurityServices     []FingerPrintApp `json:"security_services" yaml:"security_services"`
 }
 
 var issue = report.Issue{
@@ -60,18 +60,18 @@ func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintAp
 	return append(slice, app)
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, operation)
 
 	attempt, err := scan.ScanURL(operation, &securityScheme)
 	r.AddScanAttempt(attempt)
 	if err != nil {
-		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), err
+		return r.AddIssueReport(vulnReport.Skip()).End(), err
 	}
 
 	if attempt.Err != nil {
-		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), attempt.Err
+		return r.AddIssueReport(vulnReport.Skip()).End(), attempt.Err
 	}
 
 	resp := attempt.Response
@@ -79,7 +79,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 
 	wappalyzerClient, err := wappalyzer.New()
 	if err != nil {
-		return r.AddVulnerabilityReport(vulnReport.Skip()).End(), err
+		return r.AddIssueReport(vulnReport.Skip()).End(), err
 	}
 
 	fingerprints := wappalyzerClient.FingerprintWithInfo(resp.Header, data)
@@ -136,7 +136,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	}
 
 	vulnReport.WithBooleanStatus(!fingerPrintIdentifier)
-	r.WithData(reportData).AddVulnerabilityReport(vulnReport).End()
+	r.WithData(reportData).AddIssueReport(vulnReport).End()
 
 	return r, nil
 }

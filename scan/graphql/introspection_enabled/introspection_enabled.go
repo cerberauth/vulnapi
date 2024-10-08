@@ -49,9 +49,9 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL)
 	return request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, operation)
 	newRequest, err := newPostGraphqlIntrospectionRequest(operation.Client, operation.URL)
@@ -71,7 +71,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	r.AddScanAttempt(attempt).End()
 
 	if attempt.Response.StatusCode == http.StatusOK { // TODO: check the GraphQL response
-		r.AddVulnerabilityReport(vulnReport.Fail()).End()
+		r.AddIssueReport(vulnReport.Fail()).End()
 		return r, nil
 	}
 
@@ -92,10 +92,10 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	r.AddScanAttempt(attempt).End()
 
 	if attempt.Response.StatusCode == http.StatusOK { // TODO: check the GraphQL response
-		r.AddVulnerabilityReport(vulnReport.Fail()).End()
+		r.AddIssueReport(vulnReport.Fail()).End()
 		return r, nil
 	}
 
-	r.AddVulnerabilityReport(vulnReport.Pass()).End()
+	r.AddIssueReport(vulnReport.Pass()).End()
 	return r, nil
 }

@@ -27,7 +27,7 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 10)
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestDiscoverableScanner_Failed_WhenOneOpenAPIFound(t *testing.T) {
@@ -45,5 +45,5 @@ func TestDiscoverableScanner_Failed_WhenOneOpenAPIFound(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }

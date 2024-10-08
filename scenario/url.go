@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
@@ -31,6 +32,7 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 
 	url = addDefaultProtocolWhenMissing(url)
 	operation, err := request.NewOperation(method, url, body, client)
+	operation.GenerateID()
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +40,14 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 
 	if err := operation.IsReachable(); err != nil {
 		return nil, err
+	}
+
+	if opts == nil {
+		opts = &scan.ScanOptions{}
+	}
+
+	if opts.Reporter == nil {
+		opts.Reporter = report.NewReporterWithCurl(method, url, data, client.Header, client.Cookies, securitySchemes)
 	}
 
 	operations := request.Operations{operation}

@@ -26,9 +26,9 @@ func TestHTTPCookiesScanHandler_Skipped_WhenNoCookies(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.False(t, report.HasFailedVulnerabilityReport())
-	assert.True(t, report.GetVulnerabilityReports()[0].HasBeenSkipped())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.False(t, report.HasFailedIssueReport())
+	assert.True(t, report.GetIssueReports()[0].HasBeenSkipped())
 }
 
 func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
@@ -56,8 +56,8 @@ func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.False(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.False(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
@@ -85,8 +85,8 @@ func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
@@ -114,8 +114,8 @@ func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
@@ -143,8 +143,8 @@ func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
@@ -171,8 +171,8 @@ func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenExpiresNotSet(t *testing.T) {
@@ -200,6 +200,6 @@ func TestHTTPCookiesScanHandler_Failed_WhenExpiresNotSet(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 5, len(report.GetVulnerabilityReports()))
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.Equal(t, 5, len(report.GetIssueReports()))
+	assert.True(t, report.HasFailedIssueReport())
 }

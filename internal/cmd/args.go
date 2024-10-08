@@ -11,10 +11,10 @@ var (
 	includeScans []string
 	excludeScans []string
 
-	outputFormat    string
-	outputTransport string
-	outputPath      string
-	outputURL       string
+	reportFormat    string
+	reportTransport string
+	reportFile      string
+	reportURL       string
 
 	noProgress        bool
 	severityThreshold float64
@@ -34,10 +34,10 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVarP(&excludeScans, "exclude-scans", "e", excludeScans, "Exclude specific scans")
 
-	cmd.Flags().StringVarP(&outputFormat, "format", "", "table", "Output format (table, json, yaml)")
-	cmd.Flags().StringVarP(&outputTransport, "output-transport", "", "file", "The transport to use for output (e.g. file, http)")
-	cmd.Flags().StringVarP(&outputPath, "output-path", "", "", "The file to write the output to")
-	cmd.Flags().StringVarP(&outputURL, "output-url", "", "", "The URL to send the output to")
+	cmd.Flags().StringVarP(&reportFormat, "report-format", "", "table", "Report format (table, json, yaml)")
+	cmd.Flags().StringVarP(&reportTransport, "report-transport", "", "file", "The transport to use for report (e.g. file, http)")
+	cmd.Flags().StringVarP(&reportFile, "report-file", "", "", "The file to write the report to")
+	cmd.Flags().StringVarP(&reportURL, "report-url", "", "", "The URL to send the report to")
 
 	cmd.Flags().BoolVarP(&noProgress, "no-progress", "", false, "Disable progress output")
 	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
@@ -89,12 +89,12 @@ func GetExcludeScans() []string {
 	return filteredScans
 }
 
-func GetOutputFormat() string {
-	return outputFormat
+func GetReportFormat() string {
+	return reportFormat
 }
 
-func GetOutputTransport() string {
-	return outputTransport
+func GetReportTransport() string {
+	return reportTransport
 }
 
 func GetNoProgress() bool {

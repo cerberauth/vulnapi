@@ -19,7 +19,7 @@ func TestBlankSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
@@ -35,7 +35,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
@@ -51,7 +51,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }
 
 func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
@@ -68,7 +68,7 @@ func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestBlankSecretScanHandler_Failed_WhenOKResponse(t *testing.T) {
@@ -85,5 +85,5 @@ func TestBlankSecretScanHandler_Failed_WhenOKResponse(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }

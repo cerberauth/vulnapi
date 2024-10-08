@@ -19,7 +19,7 @@ func TestMarshalHTTPResponseReports(t *testing.T) {
 	sr.EndTime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	hrr := api.HTTPResponseReports{
-		Reports: []*report.Report{sr},
+		Reports: []*report.ScanReport{sr},
 	}
 
 	b, err := json.Marshal(hrr)

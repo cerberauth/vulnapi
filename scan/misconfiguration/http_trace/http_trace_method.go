@@ -31,15 +31,15 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	vulnReport := report.NewVulnerabilityReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName, operation)
 
 	newOperation := operation.Clone()
 	newOperation.Method = http.MethodTrace
 
 	attempt, err := scan.ScanURL(newOperation, &securityScheme)
-	r.AddScanAttempt(attempt).End().AddVulnerabilityReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.StatusCode != http.StatusOK))
+	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.StatusCode != http.StatusOK))
 
 	return r, nil
 }
