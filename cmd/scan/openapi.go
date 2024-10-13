@@ -102,7 +102,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			internalCmd.TrackScanReport(ctx, tracer, reporter)
-			if err = internalCmd.PrintOrExportReport(internalCmd.GetOutputFormat(), internalCmd.GetOutputTransport(), reporter); err != nil {
+			if err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter); err != nil {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}

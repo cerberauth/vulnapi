@@ -24,7 +24,7 @@ func TestHTTPTrackMethodScanHandler_Passed_WhenNotOKResponse(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestHTTPTrackMethodScanHandler_Failed_WhenTrackIsEnabled(t *testing.T) {
@@ -39,5 +39,5 @@ func TestHTTPTrackMethodScanHandler_Failed_WhenTrackIsEnabled(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }

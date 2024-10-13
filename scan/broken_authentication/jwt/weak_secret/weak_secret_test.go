@@ -19,7 +19,7 @@ func TestWeakHMACSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestWeakHMACSecretScanHandler_WithJWTUsingOtherAlg(t *testing.T) {
@@ -30,7 +30,7 @@ func TestWeakHMACSecretScanHandler_WithJWTUsingOtherAlg(t *testing.T) {
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestWeakHMACSecretScanHandler_WithoutJWT(t *testing.T) {
@@ -40,7 +40,7 @@ func TestWeakHMACSecretScanHandler_WithoutJWT(t *testing.T) {
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
@@ -58,7 +58,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 	assert.Equal(t, &secret, report.Data.(*weaksecret.WeakSecretData).Secret)
 }
 
@@ -72,6 +72,6 @@ func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 	assert.Nil(t, report.Data, nil)
 }

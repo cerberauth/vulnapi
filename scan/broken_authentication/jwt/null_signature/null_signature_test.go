@@ -19,7 +19,7 @@ func TestNullSignatureScanHandler_WithoutSecurityScheme(t *testing.T) {
 	report, err := nullsignature.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.True(t, report.Vulns[0].HasBeenSkipped())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
@@ -35,7 +35,7 @@ func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *tes
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
@@ -52,7 +52,7 @@ func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) 
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasPassed())
+	assert.True(t, report.Issues[0].HasPassed())
 }
 
 func TestNullSignatureScanHandler_Failed_WhenOKResponse(t *testing.T) {
@@ -69,5 +69,5 @@ func TestNullSignatureScanHandler_Failed_WhenOKResponse(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Vulns[0].HasFailed())
+	assert.True(t, report.Issues[0].HasFailed())
 }

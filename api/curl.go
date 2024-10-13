@@ -53,11 +53,11 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		return
 	}
 
-	if reporter.HasVulnerability() {
-		analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Vulnerability Found", nil)
+	if reporter.HasIssue() {
+		analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Issue Found", nil)
 	}
 
 	ctx.JSON(http.StatusOK, HTTPResponseReports{
-		Reports: reporter.GetReports(),
+		Reports: reporter.GetScanReports(),
 	})
 }

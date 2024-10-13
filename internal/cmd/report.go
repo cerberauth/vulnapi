@@ -12,15 +12,15 @@ import (
 
 func PrintOrExportReport(format string, transport string, report *report.Reporter) error {
 	outputStream := os.Stdout
-	if report.HasHigherThanSeverityThresholdVulnerability(GetSeverityThreshold()) {
+	if report.HasHigherThanSeverityThresholdIssue(GetSeverityThreshold()) {
 		outputStream = os.Stderr
 	}
 
 	var outputMessage string
 	switch {
-	case !report.HasVulnerability():
-		outputMessage = "Success: No vulnerabilities detected!"
-	case report.HasHighRiskOrHigherSeverityVulnerability():
+	case !report.HasIssue():
+		outputMessage = "Success: No issue detected!"
+	case report.HasHighRiskOrHigherSeverityIssue():
 		outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
 	default:
 		outputMessage = "Warning: There are some issues. It's advised to take action."
@@ -62,27 +62,25 @@ func PrintTable(report *report.Reporter) {
 }
 
 func ExportJSON(report *report.Reporter) ([]byte, error) {
-	reports := report.GetReports()
-	return json.Marshal(reports)
+	return json.Marshal(report)
 }
 
 func ExportYAML(report *report.Reporter) ([]byte, error) {
-	reports := report.GetReports()
-	return yaml.Marshal(reports)
+	return yaml.Marshal(report)
 }
 
 func exportWithTransport(transport string, output []byte) error {
 	switch transport {
 	case "file":
-		if outputPath == "" {
+		if reportFile == "" {
 			return fmt.Errorf("output file is not specified")
 		}
-		return writeFile(outputPath, output)
+		return writeFile(reportFile, output)
 	case "http":
-		if outputURL == "" {
+		if reportURL == "" {
 			return fmt.Errorf("output URL is not specified")
 		}
-		return sendHTTP(outputURL, output)
+		return sendHTTP(reportURL, output)
 	}
 
 	return nil

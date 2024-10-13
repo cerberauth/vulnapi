@@ -156,14 +156,14 @@ func CheckCSPFrameAncestors(cspHeader string) bool {
 	return false
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.Report, error) {
-	contentOptionsMissing := report.NewVulnerabilityReport(contentOptionsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	corsMissing := report.NewVulnerabilityReport(corsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	corsWildcard := report.NewVulnerabilityReport(corsWildcardIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	cspFrameAncestorsMissing := report.NewVulnerabilityReport(cspFrameAncestorsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	cspMissing := report.NewVulnerabilityReport(cspMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	frameOptionsMissing := report.NewVulnerabilityReport(frameOptionsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	hstsMissing := report.NewVulnerabilityReport(hstsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	contentOptionsMissing := report.NewIssueReport(contentOptionsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	corsMissing := report.NewIssueReport(corsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	corsWildcard := report.NewIssueReport(corsWildcardIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	cspFrameAncestorsMissing := report.NewIssueReport(cspFrameAncestorsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	cspMissing := report.NewIssueReport(cspMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	frameOptionsMissing := report.NewIssueReport(frameOptionsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	hstsMissing := report.NewIssueReport(hstsMissingIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
 
 	attempt, err := scan.ScanURL(operation, &securityScheme)
 	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName, operation)
@@ -173,22 +173,22 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	r.AddScanAttempt(attempt).End()
 
 	cspHeader := attempt.Response.Header.Get(CSPHTTPHeader)
-	r.AddVulnerabilityReport(cspMissing.Clone().WithBooleanStatus(cspHeader != ""))
-	r.AddVulnerabilityReport(cspFrameAncestorsMissing.Clone().WithBooleanStatus(CheckCSPFrameAncestors(cspHeader)))
+	r.AddIssueReport(cspMissing.Clone().WithBooleanStatus(cspHeader != ""))
+	r.AddIssueReport(cspFrameAncestorsMissing.Clone().WithBooleanStatus(CheckCSPFrameAncestors(cspHeader)))
 
 	allowOrigin := attempt.Response.Header.Get(CORSOriginHTTPHeader)
 
 	isCorsMissing := allowOrigin == ""
-	r.AddVulnerabilityReport(corsMissing.Clone().WithBooleanStatus(!isCorsMissing))
+	r.AddIssueReport(corsMissing.Clone().WithBooleanStatus(!isCorsMissing))
 	if isCorsMissing {
-		r.AddVulnerabilityReport(corsWildcard.Clone().Skip())
+		r.AddIssueReport(corsWildcard.Clone().Skip())
 	} else {
-		r.AddVulnerabilityReport(corsWildcard.Clone().WithBooleanStatus(allowOrigin != "*"))
+		r.AddIssueReport(corsWildcard.Clone().WithBooleanStatus(allowOrigin != "*"))
 	}
 
-	r.AddVulnerabilityReport(hstsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(HSTSHTTPHeader) != ""))
-	r.AddVulnerabilityReport(contentOptionsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(XContentTypeOptionsHTTPHeader) != ""))
-	r.AddVulnerabilityReport(frameOptionsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(XFrameOptionsHTTPHeader) != ""))
+	r.AddIssueReport(hstsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(HSTSHTTPHeader) != ""))
+	r.AddIssueReport(contentOptionsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(XContentTypeOptionsHTTPHeader) != ""))
+	r.AddIssueReport(frameOptionsMissing.Clone().WithBooleanStatus(attempt.Response.Header.Get(XFrameOptionsHTTPHeader) != ""))
 
 	return r, nil
 }

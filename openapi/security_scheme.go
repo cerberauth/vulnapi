@@ -89,12 +89,12 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (au
 	var err error
 	var securitySchemeValue interface{}
 
-	if openapi.doc.Components == nil || openapi.doc.Components.SecuritySchemes == nil {
+	if openapi.Doc.Components == nil || openapi.Doc.Components.SecuritySchemes == nil {
 		return nil, nil
 	}
 
 	securitySchemes := map[string]auth.SecurityScheme{}
-	for name, scheme := range openapi.doc.Components.SecuritySchemes {
+	for name, scheme := range openapi.Doc.Components.SecuritySchemes {
 		securitySchemeValue = values.Get(name)
 
 		var value *string

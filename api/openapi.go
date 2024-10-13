@@ -19,7 +19,7 @@ type NewOpenAPIScanRequest struct {
 	Schema          string `json:"schema" binding:"required"`
 	SecuritySchemes map[string]struct {
 		Value string `json:"value" binding:"required"`
-	} `json:"security_schemes"`
+	} `json:"securitySchemes"`
 
 	Opts *ScanOptions `json:"options"`
 }
@@ -76,12 +76,12 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	if reporter.HasVulnerability() {
-		analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Vulnerability Found", nil)
+	if reporter.HasIssue() {
+		analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Issue Found", nil)
 	}
 
 	response := HTTPResponseReports{
-		Reports: reporter.GetReports(),
+		Reports: reporter.GetScanReports(),
 	}
 	_, err = json.Marshal(response)
 	if err != nil {

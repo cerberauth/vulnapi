@@ -105,16 +105,32 @@ func TestOperationCloneWithSecuritySchemes(t *testing.T) {
 }
 
 func TestOperation_WithOpenapiOperation(t *testing.T) {
-	operation := &request.Operation{}
-	openapiOperation := openapi3.Operation{
+	operation, _ := request.NewOperation(http.MethodGet, "http://example.com", nil, nil)
+	openapiOperation := &openapi3.Operation{
 		OperationID: "testOperation",
-		Tags:        []string{"tag1", "tag2"},
 	}
 
-	operation.WithOpenapiOperation(openapiOperation)
+	operation.WithOpenapiOperation("/", openapiOperation)
 
 	assert.Equal(t, openapiOperation.OperationID, operation.GetID())
-	assert.Equal(t, openapiOperation.Tags, operation.GetTags())
+}
+
+func TestOperation_WithOpenapiOperation_WithoutOperationID(t *testing.T) {
+	operation, _ := request.NewOperation(http.MethodGet, "http://example.com/resource", nil, nil)
+	openapiOperation := &openapi3.Operation{}
+
+	operation.WithOpenapiOperation("/resource", openapiOperation)
+
+	assert.Equal(t, "getResource", operation.GetID())
+}
+
+func TestOperation_WithOpenapiOperation_WithoutOperationIDAndParameters(t *testing.T) {
+	operation, _ := request.NewOperation(http.MethodGet, "http://example.com/resource", nil, nil)
+	openapiOperation := &openapi3.Operation{}
+
+	operation.WithOpenapiOperation("/resource/{id}", openapiOperation)
+
+	assert.Equal(t, "getResourceId", operation.GetID())
 }
 
 func TestOperation_WithHeader(t *testing.T) {
@@ -140,20 +156,38 @@ func TestOperation_WithCookies(t *testing.T) {
 	assert.Equal(t, cookies, operation.Cookies)
 }
 
+func TestOperation_GenerateID(t *testing.T) {
+	tests := []struct {
+		method   string
+		url      string
+		expected string
+	}{
+		{http.MethodGet, "http://example.com/", "getRoot"},
+		{http.MethodGet, "http://example.com/path/to/resource", "getPathToResource"},
+		{http.MethodPost, "http://example.com/path/to/resource", "postPathToResource"},
+		{http.MethodPut, "http://example.com/path/to/resource", "putPathToResource"},
+		{http.MethodDelete, "http://example.com/path/to/resource", "deletePathToResource"},
+		{http.MethodGet, "http://example.com/path/to/resource{[]}", "getPathToResource"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.method+" "+tt.url, func(t *testing.T) {
+			operation, err := request.NewOperation(tt.method, tt.url, nil, nil)
+			assert.NoError(t, err)
+
+			operation.GenerateID()
+
+			assert.Equal(t, tt.expected, operation.GetID())
+		})
+	}
+}
+
 func TestOperation_SetId(t *testing.T) {
 	operation := &request.Operation{}
 
 	operation.SetID("testOperation")
 
 	assert.Equal(t, "testOperation", operation.GetID())
-}
-
-func TestOperation_SetTags(t *testing.T) {
-	operation := &request.Operation{}
-
-	operation.SetTags([]string{"tag1", "tag2"})
-
-	assert.Equal(t, []string{"tag1", "tag2"}, operation.GetTags())
 }
 
 func TestMarshalJSON(t *testing.T) {

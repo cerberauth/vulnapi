@@ -9,7 +9,7 @@ func (openapi *OpenAPI) BaseUrl() *url.URL {
 		return openapi.baseUrl
 	}
 
-	for _, server := range openapi.doc.Servers {
+	for _, server := range openapi.Doc.Servers {
 		if server.URL == "" {
 			continue
 		}

@@ -9,7 +9,23 @@ import (
 	"github.com/cerberauth/vulnapi/internal/scan"
 )
 
-type ReportRequest struct {
+type OperationSecurityScheme struct {
+	Type   auth.Type       `json:"type" yaml:"type"`
+	Scheme auth.SchemeName `json:"scheme" yaml:"scheme"`
+	In     *auth.SchemeIn  `json:"in,omitempty" yaml:"in,omitempty"`
+	Name   string          `json:"name" yaml:"name"`
+}
+
+func NewOperationSecurityScheme(ss auth.SecurityScheme) OperationSecurityScheme {
+	return OperationSecurityScheme{
+		Type:   ss.GetType(),
+		Scheme: ss.GetScheme(),
+		In:     ss.GetIn(),
+		Name:   ss.GetName(),
+	}
+}
+
+type ScanReportRequest struct {
 	Method  string         `json:"method" yaml:"method"`
 	URL     string         `json:"url" yaml:"url"`
 	Body    *string        `json:"body,omitempty" yaml:"body,omitempty"`
@@ -17,111 +33,82 @@ type ReportRequest struct {
 	Header  http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
-type ReportResponse struct {
-	StatusCode int            `json:"statusCode" yaml:"statusCode"`
-	Body       string         `json:"body" yaml:"body"`
+type ScanReportResponse struct {
+	StatusCode int            `json:"status_code" yaml:"status_code"`
+	Body       *string        `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies    []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header     http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
-type ReportScan struct {
-	Request  *ReportRequest  `json:"request,omitempty" yaml:"request,omitempty"`
-	Response *ReportResponse `json:"response,omitempty" yaml:"response,omitempty"`
-	Err      error           `json:"error,omitempty" yaml:"error,omitempty"`
+type ScanReportScan struct {
+	Request  *ScanReportRequest  `json:"request,omitempty" yaml:"request,omitempty"`
+	Response *ScanReportResponse `json:"response,omitempty" yaml:"response,omitempty"`
+	Err      error               `json:"error,omitempty" yaml:"error,omitempty"`
 }
 
-type ReportOperationSecurityScheme struct {
-	Type   auth.Type       `json:"type" yaml:"type"`
-	Scheme auth.SchemeName `json:"scheme" yaml:"scheme"`
-	In     *auth.SchemeIn  `json:"in,omitempty" yaml:"in,omitempty"`
-	Name   string          `json:"name" yaml:"name"`
+type ScanReportOperation struct {
+	ID string `json:"id" yaml:"id"`
 }
-
-type ReportOperation struct {
-	ID   string   `json:"id" yaml:"id"`
-	Tags []string `json:"tags" yaml:"tags"`
-
-	Method  string         `json:"method" yaml:"method"`
-	URL     string         `json:"url" yaml:"url"`
-	Cookies []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
-	Header  http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
-
-	SecuritySchemes []ReportOperationSecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
-}
-
-type Report struct {
+type ScanReport struct {
 	ID        string    `json:"id" yaml:"id"`
 	Name      string    `json:"name" yaml:"name"`
 	StartTime time.Time `json:"startTime" yaml:"startTime"`
 	EndTime   time.Time `json:"endTime,omitempty" yaml:"endTime,omitempty"`
 
-	Operation ReportOperation `json:"operation" yaml:"operation"`
+	Operation *ScanReportOperation `json:"operation,omitempty" yaml:"operation,omitempty"`
 
-	Data  interface{}            `json:"data,omitempty" yaml:"data,omitempty"`
-	Scans []ReportScan           `json:"scans" yaml:"scans"`
-	Vulns []*VulnerabilityReport `json:"vulnerabilities" yaml:"vulnerabilities"`
+	Data   interface{}      `json:"data,omitempty" yaml:"data,omitempty"`
+	Scans  []ScanReportScan `json:"scans" yaml:"scans"`
+	Issues []*IssueReport   `json:"issues" yaml:"issues"`
 }
 
-func NewScanReport(id string, name string, operation *request.Operation) *Report {
-	securitySchemes := []ReportOperationSecurityScheme{}
-	for _, ss := range operation.SecuritySchemes {
-		securitySchemes = append(securitySchemes, ReportOperationSecurityScheme{
-			Type:   ss.GetType(),
-			Scheme: ss.GetScheme(),
-			In:     ss.GetIn(),
-			Name:   ss.GetName(),
-		})
+func NewScanReport(id string, name string, operation *request.Operation) *ScanReport {
+	var scanOperation *ScanReportOperation
+	if operation != nil && operation.ID != "" {
+		scanOperation = &ScanReportOperation{
+			ID: operation.ID,
+		}
 	}
 
-	return &Report{
+	return &ScanReport{
 		ID:        id,
 		Name:      name,
 		StartTime: time.Now(),
 
-		Operation: ReportOperation{
-			ID:   operation.ID,
-			Tags: operation.Tags,
+		Operation: scanOperation,
 
-			Method:  operation.Method,
-			URL:     operation.URL.String(),
-			Cookies: operation.Cookies,
-			Header:  operation.Header,
-
-			SecuritySchemes: securitySchemes,
-		},
-
-		Scans: []ReportScan{},
-		Vulns: []*VulnerabilityReport{},
+		Scans:  []ScanReportScan{},
+		Issues: []*IssueReport{},
 	}
 }
 
-func (r *Report) Start() *Report {
+func (r *ScanReport) Start() *ScanReport {
 	r.StartTime = time.Now()
 	return r
 }
 
-func (r *Report) End() *Report {
+func (r *ScanReport) End() *ScanReport {
 	r.EndTime = time.Now()
 	return r
 }
 
-func (r *Report) WithData(data interface{}) *Report {
+func (r *ScanReport) WithData(data interface{}) *ScanReport {
 	r.Data = data
 	return r
 }
 
-func (r *Report) GetData() interface{} {
+func (r *ScanReport) GetData() interface{} {
 	return r.Data
 }
 
-func (r *Report) HasData() bool {
+func (r *ScanReport) HasData() bool {
 	return r.Data != nil
 }
 
-func (r *Report) AddScanAttempt(a *scan.VulnerabilityScanAttempt) *Report {
-	var reportRequest *ReportRequest = nil
+func (r *ScanReport) AddScanAttempt(a *scan.IssueScanAttempt) *ScanReport {
+	var reportRequest *ScanReportRequest = nil
 	if a.Request != nil {
-		reportRequest = &ReportRequest{
+		reportRequest = &ScanReportRequest{
 			Method:  a.Request.Method,
 			URL:     a.Request.URL.String(),
 			Cookies: a.Request.Cookies(),
@@ -129,16 +116,16 @@ func (r *Report) AddScanAttempt(a *scan.VulnerabilityScanAttempt) *Report {
 		}
 	}
 
-	var reportResponse *ReportResponse = nil
+	var reportResponse *ScanReportResponse = nil
 	if a.Response != nil {
-		reportResponse = &ReportResponse{
+		reportResponse = &ScanReportResponse{
 			StatusCode: a.Response.StatusCode,
 			Cookies:    a.Response.Cookies(),
 			Header:     a.Response.Header,
 		}
 	}
 
-	r.Scans = append(r.Scans, ReportScan{
+	r.Scans = append(r.Scans, ScanReportScan{
 		Request:  reportRequest,
 		Response: reportResponse,
 		Err:      a.Err,
@@ -146,20 +133,20 @@ func (r *Report) AddScanAttempt(a *scan.VulnerabilityScanAttempt) *Report {
 	return r
 }
 
-func (r *Report) GetScanAttempts() []ReportScan {
+func (r *ScanReport) GetScanAttempts() []ScanReportScan {
 	return r.Scans
 }
 
-func (r *Report) AddVulnerabilityReport(vr *VulnerabilityReport) *Report {
-	r.Vulns = append(r.Vulns, vr)
+func (r *ScanReport) AddIssueReport(vr *IssueReport) *ScanReport {
+	r.Issues = append(r.Issues, vr)
 	return r
 }
 
-func (r *Report) GetVulnerabilityReports() []*VulnerabilityReport {
-	return r.Vulns
+func (r *ScanReport) GetIssueReports() []*IssueReport {
+	return r.Issues
 }
 
-func (r *Report) GetErrors() []error {
+func (r *ScanReport) GetErrors() []error {
 	var errors []error
 	for _, sa := range r.GetScanAttempts() {
 		if sa.Err != nil {
@@ -169,9 +156,9 @@ func (r *Report) GetErrors() []error {
 	return errors
 }
 
-func (r *Report) GetFailedVulnerabilityReports() []*VulnerabilityReport {
-	var failedReports []*VulnerabilityReport
-	for _, vr := range r.GetVulnerabilityReports() {
+func (r *ScanReport) GetFailedIssueReports() []*IssueReport {
+	var failedReports []*IssueReport
+	for _, vr := range r.GetIssueReports() {
 		if vr.HasFailed() {
 			failedReports = append(failedReports, vr)
 		}
@@ -179,6 +166,6 @@ func (r *Report) GetFailedVulnerabilityReports() []*VulnerabilityReport {
 	return failedReports
 }
 
-func (r *Report) HasFailedVulnerabilityReport() bool {
-	return len(r.GetFailedVulnerabilityReports()) > 0
+func (r *ScanReport) HasFailedIssueReport() bool {
+	return len(r.GetFailedIssueReports()) > 0
 }

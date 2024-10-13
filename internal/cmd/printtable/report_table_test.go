@@ -4,13 +4,15 @@ import (
 	"testing"
 
 	printtable "github.com/cerberauth/vulnapi/internal/cmd/printtable"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewScanVulnerabilityReports(t *testing.T) {
-	sr := &report.Report{
-		Vulns: []*report.VulnerabilityReport{
+func TestNewScanIssueReports(t *testing.T) {
+	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
+	sr := &report.ScanReport{
+		Issues: []*report.IssueReport{
 			{
 				Issue: report.Issue{
 					Name: "Vuln1",
@@ -18,7 +20,8 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
 			{
 				Issue: report.Issue{
@@ -27,30 +30,27 @@ func TestNewScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
-		},
-
-		Operation: report.ReportOperation{
-			Method: "GET",
-			URL:    "/api/v1/",
 		},
 	}
 
-	vulns := printtable.NewScanVulnerabilityReports(sr)
+	issues := printtable.NewScanIssueReports(sr)
 
-	assert.Len(t, vulns, 2)
-	assert.Equal(t, "GET", vulns[0].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[0].OperationPath)
-	assert.Equal(t, "Vuln1", vulns[0].Vuln.Issue.Name)
-	assert.Equal(t, "GET", vulns[1].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[1].OperationPath)
-	assert.Equal(t, "Vuln2", vulns[1].Vuln.Issue.Name)
+	assert.Len(t, issues, 2)
+	assert.Equal(t, "GET", issues[0].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[0].OperationPath)
+	assert.Equal(t, "Vuln1", issues[0].Issue.Name)
+	assert.Equal(t, "GET", issues[1].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[1].OperationPath)
+	assert.Equal(t, "Vuln2", issues[1].Issue.Name)
 }
 
-func TestNewFullScanVulnerabilityReports(t *testing.T) {
-	sr1 := &report.Report{
-		Vulns: []*report.VulnerabilityReport{
+func TestNewFullScanIssueReports(t *testing.T) {
+	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
+	sr1 := &report.ScanReport{
+		Issues: []*report.IssueReport{
 			{
 				Issue: report.Issue{
 					Name: "Vuln1",
@@ -58,7 +58,8 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
 			{
 				Issue: report.Issue{
@@ -67,17 +68,13 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
 		},
-
-		Operation: report.ReportOperation{
-			Method: "GET",
-			URL:    "/api/v1/",
-		},
 	}
-	sr2 := &report.Report{
-		Vulns: []*report.VulnerabilityReport{
+	sr2 := &report.ScanReport{
+		Issues: []*report.IssueReport{
 			{
 				Issue: report.Issue{
 					Name: "Vuln3",
@@ -85,7 +82,8 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
 			{
 				Issue: report.Issue{
@@ -94,29 +92,29 @@ func TestNewFullScanVulnerabilityReports(t *testing.T) {
 						Score: 5.0,
 					},
 				},
-				Status: report.VulnerabilityReportStatusFailed,
+				Status:    report.IssueReportStatusFailed,
+				Operation: operation,
 			},
 		},
 
-		Operation: report.ReportOperation{
-			Method: "GET",
-			URL:    "/api/v1/",
+		Operation: &report.ScanReportOperation{
+			ID: "id",
 		},
 	}
 
-	vulns := printtable.NewFullScanVulnerabilityReports([]*report.Report{sr1, sr2})
+	issues := printtable.NewFullScanIssueReports([]*report.ScanReport{sr1, sr2})
 
-	assert.Len(t, vulns, 4)
-	assert.Equal(t, "GET", vulns[0].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[0].OperationPath)
-	assert.Equal(t, "Vuln1", vulns[0].Vuln.Issue.Name)
-	assert.Equal(t, "GET", vulns[1].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[1].OperationPath)
-	assert.Equal(t, "Vuln2", vulns[1].Vuln.Issue.Name)
-	assert.Equal(t, "GET", vulns[2].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[2].OperationPath)
-	assert.Equal(t, "Vuln3", vulns[2].Vuln.Issue.Name)
-	assert.Equal(t, "GET", vulns[3].OperationMethod)
-	assert.Equal(t, "/api/v1/", vulns[3].OperationPath)
-	assert.Equal(t, "Vuln4", vulns[3].Vuln.Issue.Name)
+	assert.Len(t, issues, 4)
+	assert.Equal(t, "GET", issues[0].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[0].OperationPath)
+	assert.Equal(t, "Vuln1", issues[0].Issue.Name)
+	assert.Equal(t, "GET", issues[1].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[1].OperationPath)
+	assert.Equal(t, "Vuln2", issues[1].Issue.Name)
+	assert.Equal(t, "GET", issues[2].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[2].OperationPath)
+	assert.Equal(t, "Vuln3", issues[2].Issue.Name)
+	assert.Equal(t, "GET", issues[3].OperationMethod)
+	assert.Equal(t, "/api/v1/", issues[3].OperationPath)
+	assert.Equal(t, "Vuln4", issues[3].Issue.Name)
 }

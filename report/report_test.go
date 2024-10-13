@@ -7,11 +7,48 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewOperationSecurityScheme(t *testing.T) {
+	inHeader := auth.InHeader
+	tests := []struct {
+		name string
+		ss   auth.SecurityScheme
+		want report.OperationSecurityScheme
+	}{
+		{
+			name: "No Auth",
+			ss:   auth.NewNoAuthSecurityScheme(),
+			want: report.OperationSecurityScheme{
+				Type:   auth.None,
+				Scheme: auth.NoneScheme,
+				In:     nil,
+			},
+		},
+		{
+			name: "Bearer Token",
+			ss:   auth.NewAuthorizationBearerSecurityScheme("test", nil),
+			want: report.OperationSecurityScheme{
+				Type:   auth.HttpType,
+				Scheme: auth.BearerScheme,
+				In:     &inHeader,
+				Name:   "test",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := report.NewOperationSecurityScheme(tt.ss)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
 
 func TestNewScanReport(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
@@ -75,60 +112,60 @@ func TestScanReport_HasData(t *testing.T) {
 func TestScanReport_AddScanAttempt(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	expectedScanAttempt := report.ReportScan{}
+	expectedScanAttempt := report.ScanReportScan{}
 
-	sr.AddScanAttempt(&scan.VulnerabilityScanAttempt{})
+	sr.AddScanAttempt(&scan.IssueScanAttempt{})
 
 	assert.Equal(t, 1, len(sr.GetScanAttempts()))
 	assert.Equal(t, expectedScanAttempt, sr.GetScanAttempts()[0])
 }
 
-func TestScanReport_AddVulnerabilityReport(t *testing.T) {
+func TestScanReport_AddIssueReport(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	vulnerabilityReport := &report.VulnerabilityReport{}
-	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.Equal(t, 1, len(sr.GetVulnerabilityReports()))
-	assert.Equal(t, vulnerabilityReport, sr.GetVulnerabilityReports()[0])
+	IssueReport := &report.IssueReport{}
+	sr.AddIssueReport(IssueReport)
+	assert.Equal(t, 1, len(sr.GetIssueReports()))
+	assert.Equal(t, IssueReport, sr.GetIssueReports()[0])
 }
 
-func TestScanReport_HasFailedVulnerabilityReport(t *testing.T) {
+func TestScanReport_HasFailedIssueReport(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	assert.False(t, sr.HasFailedVulnerabilityReport())
+	assert.False(t, sr.HasFailedIssueReport())
 
 	issue := report.Issue{
 		Name: "test",
 	}
-	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
-	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.True(t, sr.HasFailedVulnerabilityReport())
+	IssueReport := report.NewIssueReport(issue).Fail()
+	sr.AddIssueReport(IssueReport)
+	assert.True(t, sr.HasFailedIssueReport())
 }
 
-func TestScanReport_HasOnlyFailedVulnerabilityReport(t *testing.T) {
+func TestScanReport_HasOnlyFailedIssueReport(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	assert.False(t, sr.HasFailedVulnerabilityReport())
+	assert.False(t, sr.HasFailedIssueReport())
 
 	issue := report.Issue{
 		Name: "test",
 	}
-	vulnerabilityReport := report.NewVulnerabilityReport(issue).Fail()
-	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.True(t, sr.HasFailedVulnerabilityReport())
+	IssueReport := report.NewIssueReport(issue).Fail()
+	sr.AddIssueReport(IssueReport)
+	assert.True(t, sr.HasFailedIssueReport())
 }
 
-func TestScanReport_HasOnlyPassedVulnerabilityReport(t *testing.T) {
+func TestScanReport_HasOnlyPassedIssueReport(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	assert.False(t, sr.HasFailedVulnerabilityReport())
+	assert.False(t, sr.HasFailedIssueReport())
 
 	issue := report.Issue{
 		Name: "test",
 	}
-	vulnerabilityReport := report.NewVulnerabilityReport(issue).Pass()
-	sr.AddVulnerabilityReport(vulnerabilityReport)
-	assert.False(t, sr.HasFailedVulnerabilityReport())
+	IssueReport := report.NewIssueReport(issue).Pass()
+	sr.AddIssueReport(IssueReport)
+	assert.False(t, sr.HasFailedIssueReport())
 }
 
 func TestScanReport_GetErrors(t *testing.T) {
@@ -136,7 +173,7 @@ func TestScanReport_GetErrors(t *testing.T) {
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetErrors())
 
-	sr.AddScanAttempt(&scan.VulnerabilityScanAttempt{
+	sr.AddScanAttempt(&scan.IssueScanAttempt{
 		Err: errors.New("test"),
 	})
 	assert.NotEmpty(t, sr.GetErrors())
@@ -146,14 +183,30 @@ func TestScanReport_GetErrors(t *testing.T) {
 func TestMarshalJSON(t *testing.T) {
 	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	scanAttempt := &scan.VulnerabilityScanAttempt{
+	scanAttempt := &scan.IssueScanAttempt{
 		Err: nil,
 	}
 	sr.AddScanAttempt(scanAttempt)
-	vulnerabilityReport := &report.VulnerabilityReport{}
-	sr.AddVulnerabilityReport(vulnerabilityReport)
+	IssueReport := &report.IssueReport{}
+	sr.AddIssueReport(IssueReport)
 
 	_, err := json.Marshal(sr)
 
 	assert.NoError(t, err)
+}
+
+func TestScanReport_GetIssueReports(t *testing.T) {
+	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	sr := report.NewScanReport("id", "test", operation)
+	assert.Empty(t, sr.GetIssueReports())
+
+	issueReport1 := &report.IssueReport{}
+	issueReport2 := &report.IssueReport{}
+	sr.AddIssueReport(issueReport1)
+	sr.AddIssueReport(issueReport2)
+
+	issueReports := sr.GetIssueReports()
+	assert.Equal(t, 2, len(issueReports))
+	assert.Equal(t, issueReport1, issueReports[0])
+	assert.Equal(t, issueReport2, issueReports[1])
 }

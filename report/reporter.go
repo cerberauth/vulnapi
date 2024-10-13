@@ -1,25 +1,82 @@
 package report
 
+import (
+	"net/http"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/getkin/kin-openapi/openapi3"
+)
+
+const reporterSchema = "https://schemas.cerberauth.com/vulnapi/draft/2024-10/report.schema.json"
+
 type Reporter struct {
-	Reports []*Report `json:"reports"`
+	Schema string `json:"$schema" yaml:"$schema"`
+
+	Options     OptionsReport  `json:"options" yaml:"options"`
+	Curl        *CurlReport    `json:"curl,omitempty" yaml:"curl,omitempty"`
+	OpenAPI     *OpenAPIReport `json:"openapi,omitempty" yaml:"openapi,omitempty"`
+	GraphQL     *GraphQLReport `json:"graphql,omitempty" yaml:"graphql,omitempty"`
+	ScanReports []*ScanReport  `json:"reports" yaml:"reports"`
 }
 
 func NewReporter() *Reporter {
 	return &Reporter{
-		Reports: []*Report{},
+		Schema: reporterSchema,
+
+		Options:     NewOptionsReport(),
+		ScanReports: []*ScanReport{},
 	}
 }
 
-func (rr *Reporter) AddReport(r *Report) {
-	rr.Reports = append(rr.Reports, r)
+func NewReporterWithCurl(method string, url string, data interface{}, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) *Reporter {
+	return &Reporter{
+		Schema: reporterSchema,
+
+		Options:     NewOptionsReport(),
+		Curl:        NewCurlReport(method, url, data, header, cookies, securitySchemes),
+		ScanReports: []*ScanReport{},
+	}
 }
 
-func (rr *Reporter) GetReports() []*Report {
-	return rr.Reports
+func NewReporterWithOpenAPIDoc(openapi *openapi3.T, operations request.Operations) *Reporter {
+	return &Reporter{
+		Schema: reporterSchema,
+
+		Options:     NewOptionsReport(),
+		OpenAPI:     NewOpenAPIReport(openapi, operations),
+		ScanReports: []*ScanReport{},
+	}
 }
 
-func (rr *Reporter) GetReportByID(id string) *Report {
-	for _, r := range rr.GetReports() {
+func NewReporterWithGraphQL(url string, securitySchemes []auth.SecurityScheme) *Reporter {
+	return &Reporter{
+		Schema: reporterSchema,
+
+		Options:     NewOptionsReport(),
+		GraphQL:     NewGraphQLReport(url, securitySchemes),
+		ScanReports: []*ScanReport{},
+	}
+}
+
+func (rr *Reporter) AddReport(r *ScanReport) {
+	rr.ScanReports = append(rr.ScanReports, r)
+
+	if rr.Curl != nil {
+		rr.Curl.AddReport(r)
+	}
+
+	if rr.OpenAPI != nil {
+		rr.OpenAPI.AddReport(r)
+	}
+}
+
+func (rr *Reporter) GetScanReports() []*ScanReport {
+	return rr.ScanReports
+}
+
+func (rr *Reporter) GetScanReportByID(id string) *ScanReport {
+	for _, r := range rr.GetScanReports() {
 		if r.ID == id {
 			return r
 		}
@@ -28,11 +85,11 @@ func (rr *Reporter) GetReportByID(id string) *Report {
 	return nil
 }
 
-func (rr *Reporter) GetReportsByVulnerabilityStatus(status VulnerabilityReportStatus) []*Report {
-	var reports []*Report
-	for _, r := range rr.GetReports() {
-		for _, vr := range r.GetVulnerabilityReports() {
-			if vr.Status == status {
+func (rr *Reporter) GetReportsByIssueStatus(status IssueReportStatus) []*ScanReport {
+	var reports []*ScanReport
+	for _, r := range rr.GetScanReports() {
+		for _, ir := range r.GetIssueReports() {
+			if ir.Status == status {
 				reports = append(reports, r)
 				break
 			}
@@ -44,16 +101,16 @@ func (rr *Reporter) GetReportsByVulnerabilityStatus(status VulnerabilityReportSt
 
 func (rr *Reporter) GetErrors() []error {
 	var errors []error
-	for _, r := range rr.GetReports() {
+	for _, r := range rr.GetScanReports() {
 		errors = append(errors, r.GetErrors()...)
 	}
 
 	return errors
 }
 
-func (rr *Reporter) HasVulnerability() bool {
-	for _, r := range rr.GetReports() {
-		if r.HasFailedVulnerabilityReport() {
+func (rr *Reporter) HasIssue() bool {
+	for _, r := range rr.GetScanReports() {
+		if r.HasFailedIssueReport() {
 			return true
 		}
 	}
@@ -61,26 +118,24 @@ func (rr *Reporter) HasVulnerability() bool {
 	return false
 }
 
-func (rr *Reporter) GetVulnerabilityReports() []*VulnerabilityReport {
-	var vrs []*VulnerabilityReport
-	for _, r := range rr.GetReports() {
-		vrs = append(vrs, r.GetVulnerabilityReports()...)
+func (rr *Reporter) GetIssueReports() []*IssueReport {
+	var reports []*IssueReport
+	for _, r := range rr.GetScanReports() {
+		reports = append(reports, r.GetIssueReports()...)
 	}
-
-	return vrs
+	return reports
 }
 
-func (rr *Reporter) GetFailedVulnerabilityReports() []*VulnerabilityReport {
-	var vrs []*VulnerabilityReport
-	for _, r := range rr.GetReports() {
-		vrs = append(vrs, r.GetFailedVulnerabilityReports()...)
+func (rr *Reporter) GetFailedIssueReports() []*IssueReport {
+	var reports []*IssueReport
+	for _, r := range rr.GetScanReports() {
+		reports = append(reports, r.GetFailedIssueReports()...)
 	}
-
-	return vrs
+	return reports
 }
 
-func (rr *Reporter) HasHighRiskOrHigherSeverityVulnerability() bool {
-	for _, r := range rr.GetFailedVulnerabilityReports() {
+func (rr *Reporter) HasHighRiskOrHigherSeverityIssue() bool {
+	for _, r := range rr.GetFailedIssueReports() {
 		if r.IsHighRiskSeverity() || r.IsCriticalRiskSeverity() {
 			return true
 		}
@@ -89,8 +144,8 @@ func (rr *Reporter) HasHighRiskOrHigherSeverityVulnerability() bool {
 	return false
 }
 
-func (rr *Reporter) HasHigherThanSeverityThresholdVulnerability(threshold float64) bool {
-	for _, r := range rr.GetFailedVulnerabilityReports() {
+func (rr *Reporter) HasHigherThanSeverityThresholdIssue(threshold float64) bool {
+	for _, r := range rr.GetFailedIssueReports() {
 		if r.Issue.CVSS.Score >= threshold {
 			return true
 		}

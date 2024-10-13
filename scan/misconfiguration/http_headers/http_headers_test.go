@@ -37,14 +37,14 @@ func TestHTTPHeadersScanHandler_Passed(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.Equal(t, 7, len(report.Vulns))
-	assert.False(t, report.HasFailedVulnerabilityReport())
-	assert.True(t, report.Vulns[0].HasPassed())
-	assert.True(t, report.Vulns[2].HasPassed())
-	assert.True(t, report.Vulns[3].HasPassed())
-	assert.True(t, report.Vulns[4].HasPassed())
-	assert.True(t, report.Vulns[5].HasPassed())
-	assert.True(t, report.Vulns[6].HasPassed())
+	assert.Equal(t, 7, len(report.Issues))
+	assert.False(t, report.HasFailedIssueReport())
+	assert.True(t, report.Issues[0].HasPassed())
+	assert.True(t, report.Issues[2].HasPassed())
+	assert.True(t, report.Issues[3].HasPassed())
+	assert.True(t, report.Issues[4].HasPassed())
+	assert.True(t, report.Issues[5].HasPassed())
+	assert.True(t, report.Issues[6].HasPassed())
 }
 
 func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
@@ -63,7 +63,7 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t *testing.T) {
@@ -82,7 +82,7 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandler(t *testing.T) {
@@ -101,7 +101,7 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
@@ -120,7 +120,7 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
@@ -139,7 +139,7 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
@@ -158,7 +158,7 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testing.T) {
@@ -177,7 +177,7 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
 
 func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
@@ -196,5 +196,5 @@ func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.HasFailedVulnerabilityReport())
+	assert.True(t, report.HasFailedIssueReport())
 }
