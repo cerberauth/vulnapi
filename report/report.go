@@ -34,7 +34,7 @@ type ScanReportRequest struct {
 }
 
 type ScanReportResponse struct {
-	StatusCode int            `json:"status_code" yaml:"status_code"`
+	StatusCode int            `json:"statusCode" yaml:"statusCode"`
 	Body       *string        `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies    []*http.Cookie `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header     http.Header    `json:"headers,omitempty" yaml:"headers,omitempty"`
