@@ -1,6 +1,8 @@
 package algnone
 
 import (
+	"strings"
+
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
@@ -8,6 +10,10 @@ import (
 	"github.com/cerberauth/vulnapi/report"
 	jwtlib "github.com/golang-jwt/jwt/v5"
 )
+
+type AlgNoneData struct {
+	Alg string `json:"alg"`
+}
 
 const (
 	AlgNoneJwtScanID   = "jwt.alg_none"
@@ -43,6 +49,13 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
+var algs = []string{
+	"none",
+	"NONE",
+	"None",
+	"nOnE",
+}
+
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, operation)
@@ -57,7 +70,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if securityScheme.HasValidValue() {
 		valueWriter = securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
 		if valueWriter.GetToken().Method.Alg() == jwtlib.SigningMethodNone.Alg() {
-			return nil, nil
+			return r, nil
 		}
 
 		valueWriter = jwt.NewJWTWriterWithValidClaims(valueWriter)
@@ -65,18 +78,37 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
 	}
 
-	newToken, err := valueWriter.WithAlgNone()
+	method := &signingMethodNone{}
+	for _, alg := range algs {
+		method.SetAlg(alg)
+		vsa, err := scanWithAlg(method, valueWriter, securityScheme, operation)
+		if err != nil {
+			return r, err
+		}
+		r.AddScanAttempt(vsa)
+		vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+
+		if vulnReport.HasFailed() {
+			r.WithData(&AlgNoneData{Alg: strings.Clone(alg)})
+			break
+		}
+	}
+
+	r.End()
+	r.AddIssueReport(vulnReport)
+
+	return r, nil
+}
+
+func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme auth.SecurityScheme, operation *request.Operation) (*scan.IssueScanAttempt, error) {
+	newToken, err := valueWriter.SignWithMethodAndKey(method, jwtlib.UnsafeAllowNoneSignatureType)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
 	securityScheme.SetAttackValue(newToken)
 	vsa, err := scan.ScanURL(operation, &securityScheme)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
-	r.AddScanAttempt(vsa).End()
-	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	r.AddIssueReport(vulnReport)
-
-	return r, nil
+	return vsa, nil
 }
