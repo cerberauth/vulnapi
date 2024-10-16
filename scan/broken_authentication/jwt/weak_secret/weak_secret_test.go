@@ -59,6 +59,27 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 	assert.True(t, report.Issues[0].HasFailed())
+	assert.NotNil(t, report.Data)
+	assert.Equal(t, &secret, report.Data.(*weaksecret.WeakSecretData).Secret)
+}
+
+func TestWeakHMACSecretScanHandler_Failed_WithExpiredJWTSignedWithWeakSecret(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	secret := "secret"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyMzkwMjJ9.7BbIenT4-HobiMHaMUQdNcJ6lD_QQkKnImP9IprJFvU"
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+
+	report, err := weaksecret.ScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.True(t, report.Issues[0].HasFailed())
+	assert.NotNil(t, report.Data)
 	assert.Equal(t, &secret, report.Data.(*weaksecret.WeakSecretData).Secret)
 }
 
@@ -73,5 +94,25 @@ func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
 	assert.True(t, report.Issues[0].HasPassed())
-	assert.Nil(t, report.Data, nil)
+	assert.Nil(t, report.Data)
+}
+
+func TestWeakHMACSecretScanHandler_Failed_WithUnorderedClaims(t *testing.T) {
+	client := request.DefaultClient
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	secret := "secret"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJuYmYiOjIwMTYyMzkwMjJ9.ymnE0GznV0dMkjANTQl8IqBSlTi9RFWfBeT42jBNrU4"
+	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
+	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+
+	report, err := weaksecret.ScanHandler(operation, securityScheme)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, httpmock.GetTotalCallCount())
+	assert.True(t, report.Issues[0].HasFailed())
+	assert.NotNil(t, report.Data)
+	assert.Equal(t, &secret, report.Data.(*weaksecret.WeakSecretData).Secret)
 }

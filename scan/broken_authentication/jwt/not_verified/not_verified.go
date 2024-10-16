@@ -54,9 +54,14 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r, nil
 	}
 
-	valueWriter := securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
+	var valueWriter *jwt.JWTWriter
+	if securityScheme.HasValidValue() {
+		valueWriter = jwt.NewJWTWriterWithValidClaims(securityScheme.GetValidValueWriter().(*jwt.JWTWriter))
+	} else {
+		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+	}
 
-	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.Token.Method)
+	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.GetToken().Method)
 	if err != nil {
 		return r, err
 	}
