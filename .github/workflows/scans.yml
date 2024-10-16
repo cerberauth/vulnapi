@@ -32,6 +32,7 @@ jobs:
             "jwt-blank-secret",
             "jwt-not-verified",
             "jwt-null-signature",
+            "jwt-weak-hmac-secret",
           ]
 
     steps:
