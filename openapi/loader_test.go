@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/openapi"
@@ -32,7 +33,7 @@ func TestLoadOpenAPIWithValidURL(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	validURL := "http://example.com/openapi.yaml"
-	httpmock.RegisterResponder("GET", validURL, httpmock.ResponderFromResponse(
+	httpmock.RegisterResponder(http.MethodGet, validURL, httpmock.ResponderFromResponse(
 		httpmock.NewStringResponse(200, "openapi: 3.0.0"),
 	))
 
