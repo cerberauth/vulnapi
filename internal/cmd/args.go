@@ -44,8 +44,16 @@ func AddCommonArgs(cmd *cobra.Command) {
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {
+	cmd.Flags().BoolVarP(&placeholderBool, "append", "a", false, "Append to target file when uploading")
+	cmd.Flags().BoolVarP(&placeholderBool, "compressed", "C", false, "Request compressed response")
 	cmd.Flags().BoolVarP(&placeholderBool, "fail", "f", false, "Fail silently (no output at all) on HTTP errors")
+	// TODO: Add support for form
+	cmd.Flags().BoolVarP(&placeholderBool, "form", "F", false, "Specify HTTP multipart POST data")
+	cmd.Flags().BoolVarP(&placeholderBool, "head", "I", false, "Show document info only")
+	cmd.Flags().BoolVarP(&placeholderBool, "get", "G", false, "Send the -d data with a HTTP GET request")
 	cmd.Flags().BoolVarP(&placeholderBool, "include", "i", false, "Include protocol headers in the output")
+	cmd.Flags().StringVarP(&placeholderString, "json", "j", "", "JSON data to send in the body of the request")
+	cmd.Flags().BoolVarP(&placeholderBool, "location", "L", false, "Follow redirects")
 	cmd.Flags().BoolVarP(&placeholderBool, "remote-name", "O", false, "Write output to a file named as the remote file")
 	cmd.Flags().BoolVarP(&placeholderBool, "silent", "s", false, "Run in silent mode")
 	cmd.Flags().StringVarP(&placeholderString, "upload-file", "T", "", "Transfer file to target API")
