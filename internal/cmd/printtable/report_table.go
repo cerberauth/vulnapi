@@ -3,9 +3,12 @@ package printtable
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/olekukonko/tablewriter"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type ScanIssueReport struct {
@@ -85,11 +88,12 @@ func DisplayReportSummaryTable(r *report.Reporter) {
 	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
 	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
 
+	statusCaser := cases.Title(language.English)
 	for _, status := range report.IssueReportStatuses {
 		scansNumber := len(r.GetReportsByIssueStatus(status))
 
 		row := []string{
-			status.String(),
+			statusCaser.String(strings.ToLower(status.String())),
 			fmt.Sprintf("%d", scansNumber),
 		}
 

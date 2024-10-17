@@ -29,7 +29,6 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 	}
 
 	if openapiURL == "" && graphqlURL == "" {
-		fmt.Println("No well-known paths were found.")
 		return
 	}
 
