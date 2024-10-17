@@ -6,7 +6,7 @@
     "title": "JWT Blank Secret"
   },
   "jwt-cross-service-relay-attack": {
-    "title": "JWT Audience Cross Service Relay Attack"
+    "title": "JWT Cross Service Relay Attack"
   },
   "jwt-null-signature": {
     "title": "JWT Null Signature"
