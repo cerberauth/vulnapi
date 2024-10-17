@@ -1,9 +1,9 @@
 {
-  "github-action": {
-    "title": "GitHub Action"
-  },
   "installation": {
     "title": "Installation",
     "href": "/docs/installation"
+  },
+  "github-action": {
+    "title": "GitHub Action"
   }
 }

@@ -2,6 +2,8 @@
 description: JWT Null Signature vulnerability occurs when a JSON Web Token (JWT) lacks a signature part, allowing attackers to manipulate the token's content.
 ---
 
+import { Tabs } from 'nextra/components'
+
 # JWT Null Signature
 
 <table>
@@ -35,24 +37,76 @@ description: JWT Null Signature vulnerability occurs when a JSON Web Token (JWT)
 
 The "JWT Null Signature" vulnerability occurs when a JSON Web Token (JWT) lacks a signature part, allowing attackers to manipulate the token's content potentially leading to unauthorized access and data tampering.
 
+This vulnerability is similar to the "JWT Blank Secret" vulnerability, but in this case, the token lacks a signature part, making it easier for attackers to manipulate the token's content.
+
 ## Example
 
-TODO: write an example
+Here is a valid JWT signed with EdDSA algorithm (this will work with any algorithm like HS512, RS256, ...etc):
+
+```bash copy
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.
+```
+
+This decoded JWT contains, this parts:
+
+```json
+{
+  "alg": "EdDSA",
+  "typ": "JWT"
+}
+```
+
+```json
+{
+  "iat": 1729155809,
+  "exp": 1729155809,
+  "name": "John Doe",
+  "sub": "2cb307ba-bb46-4194-854f-4774046d9c9b"
+}
+```
+
+The following JWT is signed with an empty secret:
+
+```bash copy
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.kZegpmCCFtxSUFNzjQHMMooPBhAPxsEB4pq4Ix75V9stP4Rq-UXj8yIO8OV-XCzHcbgld-ShbXy27lWE-S4TDg
+```
 
 ## How to test?
 
 If you want to test only the "JWT Null Signature" vulnerability, you can use the following command:
 
-```bash
-vulnapi scan <curl|openapi|graphql> --scans jwt.null_signature [url]
+<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
+  <Tabs.Tab>
+```bash copy
+echo "vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature
 ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.null_signature
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature [url]
+```
+  </Tabs.Tab>
+</Tabs>
 
 VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
 
 ## What is the impact?
 
-TODO: write the impact
+Signing a JWT with a null signature has a significant impact on the security of the token. A null signature means that there is no signature part used to sign the token, making it vulnerable to tampering and unauthorized access.
+
+By manipulating the token's content, attackers can gain unauthorized access to sensitive data, impersonate users, and perform other malicious activities.
 
 ## How to remediate?
 
-TODO: write the remediation
+To remediate the "JWT Null Signature" vulnerability, you should ensure that all JWTs are verified with a valid signature before processing them.
+
+Here are some best practices to follow:
+- Always use a strong cryptographic algorithm like HS512, RS512, or EdDSA to sign JWTs.
+- Ensure that the secret key used to sign JWTs is kept secure and not exposed to unauthorized users.
+- Implement proper input validation and sanitization to prevent attackers from injecting malicious content into JWTs.
+- Regularly monitor and audit JWTs to detect any unauthorized access or tampering attempts.

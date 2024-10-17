@@ -2,6 +2,8 @@
 description: Accepting the "none" algorithm in a JSON Web Token (JWT) occurs when a JWT is signed with the "none" algorithm, it means there is no signature, making it easy for attackers to tamper with the token's content without detection.
 ---
 
+import { Tabs } from 'nextra/components'
+
 # JWT None Algorithm
 
 <table>
@@ -42,20 +44,20 @@ Accepting the "none" algorithm in a JSON Web Token (JWT) occurs when a JWT is si
 
 Here is a valid JWT signed with RS512 algorithm:
 
-```
+```bash copy
 eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.MnECRBSUQEi8GjiAyWHPhPhhpzCiMLldkq-N_VS-iwI08c4xEVUhT1Xrx9kNGuwusiQuLI3AOBTPwtbdaasQDCOpF0nxxQNKkufJYFds61ooFZfXCuRyXe1yGnXPRzTfgr5YVe9-T8_JDccx5JP70d9hoO4DU4GNYQMvrOQl4xu8DEyyDT2hsjyTbrodVhrV9znMfEBCsYPPLI-Q-HYLquGThPdJe2kBNA-CiLRV6Mwzji67cTd_4P_oUHKXsAxMqVpo-xC2xiVpO2P9X1__uXrRrfiNFUur4B71UMgGYJ2z_cQqwFfSXz9glBIf_-BJU10Rkmyo2ew862d7WsHx8g
 ```
 
 This decoded JWT contains, this parts:
 
-```json:header
+```json
 {
   "alg": "RS512",
   "typ": "JWT"
 }
 ```
 
-```json:payload
+```json
 {
   "sub": "1234567890",
   "iat": 1516239022
@@ -64,7 +66,7 @@ This decoded JWT contains, this parts:
 
 The following JWT is invalid but is wrongly authorized when the implementation is vulnerable to this attack.
 
-```
+```bash copy
 eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.
 ```
 
@@ -81,11 +83,25 @@ Invalid JWT has this header with algorithm set to none.
 
 If you want to test only the "JWT Alg None" vulnerability, you can use the following command:
 
-```bash
-vulnapi scan <curl|openapi|graphql> --scans jwt.alg_none [url]
+<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
+  <Tabs.Tab>
+```bash copy
+echo "vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none
 ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.alg_none
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none [url]
+```
+  </Tabs.Tab>
+</Tabs>
 
-VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
+VulnAPI supports scanning against various types of other [JWT vulnerabilities]() as well.
 
 ## What is the impact?
 

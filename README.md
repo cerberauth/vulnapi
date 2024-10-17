@@ -18,6 +18,10 @@ By using this tool, you can detect and mitigate security vulnerabilities in your
 
 ![Demo](demo.gif)
 
+## Installation
+
+Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation documentation](https://vulnapi.cerberauth.com/docs/installation) page.
+
 ## Documentation
 
 Before scanning, you can discover target API useful information by using the `discover` command.

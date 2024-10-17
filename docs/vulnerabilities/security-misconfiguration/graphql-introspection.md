@@ -43,8 +43,8 @@ The potential security impacts of GraphQL introspection are significant and can 
 
 If you want to test only the "GraphQL Introspection Enabled" vulnerability, you can use the following command:
 
-```bash
-vulnapi scan graphql --scans graphql.introspection_enabled [url]
+```bash copy
+vulnapi scan graphql [url] --scans graphql.introspection_enabled
 ```
 
 ## How to remediate?

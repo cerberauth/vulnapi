@@ -9,10 +9,10 @@
   "getting-started": {
     "title": "Getting Started"
   },
-  "best-practices": {
-    "title": "Best Practices"
-  },
   "vulnerabilities": {
     "title": "Vulnerabilities"
+  },
+  "best-practices": {
+    "title": "Best Practices"
   }
 }
