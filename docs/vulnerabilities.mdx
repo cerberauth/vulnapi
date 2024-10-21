@@ -6,17 +6,17 @@
 | Private Field Access                                                                                  | API1:2023 Broken Object Level Authorization | Medium   | |
 | Mass Assignment                                                                                       | API1:2023 Broken Object Level Authorization | Medium   | |
 | Authentication Bypass                                                                                 | API2:2023 Broken Authentication             | High     | ✅ |
-| [JWT `none` algorithm](./vulnerabilities/broken-authentication/jwt-alg-none.md)                       | API2:2023 Broken Authentication             | High     | ✅ |
-| [JWT blank secret](./vulnerabilities/broken-authentication/jwt-blank-secret.md)                       | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT `none` algorithm](./vulnerabilities/broken-authentication/jwt-alg-none.mdx)                       | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT blank secret](./vulnerabilities/broken-authentication/jwt-blank-secret.mdx)                       | API2:2023 Broken Authentication             | High     | ✅ |
 | JWT weak secret                                                                                       | API2:2023 Broken Authentication             | High     | ✅ |
-| [JWT Audience cross service relay attack](./vulnerabilities/broken-authentication/jwt-cross-service-relay-attack.md) | API2:2023 Broken Authentication             | High     | |
-| [JWT Null Signature](./vulnerabilities/broken-authentication/jwt-null-signature.md)                   | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Audience cross service relay attack](./vulnerabilities/broken-authentication/jwt-cross-service-relay-attack.mdx) | API2:2023 Broken Authentication             | High     | |
+| [JWT Null Signature](./vulnerabilities/broken-authentication/jwt-null-signature.mdx)                   | API2:2023 Broken Authentication             | High     | ✅ |
 | JWT Algorithm Confusion                                                                               | API2:2023 Broken Authentication             | High     | ✅ |
 | JWT Signature not verified                                                                            | API2:2023 Broken Authentication             | High     | ✅ |
 | JWT Expired                                                                                           | API2:2023 Broken Authentication             | High     | |
 | Discoverable OpenAPI                                                                                  | API7:2023 Server Side Request Forgery       | Info     | ✅ |
 | Discoverable GraphQL Endpoint                                                                         | API7:2023 Server Side Request Forgery       | Info     | ✅ |
-| [GraphQL Introspection Enabled](./vulnerabilities/security-misconfiguration/graphql-introspection.md) | API7:2023 Server Side Request Forgery       | Info     | ✅ |
+| [GraphQL Introspection Enabled](./vulnerabilities/security-misconfiguration/graphql-introspection.mdx) | API8:2023 Security Misconfiguration         | Info     | ✅ |
 | Secrets Leak                                                                                          | API8:2023 Security Misconfiguration         | High     | |
 | Directory Listing                                                                                     | API8:2023 Security Misconfiguration         | Medium   | |
 | Private IP Disclosure                                                                                 | API8:2023 Security Misconfiguration         | Low      | |
@@ -26,6 +26,7 @@
 | No Cookie expiration                                                                                  | API8:2023 Security Misconfiguration         | Info     | ✅ |
 | No CORS Headers                                                                                       | API8:2023 Security Misconfiguration         | Info     | ✅ |
 | Permissive CORS Headers                                                                               | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| [HTTP Method Override Enabled](./vulnerabilities/security-misconfiguration/http-method-allow-override.mdx)  | API8:2023 Security Misconfiguration         | Info - High     | ✅ | 
 | X-Content-Type-Options Header Not Set                                                                 | API8:2023 Security Misconfiguration         | Info     | ✅ |
 | X-Frame-Options Header Not Set                                                                        | API8:2023 Security Misconfiguration         | Info     | ✅ |
 | CSP Header Not Set                                                                                    | API8:2023 Security Misconfiguration         | Info     | ✅ |

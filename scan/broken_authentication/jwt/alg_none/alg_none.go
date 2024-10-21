@@ -57,12 +57,12 @@ var algs = []string{
 }
 
 func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	issueReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, operation)
 
 	if !ShouldBeScanned(securityScheme) {
-		vulnReport.Skip()
-		r.AddIssueReport(vulnReport).End()
+		issueReport.Skip()
+		r.AddIssueReport(issueReport).End()
 		return r, nil
 	}
 
@@ -86,16 +86,16 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 			return r, err
 		}
 		r.AddScanAttempt(vsa)
-		vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+		issueReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
 
-		if vulnReport.HasFailed() {
+		if issueReport.HasFailed() {
 			r.WithData(&AlgNoneData{Alg: strings.Clone(alg)})
 			break
 		}
 	}
 
 	r.End()
-	r.AddIssueReport(vulnReport)
+	r.AddIssueReport(issueReport)
 
 	return r, nil
 }

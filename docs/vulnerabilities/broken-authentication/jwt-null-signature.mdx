@@ -7,32 +7,28 @@ import { Tabs } from 'nextra/components'
 # JWT Null Signature
 
 <table>
-    <tr>
-        <th>Severity</th>
-        <td>High</td>
-    </tr>
-    <tr>
-        <th>CVEs</th>
-        <td>
-            <ul>
-                <li><a href="https://www.cve.org/CVERecord?id=CVE-2020-28042">CVE-2020-28042</a></li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <th>Classifications</th>
-        <td>
-            <ul>
-                <li><a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327: Use of a Broken or Risky Cryptographic Algorithm</a></li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <th>OWASP Category</th>
-        <td>
-            <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
-        </td>
-    </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      * [CVE-2020-28042](https://www.cve.org/CVERecord?id=CVE-2020-28042)
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      [CWE-327: Use of a Broken or Risky Cryptographic Algorithm](https://cwe.mitre.org/data/definitions/327.html)
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      [OWASP API2:2023 Broken Authentication](https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/)
+    </td>
+  </tr>
 </table>
 
 The "JWT Null Signature" vulnerability occurs when a JSON Web Token (JWT) lacks a signature part, allowing attackers to manipulate the token's content potentially leading to unauthorized access and data tampering.
@@ -78,7 +74,7 @@ If you want to test only the "JWT Null Signature" vulnerability, you can use the
 <Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
   <Tabs.Tab>
 ```bash copy
-echo "vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature
 ```
   </Tabs.Tab>
   <Tabs.Tab>
@@ -88,7 +84,7 @@ echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --sca
   </Tabs.Tab>
   <Tabs.Tab>
 ```bash copy
-echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature [url]
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature [url]
 ```
   </Tabs.Tab>
 </Tabs>

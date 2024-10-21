@@ -71,6 +71,14 @@ func NewOperation(method string, operationUrl string, body *bytes.Buffer, client
 	}, nil
 }
 
+func MustNewOperation(method string, operationUrl string, body *bytes.Buffer, client *Client) *Operation {
+	operation, err := NewOperation(method, operationUrl, body, client)
+	if err != nil {
+		panic(err)
+	}
+	return operation
+}
+
 func (operation *Operation) IsReachable() error {
 	host := operation.URL.Host
 	if _, _, err := net.SplitHostPort(host); err != nil {

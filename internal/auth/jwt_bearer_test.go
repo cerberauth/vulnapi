@@ -31,6 +31,43 @@ func TestNewAuthorizationJWTBearerSecuritySchemeWithInvalidJWT(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestMustNewAuthorizationJWTBearerSecurityScheme(t *testing.T) {
+	t.Run("ValidJWT", func(t *testing.T) {
+		name := "token"
+		value := jwt.FakeJWT
+		ss := auth.MustNewAuthorizationJWTBearerSecurityScheme(name, &value)
+
+		assert.NotNil(t, ss)
+		assert.Equal(t, auth.HttpType, ss.Type)
+		assert.Equal(t, auth.BearerScheme, ss.Scheme)
+		assert.Equal(t, auth.InHeader, ss.In)
+		assert.Equal(t, name, ss.Name)
+		assert.Equal(t, &value, ss.ValidValue)
+		assert.Equal(t, "", ss.AttackValue)
+	})
+
+	t.Run("InvalidJWT", func(t *testing.T) {
+		name := "token"
+		value := "abc123"
+		assert.Panics(t, func() {
+			auth.MustNewAuthorizationJWTBearerSecurityScheme(name, &value)
+		})
+	})
+
+	t.Run("NilValue", func(t *testing.T) {
+		name := "token"
+		ss := auth.MustNewAuthorizationJWTBearerSecurityScheme(name, nil)
+
+		assert.NotNil(t, ss)
+		assert.Equal(t, auth.HttpType, ss.Type)
+		assert.Equal(t, auth.BearerScheme, ss.Scheme)
+		assert.Equal(t, auth.InHeader, ss.In)
+		assert.Equal(t, name, ss.Name)
+		assert.Nil(t, ss.ValidValue)
+		assert.Equal(t, "", ss.AttackValue)
+	})
+}
+
 func TestAuthorizationJWTBearerSecurityScheme_GetScheme(t *testing.T) {
 	name := "token"
 	value := jwt.FakeJWT
