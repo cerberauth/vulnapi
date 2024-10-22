@@ -124,6 +124,7 @@ func TestJWTBearerSecurityScheme_GetHeaders(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer xyz789"},
+		"Cache-Control": []string{"private, max-age=0"},
 	}, headers)
 }
 
@@ -137,6 +138,7 @@ func TestJWTBearerSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer " + jwt.FakeJWT},
+		"Cache-Control": []string{"private, max-age=0"},
 	}, headers)
 }
 
@@ -147,7 +149,9 @@ func TestJWTBearerSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing
 	headers := ss.GetHeaders()
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.Header{}, headers)
+	assert.Equal(t, http.Header{
+		"Cache-Control": []string{"public, max-age=3600"},
+	}, headers)
 }
 
 func TestJWTBearerSecurityScheme_GetCookies(t *testing.T) {
