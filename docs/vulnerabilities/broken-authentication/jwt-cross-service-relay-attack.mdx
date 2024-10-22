@@ -5,24 +5,24 @@ description: A vulnerability arises when a JSON Web Token (JWT) is signed by the
 # JWT Cross Service Relay Attack
 
 <table>
-    <tr>
-        <th>Severity</th>
-        <td>High</td>
-    </tr>
-    <tr>
-        <th>CVEs</th>
-        <td></td>
-    </tr>
-    <tr>
-        <th>Classifications</th>
-        <td></td>
-    </tr>
-    <tr>
-        <th>OWASP Category</th>
-        <td>
-            <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
-        </td>
-    </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td></td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td></td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      [OWASP API2:2023 Broken Authentication](https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/)
+    </td>
+  </tr>
 </table>
 
 A vulnerability arises when a JSON Web Token (JWT) is signed by the same service but doesn't verify the issuer (the source of the token) and the audience (the intended recipient). This can lead to security risks, as it means an attacker could create a forged JWT with the same service signature and manipulate the issuer and audience fields. Without proper verification, the service may accept the forged token, potentially granting unauthorized access or compromising the system's security.

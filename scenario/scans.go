@@ -12,6 +12,7 @@ import (
 	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 	httpcookies "github.com/cerberauth/vulnapi/scan/misconfiguration/http_cookies"
 	httpheaders "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers"
+	httpmethodoverride "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override"
 	httptrace "github.com/cerberauth/vulnapi/scan/misconfiguration/http_trace"
 	httptrack "github.com/cerberauth/vulnapi/scan/misconfiguration/http_track"
 )
@@ -29,6 +30,7 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(httpcookies.HTTPCookiesScanID, httpcookies.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(httpheaders.HTTPHeadersScanID, httpheaders.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(httpmethodoverride.HTTPMethodOverrideScanID, httpmethodoverride.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(httptrace.HTTPTraceScanID, httptrace.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(httptrack.HTTPTrackScanID, httptrack.ScanHandler))
 

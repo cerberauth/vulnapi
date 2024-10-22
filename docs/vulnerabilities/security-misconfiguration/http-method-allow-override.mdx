@@ -1,0 +1,78 @@
+---
+description: HTTP Method Override is a feature that allows clients to override the default HTTP method used in a request. This feature can be exploited by attackers to bypass security controls and perform unauthorized actions on the server.
+---
+
+import { Tabs } from 'nextra/components'
+
+# HTTP Method Override Enabled
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>Info - High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      * [CVE-2023-30845](https://www.cve.org/CVERecord?id=CVE-2023-30845)
+      * [CVE-2023-29003](https://www.cve.org/CVERecord?id=CVE-2023-29003)
+      * [CVE-2019-19326](https://www.cve.org/CVERecord?id=CVE-2019-19326)
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      [CWE-287: Improper Authentication](https://cwe.mitre.org/data/definitions/287.html)
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      [OWASP API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+    </td>
+  </tr>
+</table>
+
+HTTP Method Override is a feature that allows clients to override the default HTTP method used in a request. This feature is commonly used to perform actions on the server using HTTP methods other than GET and POST, such as PUT, DELETE, PATCH, etc. The HTTP Method Override feature is typically implemented using custom headers or query parameters that specify the desired HTTP method to be used.
+
+This feature can be exploited by attackers to bypass security controls and perform unauthorized actions on the server.
+
+## What is the impact?
+
+Attackers can exploit this feature to bypass security controls and perform unauthorized actions on the server. Some of the common attacks that can be performed using HTTP Method Override include:
+- CSRF attacks
+- Bypassing authentication
+- Bypassing access controls
+
+## How to test?
+
+If you want to test only the "HTTP Method Allow Override Enabled" issues, you can use the following command:
+
+<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan curl [url] --scans misconfiguration.http_method_override
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_method_override
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan graphql --scans misconfiguration.http_method_override [url]
+```
+  </Tabs.Tab>
+</Tabs>
+
+## How to remediate?
+
+To remediate this issue, you should disable the HTTP Method Override feature on the API or intermediate proxy. You can do this by configuring the server to only accept the expected HTTP methods (GET, POST, PUT, DELETE, etc.) and reject any other methods that are not explicitly allowed.
+
+If you can not disable the HTTP Method Override behavior, ensure you implement proper access controls and validation checks to prevent unauthorized actions and that controls are not impacted by the method overriden. To do so, the usual way is to perform the checks before the method override is applied.
+
+## References
+
+- [X-HTTP-Method](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-odata/bdbabfa6-8c4a-4741-85a9-8d93ffd66c41)
+- [HTTP Method Override Blog Post](https://www.sidechannel.blog/en/http-method-override-what-it-is-and-how-a-pentester-can-use-it/)

@@ -5,6 +5,7 @@ type CWE string
 const (
 	CWE_16_Configuration CWE = "CWE-16: Configuration"
 
+	CWE_287_Improper_Authentication                  CWE = "CWE-287: Improper Authentication"
 	CWE_345_Insufficient_Verification_Authenticity   CWE = "CWE-345: Insufficient Verification of Data Authenticity"
 	CWE_489_Active_Debug_Code                        CWE = "CWE-489: Active Debug Code"
 	CWE_613_Insufficient_Session_Expiration          CWE = "CWE-613: Insufficient Session Expiration"

@@ -1,5 +1,8 @@
 {
   "graphql-introspection": {
     "title": "GraphQL Introspection Enabled"
+  },
+  "http-method-allow-override": {
+    "title": "HTTP Method Override Enabled"
   }
 }

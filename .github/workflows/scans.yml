@@ -97,6 +97,8 @@ jobs:
             url: "http://localhost:8080/cookies/samesite-none"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/no-expiration"
+          - challenge: "misconfiguration.http_method_override"
+            url: "http://localhost:8080/cookies/http-method-override"
 
     steps:
       - uses: actions/checkout@v4

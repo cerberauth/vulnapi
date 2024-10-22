@@ -7,35 +7,31 @@ import { Tabs } from 'nextra/components'
 # JWT None Algorithm
 
 <table>
-    <tr>
-        <th>Severity</th>
-        <td>High</td>
-    </tr>
-    <tr>
-        <th>CVEs</th>
-        <td>
-            <ul>
-                <li><a href="https://www.cve.org/CVERecord?id=CVE-2015-9235">CVE-2015-9235</a></li>
-                <li><a href="https://www.cve.org/CVERecord?id=CVE-2015-2951">CVE-2015-2951</a></li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <th>Classifications</th>
-        <td>
-            <ul>
-                <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
-                <li><a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327: Use of a Broken or Risky Cryptographic Algorithm</a></li>
-                <li><a href="https://cwe.mitre.org/data/definitions/20.html">CWE-20: Improper Input Validation</a></li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <th>OWASP Category</th>
-        <td>
-            <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
-        </td>
-    </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      * [CVE-2015-9235](https://www.cve.org/CVERecord?id=CVE-2015-9235)
+      * [CVE-2015-2951](https://www.cve.org/CVERecord?id=CVE-2015-2951)
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      * [CWE-345: Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
+      * [CWE-327: Use of a Broken or Risky Cryptographic Algorithm](https://cwe.mitre.org/data/definitions/327.html)
+      * [CWE-20: Improper Input Validation](https://cwe.mitre.org/data/definitions/20.html)
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      [OWASP API2:2023 Broken Authentication](https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/)
+    </td>
+  </tr>
 </table>
 
 Accepting the "none" algorithm in a JSON Web Token (JWT) occurs when a JWT is signed with the "none" algorithm, it means there is no signature, making it easy for attackers to tamper with the token's content without detection. This can lead to unauthorized access and data manipulation.
@@ -86,7 +82,7 @@ If you want to test only the "JWT Alg None" vulnerability, you can use the follo
 <Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
   <Tabs.Tab>
 ```bash copy
-echo "vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none
 ```
   </Tabs.Tab>
   <Tabs.Tab>
@@ -96,7 +92,7 @@ echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --sca
   </Tabs.Tab>
   <Tabs.Tab>
 ```bash copy
-echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none [url]
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none [url]
 ```
   </Tabs.Tab>
 </Tabs>

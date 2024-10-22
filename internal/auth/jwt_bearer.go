@@ -41,6 +41,14 @@ func NewAuthorizationJWTBearerSecurityScheme(name string, value *string) (*JWTBe
 	}, nil
 }
 
+func MustNewAuthorizationJWTBearerSecurityScheme(name string, value *string) *JWTBearerSecurityScheme {
+	scheme, err := NewAuthorizationJWTBearerSecurityScheme(name, value)
+	if err != nil {
+		panic(err)
+	}
+	return scheme
+}
+
 func (ss *JWTBearerSecurityScheme) GetType() Type {
 	return ss.Type
 }

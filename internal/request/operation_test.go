@@ -26,6 +26,31 @@ func TestNewOperation(t *testing.T) {
 	assert.Equal(t, body, operation.Body)
 }
 
+func TestMustNewOperation(t *testing.T) {
+	t.Run("ValidOperation", func(t *testing.T) {
+		url := "http://example.com"
+		method := http.MethodGet
+		body := bytes.NewBufferString("test")
+
+		operation := request.MustNewOperation(method, url, body, nil)
+
+		assert.NotNil(t, operation)
+		assert.Equal(t, url, operation.URL.String())
+		assert.Equal(t, method, operation.Method)
+		assert.Equal(t, body, operation.Body)
+	})
+
+	t.Run("InvalidURL", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic for invalid URL, but did not panic")
+			}
+		}()
+
+		request.MustNewOperation(http.MethodGet, ":", nil, nil)
+	})
+}
+
 func TestOperation_IsReachable(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
