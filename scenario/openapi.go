@@ -10,7 +10,7 @@ import (
 
 func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *auth.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
-		client = request.DefaultClient
+		client = request.GetDefaultClient()
 	}
 
 	securitySchemes, err := openapi.SecuritySchemeMap(securitySchemesValues)

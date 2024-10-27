@@ -51,7 +51,7 @@ type Operation struct {
 
 func NewOperation(method string, operationUrl string, body *bytes.Buffer, client *Client) (*Operation, error) {
 	if client == nil {
-		client = DefaultClient
+		client = GetDefaultClient()
 	}
 
 	parsedUrl, err := url.Parse(operationUrl)

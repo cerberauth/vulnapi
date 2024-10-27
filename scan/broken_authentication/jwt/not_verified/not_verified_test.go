@@ -33,7 +33,7 @@ func TestNotVerifiedScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 }
 
 func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenOK(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -55,7 +55,7 @@ func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenOK(t *testing.T) {
 }
 
 func TestNotVerifiedScanHandler_Skipped_WhenOKFirstRequest(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -77,7 +77,7 @@ func TestNotVerifiedScanHandler_Skipped_WhenOKFirstRequest(t *testing.T) {
 }
 
 func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenUnauthorized(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

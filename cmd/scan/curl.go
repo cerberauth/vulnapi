@@ -4,6 +4,7 @@ import (
 	"log"
 
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -40,6 +41,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
+			request.SetDefaultClient(client)
 
 			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),

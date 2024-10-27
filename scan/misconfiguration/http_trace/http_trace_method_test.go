@@ -13,7 +13,7 @@ import (
 )
 
 func TestHTTPTraceMethodScanHandler_Passed_WhenNotOKResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -28,7 +28,7 @@ func TestHTTPTraceMethodScanHandler_Passed_WhenNotOKResponse(t *testing.T) {
 }
 
 func TestHTTPTraceMethodScanHandler_Failed_WhenTraceIsEnabled(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

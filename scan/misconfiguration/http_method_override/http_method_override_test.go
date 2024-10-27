@@ -54,7 +54,7 @@ func TestHTTPMethodOverrideScanHandler(t *testing.T) {
 }
 
 func TestHTTPMethodOverrideScanHandler_When_Error(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -73,7 +73,7 @@ func TestHTTPMethodOverrideScanHandler_When_Error(t *testing.T) {
 }
 
 func TestHTTPMethodOverrideScanHandler_Passed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -94,7 +94,7 @@ func TestHTTPMethodOverrideScanHandler_Passed(t *testing.T) {
 }
 
 func TestHTTPMethodOverrideScanHandler_Failed_With_Header(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -120,7 +120,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Header(t *testing.T) {
 }
 
 func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -147,7 +147,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T)
 }
 
 func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Passed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -177,7 +177,7 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Passed(t *testing.T
 }
 
 func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Failed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

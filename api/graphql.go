@@ -32,6 +32,7 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
+
 	s, err := scenario.NewGraphQLScan(form.Endpoint, client, &scan.ScanOptions{
 		IncludeScans: form.Opts.Scans,
 		ExcludeScans: form.Opts.ExcludeScans,

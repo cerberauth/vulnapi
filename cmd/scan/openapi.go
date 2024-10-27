@@ -7,6 +7,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -74,6 +75,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
+			request.SetDefaultClient(client)
 
 			s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),

@@ -23,7 +23,7 @@ func TestAuthenticationByPassScanHandler_Skipped_WhenNoAuthSecurityScheme(t *tes
 }
 
 func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -39,7 +39,7 @@ func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T)
 }
 
 func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

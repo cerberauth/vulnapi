@@ -98,7 +98,7 @@ func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation,
 
 func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *scan.ScanOptions) ([]*scan.Scan, error) {
 	if client == nil {
-		client = request.DefaultClient
+		client = request.GetDefaultClient()
 	}
 
 	domains := getAllFQDNs(rootDomain)

@@ -14,7 +14,7 @@ type Request struct {
 
 func NewRequest(method string, reqUrl string, body io.Reader, client *Client) (*Request, error) {
 	if client == nil {
-		client = DefaultClient
+		client = GetDefaultClient()
 	}
 
 	req, err := http.NewRequest(method, reqUrl, body)

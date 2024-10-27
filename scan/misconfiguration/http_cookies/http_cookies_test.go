@@ -14,7 +14,7 @@ import (
 )
 
 func TestHTTPCookiesScanHandler_Skipped_WhenNoCookies(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -32,7 +32,7 @@ func TestHTTPCookiesScanHandler_Skipped_WhenNoCookies(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -61,7 +61,7 @@ func TestHTTPCookiesScanHandler_Passed_WhenNoUnsecurePractices(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -90,7 +90,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenNotHttpOnly(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -119,7 +119,7 @@ func TestHTTPCookiesScanHandlerFailed_WhenNotSecure(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -148,7 +148,7 @@ func TestHTTPCookiesScanHandler_Failed_WhenSameSiteNone(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -176,7 +176,7 @@ func TestHTTPCookiesScanHandler_Failed_WhithoutSameSite(t *testing.T) {
 }
 
 func TestHTTPCookiesScanHandler_Failed_WhenExpiresNotSet(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

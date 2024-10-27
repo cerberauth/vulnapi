@@ -10,7 +10,19 @@ import (
 
 var rl = ratelimit.New(10)
 
-var DefaultClient = NewClient(NewClientOptions{})
+var defaultClient *Client = nil
+
+func GetDefaultClient() *Client {
+	if defaultClient == nil {
+		defaultClient = NewClient(NewClientOptions{})
+	}
+
+	return defaultClient
+}
+
+func SetDefaultClient(client *Client) {
+	defaultClient = client
+}
 
 type Client struct {
 	*http.Client
@@ -53,7 +65,7 @@ func NewClient(opts NewClientOptions) *Client {
 
 	return &Client{
 		&http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: opts.Timeout,
 
 			Transport: &http.Transport{
 				Proxy: proxy,
