@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go"
@@ -47,10 +48,10 @@ func GetOperationPath(p string, params openapi3.Parameters) (string, error) {
 	return stduritemplate.Expand(p, subs)
 }
 
-func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.SecuritySchemesMap) (request.Operations, error) {
+func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.SecuritySchemesMap) (operation.Operations, error) {
 	baseUrl := openapi.BaseUrl()
 
-	operations := request.Operations{}
+	operations := operation.Operations{}
 	for docPath, p := range openapi.Doc.Paths.Map() {
 		for method, o := range p.Operations() {
 			operationPath, err := GetOperationPath(docPath, o.Parameters)
@@ -90,7 +91,7 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				body = bytes.NewBuffer(nil)
 			}
 
-			operation, err := request.NewOperation(method, operationUrl.String(), body, client)
+			operation, err := operation.NewOperation(method, operationUrl.String(), body, client)
 			if err != nil {
 				return nil, err
 			}

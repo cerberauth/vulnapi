@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
@@ -72,40 +72,48 @@ var methodOverrideQueryParams = []string{
 	"_httpMethod",
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	var err error
-	var newOperation *request.Operation
+	var newOperation *operation.Operation
 
-	httpMethodOverrideIssueReport := report.NewIssueReport(httpMethodOverrideIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	httpMethodOverrideAuthenticationByPassIssueReport := report.NewIssueReport(httpMethodOverrideAuthenticationByPassIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(HTTPMethodOverrideScanID, HTTPMethodOverrideScanName, operation)
+	httpMethodOverrideIssueReport := report.NewIssueReport(httpMethodOverrideIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	httpMethodOverrideAuthenticationByPassIssueReport := report.NewIssueReport(httpMethodOverrideAuthenticationByPassIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(HTTPMethodOverrideScanID, HTTPMethodOverrideScanName, op)
 
-	newOperation = operation.Clone()
+	newOperation, err = op.Clone()
+	if err != nil {
+		return r, err
+	}
+
 	initialAttempt, err := scan.ScanURL(newOperation, &securityScheme)
 	if err != nil {
 		return r, err
 	}
 	r.AddScanAttempt(initialAttempt)
 
-	if initialAttempt.Response.StatusCode == http.StatusMethodNotAllowed {
+	if initialAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
 		r.AddIssueReport(httpMethodOverrideIssueReport.Skip()).End()
 		return r, nil
 	}
 
 	var methodAttempt *scan.IssueScanAttempt
 	for _, method := range httpMethods {
-		if method == operation.Method {
+		if method == op.Method {
 			continue
 		}
 
-		newOperation = operation.Clone()
+		newOperation, err = op.Clone()
+		if err != nil {
+			return r, err
+		}
+
 		newOperation.Method = method
 		methodAttempt, err = scan.ScanURL(newOperation, &securityScheme)
 		if methodAttempt != nil {
 			r.AddScanAttempt(methodAttempt)
 		}
 
-		if err == nil && methodAttempt.Response.StatusCode == http.StatusMethodNotAllowed {
+		if err == nil && methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
 			break
 		}
 	}
@@ -115,24 +123,28 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r, err
 	}
 
-	if methodAttempt.Response.StatusCode == initialAttempt.Response.StatusCode {
+	if methodAttempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
 		r.AddIssueReport(httpMethodOverrideIssueReport.Pass()).AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport.Skip()).End()
 		return r, nil
 	}
 
 	var attemptFailed = false
 	var attempt *scan.IssueScanAttempt
-	newOperationMethod := methodAttempt.Request.Method
+	newOperationMethod := methodAttempt.Request.GetMethod()
 	for _, header := range methodOverrideHeaders {
-		newOperation = operation.Clone()
-		newOperation.Header.Set(header, operation.Method)
+		newOperation, err = op.Clone()
+		if err != nil {
+			return r, err
+		}
+
+		newOperation.Header.Set(header, op.Method)
 		newOperation.Method = newOperationMethod
 		attempt, err = scan.ScanURL(newOperation, &securityScheme)
 		if attempt != nil {
 			r.AddScanAttempt(attempt)
 		}
 
-		if err == nil && attempt.Response.StatusCode == initialAttempt.Response.StatusCode {
+		if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
 			attemptFailed = true
 			break
 		}
@@ -140,9 +152,13 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 
 	if !attemptFailed {
 		for _, queryParam := range methodOverrideQueryParams {
-			newOperation = operation.Clone()
+			newOperation, err = op.Clone()
+			if err != nil {
+				return r, err
+			}
+
 			newOperationQueryValues := newOperation.URL.Query()
-			newOperationQueryValues.Set(queryParam, operation.Method)
+			newOperationQueryValues.Set(queryParam, op.Method)
 			newOperation.URL.RawQuery = newOperationQueryValues.Encode()
 			newOperation.Method = newOperationMethod
 			attempt, err = scan.ScanURL(newOperation, &securityScheme)
@@ -150,7 +166,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 				r.AddScanAttempt(attempt)
 			}
 
-			if err == nil && attempt.Response.StatusCode == initialAttempt.Response.StatusCode {
+			if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
 				attemptFailed = true
 				break
 			}

@@ -1,9 +1,12 @@
 package scan_test
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"testing"
 
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,10 +26,11 @@ func TestIsUnauthorizedStatusCodeOrSimilar(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		resp := &http.Response{
+		res, _ := request.NewResponse(&http.Response{
+			Body:       io.NopCloser(bytes.NewBufferString("")),
 			StatusCode: tc.statusCode,
-		}
-		b := scan.IsUnauthorizedStatusCodeOrSimilar(resp)
+		})
+		b := scan.IsUnauthorizedStatusCodeOrSimilar(res)
 		assert.Equal(t, tc.expected, b)
 	}
 }

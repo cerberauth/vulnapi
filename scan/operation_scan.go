@@ -2,11 +2,11 @@ package scan
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
 )
 
-type OperationScanHandlerFunc func(operation *request.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
+type OperationScanHandlerFunc func(operation *operation.Operation, ss auth.SecurityScheme) (*report.ScanReport, error)
 
 type OperationScanHandler struct {
 	ID      string
@@ -14,7 +14,7 @@ type OperationScanHandler struct {
 }
 
 type OperationScan struct {
-	Operation   *request.Operation
+	Operation   *operation.Operation
 	ScanHandler *OperationScanHandler
 }
 

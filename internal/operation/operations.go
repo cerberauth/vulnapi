@@ -1,4 +1,4 @@
-package request
+package operation
 
 type Operations []*Operation
 

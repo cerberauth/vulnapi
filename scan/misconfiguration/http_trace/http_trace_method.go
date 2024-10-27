@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
@@ -31,15 +31,18 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName, operation)
 
-	newOperation := operation.Clone()
+	newOperation, err := operation.Clone()
+	if err != nil {
+		return r, err
+	}
 	newOperation.Method = http.MethodTrace
 
 	attempt, err := scan.ScanURL(newOperation, &securityScheme)
-	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.StatusCode != http.StatusOK))
+	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK))
 
 	return r, nil
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +36,7 @@ func TestIssueReport_WithOperation(t *testing.T) {
 		},
 	}
 	vr := report.NewIssueReport(issue)
-	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
+	operation := operation.MustNewOperation("GET", "/api/v1/", nil, nil)
 	vr.WithOperation(operation)
 	assert.Equal(t, "GET", vr.Operation.Method)
 	assert.Equal(t, "/api/v1/", vr.Operation.URL.Path)

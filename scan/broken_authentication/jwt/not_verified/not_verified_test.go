@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	notverified "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/not_verified"
 	"github.com/jarcoal/httpmock"
@@ -14,7 +15,7 @@ import (
 
 func TestNotVerifiedScanHandler_WithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := notverified.ScanHandler(operation, securityScheme)
 
@@ -24,7 +25,7 @@ func TestNotVerifiedScanHandler_WithoutSecurityScheme(t *testing.T) {
 
 func TestNotVerifiedScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := notverified.ScanHandler(operation, securityScheme)
 
@@ -39,7 +40,7 @@ func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenOK(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{
@@ -61,7 +62,7 @@ func TestNotVerifiedScanHandler_Skipped_WhenOKFirstRequest(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{
@@ -83,7 +84,7 @@ func TestNotVerifiedScanHandler_Failed_WhenUnauthorizedThenUnauthorized(t *testi
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.ResponderFromMultipleResponses(
 		[]*http.Response{

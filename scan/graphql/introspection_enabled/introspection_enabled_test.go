@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
 	"github.com/jarcoal/httpmock"
@@ -17,9 +18,10 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *tes
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	resBody := []byte(`{"data": {"__schema": {"queryType": {"name": "Query"}}}}`)
+	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
+	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 
 	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
 
@@ -33,7 +35,7 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenNotFoundStatus(t *testing.T)
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 

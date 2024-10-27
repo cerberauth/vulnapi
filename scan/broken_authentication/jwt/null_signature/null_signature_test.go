@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	nullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
 	"github.com/jarcoal/httpmock"
@@ -14,7 +15,7 @@ import (
 
 func TestNullSignatureScanHandler_WithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := nullsignature.ScanHandler(operation, securityScheme)
 
@@ -28,7 +29,7 @@ func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *tes
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := nullsignature.ScanHandler(operation, securityScheme)
@@ -45,7 +46,7 @@ func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) 
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := nullsignature.ScanHandler(operation, securityScheme)
@@ -62,7 +63,7 @@ func TestNullSignatureScanHandler_Failed_WhenOKResponse(t *testing.T) {
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := nullsignature.ScanHandler(operation, securityScheme)

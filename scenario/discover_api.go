@@ -1,6 +1,7 @@
 package scenario
 
 import (
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
@@ -14,16 +15,16 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, opts 
 	}
 
 	url = addDefaultProtocolWhenMissing(url)
-	operation, err := request.NewOperation(method, url, nil, client)
+	op, err := operation.NewOperation(method, url, nil, client)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := operation.IsReachable(); err != nil {
+	if err := op.IsReachable(); err != nil {
 		return nil, err
 	}
 
-	operations := request.Operations{operation}
+	operations := operation.Operations{op}
 	urlScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err

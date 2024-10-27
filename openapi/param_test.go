@@ -1,7 +1,6 @@
 package openapi_test
 
 import (
-	"bytes"
 	"context"
 	"testing"
 
@@ -157,7 +156,7 @@ func TestGetSchemaValue_WhenPathParametersWithoutExample(t *testing.T) {
 }
 
 func TestGetSchemaValue_WhenRequestBodyParametersWithExample(t *testing.T) {
-	expected := bytes.NewBufferString("\"example\"")
+	expected := []byte("\"example\"")
 	openapi, _ := openapi.LoadFromData(
 		context.Background(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: string, example: example}}}}, responses: {'204': {description: successful operation}}}}}}`),
@@ -210,7 +209,7 @@ func TestGetSchemaValue_WhenRequestBodyParametersNotRequired(t *testing.T) {
 }
 
 func TestGetSchemaValue_WhenRequestBodyParametersWithArrayExample(t *testing.T) {
-	expected := bytes.NewBufferString("[\"example\"]")
+	expected := []byte("[\"example\"]")
 	openapi, _ := openapi.LoadFromData(
 		context.Background(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: array, items: {type: string, example: example}}}}}, responses: {'204': {description: successful operation}}}}}}`),
@@ -229,7 +228,7 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithArrayExample(t *testing.T) 
 }
 
 func TestGetSchemaValue_WhenRequestBodyParametersWithObjectExample(t *testing.T) {
-	expected := bytes.NewBufferString("{\"name\":\"example\"}")
+	expected := []byte("{\"name\":\"example\"}")
 	openapi, operr := openapi.LoadFromData(
 		context.Background(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: string, example: example}}}}}}, responses: {'204': {description: successful operation}}}}}}`),
@@ -249,7 +248,7 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithObjectExample(t *testing.T)
 }
 
 func TestGetSchemaValue_WhenRequestBodyParametersWithObjectExampleAndArrayExample(t *testing.T) {
-	expected := bytes.NewBufferString("{\"name\":[\"example\"]}")
+	expected := []byte("{\"name\":[\"example\"]}")
 	openapi, operr := openapi.LoadFromData(
 		context.Background(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: array, items: {type: string, example: example}}}}}}}, responses: {'204': {description: successful operation}}}}}}`),

@@ -1,10 +1,8 @@
 package fingerprint
 
 import (
-	"io"
-
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	wappalyzer "github.com/projectdiscovery/wappalyzergo"
@@ -60,11 +58,11 @@ func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintAp
 	return append(slice, app)
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, op)
 
-	attempt, err := scan.ScanURL(operation, &securityScheme)
+	attempt, err := scan.ScanURL(op, &securityScheme)
 	r.AddScanAttempt(attempt)
 	if err != nil {
 		return r.AddIssueReport(vulnReport.Skip()).End(), err
@@ -74,15 +72,12 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r.AddIssueReport(vulnReport.Skip()).End(), attempt.Err
 	}
 
-	resp := attempt.Response
-	data, _ := io.ReadAll(resp.Body)
-
 	wappalyzerClient, err := wappalyzer.New()
 	if err != nil {
 		return r.AddIssueReport(vulnReport.Skip()).End(), err
 	}
 
-	fingerprints := wappalyzerClient.FingerprintWithInfo(resp.Header, data)
+	fingerprints := wappalyzerClient.FingerprintWithInfo(attempt.Response.GetHeader(), attempt.Response.GetBody().Bytes())
 	reportData := FingerPrintData{}
 	fingerPrintIdentifier := false
 	for name, fingerprint := range fingerprints {

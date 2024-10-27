@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 )
 
@@ -62,7 +62,7 @@ type ScanReport struct {
 	Issues []*IssueReport   `json:"issues" yaml:"issues"`
 }
 
-func NewScanReport(id string, name string, operation *request.Operation) *ScanReport {
+func NewScanReport(id string, name string, operation *operation.Operation) *ScanReport {
 	var scanOperation *ScanReportOperation
 	if operation != nil && operation.ID != "" {
 		scanOperation = &ScanReportOperation{
@@ -109,19 +109,25 @@ func (r *ScanReport) AddScanAttempt(a *scan.IssueScanAttempt) *ScanReport {
 	var reportRequest *ScanReportRequest = nil
 	if a.Request != nil {
 		reportRequest = &ScanReportRequest{
-			Method:  a.Request.Method,
-			URL:     a.Request.URL.String(),
-			Cookies: a.Request.Cookies(),
-			Header:  a.Request.Header,
+			Method:  a.Request.GetMethod(),
+			URL:     a.Request.GetURL(),
+			Cookies: a.Request.GetCookies(),
+			Header:  a.Request.GetHeader(),
 		}
 	}
 
 	var reportResponse *ScanReportResponse = nil
 	if a.Response != nil {
+		var body string
+		if a.Response.GetBody() != nil {
+			body = a.Response.GetBody().String()
+		}
+
 		reportResponse = &ScanReportResponse{
-			StatusCode: a.Response.StatusCode,
-			Cookies:    a.Response.Cookies(),
-			Header:     a.Response.Header,
+			StatusCode: a.Response.GetStatusCode(),
+			Body:       &body,
+			Cookies:    a.Response.GetCookies(),
+			Header:     a.Response.GetHeader(),
 		}
 	}
 

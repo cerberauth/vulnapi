@@ -1,26 +1,26 @@
-package request_test
+package operation_test
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestOperations_Less(t *testing.T) {
-	getOperation, _ := request.NewOperation(http.MethodGet, "http://example.com", nil, nil)
-	postOperation, _ := request.NewOperation(http.MethodPost, "http://example.com", nil, nil)
+	getOperation, _ := operation.NewOperation(http.MethodGet, "http://example.com", nil, nil)
+	postOperation, _ := operation.NewOperation(http.MethodPost, "http://example.com", nil, nil)
 
 	tests := []struct {
 		name     string
-		ops      request.Operations
+		ops      operation.Operations
 		i, j     int
 		expected bool
 	}{
 		{
 			name: "Different URLs",
-			ops: request.Operations{
+			ops: operation.Operations{
 				getOperation,
 				postOperation,
 			},
@@ -30,7 +30,7 @@ func TestOperations_Less(t *testing.T) {
 		},
 		{
 			name: "Same URLs, different methods",
-			ops: request.Operations{
+			ops: operation.Operations{
 				postOperation,
 				getOperation,
 			},
@@ -40,7 +40,7 @@ func TestOperations_Less(t *testing.T) {
 		},
 		{
 			name: "Same URLs and methods",
-			ops: request.Operations{
+			ops: operation.Operations{
 				getOperation,
 				getOperation,
 			},
@@ -59,20 +59,20 @@ func TestOperations_Less(t *testing.T) {
 }
 
 func TestOperations_GetByID(t *testing.T) {
-	getOperation, _ := request.NewOperation(http.MethodGet, "http://example.com", nil, nil)
+	getOperation, _ := operation.NewOperation(http.MethodGet, "http://example.com", nil, nil)
 	getOperation.SetID("1")
-	postOperation, _ := request.NewOperation(http.MethodPost, "http://example.com", nil, nil)
+	postOperation, _ := operation.NewOperation(http.MethodPost, "http://example.com", nil, nil)
 	postOperation.SetID("2")
 
 	tests := []struct {
 		name     string
-		ops      request.Operations
+		ops      operation.Operations
 		id       string
-		expected *request.Operation
+		expected *operation.Operation
 	}{
 		{
 			name: "Existing ID",
-			ops: request.Operations{
+			ops: operation.Operations{
 				getOperation,
 				postOperation,
 			},
@@ -81,7 +81,7 @@ func TestOperations_GetByID(t *testing.T) {
 		},
 		{
 			name: "Non-existing ID",
-			ops: request.Operations{
+			ops: operation.Operations{
 				getOperation,
 				postOperation,
 			},
@@ -90,7 +90,7 @@ func TestOperations_GetByID(t *testing.T) {
 		},
 		{
 			name: "Empty ID",
-			ops: request.Operations{
+			ops: operation.Operations{
 				getOperation,
 				postOperation,
 			},

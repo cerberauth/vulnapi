@@ -1,4 +1,4 @@
-package request
+package operation
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -36,25 +37,45 @@ func GenerateOperationID(method string, path string) string {
 }
 
 type Operation struct {
-	*Client `json:"-" yaml:"-"`
+	*request.Client `json:"-" yaml:"-"`
 
 	OpenAPIDocPath *string `json:"-" yaml:"-"`
 	ID             string  `json:"id" yaml:"id"`
 
 	Method          string                `json:"method" yaml:"method"`
 	URL             url.URL               `json:"url" yaml:"url"`
-	Body            *bytes.Buffer         `json:"body,omitempty" yaml:"body,omitempty"`
+	Body            []byte                `json:"body,omitempty" yaml:"body,omitempty"`
 	Cookies         []*http.Cookie        `json:"cookies,omitempty" yaml:"cookies,omitempty"`
 	Header          http.Header           `json:"header,omitempty" yaml:"header,omitempty"`
 	SecuritySchemes []auth.SecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
 }
 
-func NewOperation(method string, operationUrl string, body *bytes.Buffer, client *Client) (*Operation, error) {
+func getBody(body io.Reader) ([]byte, error) {
+	if body == nil {
+		return nil, nil
+	}
+
+	if bodyBuffer, ok := body.(*bytes.Buffer); ok {
+		if bodyBuffer == nil {
+			return nil, nil
+		}
+		return bodyBuffer.Bytes(), nil
+	}
+
+	return io.ReadAll(body)
+}
+
+func NewOperation(method string, operationUrl string, body io.Reader, client *request.Client) (*Operation, error) {
 	if client == nil {
-		client = GetDefaultClient()
+		client = request.GetDefaultClient()
 	}
 
 	parsedUrl, err := url.Parse(operationUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyBuffer, err := getBody(body)
 	if err != nil {
 		return nil, err
 	}
@@ -64,14 +85,14 @@ func NewOperation(method string, operationUrl string, body *bytes.Buffer, client
 
 		Method:          method,
 		URL:             *parsedUrl,
-		Body:            body,
+		Body:            bodyBuffer,
 		Cookies:         []*http.Cookie{},
 		Header:          http.Header{},
 		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 	}, nil
 }
 
-func MustNewOperation(method string, operationUrl string, body *bytes.Buffer, client *Client) *Operation {
+func MustNewOperation(method string, operationUrl string, body *bytes.Buffer, client *request.Client) *Operation {
 	operation, err := NewOperation(method, operationUrl, body, client)
 	if err != nil {
 		panic(err)
@@ -96,21 +117,14 @@ func (operation *Operation) IsReachable() error {
 	return err
 }
 
-func NewOperationFromRequest(r *Request) (*Operation, error) {
-	var body bytes.Buffer
-	if r.Body != nil {
-		tee := io.TeeReader(r.Body, &body)
-		_, err := io.ReadAll(tee)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func NewOperationFromRequest(r *request.Request) (*Operation, error) {
 	return &Operation{
-		ID:     r.URL.String(),
-		Method: r.Method,
-		URL:    *r.URL,
-		Body:   &body,
+		ID:      r.GetURL(),
+		Method:  r.GetMethod(),
+		URL:     *r.HttpRequest.URL,
+		Header:  r.GetHeader(),
+		Cookies: r.GetCookies(),
+		Body:    r.GetBody(),
 
 		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
 	}, nil
@@ -137,12 +151,8 @@ func (operation *Operation) WithCookies(cookies []*http.Cookie) *Operation {
 	return operation
 }
 
-func (operation *Operation) NewRequest() (*Request, error) {
-	body := bytes.NewBuffer(nil)
-	if operation.Body != nil && operation.Body.Len() > 0 {
-		body.Write(operation.Body.Bytes())
-	}
-	req, err := NewRequest(operation.Method, operation.URL.String(), body, operation.Client)
+func (operation *Operation) NewRequest() (*request.Request, error) {
+	req, err := request.NewRequest(operation.Method, operation.URL.String(), bytes.NewReader(operation.Body), operation.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +167,13 @@ func (operation *Operation) GetSecuritySchemes() []auth.SecurityScheme {
 		return []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
 	}
 	return operation.SecuritySchemes
+}
+
+func (operation *Operation) GetSecurityScheme() auth.SecurityScheme {
+	if operation.SecuritySchemes == nil {
+		return auth.NewNoAuthSecurityScheme()
+	}
+	return operation.SecuritySchemes[0]
 }
 
 func (operation *Operation) SetSecuritySchemes(securitySchemes []auth.SecurityScheme) *Operation {
@@ -186,7 +203,7 @@ func (operation *Operation) GetID() string {
 	return operation.ID
 }
 
-func (o *Operation) Clone() *Operation {
+func (o *Operation) Clone() (*Operation, error) {
 	var clonedSecuritySchemes []auth.SecurityScheme
 	if o.SecuritySchemes != nil {
 		clonedSecuritySchemes = make([]auth.SecurityScheme, len(o.SecuritySchemes))
@@ -204,5 +221,5 @@ func (o *Operation) Clone() *Operation {
 		SecuritySchemes: clonedSecuritySchemes,
 
 		ID: o.ID,
-	}
+	}, nil
 }

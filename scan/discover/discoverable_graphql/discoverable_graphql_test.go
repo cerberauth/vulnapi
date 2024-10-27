@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	"github.com/jarcoal/httpmock"
@@ -19,11 +20,11 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := discoverablegraphql.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := discoverablegraphql.ScanHandler(op, auth.NewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 7)
@@ -37,7 +38,7 @@ func TestDiscoverableScanner_Failed_WhenOneGraphQLPathFound(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/graphql", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 

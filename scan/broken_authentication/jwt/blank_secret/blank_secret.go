@@ -2,7 +2,7 @@ package blanksecret
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
@@ -42,9 +42,9 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, op)
 
 	if !ShouldBeScanned(securityScheme) {
 		return r.AddIssueReport(vulnReport.Skip()).End(), nil
@@ -62,7 +62,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		return r, err
 	}
 	securityScheme.SetAttackValue(newToken)
-	vsa, err := scan.ScanURL(operation, &securityScheme)
+	vsa, err := scan.ScanURL(op, &securityScheme)
 	if err != nil {
 		return r, err
 	}

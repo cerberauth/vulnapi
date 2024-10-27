@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
@@ -74,23 +75,23 @@ func getAllFQDNs(domain string) []string {
 	return fqdns
 }
 
-func testFqdnReachable(fqdn string, client *request.Client) (*request.Operation, error) {
-	operation, err := request.NewOperation(http.MethodGet, "https://"+fqdn, nil, client)
+func testFqdnReachable(fqdn string, client *request.Client) (*operation.Operation, error) {
+	op, err := operation.NewOperation(http.MethodGet, "https://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := operation.IsReachable(); err == nil {
-		return operation, nil
+	if err := op.IsReachable(); err == nil {
+		return op, nil
 	}
 
-	operation, err = request.NewOperation(http.MethodGet, "http://"+fqdn, nil, client)
+	op, err = operation.NewOperation(http.MethodGet, "http://"+fqdn, nil, client)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := operation.IsReachable(); err == nil {
-		return operation, nil
+	if err := op.IsReachable(); err == nil {
+		return op, nil
 	}
 
 	return nil, nil
@@ -108,8 +109,8 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *sca
 
 	domainsScan := []*scan.Scan{}
 	for _, domain := range domains {
-		if operation, err := testFqdnReachable(domain, client); operation != nil && err == nil {
-			domainScan, err := scan.NewScan(request.Operations{operation}, opts)
+		if op, err := testFqdnReachable(domain, client); op != nil && err == nil {
+			domainScan, err := scan.NewScan(operation.Operations{op}, opts)
 			if err != nil {
 				return nil, err
 			}

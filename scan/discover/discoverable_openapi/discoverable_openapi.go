@@ -2,7 +2,7 @@ package discoverableopenapi
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
 )
@@ -38,10 +38,10 @@ var potentialOpenAPIPaths = []string{
 	"/.well-known/openapi.yml",
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, op)
 	handler := discover.CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, vulnReport)
 
-	return handler(operation, securityScheme)
+	return handler(op, securityScheme)
 }
