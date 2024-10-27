@@ -24,7 +24,7 @@ func getValidHTTPHeaders(_ *request.Operation) http.Header {
 }
 
 func TestHTTPHeadersScanHandler_Passed(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -48,7 +48,7 @@ func TestHTTPHeadersScanHandler_Passed(t *testing.T) {
 }
 
 func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -67,7 +67,7 @@ func TestHTTPHeadersBestPracticesWithoutCSPScanHandler(t *testing.T) {
 }
 
 func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -86,7 +86,7 @@ func TestHTTPHeadersBestPracticesWithoutFrameAncestorsCSPDirectiveScanHandler(t 
 }
 
 func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -105,7 +105,7 @@ func TestHTTPHeadersBestPracticesWithNotNoneFrameAncestorsCSPDirectiveScanHandle
 }
 
 func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -124,7 +124,7 @@ func TestHTTPHeadersBestPracticesWithoutCORSScanHandler(t *testing.T) {
 }
 
 func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -143,7 +143,7 @@ func TestHTTPHeadersBestPracticesWithPermissiveCORSScanHandler(t *testing.T) {
 }
 
 func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -162,7 +162,7 @@ func TestHTTPHeadersBestPracticesWithoutHSTSScanHandler(t *testing.T) {
 }
 
 func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -181,7 +181,7 @@ func TestHTTPHeadersBestPracticesWithoutXContentTypeOptionsScanHandler(t *testin
 }
 
 func TestHTTPHeadersBestPracticesWithoutXFrameOptionsScanHandler(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

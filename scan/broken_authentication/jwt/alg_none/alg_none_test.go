@@ -24,7 +24,7 @@ func TestAlgNoneJwtScanHandler_WithoutSecurityScheme(t *testing.T) {
 }
 
 func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -41,7 +41,7 @@ func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testin
 }
 
 func TestAlgNoneJwtScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -58,7 +58,7 @@ func TestAlgNoneJwtScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 }
 
 func TestAlgNoneJwtScanHandler_Failed_WhenOKResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -78,7 +78,7 @@ func TestAlgNoneJwtScanHandler_Failed_WhenOKResponse(t *testing.T) {
 }
 
 func TestAlgNoneJwtScanHandler_Failed_WhenOKResponseAndAlgNone(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

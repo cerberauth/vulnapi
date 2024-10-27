@@ -13,7 +13,7 @@ import (
 )
 
 func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -29,7 +29,7 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *tes
 }
 
 func TestGraphqlIntrospectionScanHandler_Passed_WhenNotFoundStatus(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

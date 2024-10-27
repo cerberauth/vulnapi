@@ -4,6 +4,7 @@ import (
 	"log"
 
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/analyticsx"
@@ -32,6 +33,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 				analyticsx.TrackError(ctx, tracer, err)
 				log.Fatal(err)
 			}
+			request.SetDefaultClient(client)
 
 			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),

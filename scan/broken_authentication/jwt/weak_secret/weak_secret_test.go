@@ -44,7 +44,7 @@ func TestWeakHMACSecretScanHandler_WithoutJWT(t *testing.T) {
 }
 
 func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -64,7 +64,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 }
 
 func TestWeakHMACSecretScanHandler_Failed_WithExpiredJWTSignedWithWeakSecret(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -98,7 +98,7 @@ func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
 }
 
 func TestWeakHMACSecretScanHandler_Failed_WithUnorderedClaims(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

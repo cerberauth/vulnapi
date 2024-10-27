@@ -10,7 +10,7 @@ import (
 
 func NewDiscoverAPIScan(method string, url string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
-		client = request.DefaultClient
+		client = request.GetDefaultClient()
 	}
 
 	url = addDefaultProtocolWhenMissing(url)

@@ -13,7 +13,7 @@ import (
 )
 
 func TestCheckSignatureHeader_Failed_WithServerSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -34,7 +34,7 @@ func TestCheckSignatureHeader_Failed_WithServerSignatureHeader(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Failed_WithOSSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -55,7 +55,7 @@ func TestCheckSignatureHeader_Failed_WithOSSignatureHeader(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Failed_WithHostingSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -76,7 +76,7 @@ func TestCheckSignatureHeader_Failed_WithHostingSignatureHeader(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Failed_WithAuthenticationSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -97,7 +97,7 @@ func TestCheckSignatureHeader_Failed_WithAuthenticationSignatureHeader(t *testin
 }
 
 func TestCheckSignatureHeader_Failed_WithCDNSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -118,7 +118,7 @@ func TestCheckSignatureHeader_Failed_WithCDNSignatureHeader(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Failed_WithLanguageSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -139,7 +139,7 @@ func TestCheckSignatureHeader_Failed_WithLanguageSignatureHeader(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -162,7 +162,7 @@ func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) 
 }
 
 func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -181,7 +181,7 @@ func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
 }
 
 func TestCheckSignatureHeader_Passed_WithoutSignatureHeader(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

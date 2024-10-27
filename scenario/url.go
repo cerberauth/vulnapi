@@ -13,7 +13,7 @@ import (
 
 func NewURLScan(method string, url string, data string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
-		client = request.DefaultClient
+		client = request.GetDefaultClient()
 	}
 
 	securityScheme, err := detectSecurityScheme(client.Header)

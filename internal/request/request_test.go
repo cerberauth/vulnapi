@@ -69,7 +69,7 @@ func TestWithSecurityScheme(t *testing.T) {
 }
 
 func TestDo(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -93,7 +93,7 @@ func TestDo(t *testing.T) {
 }
 
 func TestDoWithHeaders(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -152,7 +152,7 @@ func TestDoWithClientHeaders(t *testing.T) {
 }
 
 func TestDoWithBody(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -178,7 +178,7 @@ func TestDoWithBody(t *testing.T) {
 }
 
 func TestDoWithSecuritySchemeHeaders(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -204,7 +204,7 @@ func TestDoWithSecuritySchemeHeaders(t *testing.T) {
 }
 
 func TestDoWithHeadersSecuritySchemeHeaders(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -236,7 +236,7 @@ func TestDoWithHeadersSecuritySchemeHeaders(t *testing.T) {
 }
 
 func TestDoWithCookiesSecuritySchemeHeaders(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -269,7 +269,7 @@ func TestDoWithCookiesSecuritySchemeHeaders(t *testing.T) {
 }
 
 func TestDoWithCookies(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

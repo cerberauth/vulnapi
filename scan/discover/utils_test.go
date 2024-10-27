@@ -42,7 +42,7 @@ func TestExtractBaseURL(t *testing.T) {
 }
 
 func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -64,7 +64,7 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 }
 
 func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -89,7 +89,7 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 }
 
 func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

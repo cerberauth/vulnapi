@@ -23,7 +23,7 @@ func TestNullSignatureScanHandler_WithoutSecurityScheme(t *testing.T) {
 }
 
 func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -39,7 +39,7 @@ func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *tes
 }
 
 func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -56,7 +56,7 @@ func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) 
 }
 
 func TestNullSignatureScanHandler_Failed_WhenOKResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 

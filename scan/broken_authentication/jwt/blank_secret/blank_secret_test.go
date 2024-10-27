@@ -23,7 +23,7 @@ func TestBlankSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 }
 
 func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -39,7 +39,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 }
 
 func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -55,7 +55,7 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
 }
 
 func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
@@ -72,7 +72,7 @@ func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 }
 
 func TestBlankSecretScanHandler_Failed_WhenOKResponse(t *testing.T) {
-	client := request.DefaultClient
+	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
