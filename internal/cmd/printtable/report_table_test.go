@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	printtable "github.com/cerberauth/vulnapi/internal/cmd/printtable"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewScanIssueReports(t *testing.T) {
-	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
+	operation := operation.MustNewOperation("GET", "/api/v1/", nil, nil)
 	sr := &report.ScanReport{
 		Issues: []*report.IssueReport{
 			{
@@ -48,7 +48,7 @@ func TestNewScanIssueReports(t *testing.T) {
 }
 
 func TestNewFullScanIssueReports(t *testing.T) {
-	operation, _ := request.NewOperation("GET", "/api/v1/", nil, nil)
+	operation := operation.MustNewOperation("GET", "/api/v1/", nil, nil)
 	sr1 := &report.ScanReport{
 		Issues: []*report.IssueReport{
 			{

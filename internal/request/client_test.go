@@ -1,15 +1,16 @@
-package request
+package request_test
 
 import (
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewClient_DefaultOptions(t *testing.T) {
-	client := NewClient(NewClientOptions{})
+	client := request.NewClient(request.NewClientOptions{})
 
 	assert.NotNil(t, client)
 	assert.Equal(t, 10*time.Second, client.Timeout)
@@ -23,7 +24,7 @@ func TestNewClient_CustomOptions(t *testing.T) {
 	header := http.Header{"Custom-Header": []string{"value"}}
 	cookies := []*http.Cookie{{Name: "test", Value: "cookie"}}
 
-	client := NewClient(NewClientOptions{
+	client := request.NewClient(request.NewClientOptions{
 		Timeout: 5 * time.Second,
 		Header:  header,
 		Cookies: cookies,
@@ -36,18 +37,18 @@ func TestNewClient_CustomOptions(t *testing.T) {
 }
 
 func TestGetClient(t *testing.T) {
-	client := GetDefaultClient()
+	client := request.GetDefaultClient()
 	assert.NotNil(t, client)
 }
 
 func TestSetClient(t *testing.T) {
-	newClient := NewClient(NewClientOptions{})
-	SetDefaultClient(newClient)
-	assert.Equal(t, newClient, GetDefaultClient())
+	newClient := request.NewClient(request.NewClientOptions{})
+	request.SetDefaultClient(newClient)
+	assert.Equal(t, newClient, request.GetDefaultClient())
 }
 
 func TestClient_WithHeader(t *testing.T) {
-	client := NewClient(NewClientOptions{})
+	client := request.NewClient(request.NewClientOptions{})
 	header := http.Header{"Custom-Header": []string{"value"}}
 	client = client.WithHeader(header)
 
@@ -55,7 +56,7 @@ func TestClient_WithHeader(t *testing.T) {
 }
 
 func TestClient_WithCookies(t *testing.T) {
-	client := NewClient(NewClientOptions{})
+	client := request.NewClient(request.NewClientOptions{})
 	cookies := []*http.Cookie{{Name: "test", Value: "cookie"}}
 	client = client.WithCookies(cookies)
 

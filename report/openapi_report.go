@@ -1,11 +1,11 @@
 package report
 
 import (
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-func findOperationByMethodAndPath(operations request.Operations, method string, path string) *request.Operation {
+func findOperationByMethodAndPath(operations operation.Operations, method string, path string) *operation.Operation {
 	for _, operation := range operations {
 		if operation.Method == method && operation.GetOpenAPIDocPath() != nil && *operation.GetOpenAPIDocPath() == path {
 			return operation
@@ -24,7 +24,7 @@ type OpenAPIReportOperation struct {
 	Issues []*IssueReport `json:"issues" yaml:"issues"`
 }
 
-func NewOpenAPIReportOperation(operation *openapi3.Operation, requestOperation *request.Operation) OpenAPIReportOperation {
+func NewOpenAPIReportOperation(operation *openapi3.Operation, requestOperation *operation.Operation) OpenAPIReportOperation {
 	reportSecuritySchemes := []OperationSecurityScheme{}
 	for _, ss := range requestOperation.GetSecuritySchemes() {
 		reportSecuritySchemes = append(reportSecuritySchemes, NewOperationSecurityScheme(ss))
@@ -46,12 +46,12 @@ type OpenAPIReport struct {
 	Paths OpenAPIReportPaths `json:"paths" yaml:"paths"`
 }
 
-func NewOpenAPIReport(doc *openapi3.T, operations request.Operations) *OpenAPIReport {
+func NewOpenAPIReport(doc *openapi3.T, operations operation.Operations) *OpenAPIReport {
 	paths := OpenAPIReportPaths{}
 	for docPath, p := range doc.Paths.Map() {
 		paths[docPath] = OpenAPIReportMethods{}
 		for method, o := range p.Operations() {
-			var requestOperation *request.Operation
+			var requestOperation *operation.Operation
 			if o.OperationID != "" {
 				requestOperation = operations.GetByID(o.OperationID)
 			}

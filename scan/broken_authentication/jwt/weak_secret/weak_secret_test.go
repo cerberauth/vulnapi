@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	weaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
 	"github.com/jarcoal/httpmock"
@@ -14,7 +15,7 @@ import (
 
 func TestWeakHMACSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
@@ -25,7 +26,7 @@ func TestWeakHMACSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 func TestWeakHMACSecretScanHandler_WithJWTUsingOtherAlg(t *testing.T) {
 	token := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmMxMjMifQ.vLBmArLmAKEshqJa3px6qYfrkAfiwBrKPs5dCMxqj9bdiEKR5W4o0Srxt6VHZKzsxIGMTTsqpW21lKnYsLw5DA"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
@@ -35,7 +36,7 @@ func TestWeakHMACSecretScanHandler_WithJWTUsingOtherAlg(t *testing.T) {
 
 func TestWeakHMACSecretScanHandler_WithoutJWT(t *testing.T) {
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", nil)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
 
@@ -51,7 +52,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithWeakJWT(t *testing.T) {
 	secret := "secret"
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
@@ -71,7 +72,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithExpiredJWTSignedWithWeakSecret(t *
 	secret := "secret"
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyMzkwMjJ9.7BbIenT4-HobiMHaMUQdNcJ6lD_QQkKnImP9IprJFvU"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
@@ -86,7 +87,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithExpiredJWTSignedWithWeakSecret(t *
 func TestWeakHMACSecretScanHandler_Passed_WithStrongerJWT(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MWUarT7Q4e5DqnZbdr7VKw3rx9VW-CrvoVkfpllS4CY"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)
@@ -105,7 +106,7 @@ func TestWeakHMACSecretScanHandler_Failed_WithUnorderedClaims(t *testing.T) {
 	secret := "secret"
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJuYmYiOjIwMTYyMzkwMjJ9.ymnE0GznV0dMkjANTQl8IqBSlTi9RFWfBeT42jBNrU4"
 	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &token)
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
 	report, err := weaksecret.ScanHandler(operation, securityScheme)

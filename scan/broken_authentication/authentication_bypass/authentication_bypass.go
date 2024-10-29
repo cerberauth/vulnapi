@@ -2,7 +2,7 @@ package authenticationbypass
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
@@ -27,16 +27,16 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 
-	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName, operation)
+	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName, op)
 	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
 		return r.AddIssueReport(vulnReport.Skip()).End(), nil
 	}
 
 	noAuthSecurityScheme := auth.SecurityScheme(auth.NewNoAuthSecurityScheme())
-	vsa, err := scan.ScanURL(operation, &noAuthSecurityScheme)
+	vsa, err := scan.ScanURL(op, &noAuthSecurityScheme)
 	if err != nil {
 		return r, err
 	}

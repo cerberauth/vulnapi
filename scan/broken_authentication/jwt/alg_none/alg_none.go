@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
@@ -56,9 +56,9 @@ var algs = []string{
 	"nOnE",
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	issueReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	issueReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, op)
 
 	if !ShouldBeScanned(securityScheme) {
 		issueReport.Skip()
@@ -81,7 +81,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	method := &signingMethodNone{}
 	for _, alg := range algs {
 		method.SetAlg(alg)
-		vsa, err := scanWithAlg(method, valueWriter, securityScheme, operation)
+		vsa, err := scanWithAlg(method, valueWriter, securityScheme, op)
 		if err != nil {
 			return r, err
 		}
@@ -100,13 +100,13 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	return r, nil
 }
 
-func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme auth.SecurityScheme, operation *request.Operation) (*scan.IssueScanAttempt, error) {
+func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme auth.SecurityScheme, op *operation.Operation) (*scan.IssueScanAttempt, error) {
 	newToken, err := valueWriter.SignWithMethodAndKey(method, jwtlib.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return nil, err
 	}
 	securityScheme.SetAttackValue(newToken)
-	vsa, err := scan.ScanURL(operation, &securityScheme)
+	vsa, err := scan.ScanURL(op, &securityScheme)
 	if err != nil {
 		return nil, err
 	}

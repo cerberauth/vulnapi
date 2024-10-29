@@ -2,39 +2,38 @@ package scan
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 type IssueScanAttempt struct {
-	Request  *http.Request
-	Response *http.Response
+	Request  *request.Request
+	Response *request.Response
 	Err      error
 }
 
-func ScanURL(operation *request.Operation, securityScheme *auth.SecurityScheme) (*IssueScanAttempt, error) {
+func ScanURL(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*IssueScanAttempt, error) {
 	req, err := operation.NewRequest()
 	if err != nil {
-		return nil, errors.New("request has an unexpected error")
+		return nil, err
 	}
 
 	if securityScheme != nil {
 		req.WithSecurityScheme(*securityScheme)
-	} else if len(operation.GetSecuritySchemes()) > 0 {
-		req.WithSecurityScheme(operation.GetSecuritySchemes()[0])
+	} else {
+		req.WithSecurityScheme(operation.GetSecurityScheme())
 	}
 
-	resp, err := req.Do()
+	res, err := req.Do()
 	if err != nil {
 		return nil, errors.New("request has an unexpected error")
 	}
-	defer resp.Body.Close()
 
 	return &IssueScanAttempt{
-		Request:  req.Request,
-		Response: resp,
+		Request:  req,
+		Response: res,
 		Err:      err,
 	}, nil
 }

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -51,7 +51,7 @@ func TestNewOperationSecurityScheme(t *testing.T) {
 }
 
 func TestNewScanReport(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.NotNil(t, sr)
 	assert.Equal(t, "id", sr.ID)
@@ -60,7 +60,7 @@ func TestNewScanReport(t *testing.T) {
 }
 
 func TestScanReport_Start(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	startTime := sr.StartTime
 	time.Sleep(1 * time.Second)
@@ -69,7 +69,7 @@ func TestScanReport_Start(t *testing.T) {
 }
 
 func TestScanReport_End(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	endTime := sr.EndTime
 	time.Sleep(1 * time.Second)
@@ -78,7 +78,7 @@ func TestScanReport_End(t *testing.T) {
 }
 
 func TestScanReport_WithData(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	data := map[string]string{
 		"test": "test",
@@ -88,7 +88,7 @@ func TestScanReport_WithData(t *testing.T) {
 }
 
 func TestScanReport_GetData(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	data := map[string]string{
 		"test": "test",
@@ -98,7 +98,7 @@ func TestScanReport_GetData(t *testing.T) {
 }
 
 func TestScanReport_HasData(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasData())
 
@@ -110,7 +110,7 @@ func TestScanReport_HasData(t *testing.T) {
 }
 
 func TestScanReport_AddScanAttempt(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	expectedScanAttempt := report.ScanReportScan{}
 
@@ -121,7 +121,7 @@ func TestScanReport_AddScanAttempt(t *testing.T) {
 }
 
 func TestScanReport_AddIssueReport(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	IssueReport := &report.IssueReport{}
 	sr.AddIssueReport(IssueReport)
@@ -130,7 +130,7 @@ func TestScanReport_AddIssueReport(t *testing.T) {
 }
 
 func TestScanReport_HasFailedIssueReport(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedIssueReport())
 
@@ -143,7 +143,7 @@ func TestScanReport_HasFailedIssueReport(t *testing.T) {
 }
 
 func TestScanReport_HasOnlyFailedIssueReport(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedIssueReport())
 
@@ -156,7 +156,7 @@ func TestScanReport_HasOnlyFailedIssueReport(t *testing.T) {
 }
 
 func TestScanReport_HasOnlyPassedIssueReport(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.False(t, sr.HasFailedIssueReport())
 
@@ -169,7 +169,7 @@ func TestScanReport_HasOnlyPassedIssueReport(t *testing.T) {
 }
 
 func TestScanReport_GetErrors(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetErrors())
 
@@ -181,7 +181,7 @@ func TestScanReport_GetErrors(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	scanAttempt := &scan.IssueScanAttempt{
 		Err: nil,
@@ -196,7 +196,7 @@ func TestMarshalJSON(t *testing.T) {
 }
 
 func TestScanReport_GetIssueReports(t *testing.T) {
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetIssueReports())
 

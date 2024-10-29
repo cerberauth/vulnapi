@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
@@ -49,7 +50,7 @@ func TestCreateURLScanHandler_WithTimeout(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.IssueReport{}
@@ -71,7 +72,7 @@ func TestCreateURLScanHandler_Passed_WhenNotFoundURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.IssueReport{}
@@ -96,7 +97,7 @@ func TestCreateURLScanHandler_Failed_WhenFoundExposedURLs(t *testing.T) {
 	seclistUrl := "http://localhost:8080/seclist"
 	defaultUrls := []string{"/path1", "/path2"}
 	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
-	operation, _ := request.NewOperation(http.MethodGet, "http://localhost:8080", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
 	vulnReport := &report.IssueReport{}

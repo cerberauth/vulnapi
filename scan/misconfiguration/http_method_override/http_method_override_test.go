@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
@@ -19,22 +20,22 @@ func TestHTTPMethodOverrideScanHandler(t *testing.T) {
 	value := jwt.FakeJWT
 	tests := []struct {
 		name           string
-		operation      *request.Operation
+		operation      *operation.Operation
 		securityScheme auth.SecurityScheme
 	}{
 		{
 			name:           "MethodNotAllowed",
-			operation:      request.MustNewOperation(http.MethodGet, "http://example.com", nil, nil),
+			operation:      operation.MustNewOperation(http.MethodGet, "http://example.com", nil, nil),
 			securityScheme: auth.NewNoAuthSecurityScheme(),
 		},
 		{
 			name:           "MethodOverrideDetected",
-			operation:      request.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
+			operation:      operation.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
 			securityScheme: auth.NewNoAuthSecurityScheme(),
 		},
 		{
 			name:           "AuthenticationBypassDetected",
-			operation:      request.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
+			operation:      operation.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
 			securityScheme: auth.MustNewAuthorizationJWTBearerSecurityScheme("securityScheme", &value),
 		},
 	}
@@ -59,7 +60,7 @@ func TestHTTPMethodOverrideScanHandler_When_Error(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	r, err := httpmethodoverride.ScanHandler(operation, securityScheme)
@@ -78,7 +79,7 @@ func TestHTTPMethodOverrideScanHandler_Passed(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
@@ -99,7 +100,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Header(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), func(req *http.Request) (*http.Response, error) {
@@ -125,7 +126,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T)
 	defer httpmock.DeactivateAndReset()
 
 	securityScheme := auth.NewNoAuthSecurityScheme()
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
@@ -153,7 +154,7 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Passed(t *testing.T
 
 	token := jwt.FakeJWT
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("securityScheme", &token)
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), func(req *http.Request) (*http.Response, error) {
@@ -183,7 +184,7 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Failed(t *testing.T
 
 	token := jwt.FakeJWT
 	securityScheme := auth.NewAuthorizationBearerSecurityScheme("securityScheme", &token)
-	operation := request.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), func(req *http.Request) (*http.Response, error) {

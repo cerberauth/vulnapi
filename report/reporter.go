@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -39,7 +39,7 @@ func NewReporterWithCurl(method string, url string, data interface{}, header htt
 	}
 }
 
-func NewReporterWithOpenAPIDoc(openapi *openapi3.T, operations request.Operations) *Reporter {
+func NewReporterWithOpenAPIDoc(openapi *openapi3.T, operations operation.Operations) *Reporter {
 	return &Reporter{
 		Schema: reporterSchema,
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -45,7 +45,7 @@ func Test_CurlReport_AddReport(t *testing.T) {
 
 	curlReport := report.NewCurlReport(method, url, data, header, cookies, securitySchemes)
 
-	operation, _ := request.NewOperation(method, url, nil, nil)
+	operation := operation.MustNewOperation(method, url, nil, nil)
 	scanReport := report.NewScanReport("id", "test", operation)
 	firstIssue := report.Issue{
 		Name: "issue 1",
@@ -74,7 +74,7 @@ func TestAddReport_WhenScanReportHasNoFailedIssueReport(t *testing.T) {
 
 	curlReport := report.NewCurlReport(method, url, data, header, cookies, securitySchemes)
 
-	operation, _ := request.NewOperation(method, url, nil, nil)
+	operation := operation.MustNewOperation(method, url, nil, nil)
 	scanReport := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "issue 1",

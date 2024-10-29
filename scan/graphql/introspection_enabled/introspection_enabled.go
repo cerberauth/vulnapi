@@ -1,11 +1,12 @@
 package introspectionenabled
 
 import (
-	"bytes"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
@@ -32,13 +33,17 @@ var issue = report.Issue{
 	},
 }
 
-const graphqlQuery = `{
-	"query": "query{__schema
-	{queryType{name}}}"
-}`
+const graphqlQuery = `query{__schema{queryType{name}}}`
 
 func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
-	return request.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader([]byte(graphqlQuery)), client)
+	payload := strings.NewReader("{\"query\":\"" + graphqlQuery + "\"}")
+	req, err := request.NewRequest(http.MethodPost, endpoint.String(), payload, client)
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetHeader("Content-Type", "application/json")
+	return req, nil
 }
 
 func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
@@ -46,19 +51,25 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL)
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
 
-	return request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
+	req, err := request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetHeader("Content-Type", "application/json")
+	return req, nil
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
 	securitySchemes := []auth.SecurityScheme{securityScheme}
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 
-	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, operation)
-	newRequest, err := newPostGraphqlIntrospectionRequest(operation.Client, operation.URL)
+	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, op)
+	newRequest, err := newPostGraphqlIntrospectionRequest(op.Client, op.URL)
 	if err != nil {
 		return r, err
 	}
-	newOperation, err := request.NewOperationFromRequest(newRequest)
+	newOperation, err := operation.NewOperationFromRequest(newRequest)
 	if err != nil {
 		return r, err
 	}
@@ -68,18 +79,18 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(attempt).End()
+	r.AddScanAttempt(attempt)
 
-	if attempt.Response.StatusCode == http.StatusOK { // TODO: check the GraphQL response
+	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
 		r.AddIssueReport(vulnReport.Fail()).End()
 		return r, nil
 	}
 
-	newRequest, err = newGetGraphqlIntrospectionRequest(operation.Client, operation.URL)
+	newRequest, err = newGetGraphqlIntrospectionRequest(op.Client, op.URL)
 	if err != nil {
 		return r, err
 	}
-	newOperation, err = request.NewOperationFromRequest(newRequest)
+	newOperation, err = operation.NewOperationFromRequest(newRequest)
 	if err != nil {
 		return r, err
 	}
@@ -89,9 +100,9 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(attempt).End()
+	r.AddScanAttempt(attempt)
 
-	if attempt.Response.StatusCode == http.StatusOK { // TODO: check the GraphQL response
+	if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check the GraphQL response
 		r.AddIssueReport(vulnReport.Fail()).End()
 		return r, nil
 	}

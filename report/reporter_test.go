@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	openapilib "github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -119,7 +119,7 @@ func TestReporter_NoHasHighRiskOrHigherSeverityVulnerability_WhenNoReport(t *tes
 
 func TestReporter_NoHasVulnerability_WhenNoFailedReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -133,7 +133,7 @@ func TestReporter_NoHasVulnerability_WhenNoFailedReport(t *testing.T) {
 
 func TestReporter_HasVulnerability_WhenFailedReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -147,7 +147,7 @@ func TestReporter_HasVulnerability_WhenFailedReport(t *testing.T) {
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenLowRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -164,7 +164,7 @@ func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenLowRiskReport(t 
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenHighRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -181,7 +181,7 @@ func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenHighRiskReport(t
 
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenCriticalRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -203,7 +203,7 @@ func TestReporter_HasHigherThanSeverityThresholdIssue_WhenNoReports(t *testing.T
 
 func TestReporter_HasHigherThanSeverityThresholdIssue_WhenBelowThreshold(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -220,7 +220,7 @@ func TestReporter_HasHigherThanSeverityThresholdIssue_WhenBelowThreshold(t *test
 
 func TestReporter_HasHigherThanSeverityThresholdIssue_WhenAtThreshold(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -237,7 +237,7 @@ func TestReporter_HasHigherThanSeverityThresholdIssue_WhenAtThreshold(t *testing
 
 func TestReporter_HasHigherThanSeverityThresholdIssue_WhenAboveThreshold(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -260,7 +260,7 @@ func TestReporter_GetReportsByIssueStatus_NoReports(t *testing.T) {
 
 func TestReporter_GetReportsByIssueStatus_NoMatchingStatus(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -275,7 +275,7 @@ func TestReporter_GetReportsByIssueStatus_NoMatchingStatus(t *testing.T) {
 
 func TestReporter_GetReportsByIssueStatus_MatchingStatus(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -292,7 +292,7 @@ func TestReporter_GetReportsByIssueStatus_MatchingStatus(t *testing.T) {
 
 func TestReporter_GetReportsByIssueStatus_MultipleReports(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr1 := report.NewScanReport("id1", "test1", operation)
 	issue1 := report.Issue{
 		Name: "test1",
@@ -324,7 +324,7 @@ func TestReporter_GetIssueReports_NoReports(t *testing.T) {
 
 func TestReporter_GetIssueReports_SingleReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	issue := report.Issue{
 		Name: "test",
@@ -341,7 +341,7 @@ func TestReporter_GetIssueReports_SingleReport(t *testing.T) {
 
 func TestReporter_GetIssueReports_MultipleReports(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr1 := report.NewScanReport("id1", "test1", operation)
 	issue1 := report.Issue{
 		Name: "test1",
@@ -373,7 +373,7 @@ func TestReporter_GetScanReportByID_NoReports(t *testing.T) {
 
 func TestReporter_GetScanReportByID_SingleReport(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	reporter.AddReport(sr)
 
@@ -384,7 +384,7 @@ func TestReporter_GetScanReportByID_SingleReport(t *testing.T) {
 
 func TestReporter_GetScanReportByID_MultipleReports(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr1 := report.NewScanReport("id1", "test1", operation)
 	sr2 := report.NewScanReport("id2", "test2", operation)
 	reporter.AddReport(sr1)
@@ -401,7 +401,7 @@ func TestReporter_GetScanReportByID_MultipleReports(t *testing.T) {
 
 func TestReporter_GetScanReportByID_NonexistentID(t *testing.T) {
 	reporter := report.NewReporter()
-	operation, _ := request.NewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
 	reporter.AddReport(sr)
 

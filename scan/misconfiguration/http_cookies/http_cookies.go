@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 )
@@ -103,22 +103,22 @@ var withoutExpiresIssue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	httpOnlyVulnReport := report.NewIssueReport(httpNotHttpOnlyIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	notSecureVulnReport := report.NewIssueReport(notSecureIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	sameSiteNoneVulnReport := report.NewIssueReport(sameSiteNoneIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	withoutSameSiteVulnReport := report.NewIssueReport(withoutSameSiteIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	withoutExpiresVulnReport := report.NewIssueReport(withoutExpiresIssue).WithOperation(operation).WithSecurityScheme(securityScheme)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	httpOnlyVulnReport := report.NewIssueReport(httpNotHttpOnlyIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	notSecureVulnReport := report.NewIssueReport(notSecureIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	sameSiteNoneVulnReport := report.NewIssueReport(sameSiteNoneIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	withoutSameSiteVulnReport := report.NewIssueReport(withoutSameSiteIssue).WithOperation(op).WithSecurityScheme(securityScheme)
+	withoutExpiresVulnReport := report.NewIssueReport(withoutExpiresIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 
-	attempt, err := scan.ScanURL(operation, &securityScheme)
-	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName, operation)
+	attempt, err := scan.ScanURL(op, &securityScheme)
+	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName, op)
 	if err != nil {
 		return r, err
 	}
 	r.AddScanAttempt(attempt).End()
 
 	// Detect every cookies insecure practices
-	for _, cookie := range attempt.Response.Cookies() {
+	for _, cookie := range attempt.Response.GetCookies() {
 		r.AddIssueReport(notSecureVulnReport.Clone().WithBooleanStatus(cookie.Secure))
 		r.AddIssueReport(httpOnlyVulnReport.Clone().WithBooleanStatus(cookie.HttpOnly))
 		r.AddIssueReport(sameSiteNoneVulnReport.Clone().WithBooleanStatus(cookie.SameSite != http.SameSiteNoneMode))
@@ -126,7 +126,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 		r.AddIssueReport(withoutExpiresVulnReport.Clone().WithBooleanStatus(!cookie.Expires.IsZero()))
 	}
 
-	if len(attempt.Response.Cookies()) == 0 {
+	if len(attempt.Response.GetCookies()) == 0 {
 		r.AddIssueReport(notSecureVulnReport.Clone().Skip())
 		r.AddIssueReport(httpOnlyVulnReport.Clone().Skip())
 		r.AddIssueReport(sameSiteNoneVulnReport.Clone().Skip())

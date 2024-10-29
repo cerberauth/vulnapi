@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 )
 
 type IssueReportStatus string
@@ -31,19 +31,18 @@ type IssueReport struct {
 	Issue  `json:",inline" yaml:",inline"`
 	Status IssueReportStatus `json:"status" yaml:"status"`
 
-	Operation      *request.Operation  `json:"-" yaml:"-"`
-	SecurityScheme auth.SecurityScheme `json:"-" yaml:"-"`
+	Operation      *operation.Operation `json:"-" yaml:"-"`
+	SecurityScheme auth.SecurityScheme  `json:"-" yaml:"-"`
 }
 
 func NewIssueReport(issue Issue) *IssueReport {
 	return &IssueReport{
-		Issue: issue,
-
+		Issue:  issue,
 		Status: IssueReportStatusNone,
 	}
 }
 
-func (vr *IssueReport) WithOperation(operation *request.Operation) *IssueReport {
+func (vr *IssueReport) WithOperation(operation *operation.Operation) *IssueReport {
 	vr.Operation = operation
 	return vr
 }

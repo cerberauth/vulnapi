@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
@@ -28,13 +29,13 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 	}
 
 	url = addDefaultProtocolWhenMissing(url)
-	operation, err := request.NewOperation(http.MethodPost, url, nil, client)
+	op, err := operation.NewOperation(http.MethodPost, url, nil, client)
 	if err != nil {
 		return nil, err
 	}
-	operation.SetSecuritySchemes(securitySchemes)
+	op.SetSecuritySchemes(securitySchemes)
 
-	if err := operation.IsReachable(); err != nil {
+	if err := op.IsReachable(); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +47,7 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 		opts.Reporter = report.NewReporterWithGraphQL(url, securitySchemes)
 	}
 
-	operations := request.Operations{operation}
+	operations := operation.Operations{op}
 	graphqlScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err

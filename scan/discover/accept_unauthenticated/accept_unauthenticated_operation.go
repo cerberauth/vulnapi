@@ -2,7 +2,7 @@ package acceptunauthenticated
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -26,9 +26,9 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName, op)
 
 	_, ok := securityScheme.(*auth.NoAuthSecurityScheme)
 	r.AddIssueReport(vulnReport.WithBooleanStatus(!ok)).End()

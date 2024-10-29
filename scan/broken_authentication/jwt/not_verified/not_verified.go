@@ -2,7 +2,7 @@ package notverified
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
@@ -45,9 +45,9 @@ func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
 	return true
 }
 
-func ScanHandler(operation *request.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, operation)
+func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
+	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, op)
 
 	if !ShouldBeScanned(securityScheme) {
 		r.AddIssueReport(vulnReport.Skip()).End()
@@ -67,7 +67,7 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	}
 
 	securityScheme.SetAttackValue(securityScheme.GetValidValue())
-	attemptOne, err := scan.ScanURL(operation, &securityScheme)
+	attemptOne, err := scan.ScanURL(op, &securityScheme)
 	if err != nil {
 		return r, err
 	}
@@ -79,13 +79,13 @@ func ScanHandler(operation *request.Operation, securityScheme auth.SecuritySchem
 	}
 
 	securityScheme.SetAttackValue(newToken)
-	attemptTwo, err := scan.ScanURL(operation, &securityScheme)
+	attemptTwo, err := scan.ScanURL(op, &securityScheme)
 	if err != nil {
 		return r, err
 	}
 
 	r.AddScanAttempt(attemptTwo).End()
-	vulnReport.WithBooleanStatus(attemptOne.Response.StatusCode == attemptTwo.Response.StatusCode)
+	vulnReport.WithBooleanStatus(attemptOne.Response.GetStatusCode() == attemptTwo.Response.GetStatusCode())
 	r.AddIssueReport(vulnReport)
 
 	return r, nil

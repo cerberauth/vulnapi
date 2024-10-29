@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
@@ -31,14 +32,14 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 	body := bytes.NewBuffer([]byte(data))
 
 	url = addDefaultProtocolWhenMissing(url)
-	operation, err := request.NewOperation(method, url, body, client)
-	operation.GenerateID()
+	op, err := operation.NewOperation(method, url, body, client)
+	op.GenerateID()
 	if err != nil {
 		return nil, err
 	}
-	operation.SetSecuritySchemes(securitySchemes)
+	op.SetSecuritySchemes(securitySchemes)
 
-	if err := operation.IsReachable(); err != nil {
+	if err := op.IsReachable(); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +51,7 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		opts.Reporter = report.NewReporterWithCurl(method, url, data, client.Header, client.Cookies, securitySchemes)
 	}
 
-	operations := request.Operations{operation}
+	operations := operation.Operations{op}
 	urlScan, err := scan.NewScan(operations, opts)
 	if err != nil {
 		return nil, err

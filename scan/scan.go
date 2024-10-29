@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -17,11 +17,11 @@ type ScanOptions struct {
 type Scan struct {
 	*ScanOptions
 
-	Operations      request.Operations
+	Operations      operation.Operations
 	OperationsScans []OperationScan
 }
 
-func NewScan(operations request.Operations, opts *ScanOptions) (*Scan, error) {
+func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) {
 	if len(operations) == 0 {
 		return nil, fmt.Errorf("a scan must have at least one operation")
 	}
