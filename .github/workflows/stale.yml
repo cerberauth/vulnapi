@@ -1,0 +1,31 @@
+name: "Close Stale Issues"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: |
+            Hello contributors!
+
+            This issue has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.
+            If you believe this issue is still relevant, please comment with your thoughts or re-open it.
+
+            Thank you for your contributions! 🙏
+          stale-issue-label: "stale"
+          days-before-stale: 60
+          days-before-close: 30
+          exempt-milestones: true
+          exempt-assignees: true
+          only-pr-labels: "stale"
