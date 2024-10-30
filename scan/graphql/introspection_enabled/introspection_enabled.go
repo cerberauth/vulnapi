@@ -102,7 +102,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 	}
 	r.AddScanAttempt(attempt)
 
-	if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check the GraphQL response
+	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
 		r.AddIssueReport(vulnReport.Fail()).End()
 		return r, nil
 	}
