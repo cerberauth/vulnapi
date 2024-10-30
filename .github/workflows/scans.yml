@@ -134,3 +134,49 @@ jobs:
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest)
+
+  run-graphql-scans:
+    name: GraphQL Scans
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - challenge: "graphql.introspection_enabled"
+            url: "http://localhost:4000/graphql"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 4000:4000 ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          go run main.go scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}"
+
+      - name: Check for vulnerabilities
+        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        run: echo "Vulnerabilities found in ${{ matrix.challenge }}"
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/apollo:latest)
