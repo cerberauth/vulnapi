@@ -101,7 +101,9 @@ func NewJWTCmd() (cmd *cobra.Command) {
 			}
 
 			if signingMethod == nil || key == nil {
-				log.Fatal(errors.New("algorithm and secret are required"))
+				err = errors.New("algorithm and secret are required")
+				analyticsx.TrackError(ctx, tracer, err)
+				log.Fatal(err)
 				return
 			}
 

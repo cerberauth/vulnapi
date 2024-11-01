@@ -1,6 +1,12 @@
 package auth
 
-import "errors"
+import (
+	"context"
+	"errors"
+
+	"github.com/cerberauth/x/analyticsx"
+	"go.opentelemetry.io/otel"
+)
 
 type SchemeName string
 
@@ -25,7 +31,9 @@ func (s *SchemeName) Set(v string) error {
 		*s = SchemeName(v)
 		return nil
 	default:
-		return errors.New(`must be one of "basic", "bearer", "digest", "oauth", "privateToken"`)
+		err := errors.New(`must be one of "basic", "bearer", "digest", "oauth", "privateToken"`)
+		analyticsx.TrackError(context.TODO(), otel.Tracer("jwt"), err)
+		return err
 	}
 }
 
