@@ -15,7 +15,7 @@ func TestNewOAuthSecurityScheme(t *testing.T) {
 
 	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
 
-	assert.Equal(t, auth.HttpType, ss.Type)
+	assert.Equal(t, auth.OAuth2, ss.Type)
 	assert.Equal(t, auth.BearerScheme, ss.Scheme)
 	assert.Equal(t, auth.InHeader, ss.In)
 	assert.Equal(t, name, ss.Name)
@@ -30,9 +30,6 @@ func TestNewOAuthSecurityScheme_WithJWT(t *testing.T) {
 
 	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
 
-	assert.Equal(t, auth.HttpType, ss.Type)
-	assert.Equal(t, auth.BearerScheme, ss.Scheme)
-	assert.Equal(t, auth.InHeader, ss.In)
 	assert.Equal(t, name, ss.Name)
 	assert.Equal(t, &value, ss.ValidValue)
 	assert.Equal(t, "", ss.AttackValue)
@@ -56,7 +53,7 @@ func TestOAuthSecurityScheme_GetType(t *testing.T) {
 
 	scheme := ss.GetType()
 
-	assert.Equal(t, auth.HttpType, scheme)
+	assert.Equal(t, auth.OAuth2, scheme)
 }
 
 func TestOAuthSecurityScheme_GetIn(t *testing.T) {

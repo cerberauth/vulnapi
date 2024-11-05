@@ -44,7 +44,7 @@ func NewOAuthSecurityScheme(name string, value *string, cfg *OAuthConfig) *OAuth
 	}
 
 	return &OAuthSecurityScheme{
-		Type:        HttpType,
+		Type:        OAuth2,
 		Scheme:      BearerScheme,
 		In:          InHeader,
 		Name:        name,

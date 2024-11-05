@@ -3,15 +3,14 @@ package scan
 import (
 	"log"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
@@ -23,14 +22,15 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := cmd.Context()
-			tracer := otel.Tracer("scan/graphql")
 			graphqlEndpoint := args[0]
 
-			analyticsx.TrackEvent(ctx, tracer, "Scan GraphQL", []attribute.KeyValue{})
+			ctx, span := tracer.Start(cmd.Context(), "Scan GraphQL")
+			defer span.End()
+
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 			request.SetDefaultClient(client)
@@ -40,7 +40,8 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
@@ -50,21 +51,23 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 				// nolint:errcheck
 				defer bar.Finish()
 			}
-			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
+			reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
 				if bar != nil {
 					// nolint:errcheck
 					bar.Add(1)
 				}
 			})
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
-			internalCmd.TrackScanReport(ctx, tracer, reporter)
+			analytics.TrackScanReport(ctx, reporter)
 			err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter)
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 		},

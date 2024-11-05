@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 func NewDomainCmd() (domainCmd *cobra.Command) {
@@ -21,14 +20,15 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 		Short: "Discover subdomains with API endpoints",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := cmd.Context()
-			tracer := otel.Tracer("discover")
 			domain := args[0]
 
-			analyticsx.TrackEvent(ctx, tracer, "Discover Domain", []attribute.KeyValue{})
+			ctx, span := tracer.Start(cmd.Context(), "Discover Domain")
+			defer span.End()
+
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
@@ -38,7 +38,8 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 			fmt.Printf("Found %d Domains\n", len(scans))
@@ -53,18 +54,19 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					// nolint:errcheck
 					defer bar.Finish()
 				}
-				reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
+				reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
 					if bar != nil {
 						// nolint:errcheck
 						bar.Add(1)
 					}
 				})
 				if err != nil {
-					analyticsx.TrackError(ctx, tracer, err)
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					log.Fatal(err)
 				}
 
-				internalCmd.TrackScanReport(ctx, tracer, reporter)
+				analytics.TrackScanReport(ctx, reporter)
 				printtable.WellKnownPathsScanReport(reporter)
 				printtable.FingerprintScanReport(reporter)
 			}

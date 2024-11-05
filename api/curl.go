@@ -3,13 +3,12 @@ package api
 import (
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type NewURLScanRequest struct {
@@ -20,17 +19,14 @@ type NewURLScanRequest struct {
 	Opts *ScanOptions `json:"options"`
 }
 
-var serverApiUrlTracer = otel.Tracer("server/api/url")
-
 func (h *Handler) ScanURL(ctx *gin.Context) {
 	var form NewURLScanRequest
 	if err := ctx.ShouldBindJSON(&form); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Scan URL", []attribute.KeyValue{
-		attribute.String("method", form.Method),
-	})
+	traceCtx, span := tracer.Start(ctx.Request.Context(), "Scan URL")
+	defer span.End()
 
 	opts := parseScanOptions(form.Opts)
 	opts.Header = ctx.Request.Header
@@ -42,21 +38,18 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
+	reporter, _, err := s.Execute(traceCtx, nil)
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiUrlTracer, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	if reporter.HasIssue() {
-		analyticsx.TrackEvent(ctx, serverApiUrlTracer, "Issue Found", nil)
-	}
+	analytics.TrackScanReport(traceCtx, reporter)
 
 	ctx.JSON(http.StatusOK, HTTPResponseReports{
 		Reports: reporter.GetScanReports(),

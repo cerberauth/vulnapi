@@ -5,17 +5,16 @@ import (
 	"log"
 	"os"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 func isStdinOpen() bool {
@@ -43,18 +42,21 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		Short: "OpenAPI Operations Scan",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := cmd.Context()
-			tracer := otel.Tracer("scan/openapi")
 			openapiUrlOrPath := args[0]
+
+			ctx, span := tracer.Start(cmd.Context(), "Scan OpenAPI")
+			defer span.End()
 
 			openapi, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
 			if err := openapi.Validate(ctx); err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
@@ -69,10 +71,10 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 			securitySchemesValues := auth.NewSecuritySchemeValues(values).WithDefault(validToken)
 
-			analyticsx.TrackEvent(ctx, tracer, "Scan OpenAPI", []attribute.KeyValue{})
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 			request.SetDefaultClient(client)
@@ -82,7 +84,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
@@ -92,20 +95,22 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				// nolint:errcheck
 				defer bar.Finish()
 			}
-			reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {
+			reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
 				if bar != nil {
 					// nolint:errcheck
 					bar.Add(1)
 				}
 			})
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
-			internalCmd.TrackScanReport(ctx, tracer, reporter)
+			analytics.TrackScanReport(ctx, reporter)
 			if err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter); err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 		},
