@@ -1,0 +1,103 @@
+---
+description: Learn about the importance of HTTP security headers for API security and how to test them using VulnAPI.
+---
+
+import { Tabs } from 'nextra/components'
+
+# API Security HTTP Headers
+
+It's crucial to understand the importance of HTTP security headers, especially when it comes to API security. These headers provide important security features and protections for both the server and the client.
+
+## How to test?
+
+If you want to test only that the API is sending the correct security headers, you can use the following command:
+
+<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan curl [url] --scans misconfiguration.http_headers
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_headers
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+vulnapi scan graphql --scans misconfiguration.http_headers [url]
+```
+  </Tabs.Tab>
+</Tabs>
+
+## API Content Security Policies (CSP)
+
+Content Security Policy (CSP) headers are essential for mitigating various security risks in the context of APIs. CSP helps to prevent a range of attacks, including:
+
+- **Data Injection Attacks:** CSP can restrict the types of content that can be loaded, reducing the risk of attackers injecting malicious data into the API responses.
+- **Clickjacking:** Although primarily a concern for web pages, CSP can also help mitigate clickjacking by controlling the framing of content.
+
+### Example of Secure CSP Header for APIs
+
+```http
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none';
+```
+
+`frame-ancestors 'none';` ensures that the API response cannot be embedded in iframes, preventing clickjacking attacks as your API should probably not be embedded in iframes.
+
+### Risks Mitigated by CSP
+
+1. **Cross-Site Scripting (XSS):** By restricting the sources from which scripts can be loaded, CSP helps to prevent attackers from injecting and executing malicious scripts.
+2. **Data Injection:** By controlling the sources of content, CSP reduces the risk of attackers injecting malicious data into the API responses.
+3. **Clickjacking:** By specifying frame-ancestors, CSP can prevent the API responses from being embedded in iframes, mitigating clickjacking attacks.
+
+Implementing CSP headers in your API responses is a proactive measure to enhance the security posture of your API, protecting both the server and the clients from various types of attacks.
+
+## API Cross-Origin Resource Sharing (CORS)
+
+CORS headers control access to resources from different origins. For APIs, proper CORS configuration ensures that only trusted domains can access the API resources, preventing unauthorized access from potentially malicious websites.
+
+### Example of Secure CORS Header for APIs
+
+```http
+Access-Control-Allow-Origin: https://trusted-domain.com
+```
+
+## HTTP Strict Transport Security (HSTS)
+
+HSTS headers instruct the browser to always use HTTPS when communicating with the server, even if the user types "http" in the address bar. This prevents man-in-the-middle attacks and ensures that all data exchanged between the client and the server is encrypted.
+
+### Example of Secure HSTS Header for APIs
+
+```http
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
+## X-Content-Type-Options
+
+This header prevents browsers from **MIME-sniffing** a response away from the declared content type, which can help prevent certain types of attacks, such as content type confusion attacks.
+
+### Example of Secure X-Content-Type-Options Header for APIs
+
+```http
+X-Content-Type-Options: nosniff
+```
+
+## X-Frame-Options
+
+X-Frame-Options header protects against clickjacking attacks by preventing the API response from being embedded within a frame or iframe on another domain.
+
+### Example of Secure X-Frame-Options Header for APIs
+
+```http
+X-Frame-Options: DENY
+```
+
+## X-Permitted-Cross-Domain-Policies (deprecated)
+
+This header specifies the policy file that governs how Flash and Adobe AIR applications can interact with the API resources across different domains. However, this header is deprecated and should not be used in modern applications.
+
+## References
+
+- [OWASP REST Security Headers](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers)
+- [MDN CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)

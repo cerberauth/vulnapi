@@ -65,7 +65,7 @@ jobs:
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}"
+          go run main.go scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
@@ -125,7 +125,7 @@ jobs:
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl ${{ matrix.url }} --scans "${{ matrix.challenge }}"
+          go run main.go scan curl ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
@@ -171,7 +171,7 @@ jobs:
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}"
+          go run main.go scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
