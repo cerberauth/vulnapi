@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type NewOpenAPIScanRequest struct {
@@ -24,8 +23,6 @@ type NewOpenAPIScanRequest struct {
 	Opts *ScanOptions `json:"options"`
 }
 
-var serverApiOpenAPITracer = otel.Tracer("server/api/openapi")
-
 func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	var form NewOpenAPIScanRequest
 	if err := ctx.ShouldBindJSON(&form); err != nil {
@@ -33,20 +30,24 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	openapi, err := openapi.LoadFromData(ctx, []byte(form.Schema))
+	traceCtx, span := tracer.Start(ctx, "Scan OpenAPI")
+	defer span.End()
+
+	openapi, err := openapi.LoadFromData(traceCtx, []byte(form.Schema))
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := openapi.Validate(ctx); err != nil {
-		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Scan OpenAPI", []attribute.KeyValue{})
 	opts := parseScanOptions(form.Opts)
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
@@ -64,28 +65,28 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
+	reporter, _, err := s.Execute(traceCtx, nil)
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	if reporter.HasIssue() {
-		analyticsx.TrackEvent(ctx, serverApiOpenAPITracer, "Issue Found", nil)
-	}
+	analytics.TrackScanReport(traceCtx, reporter)
 
 	response := HTTPResponseReports{
 		Reports: reporter.GetScanReports(),
 	}
 	_, err = json.Marshal(response)
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiOpenAPITracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -2,7 +2,10 @@ package discover
 
 import (
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("cmd/discover")
 
 func NewDiscoverCmd() (discoverCmd *cobra.Command) {
 	discoverCmd = &cobra.Command{

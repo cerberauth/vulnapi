@@ -7,12 +7,15 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/jwt"
-	"github.com/cerberauth/x/analyticsx"
 	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
+
+var tracer = otel.Tracer("cmd/jwt")
 
 type Algorithm string
 
@@ -70,15 +73,17 @@ func NewJWTCmd() (cmd *cobra.Command) {
 		Short: "Generate a new JWT token from an existing token",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := cmd.Context()
-			tracer := otel.Tracer("jwt")
+			var span trace.Span
+			_, span = tracer.Start(cmd.Context(), "Generate JWT Command")
+			defer span.End()
 
 			tokenString := args[0]
 			var key interface{}
 			var newTokenString string
 			tokenWriter, err := jwt.NewJWTWriter(tokenString)
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 				return
 			}
@@ -90,7 +95,8 @@ func NewJWTCmd() (cmd *cobra.Command) {
 			var signingMethod jwtlib.SigningMethod
 			if alg != "" {
 				if signingMethod, err = GetAlgorithm(alg); err != nil {
-					analyticsx.TrackError(ctx, tracer, err)
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					log.Fatal(err)
 					return
 				}
@@ -101,16 +107,20 @@ func NewJWTCmd() (cmd *cobra.Command) {
 			}
 
 			if signingMethod == nil || key == nil {
-				log.Fatal(errors.New("algorithm and secret are required"))
+				err = errors.New("algorithm and secret are required")
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				log.Fatal(err)
 				return
 			}
 
-			analyticsx.TrackEvent(ctx, tracer, "Generate JWT", []attribute.KeyValue{
+			span.SetAttributes(
 				attribute.String("alg", signingMethod.Alg()),
-			})
+			)
 			newTokenString, err = tokenWriter.SignWithMethodAndKey(signingMethod, key)
 			if err != nil {
-				analyticsx.TrackError(ctx, tracer, err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 				return
 			}

@@ -1,6 +1,7 @@
 package scan_test
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -87,7 +88,7 @@ func TestScanExecuteWithNoHandlers(t *testing.T) {
 	operations := operation.Operations{op}
 	s, _ := scan.NewScan(operations, nil)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -103,7 +104,7 @@ func TestScanExecuteWithHandler(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -122,7 +123,7 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -141,7 +142,7 @@ func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -160,7 +161,7 @@ func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -179,7 +180,7 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -197,7 +198,7 @@ func TestScanExecuteWithExcludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -215,7 +216,7 @@ func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)
@@ -233,7 +234,7 @@ func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
 	})
 	s.AddOperationScanHandler(handler)
 
-	reporter, errors, err := s.Execute(nil)
+	reporter, errors, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
 	assert.Empty(t, errors)

@@ -2,7 +2,10 @@ package scan
 
 import (
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("cmd/scan")
 
 func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{

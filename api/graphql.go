@@ -3,13 +3,12 @@ package api
 import (
 	"net/http"
 
+	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
-	"github.com/cerberauth/x/analyticsx"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type NewGraphQLScanRequest struct {
@@ -18,8 +17,6 @@ type NewGraphQLScanRequest struct {
 	Opts *ScanOptions `json:"options"`
 }
 
-var serverApiGraphQLTracer = otel.Tracer("server/api/graphql")
-
 func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 	var form NewGraphQLScanRequest
 	if err := ctx.ShouldBindJSON(&form); err != nil {
@@ -27,7 +24,9 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		return
 	}
 
-	analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Scan GraphQL", []attribute.KeyValue{})
+	traceCtx, span := tracer.Start(ctx, "Scan GraphQL")
+	defer span.End()
+
 	opts := parseScanOptions(form.Opts)
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
@@ -38,21 +37,20 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiGraphQLTracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(func(operationScan *scan.OperationScan) {})
+	reporter, _, err := s.Execute(traceCtx, nil)
 	if err != nil {
-		analyticsx.TrackError(ctx, serverApiGraphQLTracer, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	if reporter.HasIssue() {
-		analyticsx.TrackEvent(ctx, serverApiGraphQLTracer, "Issue Found", nil)
-	}
+	analytics.TrackScanReport(traceCtx, reporter)
 
 	ctx.JSON(http.StatusOK, HTTPResponseReports{
 		Reports: reporter.GetScanReports(),
