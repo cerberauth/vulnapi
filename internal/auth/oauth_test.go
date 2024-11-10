@@ -88,6 +88,7 @@ func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
 
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer xyz789"},
+		"Cache-Control": []string{"private, max-age=0"},
 	}, headers)
 }
 
@@ -101,6 +102,7 @@ func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
 
 	assert.Equal(t, http.Header{
 		"Authorization": []string{"Bearer abc123"},
+		"Cache-Control": []string{"private, max-age=0"},
 	}, headers)
 }
 
@@ -110,7 +112,9 @@ func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.
 
 	headers := ss.GetHeaders()
 
-	assert.Equal(t, http.Header{}, headers)
+	assert.Equal(t, http.Header{
+		"Cache-Control": []string{"public, max-age=3600"},
+	}, headers)
 }
 
 func TestNewOAuthSecurityScheme_GetCookies(t *testing.T) {

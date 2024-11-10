@@ -54,6 +54,13 @@ func (ss *BearerSecurityScheme) GetHeaders() http.Header {
 		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
 	}
 
+	//add cache-control based on authorization
+	if ss.HasValidValue() {
+		header.Set("Cache-Control", "private, max-age=0")
+	} else {
+		header.Set("Cache-Control", "public, max-age=3600")
+	}
+
 	return header
 }
 
