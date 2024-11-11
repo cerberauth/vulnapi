@@ -23,7 +23,7 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *tes
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
@@ -40,7 +40,7 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespond_GETMethodOnly_HTTPSt
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
 	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
@@ -56,7 +56,7 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenBadRequestStatus(t *testing.
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
 	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
@@ -72,7 +72,7 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenOKStatusButNoQuery(t *testin
 	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())

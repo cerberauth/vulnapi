@@ -58,11 +58,11 @@ func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintAp
 	return append(slice, app)
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, op)
 
-	attempt, err := scan.ScanURL(op, &securityScheme)
+	attempt, err := scan.ScanURL(op, securityScheme)
 	r.AddScanAttempt(attempt)
 	if err != nil {
 		return r.AddIssueReport(vulnReport.Skip()).End(), err

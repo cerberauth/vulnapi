@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -12,8 +13,12 @@ type JWTWriter struct {
 }
 
 func NewJWTWriter(token string) (*JWTWriter, error) {
+	_, span := tracer.Start(context.TODO(), "NewJWTWriter")
+	defer span.End()
+
 	tokenParsed, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
-	if err != nil {
+	if err != nil && !errors.Is(err, jwt.ErrTokenUnverifiable) && !errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+		span.RecordError(err)
 		return nil, err
 	}
 

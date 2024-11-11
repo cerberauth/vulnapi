@@ -21,7 +21,7 @@ func ScanURL(operation *operation.Operation, securityScheme *auth.SecurityScheme
 	}
 
 	if securityScheme != nil {
-		req.WithSecurityScheme(*securityScheme)
+		req.WithSecurityScheme(securityScheme)
 	} else {
 		req.WithSecurityScheme(operation.GetSecurityScheme())
 	}

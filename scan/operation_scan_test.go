@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewOperationScanHandler(t *testing.T) {
-	handlerFunc := func(operation *operation.Operation, ss auth.SecurityScheme) (*report.ScanReport, error) {
+	handlerFunc := func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 		return &report.ScanReport{ID: "test-report"}, nil
 	}
 	handlerID := "test-handler"

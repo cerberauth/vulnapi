@@ -38,7 +38,7 @@ var potentialOpenAPIPaths = []string{
 	"/.well-known/openapi.yml",
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, op)
 	handler := discover.CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, vulnReport)

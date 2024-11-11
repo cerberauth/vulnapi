@@ -21,22 +21,22 @@ func TestHTTPMethodOverrideScanHandler(t *testing.T) {
 	tests := []struct {
 		name           string
 		operation      *operation.Operation
-		securityScheme auth.SecurityScheme
+		securityScheme *auth.SecurityScheme
 	}{
 		{
 			name:           "MethodNotAllowed",
 			operation:      operation.MustNewOperation(http.MethodGet, "http://example.com", nil, nil),
-			securityScheme: auth.NewNoAuthSecurityScheme(),
+			securityScheme: auth.MustNewNoAuthSecurityScheme(),
 		},
 		{
 			name:           "MethodOverrideDetected",
 			operation:      operation.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
-			securityScheme: auth.NewNoAuthSecurityScheme(),
+			securityScheme: auth.MustNewNoAuthSecurityScheme(),
 		},
 		{
 			name:           "AuthenticationBypassDetected",
 			operation:      operation.MustNewOperation(http.MethodPost, "http://example.com/test", nil, nil),
-			securityScheme: auth.MustNewAuthorizationJWTBearerSecurityScheme("securityScheme", &value),
+			securityScheme: auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &value),
 		},
 	}
 
@@ -59,7 +59,7 @@ func TestHTTPMethodOverrideScanHandler_When_Error(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
@@ -78,7 +78,7 @@ func TestHTTPMethodOverrideScanHandler_Passed(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -99,7 +99,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Header(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -125,7 +125,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T)
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -153,7 +153,7 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Passed(t *testing.T
 	defer httpmock.DeactivateAndReset()
 
 	token := jwt.FakeJWT
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("securityScheme", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -183,7 +183,7 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Failed(t *testing.T
 	defer httpmock.DeactivateAndReset()
 
 	token := jwt.FakeJWT
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("securityScheme", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))

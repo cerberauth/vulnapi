@@ -29,23 +29,11 @@ var issue = report.Issue{
 	},
 }
 
-func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
-	if securitySheme == nil {
-		return false
-	}
-
-	if _, ok := securitySheme.(*auth.JWTBearerSecurityScheme); !ok {
-		return false
-	}
-
-	if !securitySheme.HasValidValue() {
-		return false
-	}
-
-	return true
+func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
+	return securityScheme != nil && securityScheme.GetType() != auth.None && securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == auth.JWTTokenFormat
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, op)
 
@@ -54,11 +42,16 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r, nil
 	}
 
-	var valueWriter *jwt.JWTWriter
+	var token string
 	if securityScheme.HasValidValue() {
-		valueWriter = jwt.NewJWTWriterWithValidClaims(securityScheme.GetValidValueWriter().(*jwt.JWTWriter))
+		token = securityScheme.GetToken()
 	} else {
-		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+		token = jwt.FakeJWT
+	}
+
+	valueWriter, err := jwt.NewJWTWriter(token)
+	if err != nil {
+		return r, err
 	}
 
 	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.GetToken().Method)
@@ -66,8 +59,10 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r, err
 	}
 
-	securityScheme.SetAttackValue(securityScheme.GetValidValue())
-	attemptOne, err := scan.ScanURL(op, &securityScheme)
+	if err = securityScheme.SetAttackValue(securityScheme.GetValidValue()); err != nil {
+		return r, err
+	}
+	attemptOne, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
 		return r, err
 	}
@@ -78,8 +73,10 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r, nil
 	}
 
-	securityScheme.SetAttackValue(newToken)
-	attemptTwo, err := scan.ScanURL(op, &securityScheme)
+	if err = securityScheme.SetAttackValue(newToken); err != nil {
+		return r, err
+	}
+	attemptTwo, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
 		return r, err
 	}

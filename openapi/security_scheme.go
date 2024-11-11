@@ -1,11 +1,13 @@
 package openapi
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/getkin/kin-openapi/openapi3"
+	"go.opentelemetry.io/otel/codes"
 )
 
 const (
@@ -36,31 +38,37 @@ func NewErrUnsupportedSecuritySchemeType(schemeType string) error {
 	return fmt.Errorf("unsupported security scheme type: %s", schemeType)
 }
 
-func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (auth.SecurityScheme, error) {
+func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (*auth.SecurityScheme, error) {
 	schemeScheme := strings.ToLower(scheme.Value.Scheme)
 
 	switch schemeScheme {
 	case BearerScheme:
-		bearerFormat := strings.ToLower(scheme.Value.BearerFormat)
-		if bearerFormat == "" {
-			return auth.NewAuthorizationBearerSecurityScheme(name, securitySchemeValue), nil
+		securityScheme, err := auth.NewAuthorizationBearerSecurityScheme(name, securitySchemeValue)
+		if err != nil {
+			return nil, err
 		}
 
+		bearerFormat := strings.ToLower(scheme.Value.BearerFormat)
 		switch bearerFormat {
+		case "":
+			return securityScheme, nil
 		case "jwt":
-			return auth.NewAuthorizationJWTBearerSecurityScheme(name, securitySchemeValue)
+			err := securityScheme.SetTokenFormat(auth.JWTTokenFormat)
+			if err != nil {
+				return nil, err
+			}
+			return securityScheme, nil
 		default:
 			return nil, NewErrUnsupportedBearerFormat(bearerFormat)
 		}
-
 	default:
 		return nil, NewErrUnsupportedScheme(schemeScheme)
 	}
 }
 
-func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (auth.SecurityScheme, error) {
+func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *auth.OAuthValue) (*auth.SecurityScheme, error) {
 	if scheme.Value.Flows == nil {
-		return auth.NewOAuthSecurityScheme(name, securitySchemeValue, nil), nil
+		return auth.NewOAuthSecurityScheme(name, nil, securitySchemeValue, nil)
 	}
 
 	var cfg *auth.OAuthConfig
@@ -82,10 +90,13 @@ func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securi
 		}
 	}
 
-	return auth.NewOAuthSecurityScheme(name, securitySchemeValue, cfg), nil
+	return auth.NewOAuthSecurityScheme(name, nil, securitySchemeValue, cfg)
 }
 
-func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
+func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
+	_, span := tracer.Start(context.Background(), "SecuritySchemeMap")
+	defer span.End()
+
 	var err error
 	var securitySchemeValue interface{}
 
@@ -93,7 +104,7 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (au
 		return nil, nil
 	}
 
-	securitySchemes := map[string]auth.SecurityScheme{}
+	securitySchemes := map[string]*auth.SecurityScheme{}
 	for name, scheme := range openapi.Doc.Components.SecuritySchemes {
 		securitySchemeValue = values.Get(name)
 
@@ -107,12 +118,18 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *auth.SecuritySchemeValues) (au
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
 		case OAuth2SchemeType, OpenIdConnectSchemeType:
-			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, value)
+			var oauthValue *auth.OAuthValue
+			if value != nil {
+				oauthValue = auth.NewOAuthValue(*value, nil, nil, nil)
+			}
+			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, oauthValue)
 		default:
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return nil, err
 		}
 	}

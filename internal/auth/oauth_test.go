@@ -1,217 +1,99 @@
 package auth_test
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewOAuthSecurityScheme(t *testing.T) {
 	name := "token"
-	value := "abc123"
+	accessToken := "abc123"
+	in := auth.InHeader
+	tokenFormat := auth.NoneTokenFormat
+	oauthValue := auth.NewOAuthValue(accessToken, nil, nil, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	securityScheme, err := auth.NewOAuthSecurityScheme(name, &in, oauthValue, &oauthConfig)
 
-	assert.Equal(t, auth.OAuth2, ss.Type)
-	assert.Equal(t, auth.BearerScheme, ss.Scheme)
-	assert.Equal(t, auth.InHeader, ss.In)
-	assert.Equal(t, name, ss.Name)
-	assert.Equal(t, &value, ss.ValidValue)
-	assert.Equal(t, "", ss.AttackValue)
-	assert.Nil(t, ss.JWTWriter)
+	assert.NoError(t, err)
+	assert.Equal(t, auth.OAuth2, securityScheme.GetType())
+	assert.Equal(t, auth.OAuthScheme, securityScheme.GetScheme())
+	assert.Equal(t, auth.InHeader, *securityScheme.GetIn())
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, name, securityScheme.GetName())
+	assert.Equal(t, oauthValue, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }
 
-func TestNewOAuthSecurityScheme_WithJWT(t *testing.T) {
+func TestNewOAuthSecurityScheme_WhenNilIn(t *testing.T) {
 	name := "token"
-	value := jwt.FakeJWT
+	accessToken := "abc123"
+	oauthValue := auth.NewOAuthValue(accessToken, nil, nil, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	securityScheme, err := auth.NewOAuthSecurityScheme(name, nil, oauthValue, &oauthConfig)
 
-	assert.Equal(t, name, ss.Name)
-	assert.Equal(t, &value, ss.ValidValue)
-	assert.Equal(t, "", ss.AttackValue)
-	assert.NotNil(t, ss.JWTWriter)
+	assert.NoError(t, err)
+	assert.Equal(t, auth.InHeader, *securityScheme.GetIn())
 }
 
-func TestOAuthSecurityScheme_GetScheme(t *testing.T) {
+func TestNewOAuthSecurityScheme_WhenQueryIn(t *testing.T) {
 	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	accessToken := "abc123"
+	in := auth.InQuery
+	oauthValue := auth.NewOAuthValue(accessToken, nil, nil, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	scheme := ss.GetScheme()
+	securityScheme, err := auth.NewOAuthSecurityScheme(name, &in, oauthValue, &oauthConfig)
 
-	assert.Equal(t, auth.BearerScheme, scheme)
+	assert.NoError(t, err)
+	assert.Equal(t, auth.InQuery, *securityScheme.GetIn())
 }
 
-func TestOAuthSecurityScheme_GetType(t *testing.T) {
+func TestNewOAuthSecurityScheme_WhenNilValue(t *testing.T) {
 	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	scheme := ss.GetType()
+	securityScheme, err := auth.NewOAuthSecurityScheme(name, nil, nil, &oauthConfig)
 
-	assert.Equal(t, auth.OAuth2, scheme)
+	assert.NoError(t, err)
+	assert.Equal(t, nil, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }
 
-func TestOAuthSecurityScheme_GetIn(t *testing.T) {
+func TestNewOAuthSecurityScheme_WhenJWTFormatValue(t *testing.T) {
 	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	accessToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.ufhxDTmrs4T5MSsvT6lsb3OpdWi5q8O31VX7TgrVamA"
+	in := auth.InHeader
+	tokenFormat := auth.JWTTokenFormat
+	oauthValue := auth.NewOAuthValue(accessToken, nil, nil, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	scheme := ss.GetIn()
+	securityScheme, err := auth.NewOAuthSecurityScheme(name, &in, oauthValue, &oauthConfig)
 
-	assert.Equal(t, auth.InHeader, *scheme)
+	assert.NoError(t, err)
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, oauthValue, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }
 
-func TestOAuthSecurityScheme_GetName(t *testing.T) {
+func TestMustNewOAuthSecurityScheme(t *testing.T) {
 	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
+	accessToken := "abc123"
+	in := auth.InHeader
+	tokenFormat := auth.NoneTokenFormat
+	oauthValue := auth.NewOAuthValue(accessToken, nil, nil, nil)
+	oauthConfig := auth.OAuthConfig{}
 
-	scheme := ss.GetName()
+	securityScheme := auth.MustNewOAuthSecurityScheme(name, &in, oauthValue, &oauthConfig)
 
-	assert.Equal(t, name, scheme)
-}
-
-func TestNewOAuthSecurityScheme_GetHeaders(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	attackValue := "xyz789"
-
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-	ss.SetAttackValue(attackValue)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{
-		"Authorization": []string{"Bearer xyz789"},
-	}, headers)
-}
-
-func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{
-		"Authorization": []string{"Bearer abc123"},
-	}, headers)
-}
-
-func TestNewOAuthSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
-	name := "token"
-	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{}, headers)
-}
-
-func TestNewOAuthSecurityScheme_GetCookies(t *testing.T) {
-	name := "token"
-	value := "abc123"
-
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	cookies := ss.GetCookies()
-
-	assert.Empty(t, cookies)
-}
-
-func TestNewOAuthSecurityScheme_HasValidValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	result := ss.HasValidValue()
-
-	assert.True(t, result)
-}
-
-func TestNewOAuthSecurityScheme_HasValidValueFalse_WhenValueIsNil(t *testing.T) {
-	name := "token"
-	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
-
-	result := ss.HasValidValue()
-
-	assert.False(t, result)
-}
-
-func TestNewOAuthSecurityScheme_HasValidValueFalse_WhenValueIsEmptyString(t *testing.T) {
-	name := "token"
-	value := ""
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	result := ss.HasValidValue()
-
-	assert.False(t, result)
-}
-
-func TestNewOAuthSecurityScheme_GetValidValueNil(t *testing.T) {
-	name := "token"
-	ss := auth.NewOAuthSecurityScheme(name, nil, nil)
-
-	validValue := ss.GetValidValue()
-
-	assert.Equal(t, nil, validValue)
-}
-
-func TestNewOAuthSecurityScheme_GetValidValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	validValue := ss.GetValidValue()
-
-	assert.Equal(t, value, validValue)
-}
-
-func TestNewOAuthSecurityScheme_GetValidValueWriter(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-	writer := ss.GetValidValueWriter()
-
-	assert.Nil(t, writer)
-}
-
-func TestNewOAuthSecurityScheme_GetValidValueWriter_WithJWT(t *testing.T) {
-	name := "token"
-	value := jwt.FakeJWT
-
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-	writer := ss.GetValidValueWriter()
-
-	assert.IsType(t, &jwt.JWTWriter{}, writer)
-}
-
-func TestNewOAuthSecurityScheme_SetAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	attackValue := "xyz789"
-	ss.SetAttackValue(attackValue)
-
-	assert.Equal(t, attackValue, ss.AttackValue)
-}
-
-func TestNewOAuthSecurityScheme_GetAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewOAuthSecurityScheme(name, &value, nil)
-
-	attackValue := "xyz789"
-	ss.SetAttackValue(attackValue)
-
-	result := ss.GetAttackValue()
-
-	assert.Equal(t, attackValue, result)
+	assert.Equal(t, auth.OAuth2, securityScheme.GetType())
+	assert.Equal(t, auth.OAuthScheme, securityScheme.GetScheme())
+	assert.Equal(t, auth.InHeader, *securityScheme.GetIn())
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, name, securityScheme.GetName())
+	assert.Equal(t, oauthValue, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }

@@ -29,7 +29,7 @@ func NewReporter() *Reporter {
 	}
 }
 
-func NewReporterWithCurl(method string, url string, data interface{}, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) *Reporter {
+func NewReporterWithCurl(method string, url string, data interface{}, header http.Header, cookies []*http.Cookie, securitySchemes []*auth.SecurityScheme) *Reporter {
 	return &Reporter{
 		Schema: reporterSchema,
 
@@ -49,7 +49,7 @@ func NewReporterWithOpenAPIDoc(openapi *openapi3.T, operations operation.Operati
 	}
 }
 
-func NewReporterWithGraphQL(url string, securitySchemes []auth.SecurityScheme) *Reporter {
+func NewReporterWithGraphQL(url string, securitySchemes []*auth.SecurityScheme) *Reporter {
 	return &Reporter{
 		Schema: reporterSchema,
 

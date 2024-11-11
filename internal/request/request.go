@@ -74,13 +74,13 @@ func (r *Request) WithCookies(cookies []*http.Cookie) *Request {
 	return r
 }
 
-func (r *Request) WithSecurityScheme(securityScheme auth.SecurityScheme) *Request {
-	if securityScheme.GetCookies() != nil {
-		r.WithCookies(securityScheme.GetCookies())
+func (r *Request) WithSecurityScheme(securityScheme *auth.SecurityScheme) *Request {
+	if cookies := securityScheme.GetCookies(); cookies != nil {
+		r.WithCookies(cookies)
 	}
 
-	if securityScheme.GetHeaders() != nil {
-		r.WithHeader(securityScheme.GetHeaders())
+	if headers := securityScheme.GetHeaders(); headers != nil {
+		r.WithHeader(headers)
 	}
 
 	return r

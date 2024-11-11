@@ -26,12 +26,11 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName, op)
 
-	_, ok := securityScheme.(*auth.NoAuthSecurityScheme)
-	r.AddIssueReport(vulnReport.WithBooleanStatus(!ok)).End()
+	r.AddIssueReport(vulnReport.WithBooleanStatus(securityScheme.GetType() != auth.None)).End()
 
 	r.End()
 	return r, nil

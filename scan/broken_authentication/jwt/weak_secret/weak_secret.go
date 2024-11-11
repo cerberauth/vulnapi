@@ -35,20 +35,16 @@ var issue = report.Issue{
 	},
 }
 
-func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
-	if securitySheme == nil {
+func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
+	if !(securityScheme != nil && securityScheme.GetType() != auth.None && (securityScheme.GetTokenFormat() == nil || *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)) {
 		return false
 	}
 
-	if _, ok := securitySheme.(*auth.JWTBearerSecurityScheme); !ok {
+	valueWriter, err := jwt.NewJWTWriter(securityScheme.GetToken())
+	if err != nil {
 		return false
 	}
 
-	if !securitySheme.HasValidValue() {
-		return false
-	}
-
-	valueWriter := securitySheme.GetValidValueWriter().(*jwt.JWTWriter)
 	return valueWriter.IsHMACAlg()
 }
 
@@ -56,7 +52,7 @@ var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "chang
 
 const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName, op)
 
@@ -70,8 +66,12 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		jwtSecretDictionary = secretDictionnaryFromSeclist.Items
 	}
 
+	valueWriter, err := jwt.NewJWTWriter(securityScheme.GetToken())
+	if err != nil {
+		return r, err
+	}
+
 	secretFound := false
-	valueWriter := securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
 	currentToken := valueWriter.GetToken().Raw
 	for _, secret := range jwtSecretDictionary {
 		if secret == "" {
@@ -92,8 +92,10 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 			return r, nil
 		}
 
-		securityScheme.SetAttackValue(newValidToken)
-		vsa, err := scan.ScanURL(op, &securityScheme)
+		if err = securityScheme.SetAttackValue(newValidToken); err != nil {
+			return r, err
+		}
+		vsa, err := scan.ScanURL(op, securityScheme)
 		if err != nil {
 			return r, err
 		}

@@ -60,8 +60,8 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL)
 	return req, nil
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
-	securitySchemes := []auth.SecurityScheme{securityScheme}
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
+	securitySchemes := []*auth.SecurityScheme{securityScheme}
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, op)
@@ -75,7 +75,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
-	attempt, err := scan.ScanURL(newOperation, &securityScheme)
+	attempt, err := scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
 		return r, err
 	}
@@ -96,7 +96,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
-	attempt, err = scan.ScanURL(newOperation, &securityScheme)
+	attempt, err = scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
 		return r, err
 	}

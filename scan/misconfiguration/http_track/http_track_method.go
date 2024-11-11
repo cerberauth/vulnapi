@@ -33,7 +33,7 @@ var issue = report.Issue{
 
 const TrackMethod = "TRACK"
 
-func ScanHandler(operation *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTrackScanID, HTTPTrackScanName, operation)
 
@@ -43,7 +43,7 @@ func ScanHandler(operation *operation.Operation, securityScheme auth.SecuritySch
 	}
 	newOperation.Method = TrackMethod
 
-	attempt, err := scan.ScanURL(newOperation, &securityScheme)
+	attempt, err := scan.ScanURL(newOperation, securityScheme)
 	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK))
 
 	return r, nil

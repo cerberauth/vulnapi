@@ -24,7 +24,7 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := discoverablegraphql.ScanHandler(op, auth.NewNoAuthSecurityScheme())
+	report, err := discoverablegraphql.ScanHandler(op, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 7)
@@ -42,7 +42,7 @@ func TestDiscoverableScanner_Failed_WhenOneGraphQLPathFound(t *testing.T) {
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := discoverablegraphql.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := discoverablegraphql.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)

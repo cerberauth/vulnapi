@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,7 @@ import (
 
 func TestNewOpenAPIReportOperation(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(&auth.SecuritySchemeValues{})
+	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
 	operations, _ := doc.Operations(nil, securitySchemesMap)
 	securitySchemes := operations[0].GetSecuritySchemes()
 
@@ -29,7 +28,7 @@ func TestNewOpenAPIReportOperation(t *testing.T) {
 
 func TestNewOpenAPIReport(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(&auth.SecuritySchemeValues{})
+	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
 	operations, _ := doc.Operations(nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)
@@ -43,7 +42,7 @@ func TestNewOpenAPIReport(t *testing.T) {
 
 func Test_OpenAPIReport_AddReport(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(&auth.SecuritySchemeValues{})
+	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
 	operations, _ := doc.Operations(nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)
@@ -66,7 +65,7 @@ func Test_OpenAPIReport_AddReport(t *testing.T) {
 
 func Test_OpenAPIReport_AddReport_NoFailedIssue(t *testing.T) {
 	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(&auth.SecuritySchemeValues{})
+	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
 	operations, _ := doc.Operations(nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)

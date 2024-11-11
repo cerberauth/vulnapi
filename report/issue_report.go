@@ -35,7 +35,7 @@ type IssueReport struct {
 	Status IssueReportStatus `json:"status" yaml:"status"`
 
 	Operation      *operation.Operation `json:"-" yaml:"-"`
-	SecurityScheme auth.SecurityScheme  `json:"-" yaml:"-"`
+	SecurityScheme *auth.SecurityScheme `json:"-" yaml:"-"`
 }
 
 func NewIssueReport(issue Issue) *IssueReport {
@@ -50,8 +50,8 @@ func (vr *IssueReport) WithOperation(operation *operation.Operation) *IssueRepor
 	return vr
 }
 
-func (vr *IssueReport) WithSecurityScheme(ss auth.SecurityScheme) *IssueReport {
-	vr.SecurityScheme = ss
+func (vr *IssueReport) WithSecurityScheme(securityScheme *auth.SecurityScheme) *IssueReport {
+	vr.SecurityScheme = securityScheme
 	return vr
 }
 

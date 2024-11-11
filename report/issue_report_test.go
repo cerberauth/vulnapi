@@ -53,7 +53,7 @@ func TestIssueReport_WithSecurityScheme(t *testing.T) {
 	}
 	vr := report.NewIssueReport(issue)
 	value := jwt.FakeJWT
-	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &value)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
 	vr.WithSecurityScheme(securityScheme)
 	assert.Equal(t, jwt.FakeJWT, vr.SecurityScheme.GetValidValue())
 }
