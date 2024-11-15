@@ -8,9 +8,6 @@ check_versions:
 ifeq (, $(shell which go))
 	$(error "No go command in $(PATH), consider doing apt-get install golang-go")
 endif
-ifeq (, $(shell which ruby))
-	$(error "No ruby command in $(PATH), consider doing apt-get install ruby")
-endif
 ifeq (, $(shell which $(PYTHON)))
 	PYTHON=python
 endif
