@@ -59,7 +59,7 @@ func TestWithSecurityScheme(t *testing.T) {
 	method := http.MethodGet
 	url := "http://localhost:8080/"
 	token := "token"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
 
 	request, err := request.NewRequest(method, url, nil, nil)
 	request = request.WithSecurityScheme(securityScheme)
@@ -346,7 +346,7 @@ func TestDoWithSecuritySchemeHeaders(t *testing.T) {
 	method := http.MethodGet
 	url := "http://localhost:8080/"
 	token := "token"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
 	request, _ := request.NewRequest(method, url, nil, client)
 	request.WithSecurityScheme(securityScheme)
 
@@ -376,7 +376,7 @@ func TestDoWithHeadersSecuritySchemeHeaders(t *testing.T) {
 		"Authorization": []string{"Bearer othertoken"},
 	}
 	token := "token"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
 	request, _ := request.NewRequest(method, url, nil, client)
 	request = request.WithHeader(header)
 	request = request.WithSecurityScheme(securityScheme)
@@ -408,7 +408,7 @@ func TestDoWithCookiesSecuritySchemeHeaders(t *testing.T) {
 		Value: "value1",
 	}}
 	token := "token"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
 	request, _ := request.NewRequest(method, url, nil, client)
 	request = request.WithCookies(cookies)
 	request = request.WithSecurityScheme(securityScheme)

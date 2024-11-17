@@ -22,11 +22,11 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		return nil, err
 	}
 
-	var securitySchemes []auth.SecurityScheme
+	var securitySchemes []*auth.SecurityScheme
 	if securityScheme != nil {
-		securitySchemes = []auth.SecurityScheme{securityScheme}
+		securitySchemes = []*auth.SecurityScheme{securityScheme}
 	} else {
-		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+		securitySchemes = []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
 	}
 
 	body := bytes.NewBuffer([]byte(data))

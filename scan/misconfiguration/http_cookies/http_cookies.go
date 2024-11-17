@@ -103,14 +103,14 @@ var withoutExpiresIssue = report.Issue{
 	},
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	httpOnlyVulnReport := report.NewIssueReport(httpNotHttpOnlyIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	notSecureVulnReport := report.NewIssueReport(notSecureIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	sameSiteNoneVulnReport := report.NewIssueReport(sameSiteNoneIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	withoutSameSiteVulnReport := report.NewIssueReport(withoutSameSiteIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	withoutExpiresVulnReport := report.NewIssueReport(withoutExpiresIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 
-	attempt, err := scan.ScanURL(op, &securityScheme)
+	attempt, err := scan.ScanURL(op, securityScheme)
 	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName, op)
 	if err != nil {
 		return r, err

@@ -72,7 +72,7 @@ var methodOverrideQueryParams = []string{
 	"_httpMethod",
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	var err error
 	var newOperation *operation.Operation
 
@@ -85,7 +85,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r, err
 	}
 
-	initialAttempt, err := scan.ScanURL(newOperation, &securityScheme)
+	initialAttempt, err := scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
 		return r, err
 	}
@@ -108,7 +108,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		}
 
 		newOperation.Method = method
-		methodAttempt, err = scan.ScanURL(newOperation, &securityScheme)
+		methodAttempt, err = scan.ScanURL(newOperation, securityScheme)
 		if methodAttempt != nil {
 			r.AddScanAttempt(methodAttempt)
 		}
@@ -139,7 +139,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 
 		newOperation.Header.Set(header, op.Method)
 		newOperation.Method = newOperationMethod
-		attempt, err = scan.ScanURL(newOperation, &securityScheme)
+		attempt, err = scan.ScanURL(newOperation, securityScheme)
 		if attempt != nil {
 			r.AddScanAttempt(attempt)
 		}
@@ -161,7 +161,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 			newOperationQueryValues.Set(queryParam, op.Method)
 			newOperation.URL.RawQuery = newOperationQueryValues.Encode()
 			newOperation.Method = newOperationMethod
-			attempt, err = scan.ScanURL(newOperation, &securityScheme)
+			attempt, err = scan.ScanURL(newOperation, securityScheme)
 			if attempt != nil {
 				r.AddScanAttempt(attempt)
 			}
@@ -179,12 +179,11 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 	}
 
 	r.AddIssueReport(httpMethodOverrideIssueReport.Fail())
-	if _, ok := securityScheme.(*auth.NoAuthSecurityScheme); ok {
+	if securityScheme.GetType() == auth.None {
 		return r.AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport.Skip()).End(), nil
 	}
 
-	noAuthSecurityScheme := auth.SecurityScheme(auth.NewNoAuthSecurityScheme())
-	attempt, err = scan.ScanURL(newOperation, &noAuthSecurityScheme)
+	attempt, err = scan.ScanURL(newOperation, auth.MustNewNoAuthSecurityScheme())
 	if err != nil {
 		return r, err
 	}

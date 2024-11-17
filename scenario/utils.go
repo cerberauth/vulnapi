@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/jwt"
 )
 
 const bearerPrefix = auth.BearerPrefix + " "
@@ -36,7 +35,7 @@ func getBearerToken(authHeader string) string {
 	return ""
 }
 
-func detectSecurityScheme(header http.Header) (auth.SecurityScheme, error) {
+func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
 	authHeader := detectAuthorizationHeader(header)
 	if authHeader == "" {
 		return nil, nil
@@ -47,12 +46,7 @@ func detectSecurityScheme(header http.Header) (auth.SecurityScheme, error) {
 		return nil, fmt.Errorf("empty authorization header")
 	}
 
-	_, err := jwt.NewJWTWriter(token)
-	if err != nil {
-		return auth.NewAuthorizationBearerSecurityScheme("default", &token), nil
-	} else {
-		return auth.NewAuthorizationJWTBearerSecurityScheme("default", &token)
-	}
+	return auth.NewAuthorizationBearerSecurityScheme("default", &token)
 }
 
 func addDefaultProtocolWhenMissing(url string) string {

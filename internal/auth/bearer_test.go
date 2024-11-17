@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -11,181 +10,58 @@ import (
 func TestNewAuthorizationBearerSecurityScheme(t *testing.T) {
 	name := "token"
 	value := "abc123"
+	tokenFormat := auth.NoneTokenFormat
 
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+	securityScheme, err := auth.NewAuthorizationBearerSecurityScheme(name, &value)
 
-	assert.Equal(t, auth.HttpType, ss.Type)
-	assert.Equal(t, auth.BearerScheme, ss.Scheme)
-	assert.Equal(t, auth.InHeader, ss.In)
-	assert.Equal(t, name, ss.Name)
-	assert.Equal(t, &value, ss.ValidValue)
-	assert.Equal(t, "", ss.AttackValue)
+	assert.NoError(t, err)
+	assert.Equal(t, auth.HttpType, securityScheme.GetType())
+	assert.Equal(t, auth.BearerScheme, securityScheme.GetScheme())
+	assert.Equal(t, auth.InHeader, *securityScheme.GetIn())
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, name, securityScheme.GetName())
+	assert.Equal(t, value, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }
 
-func TestBearerSecurityScheme_GetScheme(t *testing.T) {
+func TestNewAuthorizationBearerSecurityScheme_WhenNilValue(t *testing.T) {
+	name := "token"
+
+	securityScheme, err := auth.NewAuthorizationBearerSecurityScheme(name, nil)
+
+	assert.NoError(t, err)
+	assert.Nil(t, securityScheme.GetTokenFormat())
+	assert.Equal(t, nil, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
+}
+
+func TestNewAuthorizationBearerSecurityScheme_WhenJWTFormatValue(t *testing.T) {
+	name := "token"
+	value := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.ufhxDTmrs4T5MSsvT6lsb3OpdWi5q8O31VX7TgrVamA"
+	tokenFormat := auth.JWTTokenFormat
+
+	securityScheme, err := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+
+	assert.NoError(t, err)
+	assert.Equal(t, auth.HttpType, securityScheme.GetType())
+	assert.Equal(t, auth.BearerScheme, securityScheme.GetScheme())
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, value, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
+}
+
+func TestMustNewAuthorizationBearerSecurityScheme(t *testing.T) {
 	name := "token"
 	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
+	tokenFormat := auth.NoneTokenFormat
 
-	scheme := ss.GetScheme()
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme(name, &value)
 
-	assert.Equal(t, auth.BearerScheme, scheme)
-}
-
-func TestBearerSecurityScheme_GetType(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	scheme := ss.GetType()
-
-	assert.Equal(t, auth.HttpType, scheme)
-}
-
-func TestBearerSecurityScheme_GetIn(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	scheme := ss.GetIn()
-
-	assert.Equal(t, auth.InHeader, *scheme)
-}
-
-func TestBearerSecurityScheme_GetName(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	scheme := ss.GetName()
-
-	assert.Equal(t, name, scheme)
-}
-
-func TestBearerSecurityScheme_GetHeaders(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	attackValue := "xyz789"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-	ss.SetAttackValue(attackValue)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{
-		"Authorization": []string{"Bearer xyz789"},
-	}, headers)
-}
-
-func TestBearerSecurityScheme_GetHeaders_WhenNoAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{
-		"Authorization": []string{"Bearer abc123"},
-	}, headers)
-}
-
-func TestBearerSecurityScheme_GetHeaders_WhenNoAttackAndValidValue(t *testing.T) {
-	name := "token"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, nil)
-
-	headers := ss.GetHeaders()
-
-	assert.Equal(t, http.Header{}, headers)
-}
-
-func TestBearerSecurityScheme_GetCookies(t *testing.T) {
-	name := "token"
-	value := "abc123"
-
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	cookies := ss.GetCookies()
-
-	assert.Empty(t, cookies)
-}
-
-func TestBearerSecurityScheme_HasValidValue_WhenValueIsNil(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	result := ss.HasValidValue()
-
-	assert.True(t, result)
-}
-
-func TestBearerSecurityScheme_HasValidValueFalse_WhenValueIsEmptyString(t *testing.T) {
-	name := "token"
-	value := ""
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	result := ss.HasValidValue()
-
-	assert.False(t, result)
-}
-
-func TestBearerSecurityScheme_GetValidValueNil(t *testing.T) {
-	name := "token"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, nil)
-
-	validValue := ss.GetValidValue()
-
-	assert.Equal(t, nil, validValue)
-}
-
-func TestBearerSecurityScheme_HasValidValueFalse(t *testing.T) {
-	name := "token"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, nil)
-
-	result := ss.HasValidValue()
-
-	assert.False(t, result)
-}
-
-func TestBearerSecurityScheme_GetValidValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	validValue := ss.GetValidValue()
-
-	assert.Equal(t, value, validValue)
-}
-
-func TestBearerSecurityScheme_GetValidValueWriter(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-	writer := ss.GetValidValueWriter()
-
-	assert.Equal(t, nil, writer)
-}
-
-func TestBearerSecurityScheme_SetAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	attackValue := "xyz789"
-	ss.SetAttackValue(attackValue)
-
-	assert.Equal(t, attackValue, ss.AttackValue)
-}
-
-func TestBearerSecurityScheme_GetAttackValue(t *testing.T) {
-	name := "token"
-	value := "abc123"
-	ss := auth.NewAuthorizationBearerSecurityScheme(name, &value)
-
-	attackValue := "xyz789"
-	ss.SetAttackValue(attackValue)
-
-	result := ss.GetAttackValue()
-
-	assert.Equal(t, attackValue, result)
+	assert.Equal(t, auth.HttpType, securityScheme.GetType())
+	assert.Equal(t, auth.BearerScheme, securityScheme.GetScheme())
+	assert.Equal(t, auth.InHeader, *securityScheme.GetIn())
+	assert.Equal(t, &tokenFormat, securityScheme.GetTokenFormat())
+	assert.Equal(t, name, securityScheme.GetName())
+	assert.Equal(t, value, securityScheme.GetValidValue())
+	assert.Equal(t, nil, securityScheme.GetAttackValue())
 }

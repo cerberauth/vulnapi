@@ -31,7 +31,7 @@ var issue = report.Issue{
 	},
 }
 
-func ScanHandler(operation *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName, operation)
 
@@ -41,7 +41,7 @@ func ScanHandler(operation *operation.Operation, securityScheme auth.SecuritySch
 	}
 	newOperation.Method = http.MethodTrace
 
-	attempt, err := scan.ScanURL(newOperation, &securityScheme)
+	attempt, err := scan.ScanURL(newOperation, securityScheme)
 	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK))
 
 	return r, nil

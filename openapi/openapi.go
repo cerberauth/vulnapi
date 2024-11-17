@@ -4,7 +4,10 @@ import (
 	"net/url"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("openapi")
 
 type OpenAPI struct {
 	baseUrl *url.URL

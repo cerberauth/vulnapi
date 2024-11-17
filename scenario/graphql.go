@@ -21,11 +21,11 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 		return nil, err
 	}
 
-	var securitySchemes []auth.SecurityScheme
+	var securitySchemes []*auth.SecurityScheme
 	if securityScheme != nil {
-		securitySchemes = []auth.SecurityScheme{securityScheme}
+		securitySchemes = []*auth.SecurityScheme{securityScheme}
 	} else {
-		securitySchemes = []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+		securitySchemes = []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
 	}
 
 	url = addDefaultProtocolWhenMissing(url)

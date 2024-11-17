@@ -12,8 +12,8 @@ import (
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go"
 )
 
-func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]auth.SecurityScheme) []auth.SecurityScheme {
-	operationsSecuritySchemes := []auth.SecurityScheme{}
+func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) []*auth.SecurityScheme {
+	operationsSecuritySchemes := []*auth.SecurityScheme{}
 	for _, security := range *securityRequirements {
 		if len(security) == 0 {
 			continue

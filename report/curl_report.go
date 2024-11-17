@@ -18,10 +18,10 @@ type CurlReport struct {
 	Issues []*IssueReport `json:"issues" yaml:"issues"`
 }
 
-func NewCurlReport(method string, url string, data interface{}, header http.Header, cookies []*http.Cookie, securitySchemes []auth.SecurityScheme) *CurlReport {
+func NewCurlReport(method string, url string, data interface{}, header http.Header, cookies []*http.Cookie, securitySchemes []*auth.SecurityScheme) *CurlReport {
 	reportSecuritySchemes := []OperationSecurityScheme{}
-	for _, ss := range securitySchemes {
-		reportSecuritySchemes = append(reportSecuritySchemes, NewOperationSecurityScheme(ss))
+	for _, securityScheme := range securitySchemes {
+		reportSecuritySchemes = append(reportSecuritySchemes, NewOperationSecurityScheme(securityScheme))
 	}
 
 	return &CurlReport{

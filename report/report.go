@@ -11,18 +11,22 @@ import (
 )
 
 type OperationSecurityScheme struct {
-	Type   auth.Type       `json:"type" yaml:"type"`
-	Scheme auth.SchemeName `json:"scheme" yaml:"scheme"`
-	In     *auth.SchemeIn  `json:"in,omitempty" yaml:"in,omitempty"`
-	Name   string          `json:"name" yaml:"name"`
+	Type        auth.Type         `json:"type" yaml:"type"`
+	Scheme      auth.SchemeName   `json:"scheme" yaml:"scheme"`
+	In          *auth.SchemeIn    `json:"in" yaml:"in"`
+	TokenFormat *auth.TokenFormat `json:"token_format" yaml:"token_format"`
+
+	Name string `json:"name" yaml:"name"`
 }
 
-func NewOperationSecurityScheme(ss auth.SecurityScheme) OperationSecurityScheme {
+func NewOperationSecurityScheme(securityScheme *auth.SecurityScheme) OperationSecurityScheme {
 	return OperationSecurityScheme{
-		Type:   ss.GetType(),
-		Scheme: ss.GetScheme(),
-		In:     ss.GetIn(),
-		Name:   ss.GetName(),
+		Type:        securityScheme.GetType(),
+		Scheme:      securityScheme.GetScheme(),
+		In:          securityScheme.GetIn(),
+		TokenFormat: securityScheme.GetTokenFormat(),
+
+		Name: securityScheme.GetName(),
 	}
 }
 

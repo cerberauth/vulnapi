@@ -12,7 +12,7 @@ import (
 )
 
 func TestAcceptUnauthenticatedScanHandler_Failed_WhenNoAuthSecurityScheme(t *testing.T) {
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := acceptunauthenticated.ScanHandler(op, securityScheme)
@@ -23,7 +23,7 @@ func TestAcceptUnauthenticatedScanHandler_Failed_WhenNoAuthSecurityScheme(t *tes
 
 func TestCheckNoAuthOperationScanHandler_Passed_WhenAuthConfigured(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := acceptunauthenticated.ScanHandler(op, securityScheme)

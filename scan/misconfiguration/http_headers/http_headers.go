@@ -156,7 +156,7 @@ func CheckCSPFrameAncestors(cspHeader string) bool {
 	return false
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	contentOptionsMissing := report.NewIssueReport(contentOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	corsMissing := report.NewIssueReport(corsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	corsWildcard := report.NewIssueReport(corsWildcardIssue).WithOperation(op).WithSecurityScheme(securityScheme)
@@ -165,7 +165,7 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 	frameOptionsMissing := report.NewIssueReport(frameOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	hstsMissing := report.NewIssueReport(hstsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 
-	attempt, err := scan.ScanURL(op, &securityScheme)
+	attempt, err := scan.ScanURL(op, securityScheme)
 	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName, op)
 	if err != nil {
 		return r, err

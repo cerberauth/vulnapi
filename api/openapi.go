@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
@@ -33,7 +32,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	traceCtx, span := tracer.Start(ctx, "Scan OpenAPI")
 	defer span.End()
 
-	openapi, err := openapi.LoadFromData(traceCtx, []byte(form.Schema))
+	doc, err := openapi.LoadFromData(traceCtx, []byte(form.Schema))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -41,7 +40,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	if err := openapi.Validate(ctx); err != nil {
+	if err := doc.Validate(ctx); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -59,8 +58,8 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 			values[key] = &value.Value
 		}
 	}
-	securitySchemesValues := auth.NewSecuritySchemeValues(values)
-	s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, &scan.ScanOptions{
+	securitySchemesValues := openapi.NewSecuritySchemeValues(values)
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
 		IncludeScans: form.Opts.Scans,
 		ExcludeScans: form.Opts.ExcludeScans,
 	})

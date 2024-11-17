@@ -23,7 +23,7 @@ func TestNewURLScan(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}, s.Operations[0].SecuritySchemes)
 }
 
 func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
@@ -44,7 +44,7 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
 func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing.T) {
@@ -65,7 +65,7 @@ func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
 
 func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
@@ -86,5 +86,5 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
-	assert.Equal(t, []auth.SecurityScheme{auth.NewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
+	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }

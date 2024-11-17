@@ -24,7 +24,7 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableGraphqlPathFound(t *testin
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29 (Ubuntu)"}}))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := discoverableopenapi.ScanHandler(op, auth.NewNoAuthSecurityScheme())
+	report, err := discoverableopenapi.ScanHandler(op, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 10)
@@ -42,7 +42,7 @@ func TestDiscoverableScanner_Failed_WhenOneOpenAPIFound(t *testing.T) {
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := discoverableopenapi.ScanHandler(operation, auth.NewNoAuthSecurityScheme())
+	report, err := discoverableopenapi.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)

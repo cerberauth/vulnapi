@@ -140,7 +140,7 @@ func TestNewOperationFromRequest_WithBody(t *testing.T) {
 func TestOperation_GetSecurityScheme(t *testing.T) {
 	t.Run("NoSecuritySchemes", func(t *testing.T) {
 		operation := &operation.Operation{}
-		expectedScheme := auth.NewNoAuthSecurityScheme()
+		expectedScheme := auth.MustNewNoAuthSecurityScheme()
 
 		scheme := operation.GetSecurityScheme()
 
@@ -148,9 +148,9 @@ func TestOperation_GetSecurityScheme(t *testing.T) {
 	})
 
 	t.Run("WithSecuritySchemes", func(t *testing.T) {
-		expectedScheme := auth.NewNoAuthSecurityScheme()
+		expectedScheme := auth.MustNewNoAuthSecurityScheme()
 		operation := &operation.Operation{
-			SecuritySchemes: []auth.SecurityScheme{expectedScheme},
+			SecuritySchemes: []*auth.SecurityScheme{expectedScheme},
 		}
 
 		scheme := operation.GetSecurityScheme()
@@ -160,7 +160,7 @@ func TestOperation_GetSecurityScheme(t *testing.T) {
 }
 
 func TestOperationCloneWithSecuritySchemes(t *testing.T) {
-	securitySchemes := []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+	securitySchemes := []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
 
 	operation := operation.MustNewOperation(http.MethodGet, "http://example.com", nil, nil)
 	operation.SetSecuritySchemes(securitySchemes)

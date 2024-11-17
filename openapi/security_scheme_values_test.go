@@ -1,9 +1,9 @@
-package auth_test
+package openapi_test
 
 import (
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,7 +11,7 @@ func TestNewSecuritySchemeValues(t *testing.T) {
 	values := map[string]interface{}{
 		"key": "value",
 	}
-	securitySchemeValues := auth.NewSecuritySchemeValues(values)
+	securitySchemeValues := openapi.NewSecuritySchemeValues(values)
 
 	assert.Nil(t, securitySchemeValues.Default)
 	assert.NotNil(t, securitySchemeValues.Values)
@@ -19,7 +19,7 @@ func TestNewSecuritySchemeValues(t *testing.T) {
 }
 
 func TestNewEmptySecuritySchemeValues(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 
 	assert.Nil(t, securitySchemeValues.Default)
 	assert.NotNil(t, securitySchemeValues.Values)
@@ -27,21 +27,21 @@ func TestNewEmptySecuritySchemeValues(t *testing.T) {
 }
 
 func TestSecuritySchemeValues_WithDefault(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 	securitySchemeValues.WithDefault("default")
 
 	assert.Equal(t, "default", securitySchemeValues.Default)
 }
 
 func TestSecuritySchemeValues_GetDefault(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 	securitySchemeValues.WithDefault("default")
 
 	assert.Equal(t, "default", securitySchemeValues.GetDefault())
 }
 
 func TestSecuritySchemeValues_Get(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 	securitySchemeValues.WithDefault("default")
 	securitySchemeValues.Set("key", "value")
 
@@ -49,14 +49,14 @@ func TestSecuritySchemeValues_Get(t *testing.T) {
 }
 
 func TestSecuritySchemeValues_Get_WhenNotExist(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 	securitySchemeValues.WithDefault("default")
 
 	assert.Equal(t, "default", securitySchemeValues.Get("key"))
 }
 
 func TestSecuritySchemeValues_Set(t *testing.T) {
-	securitySchemeValues := auth.NewEmptySecuritySchemeValues()
+	securitySchemeValues := openapi.NewEmptySecuritySchemeValues()
 	securitySchemeValues.Set("key", "value")
 
 	assert.Equal(t, "value", securitySchemeValues.Get("key"))
