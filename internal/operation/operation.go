@@ -42,12 +42,12 @@ type Operation struct {
 	OpenAPIDocPath *string `json:"-" yaml:"-"`
 	ID             string  `json:"id" yaml:"id"`
 
-	Method          string                `json:"method" yaml:"method"`
-	URL             url.URL               `json:"url" yaml:"url"`
-	Body            []byte                `json:"body,omitempty" yaml:"body,omitempty"`
-	Cookies         []*http.Cookie        `json:"cookies,omitempty" yaml:"cookies,omitempty"`
-	Header          http.Header           `json:"header,omitempty" yaml:"header,omitempty"`
-	SecuritySchemes []auth.SecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
+	Method          string                 `json:"method" yaml:"method"`
+	URL             url.URL                `json:"url" yaml:"url"`
+	Body            []byte                 `json:"body,omitempty" yaml:"body,omitempty"`
+	Cookies         []*http.Cookie         `json:"cookies,omitempty" yaml:"cookies,omitempty"`
+	Header          http.Header            `json:"header,omitempty" yaml:"header,omitempty"`
+	SecuritySchemes []*auth.SecurityScheme `json:"securitySchemes" yaml:"securitySchemes"`
 }
 
 func getBody(body io.Reader) ([]byte, error) {
@@ -88,7 +88,7 @@ func NewOperation(method string, operationUrl string, body io.Reader, client *re
 		Body:            bodyBuffer,
 		Cookies:         []*http.Cookie{},
 		Header:          http.Header{},
-		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
+		SecuritySchemes: []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()},
 	}, nil
 }
 
@@ -126,7 +126,7 @@ func NewOperationFromRequest(r *request.Request) (*Operation, error) {
 		Cookies: r.GetCookies(),
 		Body:    r.GetBody(),
 
-		SecuritySchemes: []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()},
+		SecuritySchemes: []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()},
 	}, nil
 }
 
@@ -162,21 +162,21 @@ func (operation *Operation) NewRequest() (*request.Request, error) {
 	return req, nil
 }
 
-func (operation *Operation) GetSecuritySchemes() []auth.SecurityScheme {
+func (operation *Operation) GetSecuritySchemes() []*auth.SecurityScheme {
 	if operation.SecuritySchemes == nil {
-		return []auth.SecurityScheme{auth.NewNoAuthSecurityScheme()}
+		return []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
 	}
 	return operation.SecuritySchemes
 }
 
-func (operation *Operation) GetSecurityScheme() auth.SecurityScheme {
+func (operation *Operation) GetSecurityScheme() *auth.SecurityScheme {
 	if operation.SecuritySchemes == nil {
-		return auth.NewNoAuthSecurityScheme()
+		return auth.MustNewNoAuthSecurityScheme()
 	}
 	return operation.SecuritySchemes[0]
 }
 
-func (operation *Operation) SetSecuritySchemes(securitySchemes []auth.SecurityScheme) *Operation {
+func (operation *Operation) SetSecuritySchemes(securitySchemes []*auth.SecurityScheme) *Operation {
 	operation.SecuritySchemes = securitySchemes
 	return operation
 }
@@ -204,9 +204,9 @@ func (operation *Operation) GetID() string {
 }
 
 func (o *Operation) Clone() (*Operation, error) {
-	var clonedSecuritySchemes []auth.SecurityScheme
+	var clonedSecuritySchemes []*auth.SecurityScheme
 	if o.SecuritySchemes != nil {
-		clonedSecuritySchemes = make([]auth.SecurityScheme, len(o.SecuritySchemes))
+		clonedSecuritySchemes = make([]*auth.SecurityScheme, len(o.SecuritySchemes))
 		copy(clonedSecuritySchemes, o.SecuritySchemes)
 	}
 

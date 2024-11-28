@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
-	"github.com/cerberauth/vulnapi/internal/auth"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
@@ -47,14 +46,14 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			ctx, span := tracer.Start(cmd.Context(), "Scan OpenAPI")
 			defer span.End()
 
-			openapi, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
+			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
 			}
 
-			if err := openapi.Validate(ctx); err != nil {
+			if err := doc.Validate(ctx); err != nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
 				log.Fatal(err)
@@ -69,7 +68,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			for key, value := range securitySchemesValueArg {
 				values[key] = &value
 			}
-			securitySchemesValues := auth.NewSecuritySchemeValues(values).WithDefault(validToken)
+			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken)
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
@@ -79,7 +78,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewOpenAPIScan(openapi, securitySchemesValues, client, &scan.ScanOptions{
+			s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

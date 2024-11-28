@@ -26,7 +26,7 @@ type GraphQLReport struct {
 	Mutations GraphQLOperationsMethods `json:"mutations" yaml:"mutations"`
 }
 
-func NewGraphQLReport(url string, securitySchemes []auth.SecurityScheme) *GraphQLReport {
+func NewGraphQLReport(url string, securitySchemes []*auth.SecurityScheme) *GraphQLReport {
 	queries := GraphQLOperationsMethods{}
 	mutations := GraphQLOperationsMethods{}
 

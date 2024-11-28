@@ -1,86 +1,41 @@
 package auth
 
 import (
-	"fmt"
-	"net/http"
+	"github.com/cerberauth/vulnapi/jwt"
 )
 
-type BearerSecurityScheme struct {
-	Type        Type       `json:"type" yaml:"type"`
-	Scheme      SchemeName `json:"scheme" yaml:"scheme"`
-	In          SchemeIn   `json:"in" yaml:"in"`
-	Name        string     `json:"name" yaml:"name"`
-	ValidValue  *string    `json:"-" yaml:"-"`
-	AttackValue string     `json:"-" yaml:"-"`
-}
-
-var _ SecurityScheme = (*BearerSecurityScheme)(nil)
-
-func NewAuthorizationBearerSecurityScheme(name string, value *string) *BearerSecurityScheme {
-	return &BearerSecurityScheme{
-		Type:        HttpType,
-		Scheme:      BearerScheme,
-		In:          InHeader,
-		Name:        name,
-		ValidValue:  value,
-		AttackValue: "",
-	}
-}
-
-func (ss *BearerSecurityScheme) GetType() Type {
-	return ss.Type
-}
-
-func (ss *BearerSecurityScheme) GetScheme() SchemeName {
-	return ss.Scheme
-}
-
-func (ss *BearerSecurityScheme) GetIn() *SchemeIn {
-	return &ss.In
-}
-
-func (ss *BearerSecurityScheme) GetName() string {
-	return ss.Name
-}
-
-func (ss *BearerSecurityScheme) GetHeaders() http.Header {
-	header := http.Header{}
-	attackValue := ss.GetAttackValue().(string)
-	if attackValue == "" && ss.HasValidValue() {
-		attackValue = ss.GetValidValue().(string)
+func NewAuthorizationBearerSecurityScheme(name string, value *string) (*SecurityScheme, error) {
+	in := InHeader
+	securityScheme, err := NewSecurityScheme(name, nil, HttpType, BearerScheme, &in, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	if attackValue != "" {
-		header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, attackValue))
+	if value != nil && *value != "" {
+		err = securityScheme.SetValidValue(*value)
+		if err != nil {
+			return nil, err
+		}
+
+		var tokenFormat TokenFormat
+		if jwt.IsJWT(*value) {
+			tokenFormat = JWTTokenFormat
+		} else {
+			tokenFormat = NoneTokenFormat
+		}
+		if err = securityScheme.SetTokenFormat(tokenFormat); err != nil {
+			return nil, err
+		}
 	}
 
-	return header
+	return securityScheme, nil
 }
 
-func (ss *BearerSecurityScheme) GetCookies() []*http.Cookie {
-	return []*http.Cookie{}
-}
-
-func (ss *BearerSecurityScheme) HasValidValue() bool {
-	return ss.ValidValue != nil && *ss.ValidValue != ""
-}
-
-func (ss *BearerSecurityScheme) GetValidValue() interface{} {
-	if !ss.HasValidValue() {
-		return nil
+func MustNewAuthorizationBearerSecurityScheme(name string, value *string) *SecurityScheme {
+	securityScheme, err := NewAuthorizationBearerSecurityScheme(name, value)
+	if err != nil {
+		panic(err)
 	}
 
-	return *ss.ValidValue
-}
-
-func (ss *BearerSecurityScheme) GetValidValueWriter() interface{} {
-	return nil
-}
-
-func (ss *BearerSecurityScheme) SetAttackValue(v interface{}) {
-	ss.AttackValue = v.(string)
-}
-
-func (ss *BearerSecurityScheme) GetAttackValue() interface{} {
-	return ss.AttackValue
+	return securityScheme
 }

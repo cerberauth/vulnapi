@@ -16,35 +16,40 @@ import (
 
 func TestNewOperationSecurityScheme(t *testing.T) {
 	inHeader := auth.InHeader
+	value := "test"
+	noneTokenFormat := auth.NoneTokenFormat
+
 	tests := []struct {
-		name string
-		ss   auth.SecurityScheme
-		want report.OperationSecurityScheme
+		name           string
+		securityScheme *auth.SecurityScheme
+		want           report.OperationSecurityScheme
 	}{
 		{
-			name: "No Auth",
-			ss:   auth.NewNoAuthSecurityScheme(),
+			name:           "No Auth",
+			securityScheme: auth.MustNewNoAuthSecurityScheme(),
 			want: report.OperationSecurityScheme{
 				Type:   auth.None,
 				Scheme: auth.NoneScheme,
 				In:     nil,
+				Name:   "no_auth",
 			},
 		},
 		{
-			name: "Bearer Token",
-			ss:   auth.NewAuthorizationBearerSecurityScheme("test", nil),
+			name:           "Bearer Token",
+			securityScheme: auth.MustNewAuthorizationBearerSecurityScheme("test", &value),
 			want: report.OperationSecurityScheme{
-				Type:   auth.HttpType,
-				Scheme: auth.BearerScheme,
-				In:     &inHeader,
-				Name:   "test",
+				Type:        auth.HttpType,
+				Scheme:      auth.BearerScheme,
+				In:          &inHeader,
+				TokenFormat: &noneTokenFormat,
+				Name:        "test",
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := report.NewOperationSecurityScheme(tt.ss)
+			got := report.NewOperationSecurityScheme(tt.securityScheme)
 			assert.Equal(t, tt.want, got)
 		})
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/openapi"
 	openapilib "github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -19,15 +20,16 @@ func TestNewReporterWithCurl(t *testing.T) {
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
 	token := "abc123"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
-	securitySchemes := []auth.SecurityScheme{securityScheme}
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
+	securitySchemes := []*auth.SecurityScheme{securityScheme}
 
 	reportSecuritySchemes := []report.OperationSecurityScheme{
 		{
-			Type:   securityScheme.GetType(),
-			Scheme: securityScheme.GetScheme(),
-			In:     securityScheme.GetIn(),
-			Name:   securityScheme.GetName(),
+			Type:        securityScheme.GetType(),
+			Scheme:      securityScheme.GetScheme(),
+			In:          securityScheme.GetIn(),
+			TokenFormat: securityScheme.GetTokenFormat(),
+			Name:        securityScheme.GetName(),
 		},
 	}
 
@@ -51,8 +53,8 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
 	token := "abc123"
-	securityScheme := auth.SecurityScheme(auth.NewAuthorizationBearerSecurityScheme("token", &token))
-	securitySchemes := []auth.SecurityScheme{securityScheme}
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &token)
+	securitySchemes := []*auth.SecurityScheme{securityScheme}
 
 	reporter := report.NewReporterWithCurl(method, url, data, header, cookies, securitySchemes)
 
@@ -76,11 +78,11 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 }
 
 func TestNewReporterWithOpenAPIDoc(t *testing.T) {
-	openapi, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapi.SecuritySchemeMap(auth.NewEmptySecuritySchemeValues())
-	operations, _ := openapi.Operations(nil, securitySchemesMap)
+	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
 
-	reporter := report.NewReporterWithOpenAPIDoc(openapi.Doc, operations)
+	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
 	assert.NotNil(t, reporter)
 	assert.NotNil(t, reporter.OpenAPI)
@@ -88,10 +90,10 @@ func TestNewReporterWithOpenAPIDoc(t *testing.T) {
 }
 
 func TestReporterWithOpenAPIDoc_AddReport(t *testing.T) {
-	openapi, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapi.SecuritySchemeMap(auth.NewEmptySecuritySchemeValues())
-	operations, _ := openapi.Operations(nil, securitySchemesMap)
-	reporter := report.NewReporterWithOpenAPIDoc(openapi.Doc, operations)
+	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
+	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
 	issue := report.Issue{
 		ID:   "id",

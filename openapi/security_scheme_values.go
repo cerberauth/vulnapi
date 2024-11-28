@@ -1,4 +1,4 @@
-package auth
+package openapi
 
 type SecuritySchemeValues struct {
 	Default interface{}

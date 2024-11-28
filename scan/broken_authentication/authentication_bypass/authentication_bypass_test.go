@@ -14,7 +14,7 @@ import (
 )
 
 func TestAuthenticationByPassScanHandler_Skipped_WhenNoAuthSecurityScheme(t *testing.T) {
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 
 	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
@@ -29,7 +29,7 @@ func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T)
 	defer httpmock.DeactivateAndReset()
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
@@ -45,7 +45,7 @@ func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing
 	defer httpmock.DeactivateAndReset()
 
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 

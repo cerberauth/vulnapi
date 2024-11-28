@@ -7,5 +7,6 @@ const (
 	OAuth2        Type = "oauth2"
 	OpenIdConnect Type = "openIdConnect"
 	ApiKey        Type = "apiKey"
+	MutualTLS     Type = "mutualTLS"
 	None          Type = "none"
 )

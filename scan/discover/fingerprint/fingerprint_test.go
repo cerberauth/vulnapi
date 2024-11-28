@@ -19,7 +19,7 @@ func TestCheckSignatureHeader_Failed_WithServerSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Apache/2.4.29"}}))
@@ -40,7 +40,7 @@ func TestCheckSignatureHeader_Failed_WithOSSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"Server": []string{"Ubuntu"}}))
@@ -61,7 +61,7 @@ func TestCheckSignatureHeader_Failed_WithHostingSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"platform": []string{"hostinger"}}))
@@ -82,7 +82,7 @@ func TestCheckSignatureHeader_Failed_WithAuthenticationSignatureHeader(t *testin
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-auth0-requestid": []string{"id"}}))
@@ -103,7 +103,7 @@ func TestCheckSignatureHeader_Failed_WithCDNSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"cf-cache-status": []string{"HIT"}}))
@@ -124,7 +124,7 @@ func TestCheckSignatureHeader_Failed_WithLanguageSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"PHP 7.4.3"}}))
@@ -145,7 +145,7 @@ func TestCheckSignatureHeader_Failed_WithFrameworkSignatureHeader(t *testing.T) 
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"express"}}))
@@ -167,7 +167,7 @@ func TestCheckSignatureHeader_Passed_WithoutDuplicate(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	securityScheme := auth.NewNoAuthSecurityScheme()
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil).HeaderAdd(http.Header{"x-powered-by": []string{"next.js"}}))
@@ -187,7 +187,7 @@ func TestCheckSignatureHeader_Passed_WithoutSignatureHeader(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	token := "token"
-	securityScheme := auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 

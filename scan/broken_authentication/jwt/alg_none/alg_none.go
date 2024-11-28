@@ -37,16 +37,8 @@ var issue = report.Issue{
 	},
 }
 
-func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
-	if securitySheme == nil {
-		return false
-	}
-
-	if _, ok := securitySheme.(*auth.JWTBearerSecurityScheme); !ok {
-		return false
-	}
-
-	return true
+func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
+	return securityScheme != nil && securityScheme.GetType() != auth.None && (securityScheme.GetTokenFormat() == nil || *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)
 }
 
 var algs = []string{
@@ -56,7 +48,7 @@ var algs = []string{
 	"nOnE",
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	issueReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, op)
 
@@ -66,17 +58,23 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r, nil
 	}
 
-	var valueWriter *jwt.JWTWriter
+	var token string
 	if securityScheme.HasValidValue() {
-		valueWriter = securityScheme.GetValidValueWriter().(*jwt.JWTWriter)
-		if valueWriter.GetToken().Method.Alg() == jwtlib.SigningMethodNone.Alg() {
-			return r, nil
-		}
-
-		valueWriter = jwt.NewJWTWriterWithValidClaims(valueWriter)
+		token = securityScheme.GetToken()
 	} else {
-		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+		token = jwt.FakeJWT
 	}
+
+	valueWriter, err := jwt.NewJWTWriter(token)
+	if err != nil {
+		return r, err
+	}
+
+	if valueWriter.GetToken().Method.Alg() == jwtlib.SigningMethodNone.Alg() {
+		r.AddIssueReport(issueReport.Fail()).End()
+		return r, nil
+	}
+	valueWriter = jwt.NewJWTWriterWithValidClaims(valueWriter)
 
 	method := &signingMethodNone{}
 	for _, alg := range algs {
@@ -94,19 +92,21 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		}
 	}
 
-	r.End()
-	r.AddIssueReport(issueReport)
-
+	r.AddIssueReport(issueReport).End()
 	return r, nil
 }
 
-func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme auth.SecurityScheme, op *operation.Operation) (*scan.IssueScanAttempt, error) {
+func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme *auth.SecurityScheme, op *operation.Operation) (*scan.IssueScanAttempt, error) {
 	newToken, err := valueWriter.SignWithMethodAndKey(method, jwtlib.UnsafeAllowNoneSignatureType)
 	if err != nil {
 		return nil, err
 	}
-	securityScheme.SetAttackValue(newToken)
-	vsa, err := scan.ScanURL(op, &securityScheme)
+
+	if err = securityScheme.SetAttackValue(newToken); err != nil {
+		return nil, err
+	}
+
+	vsa, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
 		return nil, err
 	}

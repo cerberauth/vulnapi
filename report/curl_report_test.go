@@ -18,8 +18,8 @@ func TestNewCurlReport(t *testing.T) {
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
 	value := jwt.FakeJWT
-	securityScheme, _ := auth.NewAuthorizationJWTBearerSecurityScheme("token", &value)
-	securitySchemes := []auth.SecurityScheme{securityScheme}
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
+	securitySchemes := []*auth.SecurityScheme{securityScheme}
 
 	curlReport := report.NewCurlReport(method, url, data, header, cookies, securitySchemes)
 
@@ -41,7 +41,7 @@ func Test_CurlReport_AddReport(t *testing.T) {
 	data := map[string]interface{}{"key": "value"}
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
-	securitySchemes := []auth.SecurityScheme{}
+	securitySchemes := []*auth.SecurityScheme{}
 
 	curlReport := report.NewCurlReport(method, url, data, header, cookies, securitySchemes)
 
@@ -70,7 +70,7 @@ func TestAddReport_WhenScanReportHasNoFailedIssueReport(t *testing.T) {
 	data := map[string]interface{}{"key": "value"}
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
-	securitySchemes := []auth.SecurityScheme{}
+	securitySchemes := []*auth.SecurityScheme{}
 
 	curlReport := report.NewCurlReport(method, url, data, header, cookies, securitySchemes)
 

@@ -24,6 +24,14 @@ func (e *SchemeName) Type() string {
 type SchemeIn string
 
 const (
+	InQuery  SchemeIn = "query"
 	InHeader SchemeIn = "header"
 	InCookie SchemeIn = "cookie"
+)
+
+type TokenFormat string
+
+const (
+	JWTTokenFormat  TokenFormat = "jwt"
+	NoneTokenFormat TokenFormat = "none"
 )

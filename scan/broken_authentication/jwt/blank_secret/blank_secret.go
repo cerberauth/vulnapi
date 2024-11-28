@@ -30,19 +30,11 @@ var issue = report.Issue{
 	},
 }
 
-func ShouldBeScanned(securitySheme auth.SecurityScheme) bool {
-	if securitySheme == nil {
-		return false
-	}
-
-	if _, ok := securitySheme.(*auth.JWTBearerSecurityScheme); !ok {
-		return false
-	}
-
-	return true
+func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
+	return securityScheme != nil && securityScheme.GetType() != auth.None && (securityScheme.GetTokenFormat() == nil || *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)
 }
 
-func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*report.ScanReport, error) {
+func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(BlankSecretVulnerabilityScanID, BlankSecretVulnerabilityScanName, op)
 
@@ -50,19 +42,26 @@ func ScanHandler(op *operation.Operation, securityScheme auth.SecurityScheme) (*
 		return r.AddIssueReport(vulnReport.Skip()).End(), nil
 	}
 
-	var valueWriter *jwt.JWTWriter
+	var token string
 	if securityScheme.HasValidValue() {
-		valueWriter = jwt.NewJWTWriterWithValidClaims(securityScheme.GetValidValueWriter().(*jwt.JWTWriter))
+		token = securityScheme.GetToken()
 	} else {
-		valueWriter, _ = jwt.NewJWTWriter(jwt.FakeJWT)
+		token = jwt.FakeJWT
+	}
+
+	valueWriter, err := jwt.NewJWTWriter(token)
+	if err != nil {
+		return r, err
 	}
 
 	newToken, err := valueWriter.SignWithKey([]byte(""))
 	if err != nil {
 		return r, err
 	}
-	securityScheme.SetAttackValue(newToken)
-	vsa, err := scan.ScanURL(op, &securityScheme)
+	if err = securityScheme.SetAttackValue(newToken); err != nil {
+		return r, err
+	}
+	vsa, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
 		return r, err
 	}
