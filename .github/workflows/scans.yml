@@ -58,9 +58,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Build
-        run: go build -v ./...
-
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
@@ -74,6 +71,42 @@ jobs:
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest)
+
+  run-api-key-scans:
+    name: JWT Scans
+    runs-on: ubuntu-latest 
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          go run main.go scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --sqa-opt-out
+
+      - name: Check for vulnerabilities
+        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        run: echo "Vulnerabilities found"
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest)
 
   run-http-misconfigurations-scans:
     name: HTTP Misconfigurations Scans
@@ -118,9 +151,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Build
-        run: go build -v ./...
-
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
@@ -164,9 +194,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Build
-        run: go build -v ./...
-
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
@@ -180,3 +207,53 @@ jobs:
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/apollo:latest)
+
+  run-openapi-scans:
+    name: JWT Scans
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        openapi:
+          [
+            "simple_api_key.openapi.json",
+            "simple_http_bearer_jwt.openapi.json",
+            "simple_http_bearer.openapi.json",
+          ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
+
+      - name: Get JWT
+        id: get-jwt
+        run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/jwt-strong-eddsa-key:latest jwt)" >> $GITHUB_OUTPUT
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          go run main.go scan openapi ./test/stub/${{ matrix.openapi }} --sqa-opt-out
+
+      - name: Check for vulnerabilities
+        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        run: echo "Vulnerabilities found"
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest)
