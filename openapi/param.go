@@ -8,9 +8,11 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+const maximumDepth = 4
+
 func getParameterValue(param *openapi3.Parameter) string {
 	if param.Schema != nil {
-		value := getSchemaValue(param.Schema.Value)
+		value := getSchemaValue(param.Schema.Value, 0)
 		switch {
 		case param.Schema.Value.Type.Is("string"):
 			return value.(string)
@@ -66,7 +68,7 @@ func getRequestBodyValue(requestBody *openapi3.RequestBody) (*bytes.Buffer, stri
 	if requestBody.Content != nil {
 		for mediaType, mediaTypeValue := range requestBody.Content {
 			if mediaTypeValue.Schema != nil {
-				body := getSchemaValue(mediaTypeValue.Schema.Value)
+				body := getSchemaValue(mediaTypeValue.Schema.Value, 0)
 				switch mediaType {
 				case "application/json":
 					return mapRequestBodyFakeValueToJSON(mediaTypeValue.Schema.Value, body), "application/json"
@@ -80,7 +82,7 @@ func getRequestBodyValue(requestBody *openapi3.RequestBody) (*bytes.Buffer, stri
 	return bytes.NewBuffer(nil), ""
 }
 
-func getSchemaValue(schema *openapi3.Schema) interface{} {
+func getSchemaValue(schema *openapi3.Schema, depth int) interface{} {
 	if schema.Example != nil {
 		return schema.Example
 	} else if len(schema.Enum) > 0 {
@@ -94,11 +96,17 @@ func getSchemaValue(schema *openapi3.Schema) interface{} {
 	case schema.Type.Is("boolean"):
 		return gofakeit.Bool()
 	case schema.Type.Is("array"):
-		return []interface{}{getSchemaValue(schema.Items.Value)}
+		if depth > maximumDepth {
+			return []interface{}{}
+		}
+		return []interface{}{getSchemaValue(schema.Items.Value, depth+1)}
 	case schema.Type.Is("object"):
 		object := map[string]interface{}{}
+		if depth > maximumDepth {
+			return object
+		}
 		for key, value := range schema.Properties {
-			object[key] = getSchemaValue(value.Value)
+			object[key] = getSchemaValue(value.Value, depth+1)
 		}
 		return object
 	case schema.Type.Is("string"):
