@@ -2,7 +2,7 @@ package operation
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -109,7 +109,7 @@ func (operation *Operation) IsReachable() error {
 		case "https":
 			host += ":443"
 		default:
-			return errors.New("unsupported scheme")
+			return fmt.Errorf("unsupported scheme: %s", operation.URL.Scheme)
 		}
 	}
 

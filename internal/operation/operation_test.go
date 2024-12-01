@@ -99,7 +99,7 @@ func TestOperation_IsReachableWhenUnsupportedScheme(t *testing.T) {
 	err := operation.IsReachable()
 
 	assert.Error(t, err)
-	assert.Equal(t, "unsupported scheme", err.Error())
+	assert.Equal(t, "unsupported scheme: ftp", err.Error())
 }
 
 func TestNewOperationFromRequest(t *testing.T) {

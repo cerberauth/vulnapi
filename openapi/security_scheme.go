@@ -39,17 +39,14 @@ func NewErrUnsupportedSecuritySchemeType(schemeType string) error {
 }
 
 func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (*auth.SecurityScheme, error) {
-	schemeScheme := strings.ToLower(scheme.Value.Scheme)
-
-	switch schemeScheme {
+	switch schemeScheme := strings.ToLower(scheme.Value.Scheme); schemeScheme {
 	case BearerScheme:
 		securityScheme, err := auth.NewAuthorizationBearerSecurityScheme(name, securitySchemeValue)
 		if err != nil {
 			return nil, err
 		}
 
-		bearerFormat := strings.ToLower(scheme.Value.BearerFormat)
-		switch bearerFormat {
+		switch bearerFormat := strings.ToLower(scheme.Value.BearerFormat); bearerFormat {
 		case "":
 			return securityScheme, nil
 		case "jwt":
@@ -64,6 +61,10 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 	default:
 		return nil, NewErrUnsupportedScheme(schemeScheme)
 	}
+}
+
+func mapAPIKeySchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (*auth.SecurityScheme, error) {
+	return auth.NewAPIKeySecurityScheme(name, auth.SchemeIn(scheme.Value.In), securitySchemeValue)
 }
 
 func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *auth.OAuthValue) (*auth.SecurityScheme, error) {
@@ -113,8 +114,7 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.Se
 			value, _ = securitySchemeValue.(*string)
 		}
 
-		schemeType := strings.ToLower(scheme.Value.Type)
-		switch schemeType {
+		switch schemeType := strings.ToLower(scheme.Value.Type); schemeType {
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
 		case OAuth2SchemeType, OpenIdConnectSchemeType:
@@ -123,6 +123,8 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.Se
 				oauthValue = auth.NewOAuthValue(*value, nil, nil, nil)
 			}
 			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, oauthValue)
+		case ApiKeySchemeType:
+			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}

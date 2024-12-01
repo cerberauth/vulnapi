@@ -1,7 +1,6 @@
 package scenario
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -9,6 +8,8 @@ import (
 )
 
 const bearerPrefix = auth.BearerPrefix + " "
+
+var apiKeyKeywords = []string{"key", "token", "secret"}
 
 func detectAuthorizationHeader(header http.Header) string {
 	if h := header.Get(auth.AuthorizationHeader); h != "" {
@@ -35,18 +36,33 @@ func getBearerToken(authHeader string) string {
 	return ""
 }
 
+func detectAPIKeyHeader(header http.Header) (string, string) {
+	for headerName, headerValue := range header {
+		for _, keyword := range apiKeyKeywords {
+			if strings.Contains(strings.ToLower(headerName), keyword) {
+				return headerName, headerValue[0]
+			}
+		}
+	}
+
+	return "", ""
+}
+
 func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
 	authHeader := detectAuthorizationHeader(header)
-	if authHeader == "" {
-		return nil, nil
+	if authHeader != "" {
+		if token := getBearerToken(authHeader); token != "" {
+			return auth.NewAuthorizationBearerSecurityScheme("default", &token)
+		}
+
+		return auth.NewAPIKeySecurityScheme(auth.AuthorizationHeader, auth.InHeader, &authHeader)
 	}
 
-	token := getBearerToken(authHeader)
-	if token == "" {
-		return nil, fmt.Errorf("empty authorization header")
+	if headerName, headerValue := detectAPIKeyHeader(header); headerName != "" {
+		return auth.NewAPIKeySecurityScheme(headerName, auth.InHeader, &headerValue)
 	}
 
-	return auth.NewAuthorizationBearerSecurityScheme("default", &token)
+	return nil, nil
 }
 
 func addDefaultProtocolWhenMissing(url string) string {

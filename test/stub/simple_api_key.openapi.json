@@ -30,7 +30,7 @@
     "components": {
         "securitySchemes": {
             "api_key_auth": {
-                "type": "http",
+                "type": "apiKey",
                 "in": "header",
                 "name": "X-API-Key"
             }
