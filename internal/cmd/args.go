@@ -1,10 +1,16 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"strings"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/spf13/cobra"
+)
 
 var (
-	headers   []string
-	cookies   []string
+	headers   []string = []string{}
+	cookies   []string = []string{}
+	authUser  string
 	rateLimit string
 	proxy     string
 
@@ -30,6 +36,7 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&proxy, "proxy", "p", "", "Proxy URL for requests")
 	cmd.Flags().StringArrayVarP(&headers, "header", "H", headers, "Headers to include in requests")
 	cmd.Flags().StringArrayVarP(&cookies, "cookie", "c", cookies, "Cookies to include in requests")
+	cmd.Flags().StringVarP(&authUser, "user", "u", "", "Specify the user name and password to use for server authentication")
 
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVarP(&excludeScans, "exclude-scans", "e", excludeScans, "Exclude specific scans")
@@ -57,16 +64,22 @@ func AddPlaceholderArgs(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&placeholderBool, "remote-name", "O", false, "Write output to a file named as the remote file")
 	cmd.Flags().BoolVarP(&placeholderBool, "silent", "s", false, "Run in silent mode")
 	cmd.Flags().StringVarP(&placeholderString, "upload-file", "T", "", "Transfer file to target API")
-	cmd.Flags().StringVarP(&placeholderString, "user", "u", "", "Specify the user name and password to use for server authentication")
 	cmd.Flags().StringVarP(&placeholderString, "user-agent", "A", "", "User-Agent to send to server")
 }
 
 func GetHeaders() []string {
+	if basicCredentials := basicAuth(GetAuthUser()); basicCredentials != "" {
+		headers = append(headers, "Authorization: Basic "+basicCredentials)
+	}
 	return headers
 }
 
 func GetCookies() []string {
 	return cookies
+}
+
+func GetAuthUser() string {
+	return authUser
 }
 
 func GetRateLimit() string {
@@ -111,4 +124,28 @@ func GetNoProgress() bool {
 
 func GetSeverityThreshold() float64 {
 	return severityThreshold
+}
+
+func basicAuth(user string) string {
+	credentials := strings.Split(user, ":")
+	if len(credentials) != 2 || credentials[0] == "" {
+		return ""
+	}
+	return auth.NewHTTPBasicCredentials(credentials[0], credentials[1]).Encode()
+}
+
+func ClearValues() {
+	headers = []string{}
+	cookies = []string{}
+	authUser = ""
+	rateLimit = defaultRateLimit
+	proxy = ""
+	includeScans = []string{}
+	excludeScans = []string{}
+	reportFormat = "table"
+	reportTransport = "file"
+	reportFile = ""
+	reportURL = ""
+	noProgress = false
+	severityThreshold = 1
 }

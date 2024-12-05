@@ -36,7 +36,7 @@ var issue = report.Issue{
 }
 
 func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
-	if !(securityScheme != nil && securityScheme.GetType() != auth.None && (securityScheme.GetTokenFormat() == nil || *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)) {
+	if !(securityScheme != nil && securityScheme.GetType() != auth.None && securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == auth.JWTTokenFormat) {
 		return false
 	}
 

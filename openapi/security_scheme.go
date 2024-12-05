@@ -16,7 +16,7 @@ const (
 	OpenIdConnectSchemeType string = "openidconnect"
 	ApiKeySchemeType        string = "apikey"
 
-	// BasicScheme  string = "basic"
+	BasicScheme  string = "basic"
 	BearerScheme string = "bearer"
 	// DigestScheme string = "digest"
 	// OAuthScheme  string = "oauth"
@@ -58,6 +58,8 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 		default:
 			return nil, NewErrUnsupportedBearerFormat(bearerFormat)
 		}
+	case BasicScheme:
+		return auth.NewAuthorizationBasicSecurityScheme(name, nil)
 	default:
 		return nil, NewErrUnsupportedScheme(schemeScheme)
 	}

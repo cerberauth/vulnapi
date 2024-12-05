@@ -23,7 +23,7 @@ func TestNullSignatureScanHandler_WithoutSecurityScheme(t *testing.T) {
 	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
-func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
+func TestNullSignatureScanHandler_Skipped_WhenNoJWT(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -35,8 +35,8 @@ func TestNullSignatureScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *tes
 	report, err := nullsignature.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasPassed())
+	assert.Equal(t, 0, httpmock.GetTotalCallCount())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestNullSignatureScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
