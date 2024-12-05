@@ -12,7 +12,7 @@ import (
 
 func TestSecuritySchemeMap_WithoutSecurityComponents(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
@@ -25,7 +25,7 @@ func TestSecuritySchemeMap_WithoutSecurityComponents(t *testing.T) {
 func TestSecuritySchemeMap_WithUnknownSchemeType(t *testing.T) {
 	expectedErr := openapi.NewErrUnsupportedSecuritySchemeType("other")
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: other}}}}`),
 	)
 
@@ -39,7 +39,7 @@ func TestSecuritySchemeMap_WithUnknownSchemeType(t *testing.T) {
 func TestSecuritySchemeMap_WithUnknownScheme(t *testing.T) {
 	expectedErr := openapi.NewErrUnsupportedScheme("other")
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: other}}}}`),
 	)
 
@@ -53,7 +53,7 @@ func TestSecuritySchemeMap_WithUnknownScheme(t *testing.T) {
 func TestSecuritySchemeMap_WithUnknownBearerFormat(t *testing.T) {
 	expectedErr := openapi.NewErrUnsupportedBearerFormat("other")
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: other}}}}`),
 	)
 
@@ -66,7 +66,7 @@ func TestSecuritySchemeMap_WithUnknownBearerFormat(t *testing.T) {
 
 func TestSecuritySchemeMap_WithHTTPJWTBearer(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: JWT}}}}`),
 	)
 
@@ -81,7 +81,7 @@ func TestSecuritySchemeMap_WithHTTPJWTBearer(t *testing.T) {
 
 func TestSecuritySchemeMap_WithHTTPBearer(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer}}}}`),
 	)
 
@@ -95,7 +95,7 @@ func TestSecuritySchemeMap_WithHTTPBearer(t *testing.T) {
 
 func TestSecuritySchemeMap_WithoutHTTPJWTBearerAndDefaultValue(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: JWT}}}}`),
 	)
 
@@ -109,9 +109,23 @@ func TestSecuritySchemeMap_WithoutHTTPJWTBearerAndDefaultValue(t *testing.T) {
 	assert.Equal(t, auth.JWTTokenFormat, *result["bearer_auth"].GetTokenFormat())
 }
 
+func TestSecuritySchemeMap_WithAPIKeyInHeader(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(
+		context.TODO(),
+		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: 'Authorization', in: header, required: true, schema: {type: string}}], responses: {'204': {description: successful operation}}, security: [{api_key_auth: []}]}}}, components: {securitySchemes: {api_key_auth: {type: apiKey, in: header, name: X-API-KEY}}}}`),
+	)
+
+	result, err := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, auth.ApiKey, result["api_key_auth"].GetType())
+	assert.Equal(t, auth.InHeader, *result["api_key_auth"].In)
+}
+
 func TestSecuritySchemeMap_WithInvalidValueType(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: JWT}}}}`),
 	)
 
@@ -126,7 +140,7 @@ func TestSecuritySchemeMap_WithInvalidValueType(t *testing.T) {
 
 func TestSecuritySchemeMap_WithOAuth(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{oauth_auth: []}]}}}, components: {securitySchemes: {oauth_auth: {type: oauth2}}}}`),
 	)
 
@@ -140,7 +154,7 @@ func TestSecuritySchemeMap_WithOAuth(t *testing.T) {
 
 func TestSecuritySchemeMap_WithOAuthAndAuthorizationCodeFlow(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{oauth_auth: []}]}}}, components: {securitySchemes: {oauth_auth: {type: oauth2, flows: {authorizationCode: {tokenUrl: 'http://localhost:8080/token', refreshUrl: 'http://localhost:8080/refresh'}}}}}}`),
 	)
 
@@ -158,7 +172,7 @@ func TestSecuritySchemeMap_WithOAuthAndAuthorizationCodeFlow(t *testing.T) {
 
 func TestSecuritySchemeMap_WithOAuthAndImplicitFlow(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{oauth_auth: []}]}}}, components: {securitySchemes: {oauth_auth: {type: oauth2, flows: {implicit: {tokenUrl: 'http://localhost:8080/token', refreshUrl: 'http://localhost:8080/refresh'}}}}}}`),
 	)
 
@@ -176,7 +190,7 @@ func TestSecuritySchemeMap_WithOAuthAndImplicitFlow(t *testing.T) {
 
 func TestSecuritySchemeMap_WithOAuthAndClientCredentialsFlow(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{oauth_auth: []}]}}}, components: {securitySchemes: {oauth_auth: {type: oauth2, flows: {clientCredentials: {tokenUrl: 'http://localhost:8080/token', refreshUrl: 'http://localhost:8080/refresh'}}}}}}`),
 	)
 
@@ -194,7 +208,7 @@ func TestSecuritySchemeMap_WithOAuthAndClientCredentialsFlow(t *testing.T) {
 
 func TestSecuritySchemeMap_WithOpenIDConnect(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
-		context.Background(),
+		context.TODO(),
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{oidc_auth: []}]}}}, components: {securitySchemes: {oidc_auth: {type: openIdConnect}}}}`),
 	)
 

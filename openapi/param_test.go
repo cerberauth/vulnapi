@@ -265,3 +265,17 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithObjectExampleAndArrayExampl
 	assert.NotNil(t, operations[0].Body)
 	assert.Equal(t, expected, operations[0].Body)
 }
+
+func TestRecursiveParameters(t *testing.T) {
+	openapiContract, operr := openapi.LoadFromData(
+		context.Background(),
+		[]byte(`{"openapi":"3.0.2","servers":[{"url":"http://localhost:8080"}],"paths":{"/":{"post":{"summary":"Create an item","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Item"}}}},"responses":{"201":{"description":"Item created","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Item"}}}}}}}},"components":{"schemas":{"Item":{"type":"object","properties":{"details":{"type":"object","properties":{"description":{"type":"string"},"attributes":{"type":"array","items":{"$ref":"#/components/schemas/Attribute"}}}}}},"Attribute":{"type":"object","properties":{"key":{"type":"string"},"value":{"type":"string"},"subAttributes":{"type":"array","items":{"$ref":"#/components/schemas/Attribute"}}}}}}}}`),
+	)
+
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+
+	assert.NoError(t, operr)
+	assert.NoError(t, err)
+	assert.NotNil(t, operations[0].Body)
+}

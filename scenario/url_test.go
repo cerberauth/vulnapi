@@ -88,3 +88,48 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
+
+func TestNewURLScanWithAPIKeyInHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	apiKey := "token"
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "X-Api-Key",
+		},
+		{
+			name: "Apikey",
+		},
+		{
+			name: "App-Key",
+		},
+		{
+			name: "X-Token",
+		},
+		{
+			name: "Api-Secret",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			header := http.Header{}
+			header.Add(tt.name, apiKey)
+			client := request.NewClient(request.NewClientOptions{
+				Header: header,
+			})
+
+			s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+
+			require.NoError(t, err)
+			assert.Equal(t, server.URL, s.Operations[0].URL.String())
+			assert.Equal(t, http.MethodGet, s.Operations[0].Method)
+			assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAPIKeySecurityScheme(tt.name, auth.InHeader, &apiKey)}, s.Operations[0].SecuritySchemes)
+		})
+	}
+}

@@ -41,8 +41,7 @@ func GetOperationPath(p string, params openapi3.Parameters) (string, error) {
 		if v.Value.In != "path" {
 			continue
 		}
-
-		subs[v.Value.Name] = getSchemaValue(v.Value.Schema.Value)
+		subs[v.Value.Name] = getSchemaValue(v.Value.Schema.Value, 0)
 	}
 
 	return stduritemplate.Expand(p, subs)
