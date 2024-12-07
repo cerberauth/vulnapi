@@ -45,6 +45,8 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
+	// Should clear client header after setting security schemes
+	assert.Empty(t, client.Header.Get("Authorization"))
 }
 
 func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing.T) {
