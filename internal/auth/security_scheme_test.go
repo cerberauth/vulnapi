@@ -438,6 +438,28 @@ func TestGetHeaders(t *testing.T) {
 			attackValue:     nil,
 			expectedHeaders: http.Header{},
 		},
+		{
+			name:            "HTTP Basic with valid credentials",
+			schemeName:      "Basic",
+			schemeType:      auth.HttpType,
+			scheme:          auth.BasicScheme,
+			in:              &inHeader,
+			tokenFormat:     nil,
+			validValue:      auth.NewHTTPBasicCredentials("user", "password"),
+			attackValue:     nil,
+			expectedHeaders: http.Header{"Authorization": []string{fmt.Sprintf("%s %s", auth.BasicPrefix, "dXNlcjpwYXNzd29yZA==")}},
+		},
+		{
+			name:            "HTTP Basic with attack credentials",
+			schemeName:      "Basic",
+			schemeType:      auth.HttpType,
+			scheme:          auth.BasicScheme,
+			in:              &inHeader,
+			tokenFormat:     nil,
+			validValue:      auth.NewHTTPBasicCredentials("user", "password"),
+			attackValue:     auth.NewHTTPBasicCredentials("user", "attack-password"),
+			expectedHeaders: http.Header{"Authorization": []string{fmt.Sprintf("%s %s", auth.BasicPrefix, "dXNlcjphdHRhY2stcGFzc3dvcmQ=")}},
+		},
 	}
 
 	for _, tt := range tests {

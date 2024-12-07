@@ -38,7 +38,7 @@ var issue = report.Issue{
 }
 
 func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
-	return securityScheme != nil && securityScheme.GetType() != auth.None && (securityScheme.GetTokenFormat() == nil || *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)
+	return securityScheme != nil && securityScheme.GetType() != auth.None && securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == auth.JWTTokenFormat
 }
 
 var algs = []string{
