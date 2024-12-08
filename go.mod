@@ -12,7 +12,7 @@ require (
 	github.com/iancoleman/orderedmap v0.3.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.2.5
+	github.com/projectdiscovery/wappalyzergo v0.2.6
 	github.com/schollz/progressbar/v3 v3.17.1
 	github.com/spf13/cobra v1.8.1
 	github.com/std-uritemplate/std-uritemplate/go v1.0.6
@@ -22,7 +22,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.uber.org/ratelimit v0.3.1
-	golang.org/x/text v0.20.0
+	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
