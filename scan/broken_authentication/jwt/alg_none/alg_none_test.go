@@ -28,7 +28,7 @@ func TestAlgNoneJwtScanHandler_WithoutSecurityScheme(t *testing.T) {
 	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
-func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
+func TestAlgNoneJwtScanHandler_Skipped_WhenNoJWT(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -40,9 +40,9 @@ func TestAlgNoneJwtScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testin
 	report, err := algnone.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.Equal(t, 4, len(report.GetScanAttempts()))
+	assert.Equal(t, 0, len(report.GetScanAttempts()))
 	assert.Nil(t, report.GetData())
-	assert.True(t, report.Issues[0].HasPassed())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestAlgNoneJwtScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/stretchr/testify/assert"
 )
@@ -61,4 +62,43 @@ func TestClient_WithCookies(t *testing.T) {
 	client = client.WithCookies(cookies)
 
 	assert.Equal(t, cookies, client.Cookies)
+}
+
+func TestClient_ClearHeaderWithSecurityScheme(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{})
+	client.Header.Set("Authorization", "Bearer token")
+
+	value := "token"
+	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
+	client.ClearSecurityScheme(securityScheme)
+
+	assert.Empty(t, client.Header.Get("Authorization"))
+}
+
+// func TestClient_ClearCookieWithSecurityScheme(t *testing.T) {
+// 	client := request.NewClient(request.NewClientOptions{})
+// 	client.Cookies = []*http.Cookie{{Name: "session", Value: "12345"}}
+
+// 	value := "token"
+// 	securityScheme := &auth.SecurityScheme{
+// 		Cookies: []*http.Cookie{{Name: "session", Value: "12345"}},
+// 	}
+// 	client.ClearSecurityScheme(securityScheme)
+
+// 	assert.Empty(t, client.Header.Get("Authorization"))
+// }
+
+func TestClient_ClearSecuritySchemes(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{})
+	client.Header.Set("Authorization", "Bearer token")
+	client.Cookies = []*http.Cookie{{Name: "session", Value: "12345"}}
+
+	value := "token"
+	securityScheme1 := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
+	securityScheme2 := auth.MustNewNoAuthSecurityScheme()
+
+	client.ClearSecuritySchemes([]*auth.SecurityScheme{securityScheme1, securityScheme2})
+
+	assert.Empty(t, client.Header.Get("Authorization"))
+	// assert.Empty(t, client.Cookies)
 }

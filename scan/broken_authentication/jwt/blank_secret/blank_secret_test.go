@@ -23,7 +23,7 @@ func TestBlankSecretScanHandler_WithoutSecurityScheme(t *testing.T) {
 	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
-func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testing.T) {
+func TestBlankSecretScanHandler_Skipped_WhenNoJWT(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -35,24 +35,8 @@ func TestBlankSecretScanHandler_Passed_WhenNoJWTAndUnauthorizedResponse(t *testi
 	report, err := blanksecret.ScanHandler(operation, securityScheme)
 
 	require.NoError(t, err)
-	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasPassed())
-}
-
-func TestBlankSecretScanHandler_Passed_WhenNoJWTAndOKResponse(t *testing.T) {
-	client := request.GetDefaultClient()
-	httpmock.ActivateNonDefault(client.Client)
-	defer httpmock.DeactivateAndReset()
-
-	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", nil)
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
-
-	report, err := blanksecret.ScanHandler(operation, securityScheme)
-
-	require.NoError(t, err)
-	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasFailed())
+	assert.Equal(t, 0, httpmock.GetTotalCallCount())
+	assert.True(t, report.Issues[0].HasBeenSkipped())
 }
 
 func TestBlankSecretScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {

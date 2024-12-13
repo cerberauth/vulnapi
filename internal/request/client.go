@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"go.uber.org/ratelimit"
 )
 
@@ -86,5 +87,39 @@ func (c *Client) WithHeader(header http.Header) *Client {
 
 func (c *Client) WithCookies(cookies []*http.Cookie) *Client {
 	c.Cookies = cookies
+	return c
+}
+
+func removeCookie(cookies []*http.Cookie, cookie *http.Cookie) []*http.Cookie {
+	for i, c := range cookies {
+		if c == cookie {
+			return append(cookies[:i], cookies[i+1:]...)
+		}
+	}
+	return cookies
+}
+
+func (c *Client) ClearSecurityScheme(securityScheme *auth.SecurityScheme) *Client {
+	// delete security schemes headers and cookies when name and value are the same
+	for k, v := range securityScheme.GetHeaders() {
+		if c.Header.Get(k) == v[0] {
+			c.Header.Del(k)
+		}
+	}
+
+	for _, sc := range securityScheme.GetCookies() {
+		for _, cookie := range c.Cookies {
+			if cookie.Name == sc.Name && cookie.Value == sc.Value {
+				c.Cookies = removeCookie(c.Cookies, cookie)
+			}
+		}
+	}
+	return c
+}
+
+func (c *Client) ClearSecuritySchemes(securitySchemes []*auth.SecurityScheme) *Client {
+	for _, securityScheme := range securitySchemes {
+		c.ClearSecurityScheme(securityScheme)
+	}
 	return c
 }

@@ -28,9 +28,9 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 	} else {
 		securitySchemes = []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
 	}
+	client.ClearSecuritySchemes(securitySchemes)
 
 	body := bytes.NewBuffer([]byte(data))
-
 	url = addDefaultProtocolWhenMissing(url)
 	op, err := operation.NewOperation(method, url, body, client)
 	op.GenerateID()

@@ -65,7 +65,6 @@ func (securityScheme *SecurityScheme) GetToken() string {
 	if !securityScheme.HasValidValue() {
 		return ""
 	}
-
 	switch securityScheme.GetType() {
 	case OAuth2:
 		return securityScheme.GetValidValue().(*OAuthValue).GetAccessToken()
@@ -121,17 +120,25 @@ func (securityScheme *SecurityScheme) validateValue(value interface{}) error {
 		return nil
 
 	case HttpType:
-		val, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("invalid value for http security scheme")
-		}
-
-		if securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == JWTTokenFormat {
-			if _, err := jwt.NewJWTWriter(val); err != nil {
-				return err
+		switch securityScheme.GetScheme() {
+		case BasicScheme:
+			_, ok := value.(*HTTPBasicCredentials)
+			if !ok {
+				return fmt.Errorf("invalid value for http basic security scheme")
 			}
+			return nil
+		default:
+			val, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("invalid value for http security scheme")
+			}
+			if securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == JWTTokenFormat {
+				if _, err := jwt.NewJWTWriter(val); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
-		return nil
 
 	case OAuth2:
 		_, ok := value.(*OAuthValue)
@@ -186,23 +193,35 @@ func (securityScheme *SecurityScheme) GetAttackValue() interface{} {
 
 func (securityScheme *SecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
+	if securityScheme.GetIn() == nil || *securityScheme.GetIn() != InHeader {
+		return header
+	}
 
 	attackValue := securityScheme.GetAttackValue()
 	if attackValue == nil && securityScheme.HasValidValue() {
 		attackValue = securityScheme.GetValidValue()
 	}
-
 	if attackValue == nil {
 		return header
 	}
 
-	if (securityScheme.GetType() == ApiKey || securityScheme.GetType() == HttpType) && *securityScheme.GetIn() == InHeader {
+	switch securityScheme.GetType() {
+	case HttpType:
 		var val string
-		if securityScheme.GetType() == HttpType && securityScheme.GetScheme() == BearerScheme {
+		switch securityScheme.GetScheme() {
+		case BasicScheme:
+			credentials := attackValue.(*HTTPBasicCredentials)
+			val = fmt.Sprintf("%s %s", BasicPrefix, credentials.Encode())
+		case BearerScheme:
 			val = fmt.Sprintf("%s %s", BearerPrefix, attackValue)
-			header.Set(AuthorizationHeader, val)
-		} else {
+		default:
 			val = fmt.Sprintf("%s", attackValue)
+		}
+		if val != "" {
+			header.Set(AuthorizationHeader, val)
+		}
+	case ApiKey:
+		if val := fmt.Sprintf("%s", attackValue); val != "" {
 			header.Set(securityScheme.GetName(), val)
 		}
 	}

@@ -74,7 +74,7 @@ jobs:
 
   run-header-strong-api-key-scan:
     name: Strong API Key Scan
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
 
   run-header-api-key-scan:
     name: API Key in header Scan
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -141,7 +141,7 @@ jobs:
 
   run-bearer-api-key-scan:
     name: Bearer API Key Scan
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -174,6 +174,37 @@ jobs:
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest)
+
+  run-header-strong-http-basic-scan:
+    name: Strong HTTP Basic Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        run: |
+          go run main.go scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest)
 
   run-http-misconfigurations-scans:
     name: HTTP Misconfigurations Scans

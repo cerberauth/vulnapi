@@ -16,6 +16,9 @@ func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.Sec
 	if err != nil {
 		return nil, err
 	}
+	for _, securityScheme := range securitySchemes {
+		client.ClearSecurityScheme(securityScheme)
+	}
 
 	operations, err := openapi.Operations(client, securitySchemes)
 	if err != nil {
