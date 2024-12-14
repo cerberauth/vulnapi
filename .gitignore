@@ -24,3 +24,4 @@ __debug_bin*
 
 vulnapi
 dist/
+report.json
