@@ -9,7 +9,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
-	stduritemplate "github.com/std-uritemplate/std-uritemplate/go"
+	stduritemplate "github.com/std-uritemplate/std-uritemplate/go/v2"
 )
 
 func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) []*auth.SecurityScheme {
