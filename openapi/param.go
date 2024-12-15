@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -10,6 +11,17 @@ import (
 
 const maximumDepth = 4
 
+const (
+	FloatParamType   = "float"
+	DoubleParamType  = "double"
+	Int32ParamFormat = "int32"
+	Int64ParamFormat = "int64"
+)
+
+func NewErrNoSupportedBodyMediaType() error {
+	return fmt.Errorf("no supported body media type")
+}
+
 func getParameterValue(param *openapi3.Parameter) string {
 	if param.Schema != nil {
 		value := getSchemaValue(param.Schema.Value, 0)
@@ -17,14 +29,19 @@ func getParameterValue(param *openapi3.Parameter) string {
 		case param.Schema.Value.Type.Is("string"):
 			return value.(string)
 		case param.Schema.Value.Type.Is("number"):
-			return strconv.FormatFloat(value.(float64), 'f', -1, 64)
+			switch param.Schema.Value.Format {
+			case FloatParamType:
+				return strconv.FormatFloat(value.(float64), 'f', -1, 32)
+			case DoubleParamType:
+			default:
+				return strconv.FormatFloat(value.(float64), 'f', -1, 64)
+			}
 		case param.Schema.Value.Type.Is("integer"):
-			return strconv.Itoa(value.(int))
+			return strconv.FormatInt(value.(int64), 10)
 		case param.Schema.Value.Type.Is("boolean"):
 			return strconv.FormatBool(value.(bool))
 		}
 	}
-
 	return ""
 }
 
@@ -36,7 +53,7 @@ func mapRequestBodyFakeValueToJSON(schema *openapi3.Schema, fakeValue interface{
 	case schema.Type.Is("number"):
 		jsonResponse = []byte(strconv.FormatFloat(fakeValue.(float64), 'f', -1, 64))
 	case schema.Type.Is("integer"):
-		jsonResponse = []byte(strconv.Itoa(fakeValue.(int)))
+		jsonResponse = []byte(strconv.FormatInt(fakeValue.(int64), 10))
 	case schema.Type.Is("boolean"):
 		jsonResponse = []byte(strconv.FormatBool(fakeValue.(bool)))
 	case schema.Type.Is("array"):
@@ -64,35 +81,83 @@ func mapRequestBodyFakeValueToJSON(schema *openapi3.Schema, fakeValue interface{
 	return bytes.NewBuffer(jsonResponse)
 }
 
-func getRequestBodyValue(requestBody *openapi3.RequestBody) (*bytes.Buffer, string) {
-	if requestBody.Content != nil {
-		for mediaType, mediaTypeValue := range requestBody.Content {
-			if mediaTypeValue.Schema != nil {
-				body := getSchemaValue(mediaTypeValue.Schema.Value, 0)
-				switch mediaType {
-				case "application/json":
-					return mapRequestBodyFakeValueToJSON(mediaTypeValue.Schema.Value, body), "application/json"
-				default:
-					return bytes.NewBuffer([]byte(body.(string))), mediaType
-				}
+func getRequestBodyValue(requestBody *openapi3.RequestBody) (*bytes.Buffer, string, error) {
+	if requestBody == nil || requestBody.Content == nil {
+		return nil, "", nil
+	}
+	for mediaType, mediaTypeValue := range requestBody.Content {
+		if mediaTypeValue.Schema != nil {
+			body := getSchemaValue(mediaTypeValue.Schema.Value, 0)
+			if mediaType == "application/json" {
+				return mapRequestBodyFakeValueToJSON(mediaTypeValue.Schema.Value, body), mediaType, nil
 			}
 		}
 	}
+	return nil, "", NewErrNoSupportedBodyMediaType()
+}
 
-	return bytes.NewBuffer(nil), ""
+func parseSchemaExample(schema *openapi3.Schema) (interface{}, error) {
+	var example interface{}
+	if schema.Example != nil {
+		example = schema.Example
+	} else if len(schema.Enum) > 0 {
+		example = schema.Enum[gofakeit.Number(0, len(schema.Enum)-1)]
+	}
+	if example == nil {
+		return nil, nil
+	}
+
+	var ok bool
+	_, ok = example.(string)
+	if ok && !schema.Type.Is("string") {
+		switch {
+		case schema.Type.Is("number"):
+			return strconv.ParseFloat(example.(string), 64)
+		case schema.Type.Is("integer"):
+			return strconv.ParseInt(example.(string), 10, 64)
+		case schema.Type.Is("boolean"):
+			return strconv.ParseBool(example.(string))
+		}
+	}
+
+	switch {
+	case schema.Type.Is("string"):
+		example, ok = example.(string)
+	case schema.Type.Is("number"):
+		example, ok = example.(float64)
+	case schema.Type.Is("integer"):
+		switch schema.Format {
+		case Int32ParamFormat:
+			example, ok = example.(int32)
+		case Int64ParamFormat:
+		default:
+			example, ok = example.(int64)
+		}
+	case schema.Type.Is("boolean"):
+		example, ok = example.(bool)
+	case schema.Type.Is("array"):
+		example, ok = example.([]interface{})
+	case schema.Type.Is("object"):
+		example, ok = example.(map[string]interface{})
+	}
+	if !ok {
+		return nil, fmt.Errorf("invalid example type")
+	}
+	return example, nil
 }
 
 func getSchemaValue(schema *openapi3.Schema, depth int) interface{} {
-	if schema.Example != nil {
-		return schema.Example
-	} else if len(schema.Enum) > 0 {
-		return schema.Enum[gofakeit.Number(0, len(schema.Enum)-1)]
+	example, err := parseSchemaExample(schema)
+	if err == nil && example != nil {
+		return example
 	}
 
 	// if there is no example generate random param
 	switch {
-	case schema.Type.Is("number") || schema.Type.Is("integer"):
-		return gofakeit.Number(0, 10)
+	case schema.Type.Is("number"):
+		return gofakeit.Float64()
+	case schema.Type.Is("integer"):
+		return gofakeit.Int64()
 	case schema.Type.Is("boolean"):
 		return gofakeit.Bool()
 	case schema.Type.Is("array"):
