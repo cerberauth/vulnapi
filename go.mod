@@ -12,7 +12,7 @@ require (
 	github.com/iancoleman/orderedmap v0.3.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.2.6
+	github.com/projectdiscovery/wappalyzergo v0.2.7
 	github.com/schollz/progressbar/v3 v3.17.1
 	github.com/spf13/cobra v1.8.1
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.1
