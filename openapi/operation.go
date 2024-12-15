@@ -84,7 +84,9 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 			var body *bytes.Buffer
 			var mediaType string
 			if o.RequestBody != nil {
-				body, mediaType = getRequestBodyValue(o.RequestBody.Value)
+				body, mediaType, _ = getRequestBodyValue(o.RequestBody.Value)
+			}
+			if body != nil && mediaType != "" {
 				header.Set("Content-Type", mediaType)
 			} else {
 				body = bytes.NewBuffer(nil)
