@@ -66,8 +66,9 @@ func getBody(body io.Reader) ([]byte, error) {
 }
 
 func NewOperation(method string, operationUrl string, body io.Reader, client *request.Client) (*Operation, error) {
-	if client == nil {
-		client = request.GetDefaultClient()
+	operationClient := client
+	if operationClient == nil {
+		operationClient = request.GetDefaultClient()
 	}
 
 	parsedUrl, err := url.Parse(operationUrl)
@@ -81,7 +82,7 @@ func NewOperation(method string, operationUrl string, body io.Reader, client *re
 	}
 
 	return &Operation{
-		Client: client,
+		Client: operationClient,
 
 		Method:          method,
 		URL:             *parsedUrl,

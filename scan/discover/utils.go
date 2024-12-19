@@ -24,26 +24,50 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 
 func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.SecurityScheme, r *report.ScanReport, vulnReport *report.IssueReport) (*report.ScanReport, error) {
 	securitySchemes := []*auth.SecurityScheme{securityScheme}
-
 	base := ExtractBaseURL(&op.URL)
-	for _, path := range scanUrls {
-		newOperation, err := operation.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, op.Client)
-		newOperation.SetSecuritySchemes(securitySchemes)
-		if err != nil {
-			return r, err
-		}
+	chunkSize := 20
+	results := make(chan *scan.IssueScanAttempt, len(scanUrls))
+	errors := make(chan error, len(scanUrls))
 
-		attempt, err := scan.ScanURL(newOperation, securityScheme)
-		if err != nil {
-			return r, err
+	for i := 0; i < len(scanUrls); i += chunkSize {
+		end := i + chunkSize
+		if end > len(scanUrls) {
+			end = len(scanUrls)
 		}
+		chunk := scanUrls[i:end]
 
-		r.AddScanAttempt(attempt)
-		if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
-			r.WithData(DiscoverData{
-				URL: attempt.Request.GetURL(),
-			}).AddIssueReport(vulnReport.Fail()).End()
-			return r, nil
+		go func(chunk []string) {
+			for _, path := range chunk {
+				newOperation, err := operation.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, op.Client)
+				newOperation.SetSecuritySchemes(securitySchemes)
+				if err != nil {
+					errors <- err
+					return
+				}
+
+				attempt, err := scan.ScanURL(newOperation, securityScheme)
+				if err != nil {
+					errors <- err
+					return
+				}
+
+				results <- attempt
+			}
+		}(chunk)
+	}
+
+	for i := 0; i < len(scanUrls); i++ {
+		select {
+		case attempt := <-results:
+			r.AddScanAttempt(attempt)
+			if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
+				r.WithData(DiscoverData{
+					URL: attempt.Request.GetURL(),
+				}).AddIssueReport(vulnReport.Fail()).End()
+				return r, nil
+			}
+		case err := <-errors:
+			return r, err
 		}
 	}
 
