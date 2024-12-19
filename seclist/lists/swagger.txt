@@ -44,7 +44,6 @@ api/v2/swagger.json
 api/v2/swagger-ui/
 api/v2/swagger-ui.html
 api/v2/swagger-ui.json
-graphql
 api
 api/v1/
 api/v2
