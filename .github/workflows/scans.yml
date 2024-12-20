@@ -20,6 +20,37 @@ permissions:
   packages: read
 
 jobs:
+  run-api-discovery:
+    name: API Discovery
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        run: |
+          go run main.go discover api http://localhost:8080 --sqa-opt-out
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest)
+
   run-jwt-scans:
     name: JWT Scans
     runs-on: ubuntu-latest

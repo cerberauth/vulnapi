@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -17,22 +18,33 @@ var commonHostnames = []string{"www", "api", "graphql", "graph", "app", "auth", 
 
 func searchByCommonHostnames(domain string) []string {
 	subdomains := []string{}
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 
 	for _, hostname := range commonHostnames {
-		subdomain := hostname + "." + domain
-		_, err := net.LookupIP(subdomain)
-		if err != nil {
-			continue
-		}
+		wg.Add(1)
+		go func(hostname string) {
+			defer wg.Done()
+			subdomain := hostname + "." + domain
+			_, err := net.LookupIP(subdomain)
+			if err != nil {
+				return
+			}
 
-		subdomains = append(subdomains, subdomain)
+			mu.Lock()
+			subdomains = append(subdomains, subdomain)
+			mu.Unlock()
+		}(hostname)
 	}
 
+	wg.Wait()
 	return subdomains
 }
 
 func searchByLookupIP(rootDomain string) ([]string, error) {
 	subdomains := []string{}
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 
 	ips, err := net.LookupIP(rootDomain)
 	if err != nil {
@@ -40,20 +52,28 @@ func searchByLookupIP(rootDomain string) ([]string, error) {
 	}
 
 	for _, ip := range ips {
-		hosts, err := net.LookupAddr(ip.String())
-		if err != nil {
-			continue
-		}
-
-		for _, host := range hosts {
-			if len(host) == 0 {
-				continue
+		wg.Add(1)
+		go func(ip net.IP) {
+			defer wg.Done()
+			hosts, err := net.LookupAddr(ip.String())
+			if err != nil {
+				return
 			}
-			subdomain := host[:len(host)-1] // Remove the trailing dot
-			subdomains = append(subdomains, subdomain)
-		}
+
+			for _, host := range hosts {
+				if len(host) == 0 {
+					continue
+				}
+				subdomain := host[:len(host)-1] // Remove the trailing dot
+
+				mu.Lock()
+				subdomains = append(subdomains, subdomain)
+				mu.Unlock()
+			}
+		}(ip)
 	}
 
+	wg.Wait()
 	return subdomains, nil
 }
 
