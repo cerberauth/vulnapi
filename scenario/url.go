@@ -8,8 +8,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
-	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
-	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 )
 
 func NewURLScan(method string, url string, data string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
@@ -57,9 +55,6 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		return nil, err
 	}
 
-	urlScan.AddOperationScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-	urlScan.AddOperationScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
 	WithAllCommonScans(urlScan)
-
 	return urlScan, nil
 }
