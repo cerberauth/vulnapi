@@ -3,7 +3,6 @@ package weaksecret
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/seclist"
@@ -71,46 +70,63 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		return r, err
 	}
 
-	secretFound := false
 	currentToken := valueWriter.GetToken().Raw
-	for _, secret := range jwtSecretDictionary {
-		if secret == "" {
-			continue
-		}
-
-		newToken, err := valueWriter.SignWithKey([]byte(secret))
-		if err != nil {
-			return r, nil
-		}
-
-		if newToken != currentToken {
-			continue
-		}
-
-		newValidToken, err := jwt.NewJWTWriterWithValidClaims(valueWriter).SignWithKey([]byte(secret))
-		if err != nil {
-			return r, nil
-		}
-
-		if err = securityScheme.SetAttackValue(newValidToken); err != nil {
-			return r, err
-		}
-		vsa, err := scan.ScanURL(op, securityScheme)
-		if err != nil {
-			return r, err
-		}
-		r.AddScanAttempt(vsa)
-
-		if scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response) {
-			continue
-		}
-
-		secretFound = true
-		r.WithData(&WeakSecretData{Secret: &secret})
-		break
+	secret, err := bruteForceSecret(currentToken, jwtSecretDictionary, valueWriter)
+	if err != nil {
+		return r, err
 	}
 
-	r.AddIssueReport(vulnReport.WithBooleanStatus(!secretFound)).End()
+	if secret != "" {
+		r.WithData(&WeakSecretData{Secret: &secret})
+		vulnReport.Fail()
+	} else {
+		vulnReport.Pass()
+	}
+	r.AddIssueReport(vulnReport).End()
 
 	return r, nil
+}
+
+func bruteForceSecret(currentToken string, jwtSecretDictionary []string, valueWriter *jwt.JWTWriter) (string, error) {
+	type result struct {
+		secret string
+		err    error
+	}
+
+	results := make(chan result, len(jwtSecretDictionary))
+	localValueWriter := valueWriter.Clone()
+
+	for _, secret := range jwtSecretDictionary {
+		go func(secret string) {
+			if secret == "" {
+				results <- result{"", nil}
+				return
+			}
+
+			newToken, err := localValueWriter.SignWithKey([]byte(secret))
+			if err != nil {
+				results <- result{"", err}
+				return
+			}
+
+			if newToken != currentToken {
+				results <- result{"", nil}
+				return
+			}
+
+			results <- result{secret, nil}
+		}(secret)
+	}
+
+	for range jwtSecretDictionary {
+		res := <-results
+		if res.err != nil {
+			return "", res.err
+		}
+		if res.secret != "" {
+			return res.secret, nil
+		}
+	}
+
+	return "", nil
 }
