@@ -32,7 +32,7 @@ The Vulnerability Scanner CLI offers two methods for scanning APIs:
 
 ### Discover Command
 
-To discover target API useful information, execute the following command:
+To discover target API useful information, leaked files and well-known path execute the following command:
 
 ```bash
 vulnapi discover api [API_URL]
@@ -41,11 +41,12 @@ vulnapi discover api [API_URL]
 Example output:
 
 ```bash
-| WELL-KNOWN PATHS |                URL                 |
-|------------------|------------------------------------|
-| OpenAPI          | http://localhost:5000/openapi.json |
-| GraphQL          | N/A                                |
-
+|     TYPE      |                     URL                     |
+|---------------|---------------------------------------------|
+| OpenAPI       | http://localhost:5000/openapi.json          |
+| GraphQL       | http://localhost:5000/graphql               |
+| Well-Known    | http://localhost:8080/.well-known/jwks.json |
+| Exposed Files | http://localhost:8080/.env.dev              |
 
 | TECHNOLOGIE/SERVICE |     VALUE     |
 |---------------------|---------------|

@@ -1,6 +1,7 @@
 package discover
 
 import (
+	"log"
 	"net/http"
 	"net/url"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/cerberauth/vulnapi/seclist"
 )
 
-type DiscoverData struct {
+type DiscoverData []struct {
 	URL string
 }
 
@@ -56,32 +57,35 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		}(chunk)
 	}
 
+	data := DiscoverData{}
 	for i := 0; i < len(scanUrls); i++ {
 		select {
 		case attempt := <-results:
 			r.AddScanAttempt(attempt)
 			if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
-				r.WithData(DiscoverData{
-					URL: attempt.Request.GetURL(),
-				}).AddIssueReport(vulnReport.Fail()).End()
-				return r, nil
+				data = append(data, struct{ URL string }{URL: attempt.Request.GetURL()})
 			}
 		case err := <-errors:
-			return r, err
+			log.Printf("Error scanning URL: %v", err)
+			continue
 		}
+	}
+
+	if len(data) > 0 {
+		r.WithData(data).AddIssueReport(vulnReport.Fail()).End()
+		return r, nil
 	}
 
 	r.AddIssueReport(vulnReport.Pass()).End()
 	return r, nil
 }
 
-func CreateURLScanHandler(name string, seclistUrl string, defaultUrls []string, r *report.ScanReport, vulnReport *report.IssueReport) func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	scanUrls := defaultUrls
-	if urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl); err == nil && urlsFromSeclist != nil {
-		scanUrls = urlsFromSeclist.Items
+func DownloadAndScanURLs(name string, seclistUrl string, r *report.ScanReport, vulnReport *report.IssueReport, op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
+	urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl)
+	if err != nil {
+		return nil, err
 	}
+	scanUrls := urlsFromSeclist.Items
 
-	return func(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return ScanURLs(scanUrls, op, securityScheme, r, vulnReport)
-	}
+	return ScanURLs(scanUrls, op, securityScheme, r, vulnReport)
 }

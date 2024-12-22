@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 //go:embed lists/*.txt
@@ -92,13 +94,18 @@ func (s *SecList) loadFromTmpFile(filepath string) error {
 }
 
 func (s *SecList) DownloadFromURL(url string) error {
-	resp, err := http.Get(url)
+	client := request.GetDefaultClient()
+	req, err := request.NewRequest(http.MethodGet, url, nil, client)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	resp, err := req.Do()
+	if err != nil {
+		return err
+	}
+
+	if resp.GetStatusCode() != http.StatusOK {
 		return errors.New("sec list download failed")
 	}
 
@@ -108,7 +115,7 @@ func (s *SecList) DownloadFromURL(url string) error {
 	}
 	defer tempFile.Close()
 
-	_, err = io.Copy(tempFile, resp.Body)
+	_, err = io.Copy(tempFile, resp.GetBody())
 	if err != nil {
 		return err
 	}

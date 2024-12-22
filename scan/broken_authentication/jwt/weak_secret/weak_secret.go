@@ -49,7 +49,8 @@ func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
 
 var defaultJwtSecretDictionary = []string{"secret", "password", "123456", "changeme", "admin", "token"}
 
-const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt"
+// From https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/scraped-JWT-secrets.txt
+const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/jwt-secrets.txt"
 
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)

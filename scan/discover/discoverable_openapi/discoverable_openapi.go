@@ -29,19 +29,10 @@ var issue = report.Issue{
 	},
 }
 
-var openapiSeclistUrl = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/swagger.txt"
-var potentialOpenAPIPaths = []string{
-	"/openapi",
-	"/api-docs.json",
-	"/api-docs.yaml",
-	"/api-docs.yml",
-	"/.well-known/openapi.yml",
-}
+var openapiSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/swagger.txt"
 
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, op)
-	handler := discover.CreateURLScanHandler("OpenAPI", openapiSeclistUrl, potentialOpenAPIPaths, r, vulnReport)
-
-	return handler(op, securityScheme)
+	return discover.DownloadAndScanURLs("OpenAPI", openapiSeclistUrl, r, vulnReport, op, securityScheme)
 }

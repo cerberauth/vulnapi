@@ -6,7 +6,9 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
+	exposedfiles "github.com/cerberauth/vulnapi/scan/discover/exposed_files"
 	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
+	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
 )
 
 func NewDiscoverAPIScan(method string, url string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
@@ -33,6 +35,8 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, opts 
 	urlScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
 	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
 	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(exposedfiles.DiscoverableFilesScanID, exposedfiles.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(wellknown.DiscoverableWellKnownScanID, wellknown.ScanHandler))
 
 	return urlScan, nil
 }
