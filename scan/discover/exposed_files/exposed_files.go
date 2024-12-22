@@ -1,4 +1,4 @@
-package discoverablegraphql
+package exposedfiles
 
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	DiscoverableGraphQLPathScanID   = "discover.graphql"
-	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
+	DiscoverableFilesScanID   = "discover.exposed_files"
+	DiscoverableFilesScanName = "Discoverable exposed files"
 )
 
-type DiscoverableGraphQLPathData = discover.DiscoverData
+type DiscoverableFilesData = discover.DiscoverData
 
 var issue = report.Issue{
-	ID:   "discover.discoverable_graphql",
-	Name: "Discoverable GraphQL Endpoint",
+	ID:   "discover.exposed_files",
+	Name: "Discoverable exposed files",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SSRF,
@@ -29,10 +29,10 @@ var issue = report.Issue{
 	},
 }
 
-var graphqlSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/graphql.txt"
+var discoverableFilesSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/exposed-paths.txt"
 
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName, op)
-	return discover.DownloadAndScanURLs("GraphQL", graphqlSeclistUrl, r, vulnReport, op, securityScheme)
+	r := report.NewScanReport(DiscoverableFilesScanID, DiscoverableFilesScanName, op)
+	return discover.DownloadAndScanURLs("Exposed Files", discoverableFilesSeclistUrl, r, vulnReport, op, securityScheme)
 }

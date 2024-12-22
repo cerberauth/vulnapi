@@ -4,47 +4,57 @@ import (
 	"fmt"
 
 	"github.com/cerberauth/vulnapi/report"
+	"github.com/cerberauth/vulnapi/scan/discover"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
+	exposedfiles "github.com/cerberauth/vulnapi/scan/discover/exposed_files"
+	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
 	"github.com/olekukonko/tablewriter"
 )
 
+func wellKnownPathsFromReport(r *report.ScanReport, header string) [][]string {
+	rows := [][]string{}
+	if r == nil || !r.HasData() {
+		return rows
+	}
+
+	data, ok := r.Data.(discover.DiscoverData)
+	if ok && len(data) > 0 {
+		rows = append(rows, []string{header, data[0].URL})
+	}
+
+	return rows
+}
+
 func WellKnownPathsScanReport(reporter *report.Reporter) {
-	openapiURL := ""
+	rows := [][]string{}
+
 	openapiReport := reporter.GetScanReportByID(discoverableopenapi.DiscoverableOpenAPIScanID)
-	if openapiReport != nil && openapiReport.HasData() {
-		openapiData, ok := openapiReport.Data.(discoverableopenapi.DiscoverableOpenAPIData)
-		if ok {
-			openapiURL = openapiData.URL
-		}
-	}
+	rows = append(rows, wellKnownPathsFromReport(openapiReport, "OpenAPI")...)
 
-	graphqlURL := ""
 	graphqlReport := reporter.GetScanReportByID(discoverablegraphql.DiscoverableGraphQLPathScanID)
-	if graphqlReport != nil && graphqlReport.HasData() {
-		graphqlData, ok := graphqlReport.Data.(discoverablegraphql.DiscoverableGraphQLPathData)
-		if ok {
-			graphqlURL = graphqlData.URL
-		}
-	}
+	rows = append(rows, wellKnownPathsFromReport(graphqlReport, "GraphQL")...)
 
-	if openapiURL == "" && graphqlURL == "" {
+	wellKnownReport := reporter.GetScanReportByID(wellknown.DiscoverableWellKnownScanID)
+	rows = append(rows, wellKnownPathsFromReport(wellKnownReport, "Well-Known")...)
+
+	exposedFiles := reporter.GetScanReportByID(exposedfiles.DiscoverableFilesScanID)
+	rows = append(rows, wellKnownPathsFromReport(exposedFiles, "Exposed Files")...)
+
+	if len(rows) == 0 {
 		return
 	}
 
 	fmt.Println()
-	headers := []string{"Well-Known Paths", "URL"}
+	headers := []string{"Type", "URL"}
 	table := CreateTable(headers)
 
 	tableColors := make([]tablewriter.Colors, len(headers))
 	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
 	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
 
-	if openapiURL != "" {
-		table.Rich([]string{"OpenAPI", openapiURL}, tableColors)
-	}
-	if graphqlURL != "" {
-		table.Rich([]string{"GraphQL", graphqlURL}, tableColors)
+	for _, row := range rows {
+		table.Rich(row, tableColors)
 	}
 
 	table.Render()
