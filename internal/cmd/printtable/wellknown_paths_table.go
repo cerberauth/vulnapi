@@ -8,6 +8,7 @@ import (
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
 	exposedfiles "github.com/cerberauth/vulnapi/scan/discover/exposed_files"
+	"github.com/cerberauth/vulnapi/scan/discover/healthcheck"
 	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
 	"github.com/olekukonko/tablewriter"
 )
@@ -40,6 +41,9 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 
 	exposedFiles := reporter.GetScanReportByID(exposedfiles.DiscoverableFilesScanID)
 	rows = append(rows, wellKnownPathsFromReport(exposedFiles, "Exposed Files")...)
+
+	healthcheckEndpoints := reporter.GetScanReportByID(healthcheck.DiscoverableHealthCheckScanID)
+	rows = append(rows, wellKnownPathsFromReport(healthcheckEndpoints, "Health Check")...)
 
 	if len(rows) == 0 {
 		return
