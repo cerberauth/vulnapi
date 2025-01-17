@@ -100,12 +100,12 @@ func (s *SecList) DownloadFromURL(url string) error {
 		return err
 	}
 
-	resp, err := req.Do()
+	res, err := req.Do()
 	if err != nil {
 		return err
 	}
 
-	if resp.GetStatusCode() != http.StatusOK {
+	if res.GetStatusCode() != http.StatusOK {
 		return errors.New("sec list download failed")
 	}
 
@@ -115,7 +115,7 @@ func (s *SecList) DownloadFromURL(url string) error {
 	}
 	defer tempFile.Close()
 
-	_, err = io.Copy(tempFile, resp.GetBody())
+	_, err = io.Copy(tempFile, res.GetBody())
 	if err != nil {
 		return err
 	}

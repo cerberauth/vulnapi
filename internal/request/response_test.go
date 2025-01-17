@@ -27,3 +27,24 @@ func TestNewResponse(t *testing.T) {
 	assert.Equal(t, httpResponse.Header, res.GetHeader())
 	assert.Equal(t, httpResponse.Cookies(), res.GetCookies())
 }
+
+func TestNewResponseNil(t *testing.T) {
+	_, err := request.NewResponse(nil)
+
+	assert.Error(t, err)
+}
+
+func TestNewResponseNilBody(t *testing.T) {
+	httpResponse := &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     make(http.Header),
+	}
+
+	res, err := request.NewResponse(httpResponse)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res.GetStatusCode())
+	assert.Equal(t, httpResponse.Header, res.GetHeader())
+	assert.Equal(t, httpResponse.Cookies(), res.GetCookies())
+	assert.Nil(t, res.Body)
+}
