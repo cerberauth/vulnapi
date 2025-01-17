@@ -28,7 +28,7 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 	base := ExtractBaseURL(&op.URL)
 	chunkSize := 20
 	results := make(chan *scan.IssueScanAttempt, len(scanUrls))
-	errors := make(chan error, len(scanUrls))
+	errs := make(chan error, len(scanUrls))
 
 	for i := 0; i < len(scanUrls); i += chunkSize {
 		end := i + chunkSize
@@ -42,13 +42,13 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 				newOperation, err := operation.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, op.Client)
 				newOperation.SetSecuritySchemes(securitySchemes)
 				if err != nil {
-					errors <- err
+					errs <- err
 					return
 				}
 
 				attempt, err := scan.ScanURL(newOperation, securityScheme)
 				if err != nil {
-					errors <- err
+					errs <- err
 					return
 				}
 
@@ -62,10 +62,14 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		select {
 		case attempt := <-results:
 			r.AddScanAttempt(attempt)
+			if attempt.Err != nil {
+				errs <- attempt.Err
+				continue
+			}
 			if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
 				data = append(data, struct{ URL string }{URL: attempt.Request.GetURL()})
 			}
-		case err := <-errors:
+		case err := <-errs:
 			log.Printf("Error scanning URL: %v", err)
 			continue
 		}
