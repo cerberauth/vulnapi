@@ -94,21 +94,32 @@ jobs:
       - name: Install Snapcraft
         run: |
           sudo apt-get --quiet update
-          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapcraft
-          sudo snap refresh snapcraft --revision 11040
+          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapd
+          sudo snap install snapcraft --classic
+          snapcraft status vulnapi
           mkdir -p $HOME/.cache/snapcraft/download
           mkdir -p $HOME/.cache/snapcraft/stage-packages
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: install chocolatey
         run: |
+          sudo apt-get --quiet update
+          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install dirmngr ca-certificates gnupg
+          sudo gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+          echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/debian stable-buster main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+          sudo apt-get --quiet update
+          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install mono-devel
           mkdir -p /opt/chocolatey
           wget -q -O - "https://github.com/chocolatey/choco/releases/download/${CHOCOLATEY_VERSION}/chocolatey.v${CHOCOLATEY_VERSION}.tar.gz" | tar -xz -C "/opt/chocolatey"
           echo '#!/bin/bash' >> /usr/local/bin/choco
           echo 'mono /opt/chocolatey/choco.exe $@' >> /usr/local/bin/choco
           chmod +x /usr/local/bin/choco
           choco upgrade chocolatey
+          choco info vulnapi
         env:
-          CHOCOLATEY_VERSION: 2.2.2
+          CHOCOLATEY_VERSION: 2.4.1
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - uses: goreleaser/goreleaser-action@v6
         with:
