@@ -94,10 +94,13 @@ jobs:
       - name: Install Snapcraft
         run: |
           sudo apt-get --quiet update
-          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapcraft
-          sudo snap refresh snapcraft --revision 11040
+          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapd
+          sudo snap install snapcraft --classic
+          snapcraft status vulnapi
           mkdir -p $HOME/.cache/snapcraft/download
           mkdir -p $HOME/.cache/snapcraft/stage-packages
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: install chocolatey
         run: |
