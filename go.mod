@@ -1,6 +1,6 @@
 module github.com/cerberauth/vulnapi
 
-go 1.23
+go 1.23.5
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.1.2
