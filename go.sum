@@ -112,6 +112,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/projectdiscovery/wappalyzergo v0.2.11 h1:CehtgQ1xwmiPrUM5jHsTXK6R9TSUqcsueA/I/un2jjo=
 github.com/projectdiscovery/wappalyzergo v0.2.11/go.mod h1:Ic16RbUvVJF0EooqIjrbRMpICDlnvfR+OrJkzYrqM2E=
+github.com/projectdiscovery/wappalyzergo v0.2.12 h1:A3oBpnEbTHOa3Q9m4w/5LLXsmCEiu0mJcwyjf3M9xnc=
+github.com/projectdiscovery/wappalyzergo v0.2.12/go.mod h1:3vtvQCSYpU+Ilk0qy09WYT9BH0Stut5Qon7KJJ78GKw=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
