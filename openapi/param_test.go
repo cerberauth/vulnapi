@@ -273,8 +273,24 @@ func TestGetSchemaValue_RequestBodyParameters(t *testing.T) {
 			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: array, items: {type: string}}}}}}}, responses: {'204': {}}}}}}`,
 		},
 		{
+			name:   "object with array with 10 depth properties",
+			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: array, items: {type: object, properties: {subname: {type: array, items: {type: object, properties: {subsubname: {type: array, items: {type: object, properties: {subsubsubname: {type: array, items: {type: object, properties: {subsubsubsubname: {type: array, items: {type: object, properties: {subsubsubsubsubname: {type: array, items: {type: object, properties: {subsubsubsubsubsubname: {type: array, items: {type: object, properties: {subsubsubsubsubsubsubname: {type: array, items: {type: object, properties: {subsubsubsubsubsubsubsubname: {type: array, items: {type: object, properties: {subsubsubsubsubsubsubsubsubname: {type: array, items: {type: string }}} }}} }}} }}} }}} }}} }}} }}} }}} }}}}}}}}, responses: {'204': {}}}}}}`,
+		},
+		{
 			name:   "object with object",
 			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: object, properties: {subname: {type: string}}}}}}}}, responses: {'204': {}}}}}}`,
+		},
+		{
+			name:   "object with missing properties",
+			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object}}}}, responses: {'204': {}}}}}}`,
+		},
+		{
+			name:   "object with 4 depth properties",
+			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: object, properties: {subname: {type: object, properties: {subsubname: {type: object, properties: {subsubsubname: {type: string}}}}}}}}}}}}, responses: {'204': {}}}}}}`,
+		},
+		{
+			name:   "object with 10 depth properties",
+			schema: `{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: object, properties: {name: {type: object, properties: {subname: {type: object, properties: {subsubname: {type: object, properties: {subsubsubname: {type: object, properties: {subsubsubsubname: {type: object, properties: {subsubsubsubsubname: {type: object, properties: {subsubsubsubsubsubname: {type: object, properties: {subsubsubsubsubsubsubname: {type: object, properties: {subsubsubsubsubsubsubsubname: {type: object, properties: {subsubsubsubsubsubsubsubsubname: {type: string }}} }}}}}}}}}}}}}}}}}}}}}}}, responses: {'204': {}}}}}}`,
 		},
 	}
 
