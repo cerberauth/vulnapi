@@ -67,7 +67,7 @@ Replace `[API_URL]` with the URL of the API to scan, and `[CURL_OPTIONS]` with a
 Example:
 
 ```bash copy
-vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+vulnapi scan curl -X POST https://vulnapi.cerberauth.com/vulnerable/api -H "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ."
 ```
 
 ### Using OpenAPI Contracts
@@ -83,7 +83,7 @@ Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI co
 Example:
 
 ```bash copy
-echo "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30." | vulnapi scan openapi ./test/stub/simple_http_bearer_jwt.openapi.json
+vulnapi scan openapi https://vulnapi.cerberauth.com/vulnerable/.well-known/openapi.json
 ```
 
 ## Output
