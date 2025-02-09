@@ -124,6 +124,12 @@ snapcrafts:
     summary: "vulnapi"
     description: "vulnapi"
     license: MIT
+    apps:
+      vulnapi:
+        command: vulnapi
+        plugs:
+          - network
+          - network-bind
 
 dockers:
   - image_templates:
