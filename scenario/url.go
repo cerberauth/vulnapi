@@ -46,7 +46,11 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 	}
 
 	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporterWithCurl(method, url, data, client.Header, client.Cookies, securitySchemes)
+		var reportData interface{}
+		if data != "" {
+			reportData = data
+		}
+		opts.Reporter = report.NewReporterWithCurl(method, url, reportData, client.Header, client.Cookies, securitySchemes)
 	}
 
 	operations := operation.Operations{op}
