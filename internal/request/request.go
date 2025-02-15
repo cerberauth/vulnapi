@@ -6,10 +6,13 @@ import (
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/google/uuid"
 )
 
 type Request struct {
-	Body        []byte
+	ID   string
+	Body []byte
+
 	Client      *Client
 	HttpRequest *http.Request
 }
@@ -53,6 +56,7 @@ func NewRequest(method string, url string, body io.Reader, client *Client) (*Req
 	}
 
 	return &Request{
+		ID:   uuid.New().String(),
 		Body: bodyBuffer,
 
 		Client:      client,
@@ -84,6 +88,10 @@ func (r *Request) WithSecurityScheme(securityScheme *auth.SecurityScheme) *Reque
 	}
 
 	return r
+}
+
+func (r *Request) GetID() string {
+	return r.ID
 }
 
 func (r *Request) GetMethod() string {
@@ -138,7 +146,8 @@ func (r *Request) SetBody(body io.Reader) *Request {
 }
 
 func (r *Request) Do() (*Response, error) {
-	r.SetHeader("User-Agent", "vulnapi")
+	r.SetHeader("user-agent", "vulnapi")
+	r.SetHeader("x-vulnapi-request-id", r.GetID())
 
 	rl.Take()
 	httpRes, err := r.Client.Do(r.HttpRequest)

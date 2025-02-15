@@ -32,5 +32,6 @@ var wellKnownSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableWellKnownScanID, DiscoverableWellKnownScanName, op)
+	r.AddIssueReport(vulnReport)
 	return discover.DownloadAndScanURLs("Well-Known", wellKnownSeclistUrl, r, vulnReport, op, securityScheme)
 }

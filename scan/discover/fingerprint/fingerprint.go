@@ -63,18 +63,18 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, op)
 
 	attempt, err := scan.ScanURL(op, securityScheme)
-	r.AddScanAttempt(attempt)
 	if err != nil {
-		return r.AddIssueReport(vulnReport.Skip()).End(), err
+		return nil, err
 	}
 
+	r.AddScanAttempt(attempt)
 	if attempt.Err != nil {
-		return r.AddIssueReport(vulnReport.Skip()).End(), attempt.Err
+		return r.AddIssueReport(vulnReport.AddScanAttempt(attempt).Skip()).End(), attempt.Err
 	}
 
 	wappalyzerClient, err := wappalyzer.New()
 	if err != nil {
-		return r.AddIssueReport(vulnReport.Skip()).End(), err
+		return r.AddIssueReport(vulnReport.AddScanAttempt(attempt).Skip()).End(), err
 	}
 
 	fingerprints := wappalyzerClient.FingerprintWithInfo(attempt.Response.GetHeader(), attempt.Response.GetBody().Bytes())
@@ -130,7 +130,8 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		}
 	}
 
-	vulnReport.WithBooleanStatus(!fingerPrintIdentifier)
+	attempt.WithBooleanStatus(!fingerPrintIdentifier)
+	vulnReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
 	r.WithData(reportData).AddIssueReport(vulnReport).End()
 
 	return r, nil

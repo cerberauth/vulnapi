@@ -34,5 +34,6 @@ var discoverableFilesSeclistUrl = "https://raw.githubusercontent.com/cerberauth/
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableFilesScanID, DiscoverableFilesScanName, op)
+	r.AddIssueReport(vulnReport)
 	return discover.DownloadAndScanURLs("Exposed Files", discoverableFilesSeclistUrl, r, vulnReport, op, securityScheme)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -30,10 +31,35 @@ var IssueReportStatuses = []IssueReportStatus{
 	IssueReportStatusNone,
 }
 
+type IssueScanReport struct {
+	ID     string                       `json:"id" yaml:"id"`
+	Status *scan.IssueScanAttemptStatus `json:"status" yaml:"status"`
+}
+
+func NewIssueScanReport(id string, status *scan.IssueScanAttemptStatus) *IssueScanReport {
+	return &IssueScanReport{
+		ID:     id,
+		Status: status,
+	}
+}
+
+func (issueScanReport *IssueScanReport) GetStatus() scan.IssueScanAttemptStatus {
+	return *issueScanReport.Status
+}
+
+func (issueScanReport *IssueScanReport) HasFailed() bool {
+	return *issueScanReport.Status == scan.IssueScanAttemptStatusFailed
+}
+
+func (issueScanReport *IssueScanReport) HasPassed() bool {
+	return *issueScanReport.Status == scan.IssueScanAttemptStatusPassed
+}
+
 type IssueReport struct {
 	Issue  `json:",inline" yaml:",inline"`
 	Status IssueReportStatus `json:"status" yaml:"status"`
 
+	Scans          []*IssueScanReport   `json:"scans" yaml:"scans"`
 	Operation      *operation.Operation `json:"-" yaml:"-"`
 	SecurityScheme *auth.SecurityScheme `json:"-" yaml:"-"`
 }
@@ -42,6 +68,7 @@ func NewIssueReport(issue Issue) *IssueReport {
 	return &IssueReport{
 		Issue:  issue,
 		Status: IssueReportStatusNone,
+		Scans:  []*IssueScanReport{},
 	}
 }
 
@@ -120,6 +147,15 @@ func (vr *IssueReport) IsHighRiskSeverity() bool {
 
 func (vr *IssueReport) IsCriticalRiskSeverity() bool {
 	return vr.CVSS.Score > 9
+}
+
+func (vr *IssueReport) WithScanAttempt(attempt *scan.IssueScanAttempt) *IssueReport {
+	return vr.AddScanAttempt(attempt)
+}
+
+func (vr *IssueReport) AddScanAttempt(attempt *scan.IssueScanAttempt) *IssueReport {
+	vr.Scans = append(vr.Scans, NewIssueScanReport(attempt.ID, &attempt.Status))
+	return vr
 }
 
 func (vr *IssueReport) String() string {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
@@ -28,10 +29,11 @@ func TestNewOperationSecurityScheme(t *testing.T) {
 			name:           "No Auth",
 			securityScheme: auth.MustNewNoAuthSecurityScheme(),
 			want: report.OperationSecurityScheme{
-				Type:   auth.None,
-				Scheme: auth.NoneScheme,
-				In:     nil,
-				Name:   "no_auth",
+				Type:        auth.None,
+				Scheme:      auth.NoneScheme,
+				In:          nil,
+				TokenFormat: noneTokenFormat,
+				Name:        "no_auth",
 			},
 		},
 		{
@@ -41,7 +43,7 @@ func TestNewOperationSecurityScheme(t *testing.T) {
 				Type:        auth.HttpType,
 				Scheme:      auth.BearerScheme,
 				In:          &inHeader,
-				TokenFormat: &noneTokenFormat,
+				TokenFormat: noneTokenFormat,
 				Name:        "test",
 			},
 		},
@@ -116,13 +118,26 @@ func TestScanReport_HasData(t *testing.T) {
 
 func TestScanReport_AddScanAttempt(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
+	req, _ := request.NewRequest(http.MethodPost, "http://localhost:8080/", nil, nil)
+	res, _ := request.NewResponse(&http.Response{
+		StatusCode: http.StatusOK,
+	})
+	err := error(nil)
 	sr := report.NewScanReport("id", "test", operation)
-	expectedScanAttempt := report.ScanReportScan{}
 
-	sr.AddScanAttempt(&scan.IssueScanAttempt{})
+	sr.AddScanAttempt(&scan.IssueScanAttempt{
+		ID:       "test",
+		Request:  req,
+		Response: res,
+		Err:      err,
+	})
 
 	assert.Equal(t, 1, len(sr.GetScanAttempts()))
-	assert.Equal(t, expectedScanAttempt, sr.GetScanAttempts()[0])
+	assert.Equal(t, "test", sr.GetScanAttempts()[0].ID)
+	assert.Equal(t, http.MethodPost, sr.GetScanAttempts()[0].Request.Method)
+	assert.Equal(t, "http://localhost:8080/", sr.GetScanAttempts()[0].Request.URL)
+	assert.Equal(t, http.StatusOK, sr.GetScanAttempts()[0].Response.StatusCode)
+	assert.Nil(t, sr.GetScanAttempts()[0].Err)
 }
 
 func TestScanReport_AddIssueReport(t *testing.T) {

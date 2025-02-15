@@ -55,10 +55,11 @@ const jwtSecretDictionarySeclistUrl = "https://raw.githubusercontent.com/cerbera
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(WeakSecretVulnerabilityScanID, WeakSecretVulnerabilityScanName, op)
+	r.AddIssueReport(vulnReport)
 
 	if !ShouldBeScanned(securityScheme) {
-		r.AddIssueReport(vulnReport.Skip()).End()
-		return r, nil
+		vulnReport.Skip()
+		return r.End(), nil
 	}
 
 	jwtSecretDictionary := defaultJwtSecretDictionary
@@ -68,13 +69,13 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 	valueWriter, err := jwt.NewJWTWriter(securityScheme.GetToken())
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	currentToken := valueWriter.GetToken().Raw
 	secret, err := bruteForceSecret(currentToken, jwtSecretDictionary, valueWriter)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	if secret != "" {
@@ -83,9 +84,9 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	} else {
 		vulnReport.Pass()
 	}
-	r.AddIssueReport(vulnReport).End()
+	r.AddIssueReport(vulnReport)
 
-	return r, nil
+	return r.End(), nil
 }
 
 func bruteForceSecret(currentToken string, jwtSecretDictionary []string, valueWriter *jwt.JWTWriter) (string, error) {

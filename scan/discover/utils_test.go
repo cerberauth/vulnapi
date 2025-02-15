@@ -87,7 +87,11 @@ func TestDownloadAndScanURLs_Passed_WhenNotFoundURLs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 3, httpmock.GetTotalCallCount())
-	assert.True(t, r.Issues[0].HasPassed())
+	assert.Equal(t, 2, len(r.Scans))
+	assert.Equal(t, 2, len(vulnReport.Scans))
+	assert.True(t, vulnReport.Scans[0].HasPassed())
+	assert.True(t, vulnReport.Scans[1].HasPassed())
+	assert.True(t, vulnReport.HasPassed())
 }
 
 func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
@@ -108,11 +112,15 @@ func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
 		httpmock.NewBytesResponder(http.StatusOK, []byte("path1\npath2")),
 	)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusOK, "OK"))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path2", httpmock.NewStringResponder(http.StatusOK, "OK"))
 
 	_, err := discover.DownloadAndScanURLs("test", seclistUrl, r, vulnReport, operation, securitySchemes[0])
 
 	assert.NoError(t, err)
-	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, r.Issues[0].HasFailed())
+	assert.Equal(t, 3, httpmock.GetTotalCallCount())
+	assert.Equal(t, 2, len(r.Scans))
+	assert.True(t, vulnReport.Scans[0].HasPassed())
+	assert.True(t, vulnReport.Scans[1].HasFailed())
+	assert.True(t, vulnReport.HasFailed())
 }

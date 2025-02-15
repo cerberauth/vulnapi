@@ -28,7 +28,7 @@ func TestNewReporterWithCurl(t *testing.T) {
 			Type:        securityScheme.GetType(),
 			Scheme:      securityScheme.GetScheme(),
 			In:          securityScheme.GetIn(),
-			TokenFormat: securityScheme.GetTokenFormat(),
+			TokenFormat: *securityScheme.GetTokenFormat(),
 			Name:        securityScheme.GetName(),
 		},
 	}
@@ -67,6 +67,7 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 	expectedIssue := &report.IssueReport{
 		Issue:  issue,
 		Status: report.IssueReportStatusFailed,
+		Scans:  []*report.IssueScanReport{},
 	}
 
 	assert.NotEmpty(t, reporter.ScanReports)
@@ -104,6 +105,7 @@ func TestReporterWithOpenAPIDoc_AddReport(t *testing.T) {
 	expectedIssue := &report.IssueReport{
 		Issue:  issue,
 		Status: report.IssueReportStatusFailed,
+		Scans:  []*report.IssueScanReport{},
 	}
 
 	assert.NotEmpty(t, reporter.ScanReports)

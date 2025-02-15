@@ -15,7 +15,7 @@ type SecurityScheme struct {
 	Type        Type         `json:"type" yaml:"type"`
 	Scheme      SchemeName   `json:"scheme" yaml:"scheme"`
 	In          *SchemeIn    `json:"in" yaml:"in"`
-	TokenFormat *TokenFormat `json:"token_format" yaml:"token_format"`
+	TokenFormat *TokenFormat `json:"tokenFormat" yaml:"tokenFormat"`
 
 	Name   string      `json:"name" yaml:"name"`
 	Config interface{} `json:"config" yaml:"config"`

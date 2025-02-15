@@ -46,7 +46,7 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 	}
 
 	if opts.Reporter == nil {
-		var reportData interface{}
+		var reportData interface{} = nil
 		if data != "" {
 			reportData = data
 		}

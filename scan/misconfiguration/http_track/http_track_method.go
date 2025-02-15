@@ -36,15 +36,18 @@ const TrackMethod = "TRACK"
 func ScanHandler(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPTrackScanID, HTTPTrackScanName, operation)
+	r.AddIssueReport(vulnReport)
 
 	newOperation, err := operation.Clone()
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	newOperation.Method = TrackMethod
 
 	attempt, err := scan.ScanURL(newOperation, securityScheme)
-	r.AddScanAttempt(attempt).End().AddIssueReport(vulnReport.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK))
+	attempt.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK)
+	r.AddScanAttempt(attempt)
+	vulnReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
 
-	return r, nil
+	return r.End(), nil
 }

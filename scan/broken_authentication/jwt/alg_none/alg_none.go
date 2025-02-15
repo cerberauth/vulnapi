@@ -51,11 +51,11 @@ var algs = []string{
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	issueReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(AlgNoneJwtScanID, AlgNoneJwtScanName, op)
+	r.AddIssueReport(issueReport)
 
 	if !ShouldBeScanned(securityScheme) {
 		issueReport.Skip()
-		r.AddIssueReport(issueReport).End()
-		return r, nil
+		return r.End(), nil
 	}
 
 	var token string
@@ -67,12 +67,12 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 	valueWriter, err := jwt.NewJWTWriter(token)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	if valueWriter.GetToken().Method.Alg() == jwtlib.SigningMethodNone.Alg() {
-		r.AddIssueReport(issueReport.Fail()).End()
-		return r, nil
+		issueReport.Fail()
+		return r.End(), nil
 	}
 	valueWriter = jwt.NewJWTWriterWithValidClaims(valueWriter)
 
@@ -81,19 +81,23 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		method.SetAlg(alg)
 		vsa, err := scanWithAlg(method, valueWriter, securityScheme, op)
 		if err != nil {
-			return r, err
+			return r.End(), err
 		}
+		vsa.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+		issueReport.AddScanAttempt(vsa)
 		r.AddScanAttempt(vsa)
-		issueReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
 
-		if issueReport.HasFailed() {
+		if vsa.HasFailed() {
+			issueReport.Fail()
 			r.WithData(&AlgNoneData{Alg: strings.Clone(alg)})
 			break
 		}
 	}
 
-	r.AddIssueReport(issueReport).End()
-	return r, nil
+	if !issueReport.HasFailed() {
+		issueReport.Pass()
+	}
+	return r.End(), nil
 }
 
 func scanWithAlg(method jwtlib.SigningMethod, valueWriter *jwt.JWTWriter, securityScheme *auth.SecurityScheme, op *operation.Operation) (*scan.IssueScanAttempt, error) {
