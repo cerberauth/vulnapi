@@ -40,7 +40,8 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	if err != nil {
 		return r, err
 	}
-	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+	vsa.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+	vulnReport.WithBooleanStatus(vsa.HasPassed()).AddScanAttempt(vsa)
 	r.AddIssueReport(vulnReport).AddScanAttempt(vsa).End()
 
 	return r, nil

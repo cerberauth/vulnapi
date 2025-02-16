@@ -34,5 +34,6 @@ var graphqlSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/ma
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName, op)
+	r.AddIssueReport(vulnReport)
 	return discover.DownloadAndScanURLs("GraphQL", graphqlSeclistUrl, r, vulnReport, op, securityScheme)
 }

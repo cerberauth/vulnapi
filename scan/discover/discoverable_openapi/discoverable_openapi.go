@@ -34,5 +34,6 @@ var openapiSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/ma
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(DiscoverableOpenAPIScanID, DiscoverableOpenAPIScanName, op)
+	r.AddIssueReport(vulnReport)
 	return discover.DownloadAndScanURLs("OpenAPI", openapiSeclistUrl, r, vulnReport, op, securityScheme)
 }

@@ -79,21 +79,26 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	httpMethodOverrideIssueReport := report.NewIssueReport(httpMethodOverrideIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	httpMethodOverrideAuthenticationByPassIssueReport := report.NewIssueReport(httpMethodOverrideAuthenticationByPassIssue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(HTTPMethodOverrideScanID, HTTPMethodOverrideScanName, op)
+	r.AddIssueReport(httpMethodOverrideIssueReport)
+	r.AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport)
 
 	newOperation, err = op.Clone()
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	initialAttempt, err := scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	r.AddScanAttempt(initialAttempt)
+	httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(initialAttempt)
+	httpMethodOverrideIssueReport.AddScanAttempt(initialAttempt)
 
 	if initialAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
-		r.AddIssueReport(httpMethodOverrideIssueReport.Skip()).End()
-		return r, nil
+		httpMethodOverrideIssueReport.Skip()
+		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
+		return r.End(), nil
 	}
 
 	var methodAttempt *scan.IssueScanAttempt
@@ -104,28 +109,28 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 		newOperation, err = op.Clone()
 		if err != nil {
-			return r, err
+			return r.End(), err
 		}
 
 		newOperation.Method = method
 		methodAttempt, err = scan.ScanURL(newOperation, securityScheme)
-		if methodAttempt != nil {
-			r.AddScanAttempt(methodAttempt)
-		}
-
-		if err == nil && methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
+		r.AddScanAttempt(methodAttempt)
+		httpMethodOverrideIssueReport.AddScanAttempt(methodAttempt)
+		httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(methodAttempt)
+		if err == nil && methodAttempt != nil && methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
+			methodAttempt.Pass()
 			break
 		}
 	}
 
 	if err != nil {
-		r.AddIssueReport(httpMethodOverrideIssueReport).AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport).End()
-		return r, err
+		return r.End(), err
 	}
 
 	if methodAttempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-		r.AddIssueReport(httpMethodOverrideIssueReport.Pass()).AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport.Skip()).End()
-		return r, nil
+		httpMethodOverrideIssueReport.Pass()
+		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
+		return r.End(), nil
 	}
 
 	var attemptFailed = false
@@ -134,17 +139,18 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	for _, header := range methodOverrideHeaders {
 		newOperation, err = op.Clone()
 		if err != nil {
-			return r, err
+			return r.End(), err
 		}
 
 		newOperation.Header.Set(header, op.Method)
 		newOperation.Method = newOperationMethod
 		attempt, err = scan.ScanURL(newOperation, securityScheme)
-		if attempt != nil {
-			r.AddScanAttempt(attempt)
-		}
+		r.AddScanAttempt(attempt)
+		httpMethodOverrideIssueReport.AddScanAttempt(attempt)
+		httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(attempt)
 
 		if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
+			attempt.Fail()
 			attemptFailed = true
 			break
 		}
@@ -154,7 +160,7 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		for _, queryParam := range methodOverrideQueryParams {
 			newOperation, err = op.Clone()
 			if err != nil {
-				return r, err
+				return r.End(), err
 			}
 
 			newOperationQueryValues := newOperation.URL.Query()
@@ -162,11 +168,12 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 			newOperation.URL.RawQuery = newOperationQueryValues.Encode()
 			newOperation.Method = newOperationMethod
 			attempt, err = scan.ScanURL(newOperation, securityScheme)
-			if attempt != nil {
-				r.AddScanAttempt(attempt)
-			}
+			r.AddScanAttempt(attempt)
+			httpMethodOverrideIssueReport.AddScanAttempt(attempt)
+			httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(attempt)
 
 			if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
+				attempt.Fail()
 				attemptFailed = true
 				break
 			}
@@ -174,21 +181,24 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	}
 
 	if !attemptFailed {
-		r.AddIssueReport(httpMethodOverrideIssueReport.Pass()).AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport.Skip()).End()
-		return r, nil
+		httpMethodOverrideIssueReport.Pass()
+		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
+		return r.End(), nil
 	}
 
-	r.AddIssueReport(httpMethodOverrideIssueReport.Fail())
+	httpMethodOverrideIssueReport.Fail()
 	if securityScheme.GetType() == auth.None {
-		return r.AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport.Skip()).End(), nil
+		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
+		return r.End(), nil
 	}
 
 	attempt, err = scan.ScanURL(newOperation, auth.MustNewNoAuthSecurityScheme())
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
-	httpMethodOverrideAuthenticationByPassIssueReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(attempt.Response))
-	r.AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport).AddScanAttempt(attempt).End()
+	attempt.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(attempt.Response))
+	r.AddScanAttempt(attempt)
+	httpMethodOverrideAuthenticationByPassIssueReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
 
-	return r, nil
+	return r.End(), nil
 }

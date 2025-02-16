@@ -36,10 +36,11 @@ func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NotVerifiedJwtScanID, NotVerifiedJwtScanName, op)
+	r.AddIssueReport(vulnReport)
 
 	if !ShouldBeScanned(securityScheme) {
-		r.AddIssueReport(vulnReport.Skip()).End()
-		return r, nil
+		vulnReport.Skip()
+		return r.End(), nil
 	}
 
 	var token string
@@ -51,39 +52,41 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 	valueWriter, err := jwt.NewJWTWriter(token)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	newToken, err := valueWriter.SignWithMethodAndRandomKey(valueWriter.GetToken().Method)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	if err = securityScheme.SetAttackValue(securityScheme.GetValidValue()); err != nil {
-		return r, err
+		return r.End(), err
 	}
 	attemptOne, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
-	r.AddScanAttempt(attemptOne).End()
+	vulnReport.AddScanAttempt(attemptOne)
+	r.AddScanAttempt(attemptOne)
 
 	if !scan.IsUnauthorizedStatusCodeOrSimilar(attemptOne.Response) {
-		r.AddIssueReport(vulnReport.Skip())
-		return r, nil
+		vulnReport.Skip()
+		return r.End(), nil
 	}
 
 	if err = securityScheme.SetAttackValue(newToken); err != nil {
-		return r, err
+		return r.End(), err
 	}
 	attemptTwo, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
+	vulnReport.AddScanAttempt(attemptTwo)
+	r.AddScanAttempt(attemptTwo)
 
-	r.AddScanAttempt(attemptTwo).End()
-	vulnReport.WithBooleanStatus(attemptOne.Response.GetStatusCode() == attemptTwo.Response.GetStatusCode())
-	r.AddIssueReport(vulnReport)
+	attemptTwo.WithBooleanStatus(attemptOne.Response.GetStatusCode() == attemptTwo.Response.GetStatusCode())
+	vulnReport.WithBooleanStatus(attemptTwo.HasPassed())
 
-	return r, nil
+	return r.End(), nil
 }

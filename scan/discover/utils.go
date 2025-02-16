@@ -62,12 +62,16 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		select {
 		case attempt := <-results:
 			r.AddScanAttempt(attempt)
+			vulnReport.AddScanAttempt(attempt)
 			if attempt.Err != nil {
 				errs <- attempt.Err
 				continue
 			}
 			if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
+				attempt.Fail()
 				data = append(data, struct{ URL string }{URL: attempt.Request.GetURL()})
+			} else {
+				attempt.Pass()
 			}
 		case err := <-errs:
 			log.Printf("Error scanning URL: %v", err)
@@ -76,12 +80,13 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 	}
 
 	if len(data) > 0 {
-		r.WithData(data).AddIssueReport(vulnReport.Fail()).End()
-		return r, nil
+		vulnReport.Fail()
+		r.WithData(data)
+		return r.End(), nil
 	}
 
-	r.AddIssueReport(vulnReport.Pass()).End()
-	return r, nil
+	vulnReport.Pass()
+	return r.End(), nil
 }
 
 func DownloadAndScanURLs(name string, seclistUrl string, r *report.ScanReport, vulnReport *report.IssueReport, op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {

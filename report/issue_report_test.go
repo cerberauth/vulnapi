@@ -5,10 +5,44 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/scan"
 	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewIssueScanReport(t *testing.T) {
+	status := scan.IssueScanAttemptStatusFailed
+
+	issueScanReport := report.NewIssueScanReport("scan-id", &status)
+
+	assert.Equal(t, "scan-id", issueScanReport.ID)
+	assert.Equal(t, status, *issueScanReport.Status)
+}
+
+func TestIssueScanReport_GetStatus(t *testing.T) {
+	status := scan.IssueScanAttemptStatusPassed
+
+	issueScanReport := report.NewIssueScanReport("scan-id", &status)
+
+	assert.Equal(t, status, issueScanReport.GetStatus())
+}
+
+func TestIssueScanReport_HasFailed(t *testing.T) {
+	status := scan.IssueScanAttemptStatusFailed
+
+	issueScanReport := report.NewIssueScanReport("scan-id", &status)
+
+	assert.True(t, issueScanReport.HasFailed())
+}
+
+func TestIssueScanReport_HasPassed(t *testing.T) {
+	status := scan.IssueScanAttemptStatusPassed
+
+	issueScanReport := report.NewIssueScanReport("scan-id", &status)
+
+	assert.True(t, issueScanReport.HasPassed())
+}
 
 func TestNewIssueReport(t *testing.T) {
 	issue := report.Issue{
@@ -237,6 +271,46 @@ func TestIssueReport_IsCriticalRiskSeverity(t *testing.T) {
 		},
 	}
 	assert.True(t, vr.IsCriticalRiskSeverity())
+}
+
+func TestIssueReport_WithScanAttempt(t *testing.T) {
+	issue := report.Issue{
+		ID:   "id",
+		Name: "Test Vulnerability",
+		URL:  "http://test.com",
+		CVSS: report.CVSS{
+			Score: 7.5,
+		},
+	}
+	vr := report.NewIssueReport(issue)
+	attempt := &scan.IssueScanAttempt{
+		ID:     "scan-id",
+		Status: scan.IssueScanAttemptStatusPassed,
+	}
+	vr.WithScanAttempt(attempt)
+	assert.Equal(t, 1, len(vr.Scans))
+	assert.Equal(t, "scan-id", vr.Scans[0].ID)
+	assert.Equal(t, scan.IssueScanAttemptStatusPassed, *vr.Scans[0].Status)
+}
+
+func TestIssueReport_AddScanAttempt(t *testing.T) {
+	issue := report.Issue{
+		ID:   "id",
+		Name: "Test Vulnerability",
+		URL:  "http://test.com",
+		CVSS: report.CVSS{
+			Score: 7.5,
+		},
+	}
+	vr := report.NewIssueReport(issue)
+	attempt := &scan.IssueScanAttempt{
+		ID:     "scan-id",
+		Status: scan.IssueScanAttemptStatusFailed,
+	}
+	vr.AddScanAttempt(attempt)
+	assert.Equal(t, 1, len(vr.Scans))
+	assert.Equal(t, "scan-id", vr.Scans[0].ID)
+	assert.Equal(t, scan.IssueScanAttemptStatusFailed, *vr.Scans[0].Status)
 }
 
 func TestIssueReport_String(t *testing.T) {

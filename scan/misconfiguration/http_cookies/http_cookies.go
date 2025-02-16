@@ -104,35 +104,42 @@ var withoutExpiresIssue = report.Issue{
 }
 
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	httpOnlyVulnReport := report.NewIssueReport(httpNotHttpOnlyIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	notSecureVulnReport := report.NewIssueReport(notSecureIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	sameSiteNoneVulnReport := report.NewIssueReport(sameSiteNoneIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	withoutSameSiteVulnReport := report.NewIssueReport(withoutSameSiteIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	withoutExpiresVulnReport := report.NewIssueReport(withoutExpiresIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-
 	attempt, err := scan.ScanURL(op, securityScheme)
 	r := report.NewScanReport(HTTPCookiesScanID, HTTPCookiesScanName, op)
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(attempt).End()
+	r.AddScanAttempt(attempt)
+
+	httpOnlyVulnReport := report.NewIssueReport(httpNotHttpOnlyIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	notSecureVulnReport := report.NewIssueReport(notSecureIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	sameSiteNoneVulnReport := report.NewIssueReport(sameSiteNoneIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	withoutSameSiteVulnReport := report.NewIssueReport(withoutSameSiteIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	withoutExpiresVulnReport := report.NewIssueReport(withoutExpiresIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+
+	r.AddIssueReport(httpOnlyVulnReport)
+	r.AddIssueReport(notSecureVulnReport)
+	r.AddIssueReport(sameSiteNoneVulnReport)
+	r.AddIssueReport(withoutSameSiteVulnReport)
+	r.AddIssueReport(withoutExpiresVulnReport)
+
+	if len(attempt.Response.GetCookies()) == 0 {
+		notSecureVulnReport.Skip()
+		httpOnlyVulnReport.Skip()
+		sameSiteNoneVulnReport.Skip()
+		withoutSameSiteVulnReport.Skip()
+		withoutExpiresVulnReport.Skip()
+	}
 
 	// Detect every cookies insecure practices
 	for _, cookie := range attempt.Response.GetCookies() {
-		r.AddIssueReport(notSecureVulnReport.Clone().WithBooleanStatus(cookie.Secure))
-		r.AddIssueReport(httpOnlyVulnReport.Clone().WithBooleanStatus(cookie.HttpOnly))
-		r.AddIssueReport(sameSiteNoneVulnReport.Clone().WithBooleanStatus(cookie.SameSite != http.SameSiteNoneMode))
-		r.AddIssueReport(withoutSameSiteVulnReport.Clone().WithBooleanStatus(cookie.SameSite != 0))
-		r.AddIssueReport(withoutExpiresVulnReport.Clone().WithBooleanStatus(!cookie.Expires.IsZero()))
+		notSecureVulnReport.WithBooleanStatus(cookie.Secure)
+		httpOnlyVulnReport.WithBooleanStatus(cookie.HttpOnly)
+		sameSiteNoneVulnReport.WithBooleanStatus(cookie.SameSite != http.SameSiteNoneMode)
+		withoutSameSiteVulnReport.WithBooleanStatus(cookie.SameSite != 0)
+		withoutExpiresVulnReport.WithBooleanStatus(!cookie.Expires.IsZero())
 	}
 
-	if len(attempt.Response.GetCookies()) == 0 {
-		r.AddIssueReport(notSecureVulnReport.Clone().Skip())
-		r.AddIssueReport(httpOnlyVulnReport.Clone().Skip())
-		r.AddIssueReport(sameSiteNoneVulnReport.Clone().Skip())
-		r.AddIssueReport(withoutSameSiteVulnReport.Clone().Skip())
-		r.AddIssueReport(withoutExpiresVulnReport.Clone().Skip())
-	}
-
-	return r, nil
+	attempt.WithBooleanStatus(!r.HasFailedIssueReport())
+	return r.End(), nil
 }

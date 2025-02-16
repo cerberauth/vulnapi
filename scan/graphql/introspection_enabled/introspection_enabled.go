@@ -63,50 +63,56 @@ func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL)
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	securitySchemes := []*auth.SecurityScheme{securityScheme}
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-
 	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, op)
+	r.AddIssueReport(vulnReport)
+
 	newRequest, err := newPostGraphqlIntrospectionRequest(op.Client, op.URL)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	newOperation, err := operation.NewOperationFromRequest(newRequest)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err := scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	r.AddScanAttempt(attempt)
+	vulnReport.AddScanAttempt(attempt)
 
 	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
-		r.AddIssueReport(vulnReport.Fail()).End()
-		return r, nil
+		attempt.Fail()
+		vulnReport.Fail()
+		return r.End(), nil
 	}
 
 	newRequest, err = newGetGraphqlIntrospectionRequest(op.Client, op.URL)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	newOperation, err = operation.NewOperationFromRequest(newRequest)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err = scan.ScanURL(newOperation, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	r.AddScanAttempt(attempt)
+	vulnReport.AddScanAttempt(attempt)
 
 	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
-		r.AddIssueReport(vulnReport.Fail()).End()
-		return r, nil
+		attempt.Fail()
+		vulnReport.Fail()
+		return r.End(), nil
 	}
 
-	r.AddIssueReport(vulnReport.Pass()).End()
-	return r, nil
+	attempt.Pass()
+	vulnReport.Pass()
+	return r.End(), nil
 }

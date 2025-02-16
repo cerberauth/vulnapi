@@ -11,26 +11,32 @@ import (
 )
 
 type OperationSecurityScheme struct {
-	Type        auth.Type         `json:"type" yaml:"type"`
-	Scheme      auth.SchemeName   `json:"scheme" yaml:"scheme"`
-	In          *auth.SchemeIn    `json:"in" yaml:"in"`
-	TokenFormat *auth.TokenFormat `json:"token_format" yaml:"token_format"`
+	Type        auth.Type        `json:"type" yaml:"type"`
+	Scheme      auth.SchemeName  `json:"scheme" yaml:"scheme"`
+	In          *auth.SchemeIn   `json:"in" yaml:"in"`
+	TokenFormat auth.TokenFormat `json:"tokenFormat" yaml:"tokenFormat"`
 
 	Name string `json:"name" yaml:"name"`
 }
 
 func NewOperationSecurityScheme(securityScheme *auth.SecurityScheme) OperationSecurityScheme {
+	tokenFormat := auth.NoneTokenFormat
+	if securityScheme.GetTokenFormat() != nil {
+		tokenFormat = *securityScheme.GetTokenFormat()
+	}
+
 	return OperationSecurityScheme{
 		Type:        securityScheme.GetType(),
 		Scheme:      securityScheme.GetScheme(),
 		In:          securityScheme.GetIn(),
-		TokenFormat: securityScheme.GetTokenFormat(),
+		TokenFormat: tokenFormat,
 
 		Name: securityScheme.GetName(),
 	}
 }
 
 type ScanReportRequest struct {
+	ID      string         `json:"id" yaml:"id"`
 	Method  string         `json:"method" yaml:"method"`
 	URL     string         `json:"url" yaml:"url"`
 	Body    *string        `json:"body,omitempty" yaml:"body,omitempty"`
@@ -46,6 +52,7 @@ type ScanReportResponse struct {
 }
 
 type ScanReportScan struct {
+	ID       string              `json:"id" yaml:"id"`
 	Request  *ScanReportRequest  `json:"request,omitempty" yaml:"request,omitempty"`
 	Response *ScanReportResponse `json:"response,omitempty" yaml:"response,omitempty"`
 	Err      error               `json:"error,omitempty" yaml:"error,omitempty"`
@@ -113,36 +120,38 @@ func (r *ScanReport) HasData() bool {
 	return r.Data != nil
 }
 
-func (r *ScanReport) AddScanAttempt(a *scan.IssueScanAttempt) *ScanReport {
+func (r *ScanReport) AddScanAttempt(attempt *scan.IssueScanAttempt) *ScanReport {
 	var reportRequest *ScanReportRequest = nil
-	if a.Request != nil {
+	if attempt.Request != nil {
 		reportRequest = &ScanReportRequest{
-			Method:  a.Request.GetMethod(),
-			URL:     a.Request.GetURL(),
-			Cookies: a.Request.GetCookies(),
-			Header:  a.Request.GetHeader(),
+			ID:      attempt.Request.GetID(),
+			Method:  attempt.Request.GetMethod(),
+			URL:     attempt.Request.GetURL(),
+			Cookies: attempt.Request.GetCookies(),
+			Header:  attempt.Request.GetHeader(),
 		}
 	}
 
 	var reportResponse *ScanReportResponse = nil
-	if a.Response != nil {
+	if attempt.Response != nil {
 		var body string
-		if a.Response.GetBody() != nil {
-			body = a.Response.GetBody().String()
+		if attempt.Response.GetBody() != nil {
+			body = attempt.Response.GetBody().String()
 		}
 
 		reportResponse = &ScanReportResponse{
-			StatusCode: a.Response.GetStatusCode(),
+			StatusCode: attempt.Response.GetStatusCode(),
 			Body:       &body,
-			Cookies:    a.Response.GetCookies(),
-			Header:     a.Response.GetHeader(),
+			Cookies:    attempt.Response.GetCookies(),
+			Header:     attempt.Response.GetHeader(),
 		}
 	}
 
 	r.Scans = append(r.Scans, ScanReportScan{
+		ID:       attempt.ID,
 		Request:  reportRequest,
 		Response: reportResponse,
-		Err:      a.Err,
+		Err:      attempt.Err,
 	})
 	return r
 }

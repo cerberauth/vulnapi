@@ -20,6 +20,7 @@ func TestNewRequest(t *testing.T) {
 	request, err := request.NewRequest(method, url, body, nil)
 
 	assert.NoError(t, err)
+	assert.NotEqual(t, "", request.ID)
 	assert.Equal(t, method, request.HttpRequest.Method)
 	assert.Equal(t, url, request.HttpRequest.URL.String())
 	assert.Equal(t, []byte("test"), request.Body)
@@ -66,6 +67,17 @@ func TestWithSecurityScheme(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "Bearer "+token, request.HttpRequest.Header.Get("Authorization"))
+}
+
+func TestGetID(t *testing.T) {
+	method := http.MethodGet
+	url := "http://localhost:8080/"
+
+	request, err := request.NewRequest(method, url, nil, nil)
+
+	assert.NoError(t, err)
+	assert.NotEqual(t, "", request.GetID())
+	assert.Equal(t, request.ID, request.GetID())
 }
 
 func TestGetMethod(t *testing.T) {
@@ -241,6 +253,7 @@ func TestDo(t *testing.T) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
+		assert.Equal(t, request.GetID(), req.Header.Get("x-vulnapi-request-id"))
 
 		return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
 	})
@@ -301,6 +314,7 @@ func TestDoWithClientHeaders(t *testing.T) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
+		assert.Equal(t, request.GetID(), req.Header.Get("x-vulnapi-request-id"))
 		assert.Equal(t, header.Get("X-Test"), req.Header.Get("X-Test"))
 
 		return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
@@ -354,6 +368,7 @@ func TestDoWithSecuritySchemeHeaders(t *testing.T) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
+		assert.Equal(t, request.GetID(), req.Header.Get("x-vulnapi-request-id"))
 		assert.Equal(t, "Bearer "+token, req.Header.Get("Authorization"))
 
 		return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
@@ -385,6 +400,7 @@ func TestDoWithHeadersSecuritySchemeHeaders(t *testing.T) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
+		assert.Equal(t, request.GetID(), req.Header.Get("x-vulnapi-request-id"))
 		assert.Equal(t, header.Get("X-Test"), req.Header.Get("X-Test"))
 		assert.Equal(t, "Bearer "+token, req.Header.Get("Authorization"))
 
@@ -417,6 +433,7 @@ func TestDoWithCookiesSecuritySchemeHeaders(t *testing.T) {
 		assert.Equal(t, method, req.Method)
 		assert.Equal(t, url, req.URL.String())
 		assert.Equal(t, "vulnapi", req.Header.Get("User-Agent"))
+		assert.Equal(t, request.GetID(), req.Header.Get("x-vulnapi-request-id"))
 		assert.Equal(t, cookies[0].Name, req.Cookies()[0].Name)
 		assert.Equal(t, cookies[0].Value, req.Cookies()[0].Value)
 		assert.Equal(t, "Bearer "+token, req.Header.Get("Authorization"))

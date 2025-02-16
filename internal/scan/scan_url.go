@@ -3,14 +3,7 @@ package scan
 import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/request"
 )
-
-type IssueScanAttempt struct {
-	Request  *request.Request
-	Response *request.Response
-	Err      error
-}
 
 func ScanURL(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*IssueScanAttempt, error) {
 	req, err := operation.NewRequest()
@@ -25,9 +18,5 @@ func ScanURL(operation *operation.Operation, securityScheme *auth.SecurityScheme
 	}
 
 	res, err := req.Do()
-	return &IssueScanAttempt{
-		Request:  req,
-		Response: res,
-		Err:      err,
-	}, err
+	return NewIssueScanAttempt(operation, req, res, err), err
 }

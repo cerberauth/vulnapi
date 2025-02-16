@@ -37,10 +37,11 @@ func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NullSignatureScanID, NullSignatureScanName, op)
+	r.AddIssueReport(vulnReport)
 
 	if !ShouldBeScanned(securityScheme) {
-		r.AddIssueReport(vulnReport.Skip()).End()
-		return r, nil
+		vulnReport.Skip()
+		return r.End(), nil
 	}
 
 	var token string
@@ -52,23 +53,23 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 	valueWriter, err := jwt.NewJWTWriter(token)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 
 	newToken, err := valueWriter.WithoutSignature()
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
 	if err = securityScheme.SetAttackValue(newToken); err != nil {
-		return r, err
+		return r.End(), err
 	}
 	vsa, err := scan.ScanURL(op, securityScheme)
 	if err != nil {
-		return r, err
+		return r.End(), err
 	}
-	r.AddScanAttempt(vsa).End()
-	vulnReport.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	r.AddIssueReport(vulnReport)
+	vsa.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
+	vulnReport.WithBooleanStatus(vsa.HasPassed()).WithScanAttempt(vsa)
+	r.AddScanAttempt(vsa)
 
-	return r, nil
+	return r.End(), nil
 }

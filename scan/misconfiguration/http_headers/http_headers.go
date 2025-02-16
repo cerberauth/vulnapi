@@ -157,38 +157,46 @@ func CheckCSPFrameAncestors(cspHeader string) bool {
 }
 
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	contentOptionsMissing := report.NewIssueReport(contentOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	corsMissing := report.NewIssueReport(corsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	corsWildcard := report.NewIssueReport(corsWildcardIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	cspFrameAncestorsMissing := report.NewIssueReport(cspFrameAncestorsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	cspMissing := report.NewIssueReport(cspMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	frameOptionsMissing := report.NewIssueReport(frameOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	hstsMissing := report.NewIssueReport(hstsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-
 	attempt, err := scan.ScanURL(op, securityScheme)
 	r := report.NewScanReport(HTTPHeadersScanID, HTTPHeadersScanName, op)
 	if err != nil {
 		return r, err
 	}
-	r.AddScanAttempt(attempt).End()
+	r.AddScanAttempt(attempt)
+
+	contentOptionsMissing := report.NewIssueReport(contentOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	corsMissing := report.NewIssueReport(corsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	corsWildcard := report.NewIssueReport(corsWildcardIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	cspFrameAncestorsMissing := report.NewIssueReport(cspFrameAncestorsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	cspMissing := report.NewIssueReport(cspMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	frameOptionsMissing := report.NewIssueReport(frameOptionsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+	hstsMissing := report.NewIssueReport(hstsMissingIssue).WithOperation(op).WithSecurityScheme(securityScheme).WithScanAttempt(attempt)
+
+	r.AddIssueReport(contentOptionsMissing)
+	r.AddIssueReport(corsMissing)
+	r.AddIssueReport(corsWildcard)
+	r.AddIssueReport(cspFrameAncestorsMissing)
+	r.AddIssueReport(cspMissing)
+	r.AddIssueReport(frameOptionsMissing)
+	r.AddIssueReport(hstsMissing)
 
 	cspHeader := attempt.Response.GetHeader().Get(CSPHTTPHeader)
-	r.AddIssueReport(cspMissing.Clone().WithBooleanStatus(cspHeader != ""))
-	r.AddIssueReport(cspFrameAncestorsMissing.Clone().WithBooleanStatus(CheckCSPFrameAncestors(cspHeader)))
+	cspMissing.WithBooleanStatus(cspHeader != "")
+	cspFrameAncestorsMissing.WithBooleanStatus(CheckCSPFrameAncestors(cspHeader))
 
 	allowOrigin := attempt.Response.GetHeader().Get(CORSOriginHTTPHeader)
-
 	isCorsMissing := allowOrigin == ""
-	r.AddIssueReport(corsMissing.Clone().WithBooleanStatus(!isCorsMissing))
+	corsMissing.WithBooleanStatus(!isCorsMissing)
 	if isCorsMissing {
-		r.AddIssueReport(corsWildcard.Clone().Skip())
+		corsWildcard.Skip()
 	} else {
-		r.AddIssueReport(corsWildcard.Clone().WithBooleanStatus(allowOrigin != "*"))
+		corsWildcard.WithBooleanStatus(allowOrigin != "*")
 	}
 
-	r.AddIssueReport(hstsMissing.Clone().WithBooleanStatus(attempt.Response.GetHeader().Get(HSTSHTTPHeader) != ""))
-	r.AddIssueReport(contentOptionsMissing.Clone().WithBooleanStatus(attempt.Response.GetHeader().Get(XContentTypeOptionsHTTPHeader) != ""))
-	r.AddIssueReport(frameOptionsMissing.Clone().WithBooleanStatus(attempt.Response.GetHeader().Get(XFrameOptionsHTTPHeader) != ""))
+	hstsMissing.WithBooleanStatus(attempt.Response.GetHeader().Get(HSTSHTTPHeader) != "")
+	contentOptionsMissing.WithBooleanStatus(attempt.Response.GetHeader().Get(XContentTypeOptionsHTTPHeader) != "")
+	frameOptionsMissing.WithBooleanStatus(attempt.Response.GetHeader().Get(XFrameOptionsHTTPHeader) != "")
 
-	return r, nil
+	attempt.WithBooleanStatus(!r.HasFailedIssueReport())
+	return r.End(), nil
 }

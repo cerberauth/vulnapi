@@ -29,9 +29,7 @@ var issue = report.Issue{
 func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
 	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
 	r := report.NewScanReport(NoAuthOperationScanID, NoAuthOperationScanName, op)
+	r.AddIssueReport(vulnReport.WithBooleanStatus(securityScheme.GetType() != auth.None))
 
-	r.AddIssueReport(vulnReport.WithBooleanStatus(securityScheme.GetType() != auth.None)).End()
-
-	r.End()
-	return r, nil
+	return r.End(), nil
 }
