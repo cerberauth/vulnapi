@@ -15,7 +15,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/projectdiscovery/wappalyzergo v0.2.16
 	github.com/schollz/progressbar/v3 v3.18.0
-	github.com/spf13/cobra v1.9.0
+	github.com/spf13/cobra v1.9.1
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.3
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.59.0
