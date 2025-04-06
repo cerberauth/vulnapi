@@ -114,7 +114,7 @@ func (operation *Operation) IsReachable() error {
 		}
 	}
 
-	_, err := net.DialTimeout("tcp", host, operation.Client.Timeout)
+	_, err := net.DialTimeout("tcp", host, operation.Timeout)
 	return err
 }
 

@@ -146,7 +146,7 @@ func (rr *Reporter) HasHighRiskOrHigherSeverityIssue() bool {
 
 func (rr *Reporter) HasHigherThanSeverityThresholdIssue(threshold float64) bool {
 	for _, r := range rr.GetFailedIssueReports() {
-		if r.Issue.CVSS.Score >= threshold {
+		if r.CVSS.Score >= threshold {
 			return true
 		}
 	}
