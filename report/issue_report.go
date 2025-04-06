@@ -96,9 +96,9 @@ func (vr *IssueReport) WithBooleanStatus(status bool) *IssueReport {
 
 func (vr *IssueReport) Fail() *IssueReport {
 	_, span := tracer.Start(context.Background(), "Issue.Failed", trace.WithAttributes(
-		attribute.String("id", vr.Issue.ID),
-		attribute.String("name", vr.Issue.Name),
-		attribute.Float64("CVSS", vr.Issue.CVSS.Score),
+		attribute.String("id", vr.ID),
+		attribute.String("name", vr.Name),
+		attribute.Float64("CVSS", vr.CVSS.Score),
 		attribute.String("securityScheme", auth.GetSecuritySchemeUniqueName(vr.SecurityScheme)),
 	))
 	span.End()

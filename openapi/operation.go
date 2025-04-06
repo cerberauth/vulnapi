@@ -71,9 +71,10 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				name := h.Value.Name
 				value := getParameterValue(h.Value)
 
-				if h.Value.In == "header" {
+				switch h.Value.In {
+				case "header":
 					header.Add(name, value)
-				} else if h.Value.In == "cookie" {
+				case "cookie":
 					cookies = append(cookies, &http.Cookie{
 						Name:  name,
 						Value: value,
