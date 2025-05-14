@@ -5,25 +5,25 @@ go 1.24
 require (
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/cerberauth/x v0.0.0-20250405151016-970dc5b28714
-	github.com/getkin/kin-openapi v0.131.0
+	github.com/getkin/kin-openapi v0.132.0
 	github.com/gin-contrib/requestid v1.0.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/orderedmap v0.3.0
-	github.com/jarcoal/httpmock v1.3.1
+	github.com/jarcoal/httpmock v1.4.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/projectdiscovery/wappalyzergo v0.2.23
+	github.com/projectdiscovery/wappalyzergo v0.2.28
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/spf13/cobra v1.9.1
-	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.3
+	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.5
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.60.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/ratelimit v0.3.1
-	golang.org/x/text v0.24.0
+	golang.org/x/text v0.25.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
