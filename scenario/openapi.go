@@ -7,7 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 )
 
-func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, reporter *report.Reporter, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
@@ -36,11 +36,11 @@ func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.Sec
 		opts = &scan.ScanOptions{}
 	}
 
-	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporterWithOpenAPIDoc(openapi.Doc, operations)
+	if reporter == nil {
+		reporter = report.NewReporterWithOpenAPIDoc(openapi.Doc, operations)
 	}
 
-	openapiScan, err := scan.NewScan(operations, opts)
+	openapiScan, err := scan.NewScan(operations, reporter, opts)
 	if err != nil {
 		return nil, err
 	}

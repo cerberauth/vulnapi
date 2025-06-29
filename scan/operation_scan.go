@@ -11,6 +11,8 @@ type OperationScanHandlerFunc func(operation *operation.Operation, securitySchem
 type OperationScanHandler struct {
 	ID      string
 	Handler OperationScanHandlerFunc
+
+	PotentialIssues []report.Issue
 }
 
 type OperationScan struct {
@@ -18,9 +20,11 @@ type OperationScan struct {
 	ScanHandler *OperationScanHandler
 }
 
-func NewOperationScanHandler(id string, handler OperationScanHandlerFunc) *OperationScanHandler {
+func NewOperationScanHandler(id string, handler OperationScanHandlerFunc, potentialIssues []report.Issue) *OperationScanHandler {
 	return &OperationScanHandler{
 		ID:      id,
 		Handler: handler,
+
+		PotentialIssues: potentialIssues,
 	}
 }

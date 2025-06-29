@@ -13,52 +13,67 @@ func TestAddCommonArgs(t *testing.T) {
 		name     string
 		args     []string
 		expected struct {
-			rateLimit         string
-			proxy             string
-			headers           []string
-			cookies           []string
-			authUser          string
-			includeScans      []string
-			excludeScans      []string
-			outputFormat      string
-			outputTransport   string
-			outputPath        string
-			outputURL         string
-			noProgress        bool
-			severityThreshold float64
+			rateLimit            string
+			proxy                string
+			headers              []string
+			cookies              []string
+			authUser             string
+			includeScans         []string
+			excludeScans         []string
+			outputFormat         string
+			outputTransport      string
+			outputPath           string
+			outputURL            string
+			noProgress           bool
+			severityThreshold    float64
+			scanMinIssueSeverity float64
+			scanIncludeCWEs      []string
+			scanExcludeCWEs      []string
+			scanIncludeOWASPs    []string
+			scanExcludeOWASPs    []string
 		}
 	}{
 		{
 			name: "default values",
 			args: []string{},
 			expected: struct {
-				rateLimit         string
-				proxy             string
-				headers           []string
-				cookies           []string
-				authUser          string
-				includeScans      []string
-				excludeScans      []string
-				outputFormat      string
-				outputTransport   string
-				outputPath        string
-				outputURL         string
-				noProgress        bool
-				severityThreshold float64
+				rateLimit            string
+				proxy                string
+				headers              []string
+				cookies              []string
+				authUser             string
+				includeScans         []string
+				excludeScans         []string
+				outputFormat         string
+				outputTransport      string
+				outputPath           string
+				outputURL            string
+				noProgress           bool
+				severityThreshold    float64
+				scanMinIssueSeverity float64
+				scanIncludeCWEs      []string
+				scanExcludeCWEs      []string
+				scanIncludeOWASPs    []string
+				scanExcludeOWASPs    []string
 			}{
-				rateLimit:         "10/s",
-				proxy:             "",
-				headers:           []string{},
-				cookies:           []string{},
-				authUser:          "",
-				includeScans:      nil,
-				excludeScans:      nil,
-				outputFormat:      "table",
-				outputTransport:   "file",
-				outputPath:        "",
-				outputURL:         "",
-				noProgress:        false,
-				severityThreshold: 1,
+				rateLimit:            "10/s",
+				proxy:                "",
+				headers:              []string{},
+				cookies:              []string{},
+				authUser:             "",
+				includeScans:         nil,
+				excludeScans:         nil,
+				outputFormat:         "table",
+				outputTransport:      "file",
+				outputPath:           "",
+				outputURL:            "",
+				noProgress:           false,
+				severityThreshold:    1,
+				scanMinIssueSeverity: 0,
+				scanIncludeCWEs:      []string{},
+				scanExcludeCWEs:      []string{},
+				scanIncludeOWASPs:    []string{},
+				scanExcludeOWASPs:    []string{},
 			},
 		},
 		{
@@ -69,33 +84,43 @@ func TestAddCommonArgs(t *testing.T) {
 				"--scans=scan2",
 			},
 			expected: struct {
-				rateLimit         string
-				proxy             string
-				headers           []string
-				cookies           []string
-				authUser          string
-				includeScans      []string
-				excludeScans      []string
-				outputFormat      string
-				outputTransport   string
-				outputPath        string
-				outputURL         string
-				noProgress        bool
-				severityThreshold float64
+				rateLimit            string
+				proxy                string
+				headers              []string
+				cookies              []string
+				authUser             string
+				includeScans         []string
+				excludeScans         []string
+				outputFormat         string
+				outputTransport      string
+				outputPath           string
+				outputURL            string
+				noProgress           bool
+				severityThreshold    float64
+				scanMinIssueSeverity float64
+				scanIncludeCWEs      []string
+				scanExcludeCWEs      []string
+				scanIncludeOWASPs    []string
+				scanExcludeOWASPs    []string
 			}{
-				rateLimit:         "10/s",
-				proxy:             "",
-				headers:           []string{"Authorization: Basic dXNlcjpwYXNzd29yZA=="},
-				cookies:           []string{},
-				authUser:          "user:password",
-				includeScans:      []string{"scan1", "scan2"},
-				excludeScans:      nil,
-				outputFormat:      "table",
-				outputTransport:   "file",
-				outputPath:        "",
-				outputURL:         "",
-				noProgress:        false,
-				severityThreshold: 1,
+				rateLimit:            "10/s",
+				proxy:                "",
+				headers:              []string{"Authorization: Basic dXNlcjpwYXNzd29yZA=="},
+				cookies:              []string{},
+				authUser:             "user:password",
+				includeScans:         []string{"scan1", "scan2"},
+				excludeScans:         nil,
+				outputFormat:         "table",
+				outputTransport:      "file",
+				outputPath:           "",
+				outputURL:            "",
+				noProgress:           false,
+				severityThreshold:    1,
+				scanMinIssueSeverity: 0,
+				scanIncludeCWEs:      []string{},
+				scanExcludeCWEs:      []string{},
+				scanIncludeOWASPs:    []string{},
+				scanExcludeOWASPs:    []string{},
 			},
 		},
 		{
@@ -106,33 +131,43 @@ func TestAddCommonArgs(t *testing.T) {
 				"--scans=scan2",
 			},
 			expected: struct {
-				rateLimit         string
-				proxy             string
-				headers           []string
-				cookies           []string
-				authUser          string
-				includeScans      []string
-				excludeScans      []string
-				outputFormat      string
-				outputTransport   string
-				outputPath        string
-				outputURL         string
-				noProgress        bool
-				severityThreshold float64
+				rateLimit            string
+				proxy                string
+				headers              []string
+				cookies              []string
+				authUser             string
+				includeScans         []string
+				excludeScans         []string
+				outputFormat         string
+				outputTransport      string
+				outputPath           string
+				outputURL            string
+				noProgress           bool
+				severityThreshold    float64
+				scanMinIssueSeverity float64
+				scanIncludeCWEs      []string
+				scanExcludeCWEs      []string
+				scanIncludeOWASPs    []string
+				scanExcludeOWASPs    []string
 			}{
-				rateLimit:         "10/s",
-				proxy:             "",
-				headers:           []string{},
-				cookies:           []string{},
-				authUser:          "user",
-				includeScans:      []string{"scan1", "scan2"},
-				excludeScans:      nil,
-				outputFormat:      "table",
-				outputTransport:   "file",
-				outputPath:        "",
-				outputURL:         "",
-				noProgress:        false,
-				severityThreshold: 1,
+				rateLimit:            "10/s",
+				proxy:                "",
+				headers:              []string{},
+				cookies:              []string{},
+				authUser:             "user",
+				includeScans:         []string{"scan1", "scan2"},
+				excludeScans:         nil,
+				outputFormat:         "table",
+				outputTransport:      "file",
+				outputPath:           "",
+				outputURL:            "",
+				noProgress:           false,
+				severityThreshold:    1,
+				scanMinIssueSeverity: 0,
+				scanIncludeCWEs:      []string{},
+				scanExcludeCWEs:      []string{},
+				scanIncludeOWASPs:    []string{},
+				scanExcludeOWASPs:    []string{},
 			},
 		},
 		{
@@ -150,35 +185,54 @@ func TestAddCommonArgs(t *testing.T) {
 				"--report-url=http://example.com/output",
 				"--no-progress",
 				"--severity-threshold=5",
+
+				"--scan-min-severity=3",
+				"--scan-include-cwe=CWE-123",
+				"--scan-include-cwe=CWE-456",
+				"--scan-exclude-cwe=CWE-789",
+				"--scan-include-owasp=OWASP-A1",
+				"--scan-include-owasp=OWASP-A2",
+				"--scan-exclude-owasp=OWASP-B1",
+				"--scan-exclude-owasp=OWASP-B2",
 			},
 			expected: struct {
-				rateLimit         string
-				proxy             string
-				headers           []string
-				cookies           []string
-				authUser          string
-				includeScans      []string
-				excludeScans      []string
-				outputFormat      string
-				outputTransport   string
-				outputPath        string
-				outputURL         string
-				noProgress        bool
-				severityThreshold float64
+				rateLimit            string
+				proxy                string
+				headers              []string
+				cookies              []string
+				authUser             string
+				includeScans         []string
+				excludeScans         []string
+				outputFormat         string
+				outputTransport      string
+				outputPath           string
+				outputURL            string
+				noProgress           bool
+				severityThreshold    float64
+				scanMinIssueSeverity float64
+				scanIncludeCWEs      []string
+				scanExcludeCWEs      []string
+				scanIncludeOWASPs    []string
+				scanExcludeOWASPs    []string
 			}{
-				rateLimit:         "5/m",
-				proxy:             "http://proxy.example.com",
-				headers:           []string{"Authorization: Bearer token"},
-				cookies:           []string{"sessionid=12345"},
-				authUser:          "",
-				includeScans:      []string{"scan1", "scan2"},
-				excludeScans:      nil,
-				outputFormat:      "json",
-				outputTransport:   "http",
-				outputPath:        "/tmp/output",
-				outputURL:         "http://example.com/output",
-				noProgress:        true,
-				severityThreshold: 5,
+				rateLimit:            "5/m",
+				proxy:                "http://proxy.example.com",
+				headers:              []string{"Authorization: Bearer token"},
+				cookies:              []string{"sessionid=12345"},
+				authUser:             "",
+				includeScans:         []string{"scan1", "scan2"},
+				excludeScans:         nil,
+				outputFormat:         "json",
+				outputTransport:      "http",
+				outputPath:           "/tmp/output",
+				outputURL:            "http://example.com/output",
+				noProgress:           true,
+				severityThreshold:    5,
+				scanMinIssueSeverity: 3,
+				scanIncludeCWEs:      []string{"CWE-123", "CWE-456"},
+				scanExcludeCWEs:      []string{"CWE-789"},
+				scanIncludeOWASPs:    []string{"OWASP-A1", "OWASP-A2"},
+				scanExcludeOWASPs:    []string{"OWASP-B1", "OWASP-B2"},
 			},
 		},
 	}
@@ -202,6 +256,11 @@ func TestAddCommonArgs(t *testing.T) {
 			assert.Equal(t, tt.expected.outputTransport, cmd.GetReportTransport())
 			assert.Equal(t, tt.expected.noProgress, cmd.GetNoProgress())
 			assert.Equal(t, tt.expected.severityThreshold, cmd.GetSeverityThreshold())
+			assert.Equal(t, tt.expected.scanMinIssueSeverity, cmd.GetScanMinIssueSeverity())
+			assert.Equal(t, tt.expected.scanIncludeCWEs, cmd.GetScanIncludeCWEs())
+			assert.Equal(t, tt.expected.scanExcludeCWEs, cmd.GetScanExcludeCWEs())
+			assert.Equal(t, tt.expected.scanIncludeOWASPs, cmd.GetScanIncludeOWASPs())
+			assert.Equal(t, tt.expected.scanExcludeOWASPs, cmd.GetScanExcludeOWASPs())
 		})
 	}
 }

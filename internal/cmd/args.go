@@ -25,6 +25,12 @@ var (
 	noProgress        bool
 	severityThreshold float64
 
+	scanMinIssueSeverity float64
+	scanIncludeCWEs      []string
+	scanExcludeCWEs      []string
+	scanIncludeOWASPs    []string
+	scanExcludeOWASPs    []string
+
 	placeholderString string
 	placeholderBool   bool
 )
@@ -48,6 +54,12 @@ func AddCommonArgs(cmd *cobra.Command) {
 
 	cmd.Flags().BoolVarP(&noProgress, "no-progress", "", false, "Disable progress output")
 	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
+
+	cmd.Flags().Float64VarP(&scanMinIssueSeverity, "scan-min-severity", "", 0, "Minimum severity score (CVSS) to report an issue")
+	cmd.Flags().StringArrayVarP(&scanIncludeCWEs, "scan-include-cwe", "", scanIncludeCWEs, "Include specific CWEs (e.g., CWE-200, CWE-22)")
+	cmd.Flags().StringArrayVarP(&scanExcludeCWEs, "scan-exclude-cwe", "", scanExcludeCWEs, "Exclude specific CWEs (e.g., CWE-200, CWE-22)")
+	cmd.Flags().StringArrayVarP(&scanIncludeOWASPs, "scan-include-owasp", "", scanIncludeOWASPs, "Include specific OWASP")
+	cmd.Flags().StringArrayVarP(&scanExcludeOWASPs, "scan-exclude-owasp", "", scanExcludeOWASPs, "Exclude specific OWASP")
 }
 
 func AddPlaceholderArgs(cmd *cobra.Command) {
@@ -126,6 +138,26 @@ func GetSeverityThreshold() float64 {
 	return severityThreshold
 }
 
+func GetScanMinIssueSeverity() float64 {
+	return scanMinIssueSeverity
+}
+
+func GetScanIncludeCWEs() []string {
+	return scanIncludeCWEs
+}
+
+func GetScanExcludeCWEs() []string {
+	return scanExcludeCWEs
+}
+
+func GetScanIncludeOWASPs() []string {
+	return scanIncludeOWASPs
+}
+
+func GetScanExcludeOWASPs() []string {
+	return scanExcludeOWASPs
+}
+
 func basicAuth(user string) string {
 	credentials := strings.Split(user, ":")
 	if len(credentials) != 2 || credentials[0] == "" {
@@ -148,4 +180,9 @@ func ClearValues() {
 	reportURL = ""
 	noProgress = false
 	severityThreshold = 1
+	scanMinIssueSeverity = 0
+	scanIncludeCWEs = []string{}
+	scanExcludeCWEs = []string{}
+	scanIncludeOWASPs = []string{}
+	scanExcludeOWASPs = []string{}
 }

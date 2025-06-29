@@ -3,6 +3,7 @@ package scenario
 import (
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
@@ -28,17 +29,17 @@ func NewDiscoverAPIScan(method string, url string, client *request.Client, opts 
 	}
 
 	operations := operation.Operations{op}
-	urlScan, err := scan.NewScan(operations, opts)
+	urlScan, err := scan.NewScan(operations, nil, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(exposedfiles.DiscoverableFilesScanID, exposedfiles.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(wellknown.DiscoverableWellKnownScanID, wellknown.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(healthcheck.DiscoverableHealthCheckScanID, healthcheck.ScanHandler))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler, []report.Issue{}))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler, []report.Issue{}))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler, []report.Issue{}))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(exposedfiles.DiscoverableFilesScanID, exposedfiles.ScanHandler, []report.Issue{}))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(wellknown.DiscoverableWellKnownScanID, wellknown.ScanHandler, []report.Issue{}))
+	urlScan.AddScanHandler(scan.NewOperationScanHandler(healthcheck.DiscoverableHealthCheckScanID, healthcheck.ScanHandler, []report.Issue{}))
 
 	return urlScan, nil
 }

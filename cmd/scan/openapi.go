@@ -78,9 +78,14 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
+			s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, nil, &scan.ScanOptions{
+				IncludeScans:     internalCmd.GetIncludeScans(),
+				ExcludeScans:     internalCmd.GetExcludeScans(),
+				MinIssueSeverity: internalCmd.GetScanMinIssueSeverity(),
+				IncludeCWEs:      internalCmd.GetScanIncludeCWEs(),
+				ExcludeCWEs:      internalCmd.GetScanExcludeCWEs(),
+				IncludeOWASPs:    internalCmd.GetScanIncludeOWASPs(),
+				ExcludeOWASPs:    internalCmd.GetScanExcludeOWASPs(),
 			})
 			if err != nil {
 				span.RecordError(err)
