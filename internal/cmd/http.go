@@ -34,7 +34,7 @@ func parseRateLimit(rateLimit string) (int, error) {
 	}
 }
 
-func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []string, httpCookiesArg []string) (*request.Client, error) {
+func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []string, httpCookiesArg []string, insecureArg bool) (*request.Client, error) {
 	if rateLimitArg == "" {
 		rateLimitArg = defaultRateLimit
 	}
@@ -68,8 +68,9 @@ func NewHTTPClientFromArgs(rateLimitArg string, proxyArg string, headersArg []st
 	}
 
 	return request.NewClient(request.NewClientOptions{
-		RateLimit: rateLimit,
-		ProxyURL:  proxyURL,
+		RateLimit:   rateLimit,
+		ProxyURL:    proxyURL,
+		InsecureTLS: insecureArg,
 
 		Header:  httpHeader,
 		Cookies: httpCookies,

@@ -2,6 +2,8 @@ module github.com/cerberauth/vulnapi
 
 go 1.24
 
+toolchain go1.24.7
+
 require (
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/cerberauth/x v0.0.0-20250405151016-970dc5b28714
