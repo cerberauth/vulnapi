@@ -25,7 +25,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			ctx, span := tracer.Start(cmd.Context(), "Discover API")
 			defer span.End()
 
-			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies(), internalCmd.GetInsecure())
 			if err != nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())

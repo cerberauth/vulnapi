@@ -1,6 +1,7 @@
 package request
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"time"
@@ -32,9 +33,10 @@ type Client struct {
 }
 
 type NewClientOptions struct {
-	Timeout   time.Duration
-	RateLimit int // requests per second
-	ProxyURL  *url.URL
+	Timeout     time.Duration
+	RateLimit   int // requests per second
+	ProxyURL    *url.URL
+	InsecureTLS bool
 
 	Header  http.Header
 	Cookies []*http.Cookie
@@ -64,16 +66,24 @@ func NewClient(opts NewClientOptions) *Client {
 		proxy = http.ProxyFromEnvironment
 	}
 
+	transport := &http.Transport{
+		Proxy: proxy,
+
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+	}
+
+	// Configure TLS settings if insecure mode is enabled
+	if opts.InsecureTLS {
+		transport.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+
 	return &Client{
 		&http.Client{
-			Timeout: opts.Timeout,
-
-			Transport: &http.Transport{
-				Proxy: proxy,
-
-				MaxIdleConns:        100,
-				MaxIdleConnsPerHost: 100,
-			},
+			Timeout:   opts.Timeout,
+			Transport: transport,
 		},
 		opts.Header,
 		opts.Cookies,

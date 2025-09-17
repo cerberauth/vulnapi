@@ -13,6 +13,7 @@ var (
 	authUser  string
 	rateLimit string
 	proxy     string
+	insecure  bool
 
 	includeScans []string
 	excludeScans []string
@@ -37,6 +38,7 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVarP(&headers, "header", "H", headers, "Headers to include in requests")
 	cmd.Flags().StringArrayVarP(&cookies, "cookie", "c", cookies, "Cookies to include in requests")
 	cmd.Flags().StringVarP(&authUser, "user", "u", "", "Specify the user name and password to use for server authentication")
+	cmd.Flags().BoolVarP(&insecure, "insecure", "k", false, "Allow insecure server connections when using SSL (ignore certificate verification errors)")
 
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVarP(&excludeScans, "exclude-scans", "e", excludeScans, "Exclude specific scans")
@@ -126,6 +128,10 @@ func GetSeverityThreshold() float64 {
 	return severityThreshold
 }
 
+func GetInsecure() bool {
+	return insecure
+}
+
 func basicAuth(user string) string {
 	credentials := strings.Split(user, ":")
 	if len(credentials) != 2 || credentials[0] == "" {
@@ -140,6 +146,7 @@ func ClearValues() {
 	authUser = ""
 	rateLimit = defaultRateLimit
 	proxy = ""
+	insecure = false
 	includeScans = []string{}
 	excludeScans = []string{}
 	reportFormat = "table"

@@ -26,13 +26,14 @@ func TestNewHTTPClientFromArgs(t *testing.T) {
 		{Name: "user_id", Value: "123"},
 	}
 	expectedClient := request.NewClient(request.NewClientOptions{
-		RateLimit: expectedRateLimit,
-		ProxyURL:  expectedProxyURL,
-		Header:    expectedHTTPHeader,
-		Cookies:   expectedHTTPCookies,
+		RateLimit:   expectedRateLimit,
+		ProxyURL:    expectedProxyURL,
+		InsecureTLS: false,
+		Header:      expectedHTTPHeader,
+		Cookies:     expectedHTTPCookies,
 	})
 
-	actualClient, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	actualClient, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg, false)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedClient.Timeout, actualClient.Timeout)
@@ -46,7 +47,7 @@ func TestNewHTTPClientFromArgsWhenRateLimitIsEmptyString(t *testing.T) {
 	headersArg := []string{"Content-Type: application/json", "Authorization: Bearer token"}
 	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
 
-	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg, false)
 
 	assert.NoError(t, err)
 }
@@ -57,7 +58,7 @@ func TestNewHTTPClientFromArgsWhenInvalidRateLimit(t *testing.T) {
 	headersArg := []string{"Content-Type: application/json", "Authorization: Bearer token"}
 	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
 
-	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg, false)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid rate limit unit")
@@ -69,8 +70,26 @@ func TestNewHTTPClientFromArgsWhenInvalidProxyURL(t *testing.T) {
 	headersArg := []string{"Content-Type: application/json", "Authorization : Bearer token"}
 	httpCookiesArg := []string{"session_id: abc123", "user_id: 123"}
 
-	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg)
+	_, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg, false)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid proxy URL")
+}
+
+func TestNewHTTPClientFromArgsWithInsecureTLS(t *testing.T) {
+	rateArg := "10/s"
+	proxyArg := ""
+	headersArg := []string{}
+	httpCookiesArg := []string{}
+
+	client, err := cmd.NewHTTPClientFromArgs(rateArg, proxyArg, headersArg, httpCookiesArg, true)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+	
+	// Verify that the client's transport has been configured for insecure TLS
+	transport, ok := client.Transport.(*http.Transport)
+	assert.True(t, ok, "Expected client transport to be *http.Transport")
+	assert.NotNil(t, transport.TLSClientConfig, "Expected TLS config to be set")
+	assert.True(t, transport.TLSClientConfig.InsecureSkipVerify, "Expected InsecureSkipVerify to be true")
 }
