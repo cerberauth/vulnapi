@@ -31,13 +31,14 @@ func PrintOrExportReport(format string, transport string, report *report.Reporte
 
 	var output []byte
 	var err error
+	threshold := GetSeverityThreshold()
 	switch format {
 	case "json":
-		output, err = ExportJSON(report)
+		output, err = ExportJSONWithThreshold(report, threshold)
 	case "yaml":
-		output, err = ExportYAML(report)
+		output, err = ExportYAMLWithThreshold(report, threshold)
 	case "table":
-		PrintTable(report)
+		PrintTableWithThreshold(report, threshold)
 	}
 
 	if err != nil {
@@ -61,12 +62,42 @@ func PrintTable(report *report.Reporter) {
 	printtable.DisplayReportTable(report)
 }
 
+func PrintTableWithThreshold(report *report.Reporter, threshold float64) {
+	printtable.WellKnownPathsScanReport(report)
+	printtable.FingerprintScanReport(report)
+	printtable.DisplayReportSummaryTable(report)
+	printtable.DisplayReportTableWithThreshold(report, threshold)
+}
+
 func ExportJSON(report *report.Reporter) ([]byte, error) {
 	return json.Marshal(report)
 }
 
+func ExportJSONWithThreshold(report *report.Reporter, threshold float64) ([]byte, error) {
+	filteredReporter := createFilteredReporter(report, threshold)
+	return json.Marshal(filteredReporter)
+}
+
 func ExportYAML(report *report.Reporter) ([]byte, error) {
 	return yaml.Marshal(report)
+}
+
+func ExportYAMLWithThreshold(report *report.Reporter, threshold float64) ([]byte, error) {
+	filteredReporter := createFilteredReporter(report, threshold)
+	return yaml.Marshal(filteredReporter)
+}
+
+// createFilteredReporter creates a copy of the reporter with only scan reports that meet the severity threshold
+func createFilteredReporter(original *report.Reporter, threshold float64) *report.Reporter {
+	filteredReporter := &report.Reporter{
+		Schema:      original.Schema,
+		Options:     original.Options,
+		Curl:        original.Curl,
+		OpenAPI:     original.OpenAPI,
+		GraphQL:     original.GraphQL,
+		ScanReports: original.GetFilteredScanReports(threshold),
+	}
+	return filteredReporter
 }
 
 func exportWithTransport(transport string, output []byte) error {

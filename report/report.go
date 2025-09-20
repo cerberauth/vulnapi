@@ -192,3 +192,39 @@ func (r *ScanReport) GetFailedIssueReports() []*IssueReport {
 func (r *ScanReport) HasFailedIssueReport() bool {
 	return len(r.GetFailedIssueReports()) > 0
 }
+
+// GetFilteredByThreshold returns a copy of the scan report with only issues that meet or exceed the severity threshold
+func (r *ScanReport) GetFilteredByThreshold(threshold float64) *ScanReport {
+	var filteredIssues []*IssueReport
+	var hasFailedIssueAboveThreshold bool
+	
+	for _, issue := range r.GetIssueReports() {
+		// Always include passed and skipped issues regardless of threshold
+		if !issue.HasFailed() {
+			filteredIssues = append(filteredIssues, issue)
+		} else if issue.CVSS.Score >= threshold {
+			// Only include failed issues that meet the threshold
+			filteredIssues = append(filteredIssues, issue)
+			hasFailedIssueAboveThreshold = true
+		}
+	}
+	
+	// Return nil if no failed issues meet the threshold (only if there are no passed/skipped issues either)
+	if !hasFailedIssueAboveThreshold && len(filteredIssues) == 0 {
+		return nil
+	}
+	
+	// Create a copy of the scan report with filtered issues
+	filteredReport := &ScanReport{
+		ID:        r.ID,
+		Name:      r.Name,
+		StartTime: r.StartTime,
+		EndTime:   r.EndTime,
+		Operation: r.Operation,
+		Data:      r.Data,
+		Scans:     r.Scans, // Keep all scan attempts
+		Issues:    filteredIssues,
+	}
+	
+	return filteredReport
+}
