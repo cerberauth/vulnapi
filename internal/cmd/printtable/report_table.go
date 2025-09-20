@@ -104,6 +104,47 @@ func DisplayReportSummaryTable(r *report.Reporter) {
 	fmt.Println()
 }
 
+// DisplayReportTableWithThreshold displays a filtered report table showing only issues that meet or exceed the severity threshold
+func DisplayReportTableWithThreshold(r *report.Reporter, threshold float64) {
+	if r == nil {
+		return
+	}
+
+	// Use filtered scan reports based on threshold
+	filteredScanReports := r.GetFilteredScanReports(threshold)
+	if len(filteredScanReports) == 0 {
+		return
+	}
+
+	headers := []string{"Operation", "Risk Level", "CVSS 4.0 Score", "OWASP", "Issue"}
+	table := CreateTable(headers)
+
+	IssueReports := NewFullScanIssueReports(filteredScanReports)
+	for _, issueReport := range IssueReports {
+		row := []string{
+			fmt.Sprintf("%s %s", issueReport.OperationMethod, issueReport.OperationPath),
+			issueReport.Issue.SeverityLevelString(),
+			fmt.Sprintf("%.1f", issueReport.Issue.CVSS.Score),
+			string(issueReport.Issue.Classifications.OWASP),
+			issueReport.Issue.Name,
+		}
+
+		tableColors := make([]tablewriter.Colors, len(headers))
+		for i := range tableColors {
+			if i == 1 {
+				tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(issueReport.Issue)}
+			} else {
+				tableColors[i] = tablewriter.Colors{}
+			}
+		}
+
+		table.Rich(row, tableColors)
+	}
+
+	table.Render()
+	fmt.Println()
+}
+
 func DisplayReportTable(r *report.Reporter) {
 	if r == nil || !r.HasIssue() {
 		return
