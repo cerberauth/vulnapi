@@ -38,7 +38,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -85,7 +85,7 @@ jobs:
         run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/jwt-strong-eddsa-key:latest jwt)" >> $GITHUB_OUTPUT
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -121,7 +121,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -152,7 +152,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -188,7 +188,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -224,7 +224,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -276,7 +276,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -319,7 +319,7 @@ jobs:
         run: docker run -d -p 4000:4000 ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -367,7 +367,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
