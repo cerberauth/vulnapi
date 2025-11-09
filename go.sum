@@ -11,6 +11,8 @@ github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK3
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/cerberauth/x v0.0.0-20250405151016-970dc5b28714 h1:Rpr7JzKfq4fC/JzT5ZUzJZCOnCaoKWDXfa8rt/xfe2E=
 github.com/cerberauth/x v0.0.0-20250405151016-970dc5b28714/go.mod h1:dwObAA3peKfRfquTUiiPsOXDGO9Z7llnBm1L8gAbaHA=
+github.com/cerberauth/x v0.0.0-20251108155213-e00ac03a6f5c h1:6MaokzaBk3f71PPiLoOibyv16jwW+PjbrsUYemge4gc=
+github.com/cerberauth/x v0.0.0-20251108155213-e00ac03a6f5c/go.mod h1:dwObAA3peKfRfquTUiiPsOXDGO9Z7llnBm1L8gAbaHA=
 github.com/chengxilo/virtualterm v1.0.4 h1:Z6IpERbRVlfB8WkOmtbHiDbBANU7cimRIof7mk9/PwM=
 github.com/chengxilo/virtualterm v1.0.4/go.mod h1:DyxxBZz/x1iqJjFxTFcr6/x+jSpqN0iwWCOK1q10rlY=
 github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCyP4=
