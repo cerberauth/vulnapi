@@ -33,9 +33,14 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
 
-	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, &scan.ScanOptions{
-		IncludeScans: form.Opts.Scans,
-		ExcludeScans: form.Opts.ExcludeScans,
+	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, nil, &scan.ScanOptions{
+		IncludeScans:     form.Opts.Scans,
+		ExcludeScans:     form.Opts.ExcludeScans,
+		MinIssueSeverity: form.Opts.MinSeverity,
+		IncludeCWEs:      form.Opts.IncludeCWEs,
+		ExcludeCWEs:      form.Opts.ExcludeCWEs,
+		IncludeOWASPs:    form.Opts.IncludeOWASPs,
+		ExcludeOWASPs:    form.Opts.ExcludeOWASPs,
 	})
 	if err != nil {
 		span.RecordError(err)

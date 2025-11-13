@@ -18,7 +18,7 @@ func TestNewURLScan(t *testing.T) {
 	}))
 	defer server.Close()
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", nil, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
@@ -39,7 +39,7 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -60,7 +60,7 @@ func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -79,7 +79,7 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -120,7 +120,7 @@ func TestNewURLScanWithAPIKeyInHeader(t *testing.T) {
 				Header: header,
 			})
 
-			s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+			s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil, nil)
 
 			require.NoError(t, err)
 			assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAPIKeySecurityScheme(tt.name, auth.InHeader, &apiKey)}, s.Operations[0].SecuritySchemes)
@@ -143,7 +143,7 @@ func TestNewURLScanWithHTTPBasic(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil)
+	s, err := scenario.NewURLScan(http.MethodGet, server.URL, "", client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBasicSecurityScheme("default", credentials)}, s.Operations[0].SecuritySchemes)

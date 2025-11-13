@@ -49,7 +49,7 @@ func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -66,7 +66,7 @@ func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -85,7 +85,7 @@ func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
@@ -104,7 +104,7 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))

@@ -19,7 +19,7 @@ func TestNewGraphQLScan(t *testing.T) {
 	}))
 	defer server.Close()
 
-	s, err := scenario.NewGraphQLScan(server.URL, nil, nil)
+	s, err := scenario.NewGraphQLScan(server.URL, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
@@ -34,7 +34,7 @@ func TestNewGraphQLScanWithoutURLProto(t *testing.T) {
 	defer server.Close()
 
 	url := strings.TrimPrefix(server.URL, "http://")
-	s, err := scenario.NewGraphQLScan(url, nil, nil)
+	s, err := scenario.NewGraphQLScan(url, nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://"+url, s.Operations[0].URL.String())
@@ -43,7 +43,7 @@ func TestNewGraphQLScanWithoutURLProto(t *testing.T) {
 }
 
 func TestNewGraphQLScanWhenNotReachable(t *testing.T) {
-	_, err := scenario.NewGraphQLScan("http://localhost:8009", nil, nil)
+	_, err := scenario.NewGraphQLScan("http://localhost:8009", nil, nil, nil)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")
@@ -62,7 +62,7 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
+	s, err := scenario.NewGraphQLScan(server.URL, client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -83,7 +83,7 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *tes
 		Header: header,
 	})
 
-	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
+	s, err := scenario.NewGraphQLScan(server.URL, client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -102,7 +102,7 @@ func TestNewGraphQLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 		Header: header,
 	})
 
-	s, err := scenario.NewGraphQLScan(server.URL, client, nil)
+	s, err := scenario.NewGraphQLScan(server.URL, client, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)

@@ -41,9 +41,14 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
+			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, nil, &scan.ScanOptions{
+				IncludeScans:     internalCmd.GetIncludeScans(),
+				ExcludeScans:     internalCmd.GetExcludeScans(),
+				MinIssueSeverity: internalCmd.GetScanMinIssueSeverity(),
+				IncludeCWEs:      internalCmd.GetScanIncludeCWEs(),
+				ExcludeCWEs:      internalCmd.GetScanExcludeCWEs(),
+				IncludeOWASPs:    internalCmd.GetScanIncludeOWASPs(),
+				ExcludeOWASPs:    internalCmd.GetScanExcludeOWASPs(),
 			})
 			if err != nil {
 				span.RecordError(err)

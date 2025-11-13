@@ -13,7 +13,7 @@ const reporterSchema = "https://schemas.cerberauth.com/vulnapi/draft/2024-10/rep
 type Reporter struct {
 	Schema string `json:"$schema" yaml:"$schema"`
 
-	Options     OptionsReport  `json:"options" yaml:"options"`
+	Options     *ReportOptions `json:"options" yaml:"options"`
 	Curl        *CurlReport    `json:"curl,omitempty" yaml:"curl,omitempty"`
 	OpenAPI     *OpenAPIReport `json:"openapi,omitempty" yaml:"openapi,omitempty"`
 	GraphQL     *GraphQLReport `json:"graphql,omitempty" yaml:"graphql,omitempty"`
@@ -24,7 +24,7 @@ func NewReporter() *Reporter {
 	return &Reporter{
 		Schema: reporterSchema,
 
-		Options:     NewOptionsReport(),
+		Options:     NewEmptyOptionsReport(),
 		ScanReports: []*ScanReport{},
 	}
 }
@@ -33,7 +33,7 @@ func NewReporterWithCurl(method string, url string, data interface{}, header htt
 	return &Reporter{
 		Schema: reporterSchema,
 
-		Options:     NewOptionsReport(),
+		Options:     NewEmptyOptionsReport(),
 		Curl:        NewCurlReport(method, url, data, header, cookies, securitySchemes),
 		ScanReports: []*ScanReport{},
 	}
@@ -43,7 +43,7 @@ func NewReporterWithOpenAPIDoc(openapi *openapi3.T, operations operation.Operati
 	return &Reporter{
 		Schema: reporterSchema,
 
-		Options:     NewOptionsReport(),
+		Options:     NewEmptyOptionsReport(),
 		OpenAPI:     NewOpenAPIReport(openapi, operations),
 		ScanReports: []*ScanReport{},
 	}
@@ -53,7 +53,7 @@ func NewReporterWithGraphQL(url string, securitySchemes []*auth.SecurityScheme) 
 	return &Reporter{
 		Schema: reporterSchema,
 
-		Options:     NewOptionsReport(),
+		Options:     NewEmptyOptionsReport(),
 		GraphQL:     NewGraphQLReport(url, securitySchemes),
 		ScanReports: []*ScanReport{},
 	}
@@ -124,6 +124,10 @@ func (rr *Reporter) GetIssueReports() []*IssueReport {
 		reports = append(reports, r.GetIssueReports()...)
 	}
 	return reports
+}
+
+func (rr *Reporter) GetOptions() *ReportOptions {
+	return rr.Options
 }
 
 func (rr *Reporter) GetFailedIssueReports() []*IssueReport {

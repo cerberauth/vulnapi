@@ -149,6 +149,12 @@ func TestReporter_HasVulnerability_WhenFailedReport(t *testing.T) {
 	assert.True(t, reporter.HasIssue())
 }
 
+func TestGetOptions(t *testing.T) {
+	reporter := report.NewReporter()
+	options := reporter.GetOptions()
+	assert.NotNil(t, options)
+}
+
 func TestReporters_HasHighRiskOrHigherSeverityVulnerability_WhenLowRiskReport(t *testing.T) {
 	reporter := report.NewReporter()
 	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)

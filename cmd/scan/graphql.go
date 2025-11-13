@@ -35,9 +35,14 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
+			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, nil, &scan.ScanOptions{
+				IncludeScans:     internalCmd.GetIncludeScans(),
+				ExcludeScans:     internalCmd.GetExcludeScans(),
+				MinIssueSeverity: internalCmd.GetScanMinIssueSeverity(),
+				IncludeCWEs:      internalCmd.GetScanIncludeCWEs(),
+				ExcludeCWEs:      internalCmd.GetScanExcludeCWEs(),
+				IncludeOWASPs:    internalCmd.GetScanIncludeOWASPs(),
+				ExcludeOWASPs:    internalCmd.GetScanExcludeOWASPs(),
 			})
 			if err != nil {
 				span.RecordError(err)

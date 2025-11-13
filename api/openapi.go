@@ -59,9 +59,14 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		}
 	}
 	securitySchemesValues := openapi.NewSecuritySchemeValues(values)
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
-		IncludeScans: form.Opts.Scans,
-		ExcludeScans: form.Opts.ExcludeScans,
+	s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, nil, &scan.ScanOptions{
+		IncludeScans:     form.Opts.Scans,
+		ExcludeScans:     form.Opts.ExcludeScans,
+		MinIssueSeverity: form.Opts.MinSeverity,
+		IncludeCWEs:      form.Opts.IncludeCWEs,
+		ExcludeCWEs:      form.Opts.ExcludeCWEs,
+		IncludeOWASPs:    form.Opts.IncludeOWASPs,
+		ExcludeOWASPs:    form.Opts.ExcludeOWASPs,
 	})
 	if err != nil {
 		span.RecordError(err)

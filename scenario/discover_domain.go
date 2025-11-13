@@ -8,6 +8,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
@@ -130,14 +131,14 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *sca
 	domainsScan := []*scan.Scan{}
 	for _, domain := range domains {
 		if op, err := testFqdnReachable(domain, client); op != nil && err == nil {
-			domainScan, err := scan.NewScan(operation.Operations{op}, opts)
+			domainScan, err := scan.NewScan(operation.Operations{op}, nil, opts)
 			if err != nil {
 				return nil, err
 			}
 
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler, []report.Issue{}))
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler, []report.Issue{}))
+			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler, []report.Issue{}))
 			domainsScan = append(domainsScan, domainScan)
 		}
 	}

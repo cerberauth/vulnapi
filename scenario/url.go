@@ -10,7 +10,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 )
 
-func NewURLScan(method string, url string, data string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewURLScan(method string, url string, data string, client *request.Client, reporter *report.Reporter, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
@@ -45,16 +45,16 @@ func NewURLScan(method string, url string, data string, client *request.Client, 
 		opts = &scan.ScanOptions{}
 	}
 
-	if opts.Reporter == nil {
+	if reporter == nil {
 		var reportData interface{} = nil
 		if data != "" {
 			reportData = data
 		}
-		opts.Reporter = report.NewReporterWithCurl(method, url, reportData, client.Header, client.Cookies, securitySchemes)
+		reporter = report.NewReporterWithCurl(method, url, reportData, client.Header, client.Cookies, securitySchemes)
 	}
 
 	operations := operation.Operations{op}
-	urlScan, err := scan.NewScan(operations, opts)
+	urlScan, err := scan.NewScan(operations, reporter, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -16,9 +16,10 @@ func TestNewOperationScanHandler(t *testing.T) {
 	}
 	handlerID := "test-handler"
 
-	handler := scan.NewOperationScanHandler(handlerID, handlerFunc)
+	handler := scan.NewOperationScanHandler(handlerID, handlerFunc, []report.Issue{})
 
 	assert.NotNil(t, handler)
 	assert.Equal(t, handlerID, handler.ID)
 	assert.NotNil(t, handler.Handler)
+	assert.Empty(t, handler.PotentialIssues)
 }
