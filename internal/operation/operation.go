@@ -188,7 +188,7 @@ func (operation *Operation) GetSecuritySchemes() []*auth.SecurityScheme {
 }
 
 func (operation *Operation) GetSecurityScheme() *auth.SecurityScheme {
-	if operation.SecuritySchemes == nil {
+	if len(operation.SecuritySchemes) == 0 {
 		return auth.MustNewNoAuthSecurityScheme()
 	}
 	return operation.SecuritySchemes[0]

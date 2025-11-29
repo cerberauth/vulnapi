@@ -406,6 +406,7 @@ jobs:
             "simple_api_key.openapi.json",
             "simple_http_bearer_jwt.openapi.json",
             "simple_http_bearer.openapi.json",
+            "simple_no_scheme.openapi.json",
             "complex.openapi.json",
             "petstore.openapi.json"
           ]

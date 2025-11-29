@@ -98,7 +98,7 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 			attribute.String("handler", scan.ScanHandler.ID),
 		)
 
-		securityScheme := scan.Operation.SecuritySchemes[0] // TODO: handle multiple security schemes
+		securityScheme := scan.Operation.GetSecurityScheme() // TODO: handle multiple security schemes
 		_, operationSecuritySchemeSpan := tracer.Start(operationCtx, "Using Security Scheme")
 		operationSecuritySchemeSpan.SetAttributes(
 			attribute.String("name", auth.GetSecuritySchemeUniqueName(securityScheme)),
