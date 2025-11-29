@@ -1,8 +1,10 @@
 package scenario
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -97,9 +99,17 @@ func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
 	return nil, nil
 }
 
-func addDefaultProtocolWhenMissing(url string) string {
-	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		url = "https://" + url
+func addDefaultProtocolWhenMissing(u *url.URL) *url.URL {
+	if u.Scheme != "" {
+		return u
 	}
-	return url
+
+	tlsConn, err := tls.Dial("tcp", u.String(), nil)
+	if err == nil {
+		defer tlsConn.Close()
+		u.Scheme = "https"
+	} else {
+		u.Scheme = "http"
+	}
+	return u
 }

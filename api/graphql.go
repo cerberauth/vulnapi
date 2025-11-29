@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -24,6 +25,12 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		return
 	}
 
+	parsedEndpoint, err := url.Parse(form.Endpoint)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	traceCtx, span := tracer.Start(ctx, "Scan GraphQL")
 	defer span.End()
 
@@ -32,7 +39,7 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
 
-	s, err := scenario.NewGraphQLScan(form.Endpoint, client, &scan.ScanOptions{
+	s, err := scenario.NewGraphQLScan(parsedEndpoint, client, &scan.ScanOptions{
 		IncludeScans: form.Opts.Scans,
 		ExcludeScans: form.Opts.ExcludeScans,
 	})

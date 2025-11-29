@@ -42,6 +42,9 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			openapiUrlOrPath := args[0]
+			if openapiUrlOrPath == "" {
+				log.Fatal("OpenAPI path is required")
+			}
 
 			ctx, span := tracer.Start(cmd.Context(), "Scan OpenAPI")
 			defer span.End()

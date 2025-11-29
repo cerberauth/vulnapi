@@ -51,6 +51,63 @@ jobs:
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest)
 
+  run-unreachable-curl-scan:
+    name: Unreachable API
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          go run main.go scan curl http://localhost:8080 --sqa-opt-out
+
+      - name: Check for vulnerabilities
+        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        run: echo "Unreachable API found"
+
+  run-bad-ssl-scan-curl:
+    name: Bad SSL Scan ${{ matrix.challenge.name }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: true
+      matrix:
+        challenge:
+          [
+            { name: "expired", url: "https://expired.badssl.com" },
+            { name: "wrong-hostname", url: "https://wrong.host.badssl.com" },
+            { name: "self-signed", url: "https://self-signed.badssl.com" },
+            { name: "untrusted", url: "https://untrusted-root.badssl.com" },
+            { name: "revoked", url: "https://revoked.badssl.com" },
+            { name: "pinning-test", url: "https://pinning-test.badssl.com" },
+          ]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          go run main.go scan curl ${{ matrix.challenge.url }} --sqa-opt-out
+
+      - name: Check for vulnerabilities
+        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        run: echo "Bad SSL found in ${{ matrix.challenge.name }}"
+
   run-jwt-scans:
     name: JWT Scans
     runs-on: ubuntu-latest

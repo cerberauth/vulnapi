@@ -3,6 +3,7 @@ package discover
 import (
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
@@ -20,10 +21,19 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 		Short: "Discover api endpoints and server information",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			baseUrl := args[0]
-
 			ctx, span := tracer.Start(cmd.Context(), "Discover API")
 			defer span.End()
+
+			if args[0] == "" {
+				log.Fatal("url is required")
+			}
+
+			parsedUrl, err := url.Parse(args[0])
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				log.Fatal(err)
+			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
@@ -32,7 +42,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, baseUrl, client, &scan.ScanOptions{
+			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, parsedUrl, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

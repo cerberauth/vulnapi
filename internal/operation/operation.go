@@ -2,6 +2,7 @@ package operation
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -114,8 +115,24 @@ func (operation *Operation) IsReachable() error {
 		}
 	}
 
-	_, err := net.DialTimeout("tcp", host, operation.Timeout)
-	return err
+	if operation.URL.Scheme == "https" {
+		tlsConfig := operation.Client.Transport.(*http.Transport).TLSClientConfig
+		if tlsConfig == nil || !tlsConfig.InsecureSkipVerify {
+			tlsConn, err := tls.Dial("tcp", host, tlsConfig)
+			if err != nil {
+				return err
+			}
+			defer tlsConn.Close()
+		}
+	}
+
+	dialConn, err := net.DialTimeout("tcp", host, operation.Timeout)
+	if err != nil {
+		return err
+	}
+	defer dialConn.Close()
+
+	return nil
 }
 
 func NewOperationFromRequest(r *request.Request) (*Operation, error) {

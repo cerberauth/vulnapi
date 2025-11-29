@@ -75,6 +75,15 @@ func TestOperation_IsReachableWhenNotReachable(t *testing.T) {
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")
 }
 
+func TestOperation_IsReachableWhenHTTPs(t *testing.T) {
+	operation := operation.MustNewOperation(http.MethodGet, "https://localhost:443", nil, nil)
+
+	err := operation.IsReachable()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "connect: connection refused")
+}
+
 func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodGet, "https://localhost", nil, nil)
 

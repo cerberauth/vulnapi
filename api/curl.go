@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -25,6 +26,13 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	parsedUrl, err := url.Parse(form.URL)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	traceCtx, span := tracer.Start(ctx.Request.Context(), "Scan URL")
 	defer span.End()
 
@@ -33,7 +41,7 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 	opts.Cookies = ctx.Request.Cookies()
 	client := request.NewClient(opts)
 
-	s, err := scenario.NewURLScan(form.Method, form.URL, form.Data, client, &scan.ScanOptions{
+	s, err := scenario.NewURLScan(form.Method, parsedUrl, form.Data, client, &scan.ScanOptions{
 		IncludeScans: form.Opts.Scans,
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
