@@ -57,6 +57,7 @@ func NewClient(opts NewClientOptions) *Client {
 		MaxIdleConnsPerHost: 100,
 	}
 	if opts.InsecureSkipVerify {
+		//nolint:gosec
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
