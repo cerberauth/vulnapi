@@ -14,6 +14,7 @@ func TestNewClient_DefaultOptions(t *testing.T) {
 	client := request.NewClient(request.NewClientOptions{})
 
 	assert.NotNil(t, client)
+	assert.Nil(t, client.Transport.(*http.Transport).TLSClientConfig)
 	assert.Equal(t, 10*time.Second, client.Timeout)
 	assert.Equal(t, 100, client.Transport.(*http.Transport).MaxIdleConns)
 	assert.Equal(t, 100, client.Transport.(*http.Transport).MaxIdleConnsPerHost)
@@ -26,13 +27,17 @@ func TestNewClient_CustomOptions(t *testing.T) {
 	cookies := []*http.Cookie{{Name: "test", Value: "cookie"}}
 
 	client := request.NewClient(request.NewClientOptions{
-		Timeout: 5 * time.Second,
+		Timeout:            5 * time.Second,
+		InsecureSkipVerify: true,
+
 		Header:  header,
 		Cookies: cookies,
 	})
 
 	assert.NotNil(t, client)
 	assert.Equal(t, 5*time.Second, client.Timeout)
+	assert.NotNil(t, client.Transport.(*http.Transport).TLSClientConfig)
+	assert.True(t, client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify)
 	assert.Equal(t, header, client.Header)
 	assert.Equal(t, cookies, client.Cookies)
 }
