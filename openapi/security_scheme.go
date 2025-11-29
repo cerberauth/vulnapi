@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/getkin/kin-openapi/openapi3"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -24,6 +26,13 @@ const (
 
 	// NoneScheme    string = "none"
 	// UnknownScheme string = "unknown"
+)
+
+const (
+	otelSchemeTypeAttributeKey   = attribute.Key("scheme_type")
+	otelSchemeSchemeAttributeKey = attribute.Key("scheme_scheme")
+	otelSchemeInAttributeKey     = attribute.Key("scheme_in")
+	otelSchemeBearerFormatKey    = attribute.Key("scheme_bearer_format")
 )
 
 func NewErrUnsupportedBearerFormat(bearerFormat string) error {
@@ -96,16 +105,18 @@ func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securi
 	return auth.NewOAuthSecurityScheme(name, nil, securitySchemeValue, cfg)
 }
 
-func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
-	_, span := tracer.Start(context.Background(), "SecuritySchemeMap")
-	defer span.End()
+func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
+	if openapi.Doc.Components == nil || openapi.Doc.Components.SecuritySchemes == nil {
+		return nil, nil
+	}
 
 	var err error
 	var securitySchemeValue interface{}
 
-	if openapi.Doc.Components == nil || openapi.Doc.Components.SecuritySchemes == nil {
-		return nil, nil
-	}
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetrySecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.counter")
+	telemetryUnsupportedSecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.unsupported.counter")
+	telemetrySecuritySchemeErrorCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.error.counter")
 
 	securitySchemes := map[string]*auth.SecurityScheme{}
 	for name, scheme := range openapi.Doc.Components.SecuritySchemes {
@@ -116,7 +127,15 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.Se
 			value, _ = securitySchemeValue.(*string)
 		}
 
-		switch schemeType := strings.ToLower(scheme.Value.Type); schemeType {
+		schemeType := strings.ToLower(scheme.Value.Type)
+		attributes := []attribute.KeyValue{
+			otelSchemeTypeAttributeKey.String(schemeType),
+			otelSchemeSchemeAttributeKey.String(strings.ToLower(scheme.Value.Scheme)),
+			otelSchemeInAttributeKey.String(strings.ToLower(scheme.Value.In)),
+			otelSchemeBearerFormatKey.String(strings.ToLower(scheme.Value.BearerFormat)),
+		}
+
+		switch schemeType {
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
 		case OAuth2SchemeType, OpenIdConnectSchemeType:
@@ -128,14 +147,16 @@ func (openapi *OpenAPI) SecuritySchemeMap(values *SecuritySchemeValues) (auth.Se
 		case ApiKeySchemeType:
 			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
+			telemetryUnsupportedSecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
+			telemetrySecuritySchemeErrorCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 			return nil, err
 		}
+
+		telemetrySecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 	}
 
 	return securitySchemes, nil

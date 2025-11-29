@@ -7,8 +7,9 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
+	"github.com/cerberauth/x/telemetryx"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type IssueReportStatus string
@@ -62,13 +63,25 @@ type IssueReport struct {
 	Scans          []*IssueScanReport   `json:"scans" yaml:"scans"`
 	Operation      *operation.Operation `json:"-" yaml:"-"`
 	SecurityScheme *auth.SecurityScheme `json:"-" yaml:"-"`
+
+	telemetryIssueStatusCounter metric.Int64Counter
 }
 
+const (
+	otelIssueIdAttribute           = attribute.Key("issue_id")
+	otelIssueReportStatusAttribute = attribute.Key("issue_report_status")
+)
+
 func NewIssueReport(issue Issue) *IssueReport {
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetryIssueStatusCounter, _ := telemetryMeter.Int64Counter("report.issue_status.counter")
+
 	return &IssueReport{
 		Issue:  issue,
 		Status: IssueReportStatusNone,
 		Scans:  []*IssueScanReport{},
+
+		telemetryIssueStatusCounter: telemetryIssueStatusCounter,
 	}
 }
 
@@ -84,6 +97,10 @@ func (vr *IssueReport) WithSecurityScheme(securityScheme *auth.SecurityScheme) *
 
 func (vr *IssueReport) WithStatus(status IssueReportStatus) *IssueReport {
 	vr.Status = status
+	vr.telemetryIssueStatusCounter.Add(context.Background(), 1, metric.WithAttributes(
+		otelIssueIdAttribute.String(vr.ID),
+		otelIssueReportStatusAttribute.String(vr.Status.String()),
+	))
 	return vr
 }
 
@@ -95,16 +112,7 @@ func (vr *IssueReport) WithBooleanStatus(status bool) *IssueReport {
 }
 
 func (vr *IssueReport) Fail() *IssueReport {
-	_, span := tracer.Start(context.Background(), "Issue.Failed", trace.WithAttributes(
-		attribute.String("id", vr.ID),
-		attribute.String("name", vr.Name),
-		attribute.Float64("CVSS", vr.CVSS.Score),
-		attribute.String("securityScheme", auth.GetSecuritySchemeUniqueName(vr.SecurityScheme)),
-	))
-	span.End()
-
-	vr.Status = IssueReportStatusFailed
-	return vr
+	return vr.WithStatus(IssueReportStatusFailed)
 }
 
 func (vr *IssueReport) HasFailed() bool {
@@ -112,8 +120,7 @@ func (vr *IssueReport) HasFailed() bool {
 }
 
 func (vr *IssueReport) Pass() *IssueReport {
-	vr.Status = IssueReportStatusPassed
-	return vr
+	return vr.WithStatus(IssueReportStatusPassed)
 }
 
 func (vr *IssueReport) HasPassed() bool {
@@ -121,8 +128,7 @@ func (vr *IssueReport) HasPassed() bool {
 }
 
 func (vr *IssueReport) Skip() *IssueReport {
-	vr.Status = IssueReportStatusSkipped
-	return vr
+	return vr.WithStatus(IssueReportStatusSkipped)
 }
 
 func (vr *IssueReport) HasBeenSkipped() bool {

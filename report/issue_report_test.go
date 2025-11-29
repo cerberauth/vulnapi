@@ -219,57 +219,47 @@ func TestIssueReport_HasBeenSkipped(t *testing.T) {
 }
 
 func TestIssueReport_IsInfoRiskSeverity(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{
-				Score: 0,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{
+			Score: 0,
 		},
-	}
+	})
 	assert.True(t, vr.IsInfoRiskSeverity())
 }
 
 func TestIssueReport_IsLowRiskSeverity(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{
-				Score: 3.5,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{
+			Score: 3.5,
 		},
-	}
+	})
 	assert.True(t, vr.IsLowRiskSeverity())
 }
 
 func TestIssueReport_IsMediumRiskSeverity(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{
-				Score: 5.5,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{
+			Score: 5.5,
 		},
-	}
+	})
 	assert.True(t, vr.IsMediumRiskSeverity())
 }
 
 func TestIssueReport_IsHighRiskSeverity(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{
-				Score: 8.5,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{
+			Score: 8.5,
 		},
-	}
+	})
 	assert.True(t, vr.IsHighRiskSeverity())
 }
 
 func TestIssueReport_IsCriticalRiskSeverity(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{
-				Score: 9.5,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{
+			Score: 9.5,
 		},
-	}
+	})
 	assert.True(t, vr.IsCriticalRiskSeverity())
 }
 
@@ -314,25 +304,21 @@ func TestIssueReport_AddScanAttempt(t *testing.T) {
 }
 
 func TestIssueReport_String(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			Name: "Test Vulnerability",
+	vr := report.NewIssueReport(report.Issue{
+		Name: "Test Vulnerability",
 
-			CVSS: report.CVSS{
-				Score: 7.5,
-			},
+		CVSS: report.CVSS{
+			Score: 7.5,
 		},
-	}
+	})
 	expected := "[High] Test Vulnerability"
 	assert.Equal(t, expected, vr.String())
 }
 
 func TestIssueReport_SeverityLevelString(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			CVSS: report.CVSS{},
-		},
-	}
+	vr := report.NewIssueReport(report.Issue{
+		CVSS: report.CVSS{},
+	})
 
 	// Test case for severity level >= 9
 	vr.Issue.CVSS.Score = 9.5
@@ -356,15 +342,13 @@ func TestIssueReport_SeverityLevelString(t *testing.T) {
 }
 
 func TestIssueReport_Clone(t *testing.T) {
-	vr := &report.IssueReport{
-		Issue: report.Issue{
-			Name: "Test Vulnerability",
-			URL:  "http://test.com",
-			CVSS: report.CVSS{
-				Score: 7.5,
-			},
+	vr := report.NewIssueReport(report.Issue{
+		Name: "Test Vulnerability",
+		URL:  "http://test.com",
+		CVSS: report.CVSS{
+			Score: 7.5,
 		},
-	}
+	})
 	clone := vr.Clone()
 	assert.Equal(t, vr.ID, clone.ID)
 	assert.Equal(t, vr.Name, clone.Name)

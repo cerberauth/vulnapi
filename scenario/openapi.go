@@ -1,18 +1,20 @@
 package scenario
 
 import (
+	"context"
+
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 )
 
-func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewOpenAPIScan(ctx context.Context, openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
 
-	securitySchemes, err := openapi.SecuritySchemeMap(securitySchemesValues)
+	securitySchemes, err := openapi.SecuritySchemeMap(ctx, securitySchemesValues)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +22,7 @@ func NewOpenAPIScan(openapi *openapi.OpenAPI, securitySchemesValues *openapi.Sec
 		client.ClearSecurityScheme(securityScheme)
 	}
 
-	operations, err := openapi.Operations(client, securitySchemes)
+	operations, err := openapi.Operations(ctx, client, securitySchemes)
 	if err != nil {
 		return nil, err
 	}

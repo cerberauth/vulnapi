@@ -4,14 +4,15 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
@@ -23,24 +24,32 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			otelIncludeScansAttribute := includeScansAttributeKey.StringSlice(internalCmd.GetIncludeScans())
+			otelExcludeScansAttribute := excludeScansAttributeKey.StringSlice(internalCmd.GetExcludeScans())
+			otelAttributes := []attribute.KeyValue{
+				otelIncludeScansAttribute,
+				otelExcludeScansAttribute,
+			}
+
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryScanGraphQLSuccessCounter, _ := telemetryMeter.Int64Counter("scan.graphql.success.counter")
+			telemetryScanGraphQLErrorCounter, _ := telemetryMeter.Int64Counter("scan.graphql.error.counter")
+			ctx := cmd.Context()
+
 			if args[0] == "" {
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("endpoint url is required"))...))
 				log.Fatal("Endpoint url is required")
 			}
 
-			ctx, span := tracer.Start(cmd.Context(), "Scan GraphQL")
-			defer span.End()
-
 			parsedUrl, err := url.Parse(args[0])
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid url"))...))
 				log.Fatal(err)
 			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid client"))...))
 				log.Fatal(err)
 			}
 			request.SetDefaultClient(client)
@@ -50,8 +59,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
 				log.Fatal(err)
 			}
 
@@ -68,18 +76,17 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error executing scenario"))...))
 				log.Fatal(err)
 			}
 
-			analytics.TrackScanReport(ctx, reporter)
 			err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanGraphQLErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
 				log.Fatal(err)
 			}
+
+			telemetryScanGraphQLSuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
 		},
 	}
 

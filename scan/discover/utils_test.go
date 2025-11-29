@@ -52,7 +52,7 @@ func TestDownloadAndScanURLs_Failed_WhenNotFoundSeclist(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.IssueReport{}
+	vulnReport := report.NewIssueReport(report.Issue{})
 	httpmock.RegisterResponder(http.MethodGet, seclistUrl, httpmock.NewBytesResponder(http.StatusNotFound, nil))
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
@@ -72,7 +72,7 @@ func TestDownloadAndScanURLs_Passed_WhenNotFoundURLs(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.IssueReport{}
+	vulnReport := report.NewIssueReport(report.Issue{})
 
 	httpmock.RegisterResponder(
 		http.MethodGet,
@@ -104,7 +104,7 @@ func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
 	operation.SetSecuritySchemes(securitySchemes)
 	r := report.NewScanReport("test", "test", operation)
-	vulnReport := &report.IssueReport{}
+	vulnReport := report.NewIssueReport(report.Issue{})
 
 	httpmock.RegisterResponder(
 		http.MethodGet,

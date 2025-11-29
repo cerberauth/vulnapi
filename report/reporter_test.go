@@ -1,7 +1,6 @@
 package report_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -64,11 +63,7 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 	}
 	sr := report.NewScanReport("id", "test", nil).AddIssueReport(report.NewIssueReport(issue).Fail())
 	reporter.AddReport(sr)
-	expectedIssue := &report.IssueReport{
-		Issue:  issue,
-		Status: report.IssueReportStatusFailed,
-		Scans:  []*report.IssueScanReport{},
-	}
+	expectedIssue := report.NewIssueReport(issue).WithStatus(report.IssueReportStatusFailed)
 
 	assert.NotEmpty(t, reporter.ScanReports)
 	assert.Equal(t, 1, len(reporter.ScanReports))
@@ -79,9 +74,9 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 }
 
 func TestNewReporterWithOpenAPIDoc(t *testing.T) {
-	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
+	openapiContract, _ := openapilib.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
@@ -91,9 +86,9 @@ func TestNewReporterWithOpenAPIDoc(t *testing.T) {
 }
 
 func TestReporterWithOpenAPIDoc_AddReport(t *testing.T) {
-	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
+	openapiContract, _ := openapilib.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
 	issue := report.Issue{
@@ -102,11 +97,7 @@ func TestReporterWithOpenAPIDoc_AddReport(t *testing.T) {
 	}
 	sr := report.NewScanReport("id", "test", operations[0]).AddIssueReport(report.NewIssueReport(issue).Fail())
 	reporter.AddReport(sr)
-	expectedIssue := &report.IssueReport{
-		Issue:  issue,
-		Status: report.IssueReportStatusFailed,
-		Scans:  []*report.IssueScanReport{},
-	}
+	expectedIssue := report.NewIssueReport(issue).WithStatus(report.IssueReportStatusFailed)
 
 	assert.NotEmpty(t, reporter.ScanReports)
 	assert.Equal(t, 1, len(reporter.ScanReports))

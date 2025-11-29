@@ -143,7 +143,7 @@ func TestScanReport_AddScanAttempt(t *testing.T) {
 func TestScanReport_AddIssueReport(t *testing.T) {
 	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, nil)
 	sr := report.NewScanReport("id", "test", operation)
-	IssueReport := &report.IssueReport{}
+	IssueReport := report.NewIssueReport(report.Issue{Name: "test"})
 	sr.AddIssueReport(IssueReport)
 	assert.Equal(t, 1, len(sr.GetIssueReports()))
 	assert.Equal(t, IssueReport, sr.GetIssueReports()[0])
@@ -207,7 +207,7 @@ func TestMarshalJSON(t *testing.T) {
 		Err: nil,
 	}
 	sr.AddScanAttempt(scanAttempt)
-	IssueReport := &report.IssueReport{}
+	IssueReport := report.NewIssueReport(report.Issue{Name: "test"})
 	sr.AddIssueReport(IssueReport)
 
 	_, err := json.Marshal(sr)
@@ -220,8 +220,8 @@ func TestScanReport_GetIssueReports(t *testing.T) {
 	sr := report.NewScanReport("id", "test", operation)
 	assert.Empty(t, sr.GetIssueReports())
 
-	issueReport1 := &report.IssueReport{}
-	issueReport2 := &report.IssueReport{}
+	issueReport1 := report.NewIssueReport(report.Issue{})
+	issueReport2 := report.NewIssueReport(report.Issue{})
 	sr.AddIssueReport(issueReport1)
 	sr.AddIssueReport(issueReport2)
 

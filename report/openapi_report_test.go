@@ -1,7 +1,6 @@
 package report_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -11,9 +10,9 @@ import (
 )
 
 func TestNewOpenAPIReportOperation(t *testing.T) {
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := doc.Operations(nil, securitySchemesMap)
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := doc.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := doc.Operations(t.Context(), nil, securitySchemesMap)
 	securitySchemes := operations[0].GetSecuritySchemes()
 
 	o := operations.GetByID("getRoot")
@@ -27,9 +26,9 @@ func TestNewOpenAPIReportOperation(t *testing.T) {
 }
 
 func TestNewOpenAPIReport(t *testing.T) {
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := doc.Operations(nil, securitySchemesMap)
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := doc.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := doc.Operations(t.Context(), nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)
 
@@ -41,9 +40,9 @@ func TestNewOpenAPIReport(t *testing.T) {
 }
 
 func Test_OpenAPIReport_AddReport(t *testing.T) {
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := doc.Operations(nil, securitySchemesMap)
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := doc.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := doc.Operations(t.Context(), nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)
 
@@ -64,9 +63,9 @@ func Test_OpenAPIReport_AddReport(t *testing.T) {
 }
 
 func Test_OpenAPIReport_AddReport_NoFailedIssue(t *testing.T) {
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := doc.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := doc.Operations(nil, securitySchemesMap)
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := doc.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := doc.Operations(t.Context(), nil, securitySchemesMap)
 
 	r := report.NewOpenAPIReport(doc.Doc, operations)
 

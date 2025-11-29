@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
-	"go.opentelemetry.io/otel"
+	"github.com/cerberauth/x/telemetryx"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type ScanOptions struct {
@@ -23,9 +23,18 @@ type Scan struct {
 
 	Operations      operation.Operations
 	OperationsScans []OperationScan
+
+	telemetryScanHandlerCounter   metric.Int64Counter
+	telemetryOperationScanHandler metric.Int64Counter
 }
 
-var tracer = otel.Tracer("scan")
+const (
+	otelName = "github.com/cerberauth/vulnapi/scan"
+
+	otelScanIncludeScansAttribute = attribute.Key("include_scans")
+	otelScanExcludeScansAttribute = attribute.Key("exclude_scans")
+	otelScanHandlerIdAttribute    = attribute.Key("id")
+)
 
 func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) {
 	if len(operations) == 0 {
@@ -40,11 +49,23 @@ func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) 
 		opts.Reporter = report.NewReporter()
 	}
 
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
+	telemetryScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.scan_handler.counter")
+	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
+	telemetryScanCounter.Add(context.Background(), 1, metric.WithAttributes(
+		otelScanIncludeScansAttribute.StringSlice(opts.IncludeScans),
+		otelScanExcludeScansAttribute.StringSlice(opts.ExcludeScans),
+	))
+
 	return &Scan{
 		ScanOptions: opts,
 
 		Operations:      operations,
 		OperationsScans: []OperationScan{},
+
+		telemetryScanHandlerCounter:   telemetryScanHandlerCounter,
+		telemetryOperationScanHandler: telemetryOperationScanHandlerCounter,
 	}, nil
 }
 
@@ -63,6 +84,11 @@ func (s *Scan) AddOperationScanHandler(handler *OperationScanHandler) *Scan {
 			ScanHandler: handler,
 		})
 	}
+
+	s.telemetryOperationScanHandler.Add(context.Background(), int64(len(s.Operations)), metric.WithAttributes(
+		otelScanHandlerIdAttribute.String(handler.ID),
+	))
+
 	return s
 }
 
@@ -75,13 +101,15 @@ func (s *Scan) AddScanHandler(handler *OperationScanHandler) *Scan {
 		Operation:   s.Operations[0],
 		ScanHandler: handler,
 	})
+
+	s.telemetryOperationScanHandler.Add(context.Background(), 1, metric.WithAttributes(
+		otelScanHandlerIdAttribute.String(handler.ID),
+	))
+
 	return s
 }
 
 func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *OperationScan)) (*report.Reporter, []error, error) {
-	ctx, span := tracer.Start(ctx, "Execute Scan")
-	defer span.End()
-
 	if scanCallback == nil {
 		scanCallback = func(operationScan *OperationScan) {}
 	}
@@ -92,23 +120,9 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 			continue
 		}
 
-		operationCtx, operationSpan := tracer.Start(ctx, "Operation Scan")
-		operationSpan.SetAttributes(
-			attribute.String("method", scan.Operation.Method),
-			attribute.String("handler", scan.ScanHandler.ID),
-		)
-
 		securityScheme := scan.Operation.GetSecurityScheme() // TODO: handle multiple security schemes
-		_, operationSecuritySchemeSpan := tracer.Start(operationCtx, "Using Security Scheme")
-		operationSecuritySchemeSpan.SetAttributes(
-			attribute.String("name", auth.GetSecuritySchemeUniqueName(securityScheme)),
-			attribute.String("type", string(securityScheme.GetType())),
-			attribute.String("scheme", string(securityScheme.GetScheme())),
-		)
-
 		report, err := scan.ScanHandler.Handler(scan.Operation, securityScheme)
 		if err != nil {
-			operationSpan.RecordError(err)
 			errors = append(errors, err)
 		}
 
@@ -117,8 +131,6 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 		}
 
 		scanCallback(&scan)
-		operationSecuritySchemeSpan.End()
-		operationSpan.End()
 	}
 
 	return s.Reporter, errors, nil

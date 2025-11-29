@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/codes"
 )
 
 type NewOpenAPIScanRequest struct {
@@ -29,20 +27,13 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	traceCtx, span := tracer.Start(ctx, "Scan OpenAPI")
-	defer span.End()
-
-	doc, err := openapi.LoadFromData(traceCtx, []byte(form.Schema))
+	doc, err := openapi.LoadFromData(ctx, []byte(form.Schema))
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := doc.Validate(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -59,33 +50,26 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		}
 	}
 	securitySchemesValues := openapi.NewSecuritySchemeValues(values)
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
+	s, err := scenario.NewOpenAPIScan(ctx, doc, securitySchemesValues, client, &scan.ScanOptions{
 		IncludeScans: form.Opts.Scans,
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(traceCtx, nil)
+	reporter, _, err := s.Execute(ctx, nil)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	analytics.TrackScanReport(traceCtx, reporter)
 
 	response := HTTPResponseReports{
 		Reports: reporter.GetScanReports(),
 	}
 	_, err = json.Marshal(response)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

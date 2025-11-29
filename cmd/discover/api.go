@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func NewAPICmd() (apiCmd *cobra.Command) {
@@ -21,24 +21,25 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 		Short: "Discover api endpoints and server information",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx, span := tracer.Start(cmd.Context(), "Discover API")
-			defer span.End()
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryDiscoverApiSuccessCounter, _ := telemetryMeter.Int64Counter("discover.api.success.counter")
+			telemetryDiscoverApiErrorCounter, _ := telemetryMeter.Int64Counter("discover.api.error.counter")
+			ctx := cmd.Context()
 
 			if args[0] == "" {
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("url is required")))
 				log.Fatal("url is required")
 			}
 
 			parsedUrl, err := url.Parse(args[0])
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid url")))
 				log.Fatal(err)
 			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
 				log.Fatal(err)
 			}
 
@@ -47,8 +48,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))
 				log.Fatal(err)
 			}
 
@@ -65,14 +65,14 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error executing scan")))
 				log.Fatal(err)
 			}
 
-			analytics.TrackScanReport(ctx, reporter)
 			printtable.WellKnownPathsScanReport(reporter)
 			printtable.FingerprintScanReport(reporter)
+
+			telemetryDiscoverApiSuccessCounter.Add(ctx, 1)
 		},
 	}
 

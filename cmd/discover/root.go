@@ -2,10 +2,14 @@ package discover
 
 import (
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
-var tracer = otel.Tracer("cmd/discover")
+const (
+	otelName = "github.com/cerberauth/vulnapi/cmd/discover"
+
+	otelErrorReasonAttributeKey = attribute.Key("error_reason")
+)
 
 func NewDiscoverCmd() (discoverCmd *cobra.Command) {
 	discoverCmd = &cobra.Command{
