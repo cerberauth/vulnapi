@@ -5,15 +5,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func isStdinOpen() bool {
@@ -41,24 +42,32 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		Short: "OpenAPI Operations Scan",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			otelIncludeScansAttribute := includeScansAttributeKey.StringSlice(internalCmd.GetIncludeScans())
+			otelExcludeScansAttribute := excludeScansAttributeKey.StringSlice(internalCmd.GetExcludeScans())
+			otelAttributes := []attribute.KeyValue{
+				otelIncludeScansAttribute,
+				otelExcludeScansAttribute,
+			}
+
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryScanOpenAPISuccessCounter, _ := telemetryMeter.Int64Counter("scan.openapi.success.counter")
+			telemetryScanOpenAPIErrorCounter, _ := telemetryMeter.Int64Counter("scan.openapi.error.counter")
+			ctx := cmd.Context()
+
 			openapiUrlOrPath := args[0]
 			if openapiUrlOrPath == "" {
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("openapi path is required"))...))
 				log.Fatal("OpenAPI path is required")
 			}
 
-			ctx, span := tracer.Start(cmd.Context(), "Scan OpenAPI")
-			defer span.End()
-
 			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error loading openapi"))...))
 				log.Fatal(err)
 			}
 
 			if err := doc.Validate(ctx); err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid openapi"))...))
 				log.Fatal(err)
 			}
 
@@ -75,19 +84,17 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error creating http client"))...))
 				log.Fatal(err)
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewOpenAPIScan(doc, securitySchemesValues, client, &scan.ScanOptions{
+			s, err := scenario.NewOpenAPIScan(ctx, doc, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
 				log.Fatal(err)
 			}
 
@@ -104,17 +111,16 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error executing scan"))...))
 				log.Fatal(err)
 			}
 
-			analytics.TrackScanReport(ctx, reporter)
 			if err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter); err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
 				log.Fatal(err)
 			}
+
+			telemetryScanOpenAPISuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
 		},
 	}
 

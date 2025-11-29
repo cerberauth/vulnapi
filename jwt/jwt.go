@@ -5,10 +5,7 @@ import (
 	"regexp"
 
 	"github.com/golang-jwt/jwt/v5"
-	"go.opentelemetry.io/otel"
 )
-
-var tracer = otel.Tracer("jwt")
 
 var jwtRegexp = `^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$`
 

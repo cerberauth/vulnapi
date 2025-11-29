@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/report"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 )
 
 type ScanOptions struct {
@@ -25,7 +22,9 @@ type Scan struct {
 	OperationsScans []OperationScan
 }
 
-var tracer = otel.Tracer("scan")
+const (
+	otelName = "github.com/cerberauth/vulnapi/scan"
+)
 
 func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) {
 	if len(operations) == 0 {
@@ -79,9 +78,6 @@ func (s *Scan) AddScanHandler(handler *OperationScanHandler) *Scan {
 }
 
 func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *OperationScan)) (*report.Reporter, []error, error) {
-	ctx, span := tracer.Start(ctx, "Execute Scan")
-	defer span.End()
-
 	if scanCallback == nil {
 		scanCallback = func(operationScan *OperationScan) {}
 	}
@@ -92,23 +88,9 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 			continue
 		}
 
-		operationCtx, operationSpan := tracer.Start(ctx, "Operation Scan")
-		operationSpan.SetAttributes(
-			attribute.String("method", scan.Operation.Method),
-			attribute.String("handler", scan.ScanHandler.ID),
-		)
-
 		securityScheme := scan.Operation.GetSecurityScheme() // TODO: handle multiple security schemes
-		_, operationSecuritySchemeSpan := tracer.Start(operationCtx, "Using Security Scheme")
-		operationSecuritySchemeSpan.SetAttributes(
-			attribute.String("name", auth.GetSecuritySchemeUniqueName(securityScheme)),
-			attribute.String("type", string(securityScheme.GetType())),
-			attribute.String("scheme", string(securityScheme.GetScheme())),
-		)
-
 		report, err := scan.ScanHandler.Handler(scan.Operation, securityScheme)
 		if err != nil {
-			operationSpan.RecordError(err)
 			errors = append(errors, err)
 		}
 
@@ -117,8 +99,6 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 		}
 
 		scanCallback(&scan)
-		operationSecuritySchemeSpan.End()
-		operationSpan.End()
 	}
 
 	return s.Reporter, errors, nil

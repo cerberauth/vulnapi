@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/codes"
 )
 
 type NewURLScanRequest struct {
@@ -33,9 +31,6 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		return
 	}
 
-	traceCtx, span := tracer.Start(ctx.Request.Context(), "Scan URL")
-	defer span.End()
-
 	opts := parseScanOptions(form.Opts)
 	opts.Header = ctx.Request.Header
 	opts.Cookies = ctx.Request.Cookies()
@@ -46,18 +41,15 @@ func (h *Handler) ScanURL(ctx *gin.Context) {
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	reporter, _, err := s.Execute(traceCtx, nil)
+	reporter, _, err := s.Execute(ctx, nil)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	analytics.TrackScanReport(traceCtx, reporter)
 
 	ctx.JSON(http.StatusOK, HTTPResponseReports{
 		Reports: reporter.GetScanReports(),

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func NewDomainCmd() (domainCmd *cobra.Command) {
@@ -20,15 +20,16 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 		Short: "Discover subdomains with API endpoints",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			domain := args[0]
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryDiscoverDomainSuccessCounter, _ := telemetryMeter.Int64Counter("discover.domain.success.counter")
+			telemetryDiscoverDomainErrorCounter, _ := telemetryMeter.Int64Counter("discover.domain.error.counter")
+			ctx := cmd.Context()
 
-			ctx, span := tracer.Start(cmd.Context(), "Discover Domain")
-			defer span.End()
+			domain := args[0]
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
 				log.Fatal(err)
 			}
 
@@ -38,8 +39,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))
 				log.Fatal(err)
 			}
 			fmt.Printf("Found %d Domains\n", len(scans))
@@ -61,14 +61,14 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					}
 				})
 				if err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
+					telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error executing scan")))
 					log.Fatal(err)
 				}
 
-				analytics.TrackScanReport(ctx, reporter)
 				printtable.WellKnownPathsScanReport(reporter)
 				printtable.FingerprintScanReport(reporter)
+
+				telemetryDiscoverDomainSuccessCounter.Add(ctx, 1)
 			}
 		},
 	}

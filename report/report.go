@@ -7,7 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type OperationSecurityScheme struct {
@@ -75,7 +75,11 @@ type ScanReport struct {
 	Issues []*IssueReport   `json:"issues" yaml:"issues"`
 }
 
-var tracer = otel.Tracer("report")
+const (
+	otelName = "github.com/cerberauth/vulnapi/report"
+
+	otelIdAttribute = attribute.Key("id")
+)
 
 func NewScanReport(id string, name string, operation *operation.Operation) *ScanReport {
 	var scanOperation *ScanReportOperation

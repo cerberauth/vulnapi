@@ -2,14 +2,26 @@ package openapi
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"path"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/getkin/kin-openapi/openapi3"
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go/v2"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+)
+
+const (
+	otelMethodAttributeKey               = attribute.Key("method")
+	otelHeadersCountAttributeKey         = attribute.Key("headers_count")
+	otelCookiesCountAttributeKey         = attribute.Key("cookies_count")
+	otelMediaTypeAttributeKey            = attribute.Key("media_type")
+	otelSecuritySchemesTypesAttributeKey = attribute.Key("security_schemes")
 )
 
 func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) []*auth.SecurityScheme {
@@ -47,14 +59,38 @@ func GetOperationPath(p string, params openapi3.Parameters) (string, error) {
 	return stduritemplate.Expand(p, subs)
 }
 
-func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.SecuritySchemesMap) (operation.Operations, error) {
+func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, securitySchemes auth.SecuritySchemesMap) (operation.Operations, error) {
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetryPathCounter, _ := telemetryMeter.Int64Counter(
+		"path.counter",
+		metric.WithDescription("Number of paths"),
+		metric.WithUnit("{path}"),
+	)
+	telemetryOperationCounter, _ := telemetryMeter.Int64Counter(
+		"operation.counter",
+		metric.WithDescription("Number of operations"),
+		metric.WithUnit("{operation}"),
+	)
+	telemetryOperationErrorCounter, _ := telemetryMeter.Int64Counter(
+		"operation.error.counter",
+		metric.WithDescription("Number of errors in operations"),
+		metric.WithUnit("{operation-error}"),
+	)
+
 	baseUrl := openapi.BaseUrl()
 
 	operations := operation.Operations{}
 	for docPath, p := range openapi.Doc.Paths.Map() {
+		telemetryPathCounter.Add(ctx, 1)
+
 		for method, o := range p.Operations() {
+			var otelAttributes = []attribute.KeyValue{
+				otelMethodAttributeKey.String(method),
+			}
+
 			operationPath, err := GetOperationPath(docPath, o.Parameters)
 			if err != nil {
+				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid operation path"))...))
 				return nil, err
 			}
 
@@ -81,6 +117,8 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 					})
 				}
 			}
+			otelAttributes = append(otelAttributes, otelHeadersCountAttributeKey.Int64(int64(len(header))))
+			otelAttributes = append(otelAttributes, otelCookiesCountAttributeKey.Int64(int64(len(cookies))))
 
 			var body *bytes.Buffer
 			var mediaType string
@@ -92,9 +130,11 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 			} else {
 				body = bytes.NewBuffer(nil)
 			}
+			otelAttributes = append(otelAttributes, otelMediaTypeAttributeKey.String(mediaType))
 
 			operation, err := operation.NewOperation(method, operationUrl.String(), body, client)
 			if err != nil {
+				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("new operation error"))...))
 				return nil, err
 			}
 			operation.WithOpenapiOperation(docPath, o)
@@ -106,7 +146,14 @@ func (openapi *OpenAPI) Operations(client *request.Client, securitySchemes auth.
 				operation.SetSecuritySchemes(getOperationSecuritySchemes(&openapi.Doc.Security, securitySchemes))
 			}
 
+			telemetrySecuritySchemesTypes := []string{}
+			for _, v := range operation.GetSecuritySchemes() {
+				telemetrySecuritySchemesTypes = append(telemetrySecuritySchemesTypes, string(v.GetType()))
+			}
+			otelAttributes = append(otelAttributes, otelSecuritySchemesTypesAttributeKey.StringSlice(telemetrySecuritySchemesTypes))
+
 			operations = append(operations, operation)
+			telemetryOperationCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
 		}
 	}
 

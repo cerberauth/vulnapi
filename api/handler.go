@@ -2,10 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 )
-
-var tracer = otel.Tracer("server/api")
 
 type Handler struct{}
 

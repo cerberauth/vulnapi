@@ -4,14 +4,19 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+)
+
+var (
+	methodAttributeKey = attribute.Key("method")
 )
 
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
@@ -28,24 +33,34 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			otelMethodAttribute := methodAttributeKey.String(curlMethod)
+			otelIncludeScansAttribute := includeScansAttributeKey.StringSlice(internalCmd.GetIncludeScans())
+			otelExcludeScansAttribute := excludeScansAttributeKey.StringSlice(internalCmd.GetExcludeScans())
+			otelAttributes := []attribute.KeyValue{
+				otelMethodAttribute,
+				otelIncludeScansAttribute,
+				otelExcludeScansAttribute,
+			}
+
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryScanCurlSuccessCounter, _ := telemetryMeter.Int64Counter("scan.curl.success.counter")
+			telemetryScanCurlErrorCounter, _ := telemetryMeter.Int64Counter("scan.curl.error.counter")
+			ctx := cmd.Context()
+
 			if args[0] == "" {
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("url is required"))...))
 				log.Fatal("URL is required")
 			}
 
-			ctx, span := tracer.Start(cmd.Context(), "Scan cURL")
-			defer span.End()
-
 			parsedUrl, err := url.Parse(args[0])
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid url"))...))
 				log.Fatal(err)
 			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid client"))...))
 				log.Fatal(err)
 			}
 			request.SetDefaultClient(client)
@@ -55,8 +70,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
 				log.Fatal(err)
 			}
 
@@ -73,18 +87,17 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error executing scenario"))...))
 				log.Fatal(err)
 			}
 
-			analytics.TrackScanReport(ctx, reporter)
 			err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
 				log.Fatal(err)
 			}
+
+			telemetryScanCurlSuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
 		},
 	}
 

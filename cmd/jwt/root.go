@@ -7,15 +7,19 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/jwt"
+	"github.com/cerberauth/x/telemetryx"
 	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/metric"
 )
 
-var tracer = otel.Tracer("cmd/jwt")
+const (
+	otelName = "github.com/cerberauth/vulnapi/cmd/discover"
+
+	otelErrorReasonAttributeKey = attribute.Key("error_reason")
+	algorithmAttributeKey       = attribute.Key("algorithm")
+)
 
 type Algorithm string
 
@@ -73,19 +77,20 @@ func NewJWTCmd() (cmd *cobra.Command) {
 		Short: "Generate a new JWT token from an existing token",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var span trace.Span
-			_, span = tracer.Start(cmd.Context(), "Generate JWT Command")
-			defer span.End()
+			otelAlgorithmAttribute := algorithmAttributeKey.String(alg)
+
+			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+			telemetryJwtSuccessCounter, _ := telemetryMeter.Int64Counter("jwt.success.counter")
+			telemetryJwtErrorCounter, _ := telemetryMeter.Int64Counter("jwt.error.counter")
+			ctx := cmd.Context()
 
 			tokenString := args[0]
 			var key interface{}
 			var newTokenString string
 			tokenWriter, err := jwt.NewJWTWriter(tokenString)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryJwtErrorCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute, otelErrorReasonAttributeKey.String("invalid token")))
 				log.Fatal(err)
-				return
 			}
 
 			if secret != "" {
@@ -95,10 +100,8 @@ func NewJWTCmd() (cmd *cobra.Command) {
 			var signingMethod jwtlib.SigningMethod
 			if alg != "" {
 				if signingMethod, err = GetAlgorithm(alg); err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
+					telemetryJwtErrorCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute, otelErrorReasonAttributeKey.String("invalid algorithm")))
 					log.Fatal(err)
-					return
 				}
 			}
 
@@ -108,24 +111,19 @@ func NewJWTCmd() (cmd *cobra.Command) {
 
 			if signingMethod == nil || key == nil {
 				err = errors.New("algorithm and secret are required")
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryJwtErrorCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute, otelErrorReasonAttributeKey.String(err.Error())))
 				log.Fatal(err)
-				return
 			}
 
-			span.SetAttributes(
-				attribute.String("alg", signingMethod.Alg()),
-			)
 			newTokenString, err = tokenWriter.SignWithMethodAndKey(signingMethod, key)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+				telemetryJwtErrorCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute, otelErrorReasonAttributeKey.String("invalid token")))
 				log.Fatal(err)
-				return
 			}
 
 			fmt.Println(newTokenString)
+
+			telemetryJwtSuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute))
 		},
 	}
 

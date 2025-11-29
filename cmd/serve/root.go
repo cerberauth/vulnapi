@@ -7,7 +7,6 @@ import (
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 var (
@@ -21,7 +20,6 @@ func NewServeCmd() (serveCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			r := gin.New()
 			r.Use(gin.Recovery())
-			r.Use(otelgin.Middleware("vulnapi"))
 			r.Use(requestid.New())
 
 			handler := api.NewHandler()

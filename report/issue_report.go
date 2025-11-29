@@ -1,14 +1,11 @@
 package report
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type IssueReportStatus string
@@ -95,14 +92,6 @@ func (vr *IssueReport) WithBooleanStatus(status bool) *IssueReport {
 }
 
 func (vr *IssueReport) Fail() *IssueReport {
-	_, span := tracer.Start(context.Background(), "Issue.Failed", trace.WithAttributes(
-		attribute.String("id", vr.ID),
-		attribute.String("name", vr.Name),
-		attribute.Float64("CVSS", vr.CVSS.Score),
-		attribute.String("securityScheme", auth.GetSecuritySchemeUniqueName(vr.SecurityScheme)),
-	))
-	span.End()
-
 	vr.Status = IssueReportStatusFailed
 	return vr
 }

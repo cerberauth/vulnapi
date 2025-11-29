@@ -1,7 +1,6 @@
 package report_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -79,9 +78,9 @@ func TestNewReporterWithCurl_AddReport(t *testing.T) {
 }
 
 func TestNewReporterWithOpenAPIDoc(t *testing.T) {
-	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
+	openapiContract, _ := openapilib.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
@@ -91,9 +90,9 @@ func TestNewReporterWithOpenAPIDoc(t *testing.T) {
 }
 
 func TestReporterWithOpenAPIDoc_AddReport(t *testing.T) {
-	openapiContract, _ := openapilib.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, _ := openapiContract.Operations(nil, securitySchemesMap)
+	openapiContract, _ := openapilib.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, _ := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 	reporter := report.NewReporterWithOpenAPIDoc(openapiContract.Doc, operations)
 
 	issue := report.Issue{

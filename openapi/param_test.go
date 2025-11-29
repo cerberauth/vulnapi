@@ -14,8 +14,8 @@ func TestGetSchemaValue_WhenNoParameters(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -30,8 +30,8 @@ func TestGetSchemaValue_WhenHeaderParametersWithExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: header, required: true, schema: {type: string, example: example}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -46,8 +46,8 @@ func TestGetSchemaValue_WhenHeaderParametersWithoutExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: header, required: true, schema: {type: string}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -63,8 +63,8 @@ func TestGetSchemaValue_WhenHeaderParametersNotRequired(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: header, schema: {type: string, example: example}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -79,8 +79,8 @@ func TestGetSchemaValue_WhenCookieParametersWithExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: cookie, required: true, schema: {type: string, example: example}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -95,8 +95,8 @@ func TestGetSchemaValue_WhenCookieParametersWithoutExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: cookie, required: true, schema: {type: string}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -112,8 +112,8 @@ func TestGetSchemaValue_WhenCookieParametersNotRequired(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [{name: param, in: cookie, schema: {type: string, example: example}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -128,8 +128,8 @@ func TestGetSchemaValue_WhenPathParametersWithExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {'/{param}': {get: {parameters: [{name: param, in: path, required: true, schema: {type: string, example: example}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -144,8 +144,8 @@ func TestGetSchemaValue_WhenPathParametersWithoutExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {'/{param}': {get: {parameters: [{name: param, in: path, required: true, schema: {type: string}}], responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -161,8 +161,8 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: string, example: example}}}}, responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -180,8 +180,8 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithMultiMediaTypes(t *testing.
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/xml': {schema: {type: string, example: example}},'application/json': {schema: {type: string, example: example}}}}, responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "application/json", operations[0].Header.Get("Content-Type"))
@@ -195,8 +195,8 @@ func TestGetSchemaValue_WhenRequestBodyParametersWithoutExample(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: string}}}}, responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -212,8 +212,8 @@ func TestGetSchemaValue_WhenRequestBodyParametersIsString(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {post: {requestBody: {content: {'application/json': {schema: {type: string, example: example}}}}, responses: {'204': {description: successful operation}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, err)
 	assert.Len(t, operations, 1)
@@ -301,8 +301,8 @@ func TestGetSchemaValue_RequestBodyParameters(t *testing.T) {
 				[]byte(tt.schema),
 			)
 
-			securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-			operations, err := openapiContract.Operations(nil, securitySchemesMap)
+			securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+			operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 			assert.NoError(t, err)
 			assert.NotNil(t, operations[0].Body)
@@ -385,8 +385,8 @@ func TestGetSchemaValue_RequestBodyParametersAndExample(t *testing.T) {
 				[]byte(tt.schema),
 			)
 
-			securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-			operations, err := openapiContract.Operations(nil, securitySchemesMap)
+			securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+			operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 			assert.NoError(t, err)
 			assert.NotNil(t, operations[0].Body)
@@ -401,8 +401,8 @@ func TestRecursiveParameters(t *testing.T) {
 		[]byte(`{"openapi":"3.0.2","servers":[{"url":"http://localhost:8080"}],"paths":{"/":{"post":{"summary":"Create an item","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Item"}}}},"responses":{"201":{"description":"Item created","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Item"}}}}}}}},"components":{"schemas":{"Item":{"type":"object","properties":{"details":{"type":"object","properties":{"description":{"type":"string"},"attributes":{"type":"array","items":{"$ref":"#/components/schemas/Attribute"}}}}}},"Attribute":{"type":"object","properties":{"key":{"type":"string"},"value":{"type":"string"},"subAttributes":{"type":"array","items":{"$ref":"#/components/schemas/Attribute"}}}}}}}}`),
 	)
 
-	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(openapi.NewEmptySecuritySchemeValues())
-	operations, err := openapiContract.Operations(nil, securitySchemesMap)
+	securitySchemesMap, _ := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemesMap)
 
 	assert.NoError(t, operr)
 	assert.NoError(t, err)
