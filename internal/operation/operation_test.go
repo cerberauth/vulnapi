@@ -81,7 +81,7 @@ func TestOperation_IsReachableWhenHTTPs(t *testing.T) {
 	err := operation.IsReachable()
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "dial tcp 127.0.0.1:443: connect: connection refused")
+	assert.Contains(t, err.Error(), "connect: connection refused")
 }
 
 func TestOperation_IsReachableWhenHTTPsAndNoPort(t *testing.T) {

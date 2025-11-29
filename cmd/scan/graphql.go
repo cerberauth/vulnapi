@@ -2,6 +2,7 @@ package scan
 
 import (
 	"log"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
@@ -22,10 +23,19 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			graphqlEndpoint := args[0]
+			if args[0] == "" {
+				log.Fatal("Endpoint url is required")
+			}
 
 			ctx, span := tracer.Start(cmd.Context(), "Scan GraphQL")
 			defer span.End()
+
+			parsedUrl, err := url.Parse(args[0])
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				log.Fatal(err)
+			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
@@ -35,7 +45,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewGraphQLScan(graphqlEndpoint, client, &scan.ScanOptions{
+			s, err := scenario.NewGraphQLScan(parsedUrl, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

@@ -2,6 +2,7 @@ package scan
 
 import (
 	"log"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/analytics"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
@@ -15,7 +16,6 @@ import (
 
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	var (
-		curlUrl    string
 		curlMethod string
 		curlData   string
 	)
@@ -28,10 +28,19 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			curlUrl = args[0]
+			if args[0] == "" {
+				log.Fatal("URL is required")
+			}
 
 			ctx, span := tracer.Start(cmd.Context(), "Scan cURL")
 			defer span.End()
+
+			parsedUrl, err := url.Parse(args[0])
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				log.Fatal(err)
+			}
 
 			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
 			if err != nil {
@@ -41,7 +50,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewURLScan(curlMethod, curlUrl, curlData, client, &scan.ScanOptions{
+			s, err := scenario.NewURLScan(curlMethod, parsedUrl, curlData, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

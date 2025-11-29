@@ -1,6 +1,9 @@
 package scenario
 
 import (
+	"errors"
+	"net/url"
+
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
@@ -12,13 +15,17 @@ import (
 	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
 )
 
-func NewDiscoverAPIScan(method string, url string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewDiscoverAPIScan(method string, u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+	if u == nil {
+		return nil, errors.New("url is required")
+	}
+
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
 
-	url = addDefaultProtocolWhenMissing(url)
-	op, err := operation.NewOperation(method, url, nil, client)
+	u = addDefaultProtocolWhenMissing(u)
+	op, err := operation.NewOperation(method, u.String(), nil, client)
 	if err != nil {
 		return nil, err
 	}

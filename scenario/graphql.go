@@ -1,7 +1,9 @@
 package scenario
 
 import (
+	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
@@ -11,7 +13,11 @@ import (
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
 )
 
-func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewGraphQLScan(u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+	if u == nil {
+		return nil, errors.New("url is required")
+	}
+
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
@@ -29,8 +35,8 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 	}
 	client.ClearSecuritySchemes(securitySchemes)
 
-	url = addDefaultProtocolWhenMissing(url)
-	op, err := operation.NewOperation(http.MethodPost, url, nil, client)
+	u = addDefaultProtocolWhenMissing(u)
+	op, err := operation.NewOperation(http.MethodPost, u.String(), nil, client)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +51,7 @@ func NewGraphQLScan(url string, client *request.Client, opts *scan.ScanOptions) 
 	}
 
 	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporterWithGraphQL(url, securitySchemes)
+		opts.Reporter = report.NewReporterWithGraphQL(u.String(), securitySchemes)
 	}
 
 	operations := operation.Operations{op}
