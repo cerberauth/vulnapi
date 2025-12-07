@@ -2,10 +2,16 @@ package scan
 
 import (
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
-var tracer = otel.Tracer("cmd/scan")
+const (
+	otelName = "github.com/cerberauth/vulnapi/cmd/scan"
+
+	otelErrorReasonAttributeKey = attribute.Key("error_reason")
+	includeScansAttributeKey    = attribute.Key("include_scans")
+	excludeScansAttributeKey    = attribute.Key("exclude_scans")
+)
 
 func NewScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{

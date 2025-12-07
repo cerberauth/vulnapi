@@ -44,12 +44,12 @@ func TestMain(m *testing.M) {
 
 func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 	token := "token"
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer.openapi.json")
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer.openapi.json")
 	securitySchemeValues := openapi.NewSecuritySchemeValues(map[string]interface{}{
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -60,13 +60,13 @@ func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 
 func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/simple_http_bearer_jwt.openapi.json")
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/simple_http_bearer_jwt.openapi.json")
 	expectedSecurityScheme := auth.MustNewAuthorizationBearerSecurityScheme("bearer_auth", &token)
 	securitySchemeValues := openapi.NewSecuritySchemeValues(map[string]interface{}{
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -79,13 +79,13 @@ func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 	gofakeit.Seed(1)
 
 	token := "token"
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/basic_http_bearer.openapi.json")
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/basic_http_bearer.openapi.json")
 	securitySchemes := []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 	securitySchemeValues := openapi.NewSecuritySchemeValues(map[string]interface{}{
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
@@ -98,13 +98,13 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 	gofakeit.Seed(1)
 
 	token := "token"
-	doc, _ := openapi.LoadOpenAPI(context.Background(), "../test/stub/basic_http_bearer.openapi.json")
+	doc, _ := openapi.LoadOpenAPI(t.Context(), "../test/stub/basic_http_bearer.openapi.json")
 	securitySchemes := []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("bearer_auth", &token)}
 	securitySchemeValues := openapi.NewSecuritySchemeValues(map[string]interface{}{
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))

@@ -1,13 +1,16 @@
 package report
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
-	"go.opentelemetry.io/otel"
+	"github.com/cerberauth/x/telemetryx"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type OperationSecurityScheme struct {
@@ -73,9 +76,18 @@ type ScanReport struct {
 	Data   interface{}      `json:"data,omitempty" yaml:"data,omitempty"`
 	Scans  []ScanReportScan `json:"scans" yaml:"scans"`
 	Issues []*IssueReport   `json:"issues" yaml:"issues"`
+
+	telemetryScanAttemptsCounter      metric.Int64Counter
+	telemetryErrorsCounter            metric.Int64Counter
+	telemetryIssuesCounter            metric.Int64Counter
+	telemetryAverageDurationHistogram metric.Int64Histogram
 }
 
-var tracer = otel.Tracer("report")
+const (
+	otelName = "github.com/cerberauth/vulnapi/report"
+
+	otelScanReportIdAttribute = attribute.Key("id")
+)
 
 func NewScanReport(id string, name string, operation *operation.Operation) *ScanReport {
 	var scanOperation *ScanReportOperation
@@ -84,6 +96,12 @@ func NewScanReport(id string, name string, operation *operation.Operation) *Scan
 			ID: operation.ID,
 		}
 	}
+
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetryScanAttemptsCounter, _ := telemetryMeter.Int64Counter("report.scan_attempts.counter")
+	telemetryErrorsCounter, _ := telemetryMeter.Int64Counter("report.errors.counter")
+	telemetryIssuesCounter, _ := telemetryMeter.Int64Counter("report.issues.counter")
+	telemetryAverageDurationHistogram, _ := telemetryMeter.Int64Histogram("report.average_duration.histogram")
 
 	return &ScanReport{
 		ID:        id,
@@ -94,6 +112,11 @@ func NewScanReport(id string, name string, operation *operation.Operation) *Scan
 
 		Scans:  []ScanReportScan{},
 		Issues: []*IssueReport{},
+
+		telemetryScanAttemptsCounter:      telemetryScanAttemptsCounter,
+		telemetryErrorsCounter:            telemetryErrorsCounter,
+		telemetryIssuesCounter:            telemetryIssuesCounter,
+		telemetryAverageDurationHistogram: telemetryAverageDurationHistogram,
 	}
 }
 
@@ -104,6 +127,7 @@ func (r *ScanReport) Start() *ScanReport {
 
 func (r *ScanReport) End() *ScanReport {
 	r.EndTime = time.Now()
+	r.telemetryAverageDurationHistogram.Record(context.Background(), int64(r.EndTime.Sub(r.StartTime).Milliseconds()), metric.WithAttributes(otelScanReportIdAttribute.String(r.ID)))
 	return r
 }
 
@@ -153,6 +177,15 @@ func (r *ScanReport) AddScanAttempt(attempt *scan.IssueScanAttempt) *ScanReport 
 		Response: reportResponse,
 		Err:      attempt.Err,
 	})
+
+	attributes := metric.WithAttributes(
+		otelScanReportIdAttribute.String(r.ID),
+	)
+	r.telemetryScanAttemptsCounter.Add(context.Background(), 1, attributes)
+	if attempt.Err != nil {
+		r.telemetryErrorsCounter.Add(context.Background(), 1, attributes)
+	}
+
 	return r
 }
 
@@ -162,6 +195,10 @@ func (r *ScanReport) GetScanAttempts() []ScanReportScan {
 
 func (r *ScanReport) AddIssueReport(vr *IssueReport) *ScanReport {
 	r.Issues = append(r.Issues, vr)
+	r.telemetryIssuesCounter.Add(context.Background(), 1, metric.WithAttributes(
+		otelScanReportIdAttribute.String(r.ID),
+		otelIssueIdAttribute.String(vr.ID),
+	))
 	return r
 }
 

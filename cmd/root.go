@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,10 +11,15 @@ import (
 	"github.com/cerberauth/vulnapi/cmd/jwt"
 	"github.com/cerberauth/vulnapi/cmd/scan"
 	"github.com/cerberauth/vulnapi/cmd/serve"
-	"github.com/cerberauth/vulnapi/internal/analytics"
+	"github.com/cerberauth/x/telemetryx"
 )
 
-var sqaOptOut bool
+var (
+	sqaOptOut    bool
+	otelShutdown func(context.Context) error
+)
+
+var name = "vulnapi"
 
 func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 	versionCmd := &cobra.Command{
@@ -26,19 +32,17 @@ func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 	}
 
 	rootCmd := &cobra.Command{
-		Use:   "vulnapi",
-		Short: "vulnapi",
+		Use:   name,
+		Short: name,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !sqaOptOut {
-				_, err := analytics.NewAnalytics(cmd.Context(), projectVersion)
-				if err != nil {
-					fmt.Println("Failed to initialize analytics:", err)
-				}
+				otelShutdown, _ = telemetryx.New(cmd.Context(), name, projectVersion)
 			}
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			if !sqaOptOut {
-				analytics.Close()
+			if otelShutdown != nil {
+				_ = otelShutdown(cmd.Context())
+				otelShutdown = nil
 			}
 		},
 	}
@@ -55,8 +59,21 @@ func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 
 func Execute(projectVersion string) {
 	c := NewRootCmd(projectVersion)
+	defer func() {
+		if otelShutdown != nil {
+			_ = otelShutdown(context.Background())
+			otelShutdown = nil
+		}
+	}()
 
 	if err := c.Execute(); err != nil {
+		if otelShutdown != nil {
+			_ = otelShutdown(context.Background())
+			otelShutdown = nil
+		}
+
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		// nolint: gocritic // false positive
 		os.Exit(1)
 	}
 }
