@@ -5,21 +5,21 @@
 class Vulnapi < Formula
   desc "Scan your APIs for security vulnerabilities and weaknesses"
   homepage "https://vulnapi.cerberauth.com/"
-  version "0.8.9"
+  version "0.8.10"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.9/vulnapi_Darwin_x86_64.tar.gz"
-      sha256 "1799a389da81c0429a058a1a5209cf21ec1aa80fbd5197c922da40c21bf29b81"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.10/vulnapi_Darwin_x86_64.tar.gz"
+      sha256 "a27180dd0e8762eca0f3f8b9bfb92c7ace2c4eba0b09f43e176d7920cefdc01d"
 
       def install
         bin.install "vulnapi"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.9/vulnapi_Darwin_arm64.tar.gz"
-      sha256 "87a954ec25e1e39e44ca9fe5e13e3927a2bbb8c52e695e1c56e72c1b6c0ab7a5"
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.10/vulnapi_Darwin_arm64.tar.gz"
+      sha256 "fcef9d1377a4385825fa3a2ca0a575a84462112eaeb8f5cff738e68cee5d1f68"
 
       def install
         bin.install "vulnapi"
@@ -28,24 +28,18 @@ class Vulnapi < Formula
   end
 
   on_linux do
-    if Hardware::CPU.intel?
-      if Hardware::CPU.is_64_bit?
-        url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.9/vulnapi_Linux_x86_64.tar.gz"
-        sha256 "617bd6cd6392d183c903e9e1f3634df16540c863828fd03b0fb0575ae60cebf0"
-
-        def install
-          bin.install "vulnapi"
-        end
+    if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.10/vulnapi_Linux_x86_64.tar.gz"
+      sha256 "2d9e2464a6d45d26fcd6151f8a8eda0fb47b165f23f8d77a7ee06aa7ebbf9360"
+      def install
+        bin.install "vulnapi"
       end
     end
-    if Hardware::CPU.arm?
-      if Hardware::CPU.is_64_bit?
-        url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.9/vulnapi_Linux_arm64.tar.gz"
-        sha256 "dd258b5032e0f178e4d47409a8fb817d54047fd25695a717470c4f26e59a0559"
-
-        def install
-          bin.install "vulnapi"
-        end
+    if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
+      url "https://github.com/cerberauth/vulnapi/releases/download/v0.8.10/vulnapi_Linux_arm64.tar.gz"
+      sha256 "f2a57e74013b2e91e1a13822219187af52e68bb3b652051c5f0c81a3edbae424"
+      def install
+        bin.install "vulnapi"
       end
     end
   end
