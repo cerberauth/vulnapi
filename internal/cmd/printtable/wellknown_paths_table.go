@@ -10,7 +10,7 @@ import (
 	exposedfiles "github.com/cerberauth/vulnapi/scan/discover/exposed_files"
 	"github.com/cerberauth/vulnapi/scan/discover/healthcheck"
 	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
-	"github.com/olekukonko/tablewriter"
+	"github.com/fatih/color"
 )
 
 func wellKnownPathsFromReport(r *report.ScanReport, header string) [][]string {
@@ -53,14 +53,16 @@ func WellKnownPathsScanReport(reporter *report.Reporter) {
 	headers := []string{"Type", "URL"}
 	table := CreateTable(headers)
 
-	tableColors := make([]tablewriter.Colors, len(headers))
-	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
-	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
+	bold := color.New(color.Bold).SprintFunc()
 
 	for _, row := range rows {
-		table.Rich(row, tableColors)
+		rowAny := []any{
+			bold(row[0]),
+			bold(row[1]),
+		}
+		_ = table.Append(rowAny...)
 	}
 
-	table.Render()
+	_ = table.Render()
 	fmt.Println()
 }

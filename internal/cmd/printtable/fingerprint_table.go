@@ -5,7 +5,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover/fingerprint"
-	"github.com/olekukonko/tablewriter"
+	"github.com/fatih/color"
 )
 
 func FingerprintScanReport(reporter *report.Reporter) {
@@ -76,14 +76,16 @@ func FingerprintScanReport(reporter *report.Reporter) {
 	headers := []string{"Technologie/Service", "Value"}
 	table := CreateTable(headers)
 
-	tableColors := make([]tablewriter.Colors, len(headers))
-	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
-	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
+	bold := color.New(color.Bold).SprintFunc()
 
 	for _, row := range rows {
-		table.Rich(row, tableColors)
+		rowAny := []any{
+			bold(row[0]),
+			bold(row[1]),
+		}
+		_ = table.Append(rowAny...)
 	}
 
-	table.Render()
+	_ = table.Render()
 	fmt.Println()
 }

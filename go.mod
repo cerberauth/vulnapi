@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/brianvoe/gofakeit/v7 v7.14.0
 	github.com/cerberauth/x v0.0.0-20251124220938-9745400e5cc6
+	github.com/fatih/color v1.18.0
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/gin-contrib/requestid v1.0.5
 	github.com/gin-gonic/gin v1.11.0
@@ -37,7 +38,6 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
