@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/cerberauth/vulnapi/report"
-	"github.com/olekukonko/tablewriter"
+	"github.com/fatih/color"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -60,19 +60,19 @@ func NewFullScanIssueReports(reports []*report.ScanReport) []*ScanIssueReport {
 	return vulns
 }
 
-func severityTableColor(v *report.IssueReport) int {
+func severityTableColor(v *report.IssueReport) color.Attribute {
 	switch {
 	case v.IsLowRiskSeverity() || v.IsInfoRiskSeverity():
-		return tablewriter.BgBlueColor
+		return color.BgBlue
 	case v.IsMediumRiskSeverity():
-		return tablewriter.BgYellowColor
+		return color.BgYellow
 	case v.IsHighRiskSeverity():
-		return tablewriter.BgRedColor
+		return color.BgRed
 	case v.IsCriticalRiskSeverity():
-		return tablewriter.BgHiRedColor
+		return color.BgHiRed
 	}
 
-	return tablewriter.BgWhiteColor
+	return color.BgWhite
 }
 
 func DisplayReportSummaryTable(r *report.Reporter) {
@@ -84,23 +84,20 @@ func DisplayReportSummaryTable(r *report.Reporter) {
 	headers := []string{"Status", "Scans Number"}
 	table := CreateTable(headers)
 
-	tableColors := make([]tablewriter.Colors, len(headers))
-	tableColors[0] = tablewriter.Colors{tablewriter.Bold}
-	tableColors[1] = tablewriter.Colors{tablewriter.Bold}
-
+	bold := color.New(color.Bold).SprintFunc()
 	statusCaser := cases.Title(language.English)
 	for _, status := range report.IssueReportStatuses {
 		scansNumber := len(r.GetReportsByIssueStatus(status))
 
-		row := []string{
-			statusCaser.String(strings.ToLower(status.String())),
-			fmt.Sprintf("%d", scansNumber),
+		row := []any{
+			bold(statusCaser.String(strings.ToLower(status.String()))),
+			bold(fmt.Sprintf("%d", scansNumber)),
 		}
 
-		table.Rich(row, tableColors)
+		_ = table.Append(row...)
 	}
 
-	table.Render()
+	_ = table.Render()
 	fmt.Println()
 }
 
@@ -114,24 +111,18 @@ func DisplayReportTable(r *report.Reporter) {
 
 	IssueReports := NewFullScanIssueReports(r.GetScanReports())
 	for _, issueReport := range IssueReports {
-		row := []string{
+		// Apply color to severity level column
+		severityColor := color.New(color.Bold, severityTableColor(issueReport.Issue)).SprintFunc()
+
+		row := []any{
 			fmt.Sprintf("%s %s", issueReport.OperationMethod, issueReport.OperationPath),
-			issueReport.Issue.SeverityLevelString(),
+			severityColor(issueReport.Issue.SeverityLevelString()),
 			fmt.Sprintf("%.1f", issueReport.Issue.CVSS.Score),
 			string(issueReport.Issue.Classifications.OWASP),
 			issueReport.Issue.Name,
 		}
 
-		tableColors := make([]tablewriter.Colors, len(headers))
-		for i := range tableColors {
-			if i == 1 {
-				tableColors[i] = tablewriter.Colors{tablewriter.Bold, severityTableColor(issueReport.Issue)}
-			} else {
-				tableColors[i] = tablewriter.Colors{}
-			}
-		}
-
-		table.Rich(row, tableColors)
+		_ = table.Append(row...)
 	}
 
 	errors := r.GetErrors()
@@ -143,6 +134,6 @@ func DisplayReportTable(r *report.Reporter) {
 		}
 	}
 
-	table.Render()
+	_ = table.Render()
 	fmt.Println()
 }
