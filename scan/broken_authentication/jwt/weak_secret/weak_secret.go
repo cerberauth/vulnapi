@@ -9,7 +9,7 @@ import (
 )
 
 type WeakSecretData struct {
-	Secret *string `json:"secret,omitempty"`
+	Secret *string `json:"secret,omitempty"` //nolint:gosec
 }
 
 const (

@@ -4,7 +4,7 @@ import "encoding/base64"
 
 type HTTPBasicCredentials struct {
 	Username string `json:"username" yaml:"username"`
-	Password string `json:"password" yaml:"password"`
+	Password string `json:"password" yaml:"password"` //nolint:gosec
 }
 
 func NewHTTPBasicCredentials(username string, password string) *HTTPBasicCredentials {
