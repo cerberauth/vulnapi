@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewSecurityScheme(t *testing.T) {
@@ -89,6 +90,8 @@ func TestSetValidValue(t *testing.T) {
 	inQuery := auth.InQuery
 	inCookie := auth.InCookie
 	jwtTokenFormat := auth.JWTTokenFormat
+	emptyJWT, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
@@ -146,7 +149,7 @@ func TestSetValidValue(t *testing.T) {
 			schemeName:      auth.BearerScheme,
 			in:              &inHeader,
 			tokenFormat:     &jwtTokenFormat,
-			value:           jwt.FakeJWT,
+			value:           emptyJWT,
 			expectError:     false,
 			expectedMessage: "",
 		},
@@ -202,6 +205,8 @@ func TestSetValidValue(t *testing.T) {
 func TestSetTokenFormat(t *testing.T) {
 	inHeader := auth.InHeader
 	jwtTokenFormat := auth.JWTTokenFormat
+	emptyJWT, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
@@ -212,7 +217,7 @@ func TestSetTokenFormat(t *testing.T) {
 	}{
 		{
 			name:            "Valid JWT Token Format",
-			initialValue:    jwt.FakeJWT,
+			initialValue:    emptyJWT,
 			tokenFormat:     jwtTokenFormat,
 			expectError:     false,
 			expectedMessage: "",
@@ -258,6 +263,8 @@ func TestSetAttackValue(t *testing.T) {
 	inQuery := auth.InQuery
 	inCookie := auth.InCookie
 	jwtTokenFormat := auth.JWTTokenFormat
+	emptyJWT, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
@@ -315,7 +322,7 @@ func TestSetAttackValue(t *testing.T) {
 			schemeName:      auth.BearerScheme,
 			in:              &inHeader,
 			tokenFormat:     &jwtTokenFormat,
-			value:           jwt.FakeJWT,
+			value:           emptyJWT,
 			expectError:     false,
 			expectedMessage: "",
 		},
@@ -371,6 +378,8 @@ func TestSetAttackValue(t *testing.T) {
 func TestGetHeaders(t *testing.T) {
 	inHeader := auth.InHeader
 	jwtTokenFormat := auth.JWTTokenFormat
+	emptyJWT, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
@@ -412,9 +421,9 @@ func TestGetHeaders(t *testing.T) {
 			scheme:          auth.BearerScheme,
 			in:              &inHeader,
 			tokenFormat:     &jwtTokenFormat,
-			validValue:      jwt.FakeJWT,
+			validValue:      emptyJWT,
 			attackValue:     nil,
-			expectedHeaders: http.Header{"Authorization": []string{fmt.Sprintf("%s %s", auth.BearerPrefix, jwt.FakeJWT)}},
+			expectedHeaders: http.Header{"Authorization": []string{fmt.Sprintf("%s %s", auth.BearerPrefix, emptyJWT)}},
 		},
 		{
 			name:            "HTTP Bearer with Attack JWT",
@@ -423,7 +432,7 @@ func TestGetHeaders(t *testing.T) {
 			scheme:          auth.BearerScheme,
 			in:              &inHeader,
 			tokenFormat:     &jwtTokenFormat,
-			validValue:      jwt.FakeJWT,
+			validValue:      emptyJWT,
 			attackValue:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.",
 			expectedHeaders: http.Header{"Authorization": []string{fmt.Sprintf("%s %s", auth.BearerPrefix, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.")}},
 		},

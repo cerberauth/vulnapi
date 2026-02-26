@@ -6,9 +6,10 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewIssueScanReport(t *testing.T) {
@@ -86,10 +87,11 @@ func TestIssueReport_WithSecurityScheme(t *testing.T) {
 		},
 	}
 	vr := report.NewIssueReport(issue)
-	value := jwt.FakeJWT
+	value, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
 	vr.WithSecurityScheme(securityScheme)
-	assert.Equal(t, jwt.FakeJWT, vr.SecurityScheme.GetValidValue())
+	assert.Equal(t, value, vr.SecurityScheme.GetValidValue())
 }
 
 func TestIssueReport_WithStatus(t *testing.T) {

@@ -1,9 +1,9 @@
 package weaksecret
 
 import (
+	"github.com/cerberauth/jwtop/jwt/editor"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/seclist"
 )
@@ -39,7 +39,7 @@ func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
 		return false
 	}
 
-	valueWriter, err := jwt.NewJWTWriter(securityScheme.GetToken())
+	valueWriter, err := editor.NewTokenEditor(securityScheme.GetToken())
 	if err != nil {
 		return false
 	}
@@ -67,7 +67,7 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		jwtSecretDictionary = secretDictionnaryFromSeclist.Items
 	}
 
-	valueWriter, err := jwt.NewJWTWriter(securityScheme.GetToken())
+	valueWriter, err := editor.NewTokenEditor(securityScheme.GetToken())
 	if err != nil {
 		return r.End(), err
 	}
@@ -89,7 +89,7 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 	return r.End(), nil
 }
 
-func bruteForceSecret(currentToken string, jwtSecretDictionary []string, valueWriter *jwt.JWTWriter) (string, error) {
+func bruteForceSecret(currentToken string, jwtSecretDictionary []string, valueWriter *editor.TokenEditor) (string, error) {
 	type result struct {
 		secret string
 		err    error
