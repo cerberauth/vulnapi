@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	httpmethodoverride "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override"
 	"github.com/jarcoal/httpmock"
@@ -17,7 +17,8 @@ import (
 )
 
 func TestHTTPMethodOverrideScanHandler(t *testing.T) {
-	value := jwt.FakeJWT
+	value, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	tests := []struct {
 		name           string
 		operation      *operation.Operation
@@ -152,7 +153,8 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Passed(t *testing.T
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	token := jwt.FakeJWT
+	token, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
@@ -182,7 +184,8 @@ func TestHTTPMethodOverrideScanHandler_Authentication_ByPass_Failed(t *testing.T
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	token := jwt.FakeJWT
+	token, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)
 	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
