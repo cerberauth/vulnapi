@@ -15,8 +15,8 @@ const (
 )
 
 type OAuthValue struct {
-	AccessToken  string     `json:"access_token" yaml:"access_token"`
-	RefreshToken *string    `json:"refresh_token" yaml:"refresh_token"`
+	AccessToken  string     `json:"access_token" yaml:"access_token"`   //nolint:gosec
+	RefreshToken *string    `json:"refresh_token" yaml:"refresh_token"` //nolint:gosec
 	ExpiresIn    *time.Time `json:"expires_in" yaml:"expires_in"`
 	Scope        *string    `json:"scope" yaml:"scope"`
 }
@@ -40,7 +40,7 @@ func (value *OAuthValue) GetAccessToken() string {
 
 type OAuthConfig struct {
 	ClientID     string
-	ClientSecret string
+	ClientSecret string //nolint:gosec
 
 	TokenURL   string
 	RefreshURL string

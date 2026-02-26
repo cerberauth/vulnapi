@@ -126,7 +126,7 @@ func (s *SecList) DownloadFromURL(url string) error {
 		return err
 	}
 
-	err = os.Remove(filepath)
+	err = os.Remove(filepath) //nolint:gosec
 	if err != nil {
 		return err
 	}

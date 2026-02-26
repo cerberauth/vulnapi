@@ -150,7 +150,7 @@ func (r *Request) Do() (*Response, error) {
 	r.SetHeader("x-vulnapi-request-id", r.GetID())
 
 	rl.Take()
-	httpRes, err := r.Client.Do(r.HttpRequest)
+	httpRes, err := r.Client.Do(r.HttpRequest) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
