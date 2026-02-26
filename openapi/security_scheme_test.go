@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecuritySchemeMap_WithoutSecurityComponents(t *testing.T) {
@@ -98,7 +99,8 @@ func TestSecuritySchemeMap_WithoutHTTPJWTBearerAndDefaultValue(t *testing.T) {
 		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: JWT}}}}`),
 	)
 
-	token := jwt.FakeJWT
+	token, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues().WithDefault(&token))
 
 	assert.NoError(t, err)

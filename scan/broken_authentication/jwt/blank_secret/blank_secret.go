@@ -1,10 +1,10 @@
 package blanksecret
 
 import (
+	"github.com/cerberauth/jwtop/jwt/editor"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/jwt"
 	"github.com/cerberauth/vulnapi/report"
 )
 
@@ -44,14 +44,13 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		return r.End(), nil
 	}
 
-	var token string
+	var valueWriter *editor.TokenEditor
+	var err error
 	if securityScheme.HasValidValue() {
-		token = securityScheme.GetToken()
+		valueWriter, err = editor.NewTokenEditor(securityScheme.GetToken())
 	} else {
-		token = jwt.FakeJWT
+		valueWriter, err = editor.NewEmptyTokenEditor()
 	}
-
-	valueWriter, err := jwt.NewJWTWriter(token)
 	if err != nil {
 		return r.End(), err
 	}

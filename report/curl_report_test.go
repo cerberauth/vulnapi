@@ -6,9 +6,10 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewCurlReport(t *testing.T) {
@@ -17,7 +18,8 @@ func TestNewCurlReport(t *testing.T) {
 	data := map[string]interface{}{"key": "value"}
 	header := http.Header{"Content-Type": []string{"application/json"}}
 	cookies := []*http.Cookie{{Name: "session_id", Value: "abc123"}}
-	value := jwt.FakeJWT
+	value, err := jwtop.CreateWithSecret(jwtop.CreateOptions{Algorithm: "HS256"}, []byte(""))
+	require.NoError(t, err)
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("token", &value)
 	securitySchemes := []*auth.SecurityScheme{securityScheme}
 
