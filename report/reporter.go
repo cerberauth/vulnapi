@@ -153,3 +153,26 @@ func (rr *Reporter) HasHigherThanSeverityThresholdIssue(threshold float64) bool 
 
 	return false
 }
+
+// GetFilteredFailedIssueReports returns only failed issue reports that meet or exceed the severity threshold
+func (rr *Reporter) GetFilteredFailedIssueReports(threshold float64) []*IssueReport {
+	var filteredReports []*IssueReport
+	for _, r := range rr.GetFailedIssueReports() {
+		if r.CVSS.Score >= threshold {
+			filteredReports = append(filteredReports, r)
+		}
+	}
+	return filteredReports
+}
+
+// GetFilteredScanReports returns scan reports containing only issues that meet or exceed the severity threshold
+func (rr *Reporter) GetFilteredScanReports(threshold float64) []*ScanReport {
+	var filteredReports []*ScanReport
+	for _, scanReport := range rr.GetScanReports() {
+		filteredScanReport := scanReport.GetFilteredByThreshold(threshold)
+		if filteredScanReport != nil {
+			filteredReports = append(filteredReports, filteredScanReport)
+		}
+	}
+	return filteredReports
+}
