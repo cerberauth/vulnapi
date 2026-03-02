@@ -1,10 +1,9 @@
 ---
+title: HTTP Method Override Enabled
 description: HTTP Method Override is a feature that allows clients to override the default HTTP method used in a request. This feature can be exploited by attackers to bypass security controls and perform unauthorized actions on the server.
 ---
 
-import { Tabs } from 'nextra/components'
-
-# HTTP Method Override Enabled
+import { Tabs, TabItem } from '@/components/docs'
 
 <table>
   <tr>
@@ -14,21 +13,23 @@ import { Tabs } from 'nextra/components'
   <tr>
     <th>CVEs</th>
     <td>
-      * [CVE-2023-30845](https://www.cve.org/CVERecord?id=CVE-2023-30845)
-      * [CVE-2023-29003](https://www.cve.org/CVERecord?id=CVE-2023-29003)
-      * [CVE-2019-19326](https://www.cve.org/CVERecord?id=CVE-2019-19326)
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2023-30845">CVE-2023-30845</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2023-29003">CVE-2023-29003</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2019-19326">CVE-2019-19326</a></li>
+      </ul>
     </td>
   </tr>
   <tr>
     <th>Classifications</th>
     <td>
-      [CWE-287: Improper Authentication](https://cwe.mitre.org/data/definitions/287.html)
+      <a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a>
     </td>
   </tr>
   <tr>
     <th>OWASP Category</th>
     <td>
-      [OWASP API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
     </td>
   </tr>
 </table>
@@ -48,22 +49,22 @@ Attackers can exploit this feature to bypass security controls and perform unaut
 
 If you want to test only the "HTTP Method Allow Override Enabled" issues, you can use the following command:
 
-<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
-  <Tabs.Tab>
-```bash copy
+<Tabs>
+  <TabItem label="cURL">
+```bash
 vulnapi scan curl [url] --scans misconfiguration.http_method_override
 ```
-  </Tabs.Tab>
-  <Tabs.Tab>
-```bash copy
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
 vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_method_override
 ```
-  </Tabs.Tab>
-  <Tabs.Tab>
-```bash copy
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
 vulnapi scan graphql --scans misconfiguration.http_method_override [url]
 ```
-  </Tabs.Tab>
+  </TabItem>
 </Tabs>
 
 ## How to remediate?

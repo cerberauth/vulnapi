@@ -1,0 +1,123 @@
+---
+title: HTTP TRACE and TRACK Methods Enabled
+description: HTTP TRACE and TRACK methods echo back the incoming request, potentially exposing authorization headers to attackers.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Scan IDs</th>
+    <td><code>misconfiguration.http_trace</code>, <code>misconfiguration.http_track</code></td>
+  </tr>
+  <tr>
+    <th>Severity</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/489.html">CWE-489: Active Debug Code</a>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+The HTTP `TRACE` and `TRACK` methods are debugging methods that instruct the web server to echo back the complete incoming request — including all headers — as the response body. This means any `Authorization`, `Cookie`, or custom header sent with the request is returned verbatim in the response.
+
+In a Cross-Site Tracing (XST) attack, a browser-based script that can issue TRACE requests could use this echo behaviour to steal `HttpOnly` cookies or authorization headers that would otherwise be inaccessible to JavaScript. While modern browser security policies (CSP, CORS, `SameSite`) mitigate many XST paths, leaving TRACE/TRACK enabled violates the principle of least privilege and may expose sensitive headers in logs, proxies, or less-protected environments.
+
+## Example
+
+```http
+TRACE /api/users HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+X-Custom-Internal: secret
+
+HTTP/1.1 200 OK
+Content-Type: message/http
+
+TRACE /api/users HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+X-Custom-Internal: secret
+```
+
+The full request — including `Authorization` — is reflected back in the response body.
+
+## How to test?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_trace --scans misconfiguration.http_track
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_trace --scans misconfiguration.http_track
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_trace --scans misconfiguration.http_track [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+- **Header exposure**: `Authorization`, `Cookie`, and custom internal headers sent with a TRACE request are reflected in the response body, making them readable by any party that can observe the response (intermediate proxies, logs, browser scripts under certain conditions).
+- **Debug information leakage**: internal headers (`X-Internal-User`, `X-Request-ID`, etc.) that would not normally be visible to clients may be exposed.
+- **Cross-Site Tracing (XST)**: in older browser environments or when combined with other vulnerabilities, TRACE can be used to steal credentials from browser-based clients.
+
+## How to remediate?
+
+Disable TRACE and TRACK at the web server level.
+
+**Nginx** — restrict to allowed methods only:
+
+```nginx
+location / {
+    limit_except GET POST PUT DELETE PATCH OPTIONS {
+        deny all;
+    }
+}
+```
+
+**Apache** — disable TRACE globally:
+
+```apache
+TraceEnable Off
+```
+
+**Express (Node.js)** — reject TRACE/TRACK in middleware:
+
+```js
+app.use((req, res, next) => {
+  if (req.method === 'TRACE' || req.method === 'TRACK') {
+    return res.status(405).send('Method Not Allowed');
+  }
+  next();
+});
+```
+
+Verify the fix by checking that TRACE returns a `405 Method Not Allowed` response:
+
+```bash
+curl -X TRACE https://api.example.com/ -i
+# Expected: HTTP/1.1 405 Method Not Allowed
+```
+
+## References
+
+- [OWASP Testing for HTTP Methods](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods)
+- [CWE-489: Active Debug Code](https://cwe.mitre.org/data/definitions/489.html)

@@ -1,0 +1,103 @@
+---
+title: Authentication Bypass
+description: A vulnerability where an endpoint that requires authentication accepts requests with no credentials, allowing unauthenticated access.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Scan ID</th>
+    <td><code>generic.accept_unauthenticated_operation</code></td>
+  </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>9.3 — <code>CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N</code></td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The "Authentication Bypass" vulnerability occurs when an endpoint that is expected to require authentication returns a success response (2xx) when the request contains no credentials at all. VulnAPI detects this by sending a request to the endpoint without any `Authorization` header, cookies, or other credentials and checking if the response indicates success rather than returning a `401 Unauthorized` or `403 Forbidden`.
+
+## Example
+
+**Normal authenticated request** (should succeed):
+```http
+GET /api/users/profile HTTP/1.1
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+
+HTTP/1.1 200 OK
+```
+
+**Unauthenticated request** (should be rejected — but is vulnerable if it returns 200):
+```http
+GET /api/users/profile HTTP/1.1
+
+HTTP/1.1 200 OK   ← vulnerable!
+```
+
+## How to test?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans generic.accept_unauthenticated_operation
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+If an attacker can access a protected endpoint without any credentials, they can:
+
+- **Access sensitive data**: read user profiles, financial records, private messages, or any other data the endpoint returns
+- **Perform privileged operations**: create, modify, or delete resources without being logged in
+- **Bypass the entire authentication layer**: any security controls that depend on authentication become ineffective
+- **Enumerate users or data**: scrape all data from the API without needing an account
+
+CVSS 9.3 reflects that this is network-exploitable with no prior authentication required and provides full read/write access.
+
+## How to remediate?
+
+1. **Enforce authentication at every protected endpoint**: every route that serves or modifies user data must validate credentials before processing the request.
+
+2. **Return 401 for unauthenticated requests**: always return `401 Unauthorized` (not `200`, `404`, or `500`) when no valid credentials are provided. A `403 Forbidden` is appropriate when the user is authenticated but lacks the required permissions.
+
+3. **Apply authentication middleware globally**: use a gateway-level or framework-level middleware that intercepts all requests and enforces authentication, rather than adding auth checks endpoint by endpoint.
+
+4. **Test unauthenticated access for every new endpoint**: add an automated test that verifies each protected endpoint returns 401 when no credentials are provided.
+
+```python
+# FastAPI example — require authentication globally
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
+
+@app.get("/api/users/profile")
+async def get_profile(credentials = Security(security)):
+    # credentials.credentials is the Bearer token
+    user = verify_token(credentials.credentials)
+    return user
+```

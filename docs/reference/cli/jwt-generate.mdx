@@ -1,0 +1,48 @@
+---
+title: jwt generate
+description: Generate a new JWT from an existing token, re-signed with a different algorithm or key.
+---
+
+Parse an existing JWT and re-sign it with a new algorithm and key. The original claims are preserved. Useful for manually crafting tokens to test JWT vulnerability mitigations.
+
+## Usage
+
+```sh
+vulnapi jwt generate <TOKEN> --alg <alg> --secret <secret>
+```
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--alg <algorithm>` | Signing algorithm **(required)**: `HS256`, `HS384`, `HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `NONE` |
+| `--secret <secret>` | Secret key to sign the token (required for HMAC algorithms) |
+| `--aud <audience>` | Audience claim (`aud`) to set in the token |
+
+## Examples
+
+**Re-sign with a different HMAC secret**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg HS256 --secret newsecret
+```
+
+**Strip the signature (alg=none)**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg NONE
+```
+
+**Re-sign with a custom audience**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg HS256 --secret mysecret --aud myservice
+```
+
+## Output
+
+The signed token string is printed to stdout.
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Token generated successfully |
+| `1` | Invalid input token, unknown algorithm, or missing required flags |

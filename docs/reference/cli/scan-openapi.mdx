@@ -1,0 +1,61 @@
+---
+title: scan openapi
+description: Scan all endpoints defined in an OpenAPI specification.
+---
+
+Load an OpenAPI specification (local file or remote URL) and run security scans against every operation it defines.
+
+## Usage
+
+```sh
+vulnapi scan openapi <PATH_OR_URL> [flags]
+```
+
+## Flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--security-schemes <name=value>` | `` | Override the token value for a named security scheme (repeatable) |
+
+Also accepts all [common flags](../#common-flags).
+
+## Token via stdin
+
+A token piped via stdin is used as the default value for all security schemes that accept a bearer token. Named overrides from `--security-schemes` take precedence.
+
+```sh
+echo "<token>" | vulnapi scan openapi ./openapi.json
+```
+
+## Examples
+
+**Local spec with a token piped via stdin**
+```sh
+echo "<token>" | vulnapi scan openapi ./openapi.json
+```
+
+**Remote spec with a token piped via stdin**
+```sh
+echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json
+```
+
+**Named security scheme override**
+```sh
+vulnapi scan openapi ./openapi.json --security-schemes bearerAuth=<token>
+```
+
+**Multiple scheme overrides**
+```sh
+vulnapi scan openapi ./openapi.json \
+  --security-schemes bearerAuth=<token> \
+  --security-schemes apiKey=<key>
+```
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Scan completed successfully |
+| `1` | Fatal error (invalid spec, network failure, etc.) |
+
+When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](../#exit-behaviour).

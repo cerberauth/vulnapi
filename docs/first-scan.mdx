@@ -1,0 +1,83 @@
+---
+title: Your First Scan
+description: Run your first API security scan in under a minute using vulnapi scan curl.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, CardGrid, LinkCard } from '@/components/docs'
+
+The fastest way to try VulnAPI is with `vulnapi scan curl`. It works like curl — point it at any HTTP endpoint and it immediately starts testing for vulnerabilities.
+
+## Basic scan
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint
+```
+
+That's it. VulnAPI sends a series of crafted requests to the endpoint and prints a report.
+
+## Scanning an authenticated endpoint
+
+Most real APIs require authentication. Pass an `Authorization` header the same way you would with curl:
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+```
+
+You can repeat `-H` for additional headers (API keys, custom headers, etc.):
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  -H "X-API-Key: <key>"
+```
+
+## Scanning a non-GET endpoint
+
+Use `-X` to set the HTTP method and `-d` to send a request body:
+
+```bash
+vulnapi scan curl https://api.example.com/login \
+  -X POST \
+  -d '{"username":"alice","password":"secret"}' \
+  -H "Content-Type: application/json"
+```
+
+## Reading the report
+
+After the scan completes, VulnAPI prints a table like this:
+
+```
+|          OPERATION          | RISK LEVEL | CVSS 4.0 SCORE |          OWASP           |        VULNERABILITY        |
+|-----------------------------|------------|----------------|--------------------------|-----------------------------|
+| GET /endpoint               | High       |            9.3 | API2:2023 Broken Auth    | JWT Token is not verified   |
+| GET /endpoint               | Medium     |            5.1 | API8:2023 Security Misc  | X-Frame-Options is missing  |
+| GET /endpoint               | Info       |            0.0 | API8:2023 Security Misc  | HSTS Header is missing      |
+```
+
+| Column | What it means |
+|--------|---------------|
+| **OPERATION** | The HTTP method and path that was tested |
+| **RISK LEVEL** | Severity: Info / Low / Medium / High / Critical |
+| **CVSS 4.0 SCORE** | Numeric score from 0.0 to 10.0 |
+| **OWASP** | The OWASP API Security Top 10 category |
+| **VULNERABILITY** | A short description of the finding |
+
+<Aside type="tip">
+A summary line above the table shows the highest overall risk level. Start there to quickly assess whether the endpoint has critical issues.
+</Aside>
+
+## No findings?
+
+A scan with no rows in the vulnerability table means VulnAPI found nothing with a CVSS score above the default threshold of `1.0`. This is a good sign, but not a guarantee — VulnAPI tests for a specific set of [known vulnerabilities](./vulnerabilities).
+
+## Next steps
+
+<CardGrid>
+  <LinkCard title="GitHub Action" href="./github-action" description="Automate scans on every pull request." />
+  <LinkCard title="Output Formats" href="./reference/output-formats" description="Export results as JSON or YAML." />
+  <LinkCard title="CLI Reference" href="./reference/cli" description="All scan flags and their defaults." />
+  <LinkCard title="Vulnerabilities" href="./vulnerabilities" description="Every vulnerability VulnAPI checks for." />
+</CardGrid>

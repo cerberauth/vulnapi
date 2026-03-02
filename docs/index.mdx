@@ -1,12 +1,15 @@
 ---
+title: Introduction
 description: VulnAPI is an Open Source DAST that scans APIs for vulnerabilities and security risks.
+sidebar:
+  order: 1
 ---
 
-# Introduction
+import { Aside } from '@/components/docs'
 
 Welcome to VulnAPI Documentation!
 
-![Demo](/demo.gif)
+![Demo](../demo.gif)
 
 ---
 
@@ -14,27 +17,26 @@ Welcome to VulnAPI Documentation!
 
 VulnAPI is an Open Source DAST that scans APIs for vulnerabilities and security risks. It provides reports on any vulnerabilities detected during the scan, including the risk level, vulnerability, description, and operation performed when the vulnerability has been found.
 
-VulnAPI offers two methods for scanning APIs:
-* **Using Curl-like CLI**: This method involves directly invoking the CLI with parameters resembling curl commands.
-* **Using OpenAPI Contracts**: This method utilizes OpenAPI contracts to specify API endpoints for scanning.
+VulnAPI offers three methods for scanning APIs:
+* **Using Curl-like CLI**: Directly invoke the CLI with parameters resembling curl commands.
+* **Using OpenAPI Contracts**: Use an OpenAPI spec to enumerate all endpoints for scanning.
+* **Using GraphQL**: Point VulnAPI at a GraphQL endpoint to scan it for vulnerabilities.
 
 ## Installation
 
-Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation](/docs/installation) page.
+Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation](./installation) page.
+
+<Aside type="tip">Ready to scan? Follow the [First Scan](./first-scan) guide.</Aside>
 
 ## Documentation
 
 Before scanning, you can discover target API useful information by using the `discover` command.
 
-The Vulnerability Scanner CLI offers two methods for scanning APIs:
-* **Using Curl-like CLI**: This method involves directly invoking the CLI with parameters resembling curl commands.
-* **Using OpenAPI Contracts**: This method utilizes OpenAPI contracts to specify API endpoints for scanning.
-
 ### Discover Command
 
 To discover target API useful information, execute the following command:
 
-```bash copy
+```bash
 vulnapi discover api [API_URL]
 ```
 
@@ -58,7 +60,7 @@ Example output:
 
 To perform a scan using the Curl-like CLI, execute the following command:
 
-```bash copy
+```bash
 vulnapi scan curl [API_URL] [CURL_OPTIONS]
 ```
 
@@ -66,7 +68,7 @@ Replace `[API_URL]` with the URL of the API to scan, and `[CURL_OPTIONS]` with a
 
 Example:
 
-```bash copy
+```bash
 vulnapi scan curl -X POST https://vulnapi.cerberauth.com/vulnerable/api -H "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ."
 ```
 
@@ -74,67 +76,38 @@ vulnapi scan curl -X POST https://vulnapi.cerberauth.com/vulnerable/api -H "Auth
 
 To perform a scan using OpenAPI contracts, execute the following command:
 
-```bash copy
+```bash
 echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE]
 ```
 
-Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.
+Replace `[PATH_OR_URL_TO_OPENAPI_FILE]` with the path or the URL to the OpenAPI contract JSON file and `[JWT_TOKEN]` with the JWT token to use for authentication.
 
-Example:
+### Using GraphQL
 
-```bash copy
-vulnapi scan openapi https://vulnapi.cerberauth.com/vulnerable/.well-known/openapi.json
+To perform a scan against a GraphQL endpoint, execute the following command:
+
+```bash
+vulnapi scan graphql [GRAPHQL_ENDPOINT] -H "Authorization: Bearer [JWT_TOKEN]"
 ```
 
 ## Output
 
-The CLI provides detailed reports on any vulnerabilities detected during the scan. Below is an example of the output format:
-
-| TECHNOLOGIE/SERVICE |     VALUE     |
-|---------------------|---------------|
-| Framework           | Flask:2.2.3   |
-| Language            | Python:3.11.9 |
-| Server              | Flask:2.2.3   |
-
-
-Advice: There are some low-risk issues. It's advised to take a look.
+The CLI provides detailed reports on any vulnerabilities detected during the scan. Below is a condensed example:
 
 |          OPERATION           | RISK LEVEL | CVSS 4.0 SCORE |             OWASP              |         VULNERABILITY          |
 |------------------------------|------------|----------------|--------------------------------|--------------------------------|
 | GET /                        | Medium     |            5.1 | API8:2023 Security             | X-Frame-Options Header is      |
 |                              |            |                | Misconfiguration               | missing                        |
-|                              | Medium     |            5.1 | API8:2023 Security             | CORS Headers are missing       |
-|                              |            |                | Misconfiguration               |                                |
-|                              | Medium     |            5.1 | API8:2023 Security             | CSP frame-ancestors policy is  |
-|                              |            |                | Misconfiguration               | not set                        |
-|                              | Info       |            0.0 | API8:2023 Security             | X-Content-Type-Options Header  |
-|                              |            |                | Misconfiguration               | is missing                     |
-|                              | Info       |            0.0 | API8:2023 Security             | Operation May Accepts          |
-|                              |            |                | Misconfiguration               | Unauthenticated Requests       |
+|                              | High       |            9.3 | API2:2023 Broken               | JWT Token is not verified      |
+|                              |            |                | Authentication                 |                                |
 |                              | Info       |            0.0 | API8:2023 Security             | HSTS Header is missing         |
 |                              |            |                | Misconfiguration               |                                |
-|                              | Info       |            0.0 | API8:2023 Security             | CSP Header is not set          |
-|                              |            |                | Misconfiguration               |                                |
-| GET /books/v1                | Medium     |            5.1 | API8:2023 Security             | CSP frame-ancestors policy is  |
-|                              |            |                | Misconfiguration               | not set                        |
-|                              | Medium     |            5.1 | API8:2023 Security             | X-Frame-Options Header is      |
-|                              |            |                | Misconfiguration               | missing                        |
-|                              | Medium     |            5.1 | API8:2023 Security             | CORS Headers are missing       |
-|                              |            |                | Misconfiguration               |                                |
-|                              | Info       |            0.0 | API8:2023 Security             | CSP Header is not set          |
-|                              |            |                | Misconfiguration               |                                |
-|                              | Info       |            0.0 | API8:2023 Security             | HSTS Header is missing         |
-|                              |            |                | Misconfiguration               |                                |
-|                              | Info       |            0.0 | API8:2023 Security             | X-Content-Type-Options Header  |
-|                              |            |                | Misconfiguration               | is missing                     |
-|                              | Info       |            0.0 | API8:2023 Security             | Operation May Accepts          |
-|                              |            |                | Misconfiguration               | Unauthenticated Requests 
 
-In this example, each line represents a detected vulnerability, severity level (critical), vulnerability type, affected operation (GET http://localhost:8080/), and a description of the vulnerability.
+See the [Output Formats](./reference/output-formats) reference for full details on table columns, JSON/YAML formats, and CI/CD integration.
 
 ## Vulnerabilities Detected
 
-All the vulnerabilities detected by the project are listed at this URL: [API Vulnerabilities Detected](/docs/vulnerabilities).
+All the vulnerabilities detected by the project are listed at this URL: [API Vulnerabilities Detected](./vulnerabilities).
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 
@@ -146,41 +119,11 @@ A command arg `--proxy` is also available to specify the proxy URL.
 
 ## Additional Options
 
-The VulnAPI may support additional options for customizing scans or output formatting. Run `vulnapi -h` or `vulnapi help` command to view available options and their descriptions.
+See the [CLI Reference](./reference/cli) for complete command documentation.
 
 ## Telemetry
 
 The scanner collects anonymous usage data to help improve the tool. This data includes the number of scans performed, number of detected vulnerabilities, and the severity of vulnerabilities. No sensitive information is collected. You can opt-out of telemetry by passing the `--sqa-opt-out` flag.
-
-## Complete CLI Help
-
-To view the complete CLI help, execute the following command:
-
-```bash copy
-vulnapi -h
-```
-
-Here is the output of the help command:
-
-```bash
-vulnapi
-
-Usage:
-  vulnapi [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  jwt         Generate JWT tokens
-  scan        API Scan
-  serve       Start the server
-
-Flags:
-  -h, --help          help for vulnapi
-      --sqa-opt-out   Opt out of sending anonymous usage statistics and crash reports to help improve the tool
-
-Use "vulnapi [command] --help" for more information about a command.
-```
 
 ## Disclaimer
 
