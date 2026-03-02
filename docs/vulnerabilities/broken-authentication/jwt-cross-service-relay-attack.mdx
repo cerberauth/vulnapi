@@ -1,8 +1,7 @@
 ---
+title: Token Cross Service Relay Attack
 description: A vulnerability arises when a Token is forged by the same service but doesn't verify the issuer. This can lead to security risks, as it means an attacker could create a forged Token and manipulate the fields or impersonate an user.
 ---
-
-# Token Cross Service Relay Attack
 
 <table>
   <tr>
@@ -12,14 +11,16 @@ description: A vulnerability arises when a Token is forged by the same service b
   <tr>
     <th>Classifications</th>
     <td>
-      * [CWE-20: Improper Input Validation](https://cwe.mitre.org/data/definitions/20.html)
-      * [CWE-287: Improper Authentication](https://cwe.mitre.org/data/definitions/287.html)
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/20.html">CWE-20: Improper Input Validation</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+      </ul>
     </td>
   </tr>
   <tr>
     <th>OWASP Category</th>
     <td>
-      [OWASP API2:2023 Broken Authentication](https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/)
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
     </td>
   </tr>
 </table>
@@ -101,7 +102,7 @@ Notice that the `aud` claim has been changed to the attacker's project `Client I
 
 Create a new project with the same service and generate a token (through a legitimate authentication process). Then, try to relay the token to your original project and see if the service accepts the token or not. If the service accepts the token, then the service is vulnerable to this attack.
 
-TODO: VulnAPI Command
+This test requires manual steps. VulnAPI does not currently automate this scan. Create a second project with the same identity provider, obtain a valid token for that project, then send it to your original project's API. If the API accepts the request, it is vulnerable.
 
 ## What is the impact?
 

@@ -1,0 +1,104 @@
+---
+title: Output Formats
+description: Reference for VulnAPI's table, JSON, and YAML output formats and CI/CD severity threshold integration.
+---
+
+VulnAPI supports three output formats: `table` (default), `json`, and `yaml`. Use `--report-format` to select the format and `--report-transport` + `--report-file` / `--report-url` to control where the output goes.
+
+## Table (Default)
+
+The table format prints human-readable ASCII tables to the terminal. It consists of up to three sub-tables:
+
+**Well-Known Paths** — discovered API spec and GraphQL endpoints:
+
+```
+| WELL-KNOWN PATHS |                URL                 |
+|------------------|------------------------------------|
+| OpenAPI          | http://localhost:5000/openapi.json |
+| GraphQL          | N/A                                |
+```
+
+**Technology Fingerprint** — framework, language, and server detected from response headers:
+
+```
+| TECHNOLOGIE/SERVICE |     VALUE     |
+|---------------------|---------------|
+| Framework           | Flask:2.2.3   |
+| Language            | Python:3.11.9 |
+| Server              | Flask:2.2.3   |
+```
+
+**Vulnerability List** — each finding on its own row:
+
+| Column | Description |
+|--------|-------------|
+| **OPERATION** | HTTP method + path tested (e.g. `GET /api/users`) |
+| **RISK LEVEL** | Human-readable severity: Info / Low / Medium / High / Critical |
+| **CVSS 4.0 SCORE** | Numeric score 0.0–10.0 |
+| **OWASP** | Relevant OWASP API Security Top 10 category |
+| **VULNERABILITY** | Short description of the finding |
+
+An advice line above the table summarises the overall risk level.
+
+## JSON
+
+Export a structured JSON report to a file:
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  --report-format json \
+  --report-transport file \
+  --report-file report.json
+```
+
+The JSON output contains an array of scan results, each with operation details, issue metadata, CVSS score, OWASP classification, and scan attempt responses. Use this format for automated processing, dashboards, or storing artifacts in CI/CD.
+
+## YAML
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  --report-format yaml \
+  --report-transport file \
+  --report-file report.yaml
+```
+
+The YAML format contains the same data as the JSON format in YAML syntax.
+
+## HTTP Transport
+
+To POST the report to a webhook or SIEM:
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  --report-format json \
+  --report-transport http \
+  --report-url https://your-siem.example.com/api/vulnapi
+```
+
+## Severity Threshold and CI/CD Integration
+
+The `--severity-threshold` flag (default `1.0`) controls when VulnAPI writes findings to **stderr**. If any finding has a CVSS score strictly above the threshold, the output is also written to stderr.
+
+This enables CI/CD pipeline failure detection without a wrapper script:
+
+```bash
+# Fail the pipeline if any finding has CVSS > 5.0
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  --severity-threshold 5.0 \
+  2>/dev/null || exit 1
+```
+
+```yaml
+# GitHub Actions example
+- name: VulnAPI Scan
+  run: |
+    vulnapi scan openapi ./openapi.json \
+      --severity-threshold 7.0 \
+      --report-format json \
+      --report-file vulnapi-report.json
+  # The step will fail automatically if CVSS > 7.0 is found (stderr output)
+```
+
+Set `--severity-threshold 0` to always write to stderr regardless of CVSS score.

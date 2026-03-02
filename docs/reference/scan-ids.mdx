@@ -1,0 +1,79 @@
+---
+title: Scan IDs Reference
+description: Complete reference table of all VulnAPI scan IDs, categories, and severity scores.
+---
+
+Use scan IDs with `--scans` and `--exclude-scans` flags to filter which checks VulnAPI runs.
+
+```bash
+# Run only JWT checks
+vulnapi scan curl https://api.example.com -H "Authorization: Bearer <token>" --scans jwt.alg_none
+
+# Run all JWT checks using a wildcard
+vulnapi scan curl ... --scans "jwt.*"
+
+# Exclude all discovery checks
+vulnapi scan curl ... --exclude-scans "discover.*"
+```
+
+## Broken Authentication
+
+| Scan ID | Name | OWASP | CVSS |
+|---------|------|-------|------|
+| `jwt.alg_none` | JWT Accepts `alg: none` | API2:2023 | High |
+| `jwt.blank_secret` | JWT Signed With Blank Secret | API2:2023 | High |
+| `jwt.weak_secret` | JWT Signed With Weak Secret | API2:2023 | High |
+| `jwt.not_verified` | JWT Signature Not Verified | API2:2023 | 9.3 |
+| `jwt.null_signature` | JWT Null Signature | API2:2023 | High |
+| `generic.accept_unauthenticated_operation` | Endpoint Accepts Unauthenticated Requests | API2:2023 | 9.3 |
+
+## Security Misconfiguration
+
+| Scan ID | Name | OWASP | CVSS |
+|---------|------|-------|------|
+| `misconfiguration.http_headers` | Security Response Headers Missing | API8:2023 | Info–Medium |
+| `misconfiguration.http_cookies` | Cookie Security Flags Misconfigured | API8:2023 | 0.0 |
+| `misconfiguration.http_trace` | HTTP TRACE Method Enabled | API8:2023 | Info |
+| `misconfiguration.http_track` | HTTP TRACK Method Enabled | API8:2023 | Info |
+| `misconfiguration.http_method_override` | HTTP Method Override Headers Accepted | API8:2023 | Info–High |
+
+## GraphQL
+
+| Scan ID | Name | OWASP | CVSS |
+|---------|------|-------|------|
+| `graphql.introspection_enabled` | GraphQL Introspection Enabled | API8:2023 | Low |
+
+## Discovery
+
+Discovery scans run automatically with `vulnapi discover` commands. They can also be included/excluded on scan commands.
+
+| Scan ID | Name | Description |
+|---------|------|-------------|
+| `discover.api` | API Fingerprint | Detects framework, language, and server from response headers |
+| `discover.well_known_paths` | Well-Known Path Discovery | Checks for OpenAPI, GraphQL, and other common paths |
+| `discover.domain` | Domain Discovery | Common subdomain patterns and reverse DNS lookup |
+
+## HTTP Security Headers (sub-checks of `misconfiguration.http_headers`)
+
+The `misconfiguration.http_headers` scan covers multiple individual header checks. You can exclude the parent scan ID to skip all of them.
+
+| Header | Risk |
+|--------|------|
+| `Content-Security-Policy` | Medium |
+| `X-Frame-Options` | Medium |
+| `X-Content-Type-Options` | Info |
+| `Strict-Transport-Security` | Info |
+| `Access-Control-Allow-Origin` (CORS) | Medium |
+| Server signature leak | Info |
+
+## Cookie Security (sub-checks of `misconfiguration.http_cookies`)
+
+The `misconfiguration.http_cookies` scan covers five individual cookie flag checks:
+
+| Check ID | Description | CWE |
+|----------|-------------|-----|
+| `security_misconfiguration.http_cookies_not_http_only` | Cookie accessible via JavaScript (XSS risk) | CWE-1004 |
+| `security_misconfiguration.http_cookies_not_secure` | Cookie transmitted over HTTP | CWE-614 |
+| `security_misconfiguration.http_cookies_same_site_none` | `SameSite=None` allows cross-site requests | CWE-1275 |
+| `security_misconfiguration.http_cookies_without_same_site` | `SameSite` attribute not set | CWE-1275 |
+| `security_misconfiguration.http_cookies_without_expires` | Session cookie never expires | CWE-613 |

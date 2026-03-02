@@ -1,0 +1,100 @@
+---
+title: JWT Security Best Practices
+description: Best practices for securely implementing JSON Web Tokens (JWTs) in your APIs.
+---
+
+JSON Web Tokens (JWTs) are widely used for authentication and authorization in APIs. When implemented incorrectly they become a high-severity attack surface. This guide covers the most important best practices and links each point to the relevant VulnAPI scan.
+
+## Use Strong Signing Algorithms
+
+Prefer asymmetric algorithms (RS256, ES256) for distributed systems where multiple services verify tokens but only one issues them. This ensures the private key never leaves the issuer.
+
+- **Recommended**: RS256, RS384, RS512, ES256, ES384
+- **Acceptable for single-service systems**: HS256, HS384, HS512 (with a strong secret — see below)
+- **Never use**: `alg: none` in production
+
+Using `alg: none` removes all cryptographic protection, making tokens trivially forgeable. VulnAPI detects this with the [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt-alg-none) scan.
+
+## Use a Minimum 256-bit Random Secret for HMAC
+
+When using HMAC algorithms (HS256/HS384/HS512), the secret key must be:
+
+- At least 256 bits (32 bytes) of cryptographically random data
+- Not a dictionary word, well-known default, or guessable string
+- Not an empty string
+
+Tokens signed with empty or weak secrets are detected by the [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt-blank-secret) and [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt-weak-secret) scans.
+
+```bash
+# Generate a secure 256-bit secret (Linux/macOS)
+openssl rand -base64 32
+```
+
+## Always Verify Signatures Server-Side
+
+Never trust a JWT without verifying its signature using the correct key. Skipping signature verification is one of the most dangerous implementation mistakes.
+
+VulnAPI detects this with the [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt-not-verified) scan (CVSS 9.3).
+
+```python
+# Python example using PyJWT — always pass algorithms explicitly
+import jwt
+payload = jwt.decode(token, public_key, algorithms=["RS256"])
+```
+
+## Reject Tokens With a Stripped Signature
+
+Some JWT libraries accept tokens whose signature segment is empty (null signature). Always configure your library to require a valid, non-empty signature.
+
+VulnAPI detects this with the [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature) scan.
+
+## Validate Standard Claims
+
+After verifying the signature, validate these claims before trusting any payload data:
+
+| Claim | Description | Action |
+|-------|-------------|--------|
+| `iss` | Issuer — who created the token | Reject if not from a trusted issuer |
+| `aud` | Audience — who the token is intended for | Reject if your service is not the intended audience |
+| `exp` | Expiration time | Reject if current time is past `exp` |
+| `nbf` | Not-before time | Reject if current time is before `nbf` |
+| `sub` | Subject — who the token represents | Verify the user still exists / is active |
+
+Failure to validate `iss` and `aud` enables [cross-service relay attacks](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
+
+## Use Short Token Lifetimes With Refresh Token Rotation
+
+Short-lived access tokens limit the damage from a stolen token:
+
+- **Access tokens**: 5–15 minutes
+- **Refresh tokens**: hours to days, single-use only (rotate on each use)
+
+Rotate refresh tokens on every use to detect token theft (if an already-used refresh token is presented, revoke the entire session).
+
+## Never Use `alg: none` in Production
+
+The JWT specification allows `alg: none` for unsecured tokens (e.g., locally exchanged messages). This must never be accepted by any production API endpoint.
+
+Harden your JWT library to reject `none` explicitly:
+
+```go
+// Go example using golang-jwt
+token, err := jwt.Parse(tokenString, keyFunc, jwt.WithValidMethods([]string{"RS256", "ES256"}))
+```
+
+## Store Tokens Securely on the Client
+
+| Storage | XSS risk | CSRF risk | Recommendation |
+|---------|----------|-----------|----------------|
+| `localStorage` | High (JS readable) | None | Avoid for sensitive tokens |
+| `sessionStorage` | High (JS readable) | None | Avoid for sensitive tokens |
+| `HttpOnly` cookie | None (not JS readable) | Medium (mitigate with SameSite) | **Preferred** |
+| Memory (JS variable) | Low | None | Acceptable for SPAs |
+
+Prefer `HttpOnly; Secure; SameSite=Strict` cookies for web applications. See [HTTP Cookies Misconfiguration](../vulnerabilities/security-misconfiguration/http-cookies) for related checks.
+
+## References
+
+- [OWASP JWT Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html)
+- [RFC 7519 — JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519)
+- [Auth0 — JWT Best Practices](https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-token-best-practices)

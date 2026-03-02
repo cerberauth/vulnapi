@@ -1,8 +1,0 @@
-{
-  "broken-authentication": {
-    "title": "Broken Authentication"
-  },
-  "security-misconfiguration": {
-    "title": "Security Misconfiguration"
-  }
-}
