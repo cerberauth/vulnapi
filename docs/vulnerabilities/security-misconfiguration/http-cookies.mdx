@@ -1,0 +1,127 @@
+---
+title: HTTP Cookies Misconfiguration
+description: Missing or misconfigured cookie security flags expose session tokens to theft via XSS, network interception, and cross-site request forgery.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Scan ID</th>
+    <td><code>misconfiguration.http_cookies</code></td>
+  </tr>
+  <tr>
+    <th>Severity</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>0.0</td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+Cookie security flags protect session tokens and authentication cookies from theft and misuse. Missing or misconfigured flags are individually low-severity, but in combination they significantly increase the risk of session hijacking, XSS-based token theft, and cross-site attacks.
+
+## Checks Performed
+
+VulnAPI's `misconfiguration.http_cookies` scan checks for five issues on every `Set-Cookie` response header:
+
+### `HttpOnly` flag missing (CWE-1004)
+
+Without `HttpOnly`, JavaScript running on the page (including injected scripts from XSS) can read the cookie value via `document.cookie`.
+
+```
+Set-Cookie: session=abc123                ← vulnerable
+Set-Cookie: session=abc123; HttpOnly      ← correct
+```
+
+### `Secure` flag missing (CWE-614)
+
+Without `Secure`, the cookie is sent over unencrypted HTTP connections, exposing it to network interception (man-in-the-middle attacks).
+
+```
+Set-Cookie: session=abc123               ← vulnerable
+Set-Cookie: session=abc123; Secure       ← correct
+```
+
+### `SameSite=None` without restrictions (CWE-1275)
+
+`SameSite=None` allows the cookie to be sent in all cross-site contexts, which can enable CSRF attacks if `Secure` is not also set. Use `SameSite=Strict` or `SameSite=Lax` instead.
+
+```
+Set-Cookie: session=abc123; SameSite=None                    ← vulnerable
+Set-Cookie: session=abc123; SameSite=Strict; Secure          ← correct
+```
+
+### `SameSite` attribute not set (CWE-1275)
+
+Without a `SameSite` attribute, browsers apply the default policy (Lax in modern browsers, but None in older ones). Explicitly set `SameSite` to avoid relying on browser defaults.
+
+### No expiration (`Expires` / `Max-Age` missing) (CWE-613)
+
+Without an expiration, the cookie is a session cookie — it expires only when the browser tab closes. Users who do not close their browser may retain session access indefinitely.
+
+```
+Set-Cookie: session=abc123                        ← no expiry
+Set-Cookie: session=abc123; Max-Age=3600          ← expires after 1 hour
+```
+
+## How to test?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_cookies
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_cookies
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_cookies [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+Missing cookie flags individually represent low-severity findings, but in combination they create meaningful attack surface:
+
+- **XSS + missing HttpOnly** → attacker can steal the session token via `document.cookie`
+- **Missing Secure** → token exposed on HTTP (e.g. mixed-content pages, captive portals)
+- **Missing SameSite** → CSRF attacks can use the session cookie cross-origin
+- **No expiration** → long-lived sessions increase the window of opportunity for abuse
+
+## How to remediate?
+
+Set all security flags on cookies that carry session tokens or authentication data:
+
+```http
+Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/
+```
+
+| Flag | Value | Purpose |
+|------|-------|---------|
+| `HttpOnly` | (flag) | Prevent JavaScript access |
+| `Secure` | (flag) | HTTPS only |
+| `SameSite` | `Strict` or `Lax` | Restrict cross-site sending |
+| `Max-Age` | seconds | Set session lifetime |
+| `Path` | `/` or specific path | Restrict cookie scope |
+
+For single-page applications that need cross-origin cookies (e.g. separate API and frontend domains), use `SameSite=None; Secure` together with CSRF tokens.
+
+## References
+
+- [OWASP Secure Cookie Attributes](https://owasp.org/www-community/controls/SecureCookieAttribute)
+- [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)

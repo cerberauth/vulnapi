@@ -1,0 +1,71 @@
+---
+title: TLS Missing or Misconfigured
+description: TLS (Transport Layer Security) is a protocol that provides secure communication. Misconfigured or missing TLS for an API can expose sensitive data to attackers.
+---
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2011-3389">CVE-2011-3389</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2012-4929">CVE-2012-4929</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2013-3587">CVE-2013-3587</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2014-0160">CVE-2014-0160</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2014-3566">CVE-2014-3566</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+## What is TLS?
+
+Transport Layer Security (TLS) is a protocol that provides secure communication over a computer network. It is widely used to secure web traffic, email, and other types of communication. TLS encrypts the data transmitted between two parties, ensuring that it cannot be read or tampered with by attackers. In the context of APIs, TLS is used to secure the communication between clients and servers.
+
+## What is the impact?
+
+If TLS is missing or misconfigured for an API, sensitive data transmitted between clients and servers can be exposed to attackers. This can lead to data breaches, unauthorized access to sensitive information, and other security risks. Attackers can intercept and read the data transmitted over the network, potentially gaining access to sensitive information such as user credentials, personal data, and other confidential information.
+
+## Vulnerabilities
+
+### Missing TLS
+
+This is the easiest misconfiguration to check for. If an API is not using TLS, you can easily tell by looking at the URL. If the URL starts with `http://` instead of `https://`, then the API is not using TLS.
+
+### POODLE (Padding Oracle On Downgraded Legacy Encryption)
+
+POODLE is a vulnerability that affects the SSLv3 protocol. If an API supports SSLv3, it is vulnerable to POODLE attacks.
+
+### CRIME (Compression Ratio Info-leak Made Easy)
+
+CRIME is a vulnerability that affects TLS and SPDY that uses data compression. If an API supports data compression and TLS, it is vulnerable to CRIME attacks that can leak cookies.
+
+### Heartbleed
+
+Heartbleed is a vulnerability in the OpenSSL library that allows attackers to read sensitive data from the server's memory. If an API uses a vulnerable version of OpenSSL, it is susceptible to Heartbleed attacks.
+
+## How to test?
+
+Use a tool like [SSL Labs](https://www.ssllabs.com/ssltest/) to test the TLS configuration of an API. The tool will check for common TLS vulnerabilities and provide a grade for the API's TLS configuration.
+
+## How to remediate?
+
+First of all, if you don't add TLS yet, you should add it to your API. You can use [Let's Encrypt](https://letsencrypt.org/) to get a free TLS certificate for your API or use your hosting provider or cloud provider to get a certificate.
+
+Now, if you have TLS enabled and you detected one of the vulnerabilities mentioned above, you should update your TLS configuration to mitigate the vulnerability. For example, if your API supports SSLv3, you should disable it and only support TLS 1.2 or higher.
+
+## References
+
+- [Let's Encrypt](https://letsencrypt.org/)
+- [SSL Labs](https://www.ssllabs.com/ssltest/)
+- [Breach Attack](https://www.breachattack.com/)

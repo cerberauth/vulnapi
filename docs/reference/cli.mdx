@@ -1,0 +1,164 @@
+---
+title: CLI Reference
+description: Complete reference for all VulnAPI commands and flags.
+---
+
+This page documents every VulnAPI command with all flags and their defaults.
+
+## Global Flags
+
+These flags are available on every command:
+
+| Flag | Description |
+|------|-------------|
+| `--sqa-opt-out` | Opt out of sending anonymous usage statistics and crash reports |
+| `-h, --help` | Show help for any command |
+
+## Exit Behaviour
+
+When at least one finding has a CVSS score above `--severity-threshold`, VulnAPI writes output to **stderr** in addition to stdout. This causes `|| exit 1` patterns and CI/CD failure checks to trigger automatically. The default threshold is `1.0`, meaning any finding with CVSS > 1.0 triggers stderr output.
+
+---
+
+## `vulnapi scan curl [URL]`
+
+Scan a single API endpoint using curl-style options.
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -X POST \
+  -d '{"key":"value"}' \
+  -H "Authorization: Bearer <token>"
+```
+
+**Command-specific flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-X, --request <method>` | `GET` | HTTP method to use |
+| `-d, --data <data>` | `` | HTTP request body |
+
+Also accepts all [Common Flags](#common-flags).
+
+---
+
+## `vulnapi scan openapi [PATH_OR_URL]`
+
+Scan all endpoints defined in an OpenAPI spec. The spec can be a local file path or a remote URL.
+
+```bash
+# Pipe a JWT token via stdin
+echo "<token>" | vulnapi scan openapi ./openapi.json
+
+# Use a remote spec
+echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json
+
+# Provide per-scheme values explicitly
+vulnapi scan openapi ./openapi.json --security-schemes bearerAuth=<token>
+```
+
+**Command-specific flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--security-schemes <name=value>` | `` | Override token value for a named security scheme (can be repeated) |
+
+Token piped via stdin is used as the default value for all security schemes that accept a bearer token.
+
+Also accepts all [Common Flags](#common-flags).
+
+---
+
+## `vulnapi scan graphql [ENDPOINT]`
+
+Scan a GraphQL endpoint.
+
+```bash
+vulnapi scan graphql https://api.example.com/graphql \
+  -H "Authorization: Bearer <token>"
+```
+
+Also accepts all [Common Flags](#common-flags).
+
+---
+
+## `vulnapi discover api [URL]`
+
+Discover well-known paths and technology fingerprints for an API.
+
+```bash
+vulnapi discover api https://api.example.com
+```
+
+Checks for common paths like `/openapi.json`, `/graphql`, `/.well-known/`, etc., and reads response headers to fingerprint the server framework and language.
+
+Also accepts all [Common Flags](#common-flags).
+
+---
+
+## `vulnapi discover domain [DOMAIN]`
+
+Discover API endpoints across common subdomains and perform reverse DNS lookup.
+
+```bash
+vulnapi discover domain example.com
+```
+
+Also accepts all [Common Flags](#common-flags).
+
+---
+
+## `vulnapi jwt generate [TOKEN]`
+
+Generate a new JWT from an existing token, re-signing it with a different algorithm or key. Useful for manually testing JWT vulnerabilities.
+
+```bash
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg HS256 --secret mysecret
+```
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--secret <secret>` | Secret key to sign the token |
+| `--alg <algorithm>` | Signing algorithm: `HS256`, `HS384`, `HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `NONE` |
+| `--aud <audience>` | Audience claim to set in the token |
+
+---
+
+## `vulnapi serve`
+
+Start the VulnAPI HTTP server (REST API mode).
+
+```bash
+vulnapi serve
+vulnapi serve --port 9090
+```
+
+**Flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port <port>` | `8080` | Port to listen on |
+
+---
+
+## Common Flags
+
+All `scan` and `discover` commands share these flags (added via `AddCommonArgs`):
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-r, --rate-limit <rate>` | `10/s` | Request rate limit (e.g. `10/s`, `1/m`) |
+| `-p, --proxy <url>` | `` | Proxy URL for all requests |
+| `-H, --header <header>` | `` | Header to include in requests (repeatable, e.g. `-H "X-API-Key: abc"`) |
+| `-c, --cookie <cookie>` | `` | Cookie to include in requests (repeatable) |
+| `-u, --user <user:pass>` | `` | Username and password for HTTP Basic authentication |
+| `--scans <scan-id>` | `` | Run only specific scans (repeatable; supports wildcards like `jwt.*`) |
+| `-e, --exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable) |
+| `--report-format <format>` | `table` | Output format: `table`, `json`, `yaml` |
+| `--report-transport <transport>` | `file` | Report transport: `file`, `http` |
+| `--report-file <path>` | `` | File path to write the report to |
+| `--report-url <url>` | `` | URL to send the report to (when `--report-transport http`) |
+| `--no-progress` | `false` | Disable the progress bar |
+| `--severity-threshold <score>` | `1.0` | CVSS threshold above which output is also written to stderr |

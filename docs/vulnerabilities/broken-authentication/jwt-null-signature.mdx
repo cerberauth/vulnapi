@@ -1,10 +1,9 @@
 ---
+title: JWT Null Signature
 description: JWT Null Signature vulnerability occurs when a JSON Web Token (JWT) lacks a signature part, allowing attackers to manipulate the token's content.
 ---
 
-import { Tabs } from 'nextra/components'
-
-# JWT Null Signature
+import { Tabs, TabItem } from '@/components/docs'
 
 <table>
   <tr>
@@ -14,19 +13,19 @@ import { Tabs } from 'nextra/components'
   <tr>
     <th>CVEs</th>
     <td>
-      * [CVE-2020-28042](https://www.cve.org/CVERecord?id=CVE-2020-28042)
+      <a href="https://www.cve.org/CVERecord?id=CVE-2020-28042">CVE-2020-28042</a>
     </td>
   </tr>
   <tr>
     <th>Classifications</th>
     <td>
-      [CWE-327: Use of a Broken or Risky Cryptographic Algorithm](https://cwe.mitre.org/data/definitions/327.html)
+      <a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327: Use of a Broken or Risky Cryptographic Algorithm</a>
     </td>
   </tr>
   <tr>
     <th>OWASP Category</th>
     <td>
-      [OWASP API2:2023 Broken Authentication](https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/)
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
     </td>
   </tr>
 </table>
@@ -37,59 +36,57 @@ This vulnerability is similar to the "JWT Blank Secret" vulnerability, but in th
 
 ## Example
 
-Here is a valid JWT signed with EdDSA algorithm (this will work with any algorithm like HS512, RS256, ...etc):
+Here is a valid JWT signed with RS512 algorithm:
 
-```bash copy
-eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.
+```bash
+eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.MnECRBSUQEi8GjiAyWHPhPhhpzCiMLldkq-N_VS-iwI08c4xEVUhT1Xrx9kNGuwusiQuLI3AOBTPwtbdaasQDCOpF0nxxQNKkufJYFds61ooFZfXCuRyXe1yGnXPRzTfgr5YVe9-T8_JDccx5JP70d9hoO4DU4GNYQMvrOQl4xu8DEyyDT2hsjyTbrodVhrV9znMfEBCsYPPLI-Q-HYLquGThPdJe2kBNA-CiLRV6Mwzji67cTd_4P_oUHKXsAxMqVpo-xC2xiVpO2P9X1__uXrRrfiNFUur4B71UMgGYJ2z_cQqwFfSXz9glBIf_-BJU10Rkmyo2ew862d7WsHx8g
 ```
 
 This decoded JWT contains, this parts:
 
 ```json
 {
-  "alg": "EdDSA",
+  "alg": "RS512",
   "typ": "JWT"
 }
 ```
 
 ```json
 {
-  "iat": 1729155809,
-  "exp": 1729155809,
-  "name": "John Doe",
-  "sub": "2cb307ba-bb46-4194-854f-4774046d9c9b"
+  "sub": "1234567890",
+  "iat": 1516239022
 }
 ```
 
-The following JWT is signed with an empty secret:
+The following JWT has its signature stripped (null signature attack):
 
-```bash copy
-eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.kZegpmCCFtxSUFNzjQHMMooPBhAPxsEB4pq4Ix75V9stP4Rq-UXj8yIO8OV-XCzHcbgld-ShbXy27lWE-S4TDg
+```bash
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.
 ```
 
 ## How to test?
 
 If you want to test only the "JWT Null Signature" vulnerability, you can use the following command:
 
-<Tabs items={['cURL', 'OpenAPI', 'GraphQL']}>
-  <Tabs.Tab>
-```bash copy
+<Tabs>
+  <TabItem label="cURL">
+```bash
 vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature
 ```
-  </Tabs.Tab>
-  <Tabs.Tab>
-```bash copy
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
 echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.null_signature
 ```
-  </Tabs.Tab>
-  <Tabs.Tab>
-```bash copy
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
 vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature [url]
 ```
-  </Tabs.Tab>
+  </TabItem>
 </Tabs>
 
-VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
 
 ## What is the impact?
 

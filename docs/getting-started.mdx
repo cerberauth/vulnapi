@@ -1,15 +1,29 @@
-import { TerminalIcon } from 'lucide-react'
-import { Card, Cards } from 'nextra/components'
+---
+title: Getting Started
+description: Get your first API security scan running in under five minutes.
+sidebar:
+  order: 2
+---
 
-<Cards>
-  <Card
-    icon={<TerminalIcon />}
-    title="Github Action"
-    href="/docs/getting-started/github-action"
-  />
-  <Card
-    icon={<TerminalIcon />}
-    title="Installation"
-    href="/docs/installation"
-  />
-</Cards>
+import { CardGrid, LinkCard, Steps } from '@/components/docs'
+
+Get your first API security scan running in under five minutes.
+
+<Steps>
+
+1. **[Install VulnAPI](./installation)** — Download a pre-built binary for Linux, macOS, Windows, or run via Docker.
+
+2. **[Run your first scan](./first-scan)** — Use `vulnapi scan curl` or point VulnAPI at your OpenAPI spec.
+
+3. **Read the report** — Understand the OPERATION / RISK LEVEL / CVSS / OWASP / VULNERABILITY columns and what each finding means.
+
+4. **[Automate in CI/CD](./github-action)** — Add the VulnAPI GitHub Action to your workflow so every PR is scanned automatically.
+
+</Steps>
+
+<CardGrid>
+  <LinkCard title="Installation" href="./installation" description="Download and install VulnAPI on your platform." />
+  <LinkCard title="First Scan" href="./first-scan" description="Step-by-step guide to your first scan." />
+  <LinkCard title="GitHub Action" href="./github-action" description="Automate scans in your CI/CD pipeline." />
+  <LinkCard title="CLI Reference" href="./reference/cli" description="All commands, flags, and their defaults." />
+</CardGrid>

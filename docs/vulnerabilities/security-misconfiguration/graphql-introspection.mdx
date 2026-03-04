@@ -1,8 +1,7 @@
 ---
+title: GraphQL Introspection Enabled
 description: GraphQL introspection is a feature that allows clients to query the schema of the server. It can be used to discover the schema and types, but it can also be used by attackers to learn about the server's implementation details and find potential vulnerabilities.
 ---
-
-# GraphQL Introspection Enabled
 
 <table>
     <tr>
@@ -16,13 +15,13 @@ description: GraphQL introspection is a feature that allows clients to query the
     <tr>
         <th>Classifications</th>
         <td>
-            [CWE-200: Information Exposure](https://cwe.mitre.org/data/definitions/200.html)
+            <a href="https://cwe.mitre.org/data/definitions/200.html">CWE-200: Information Exposure</a>
         </td>
     </tr>
     <tr>
         <th>OWASP Category</th>
         <td>
-            [OWASP API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+            <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
         </td>
     </tr>
 </table>
@@ -41,7 +40,7 @@ The potential security impacts of GraphQL introspection are significant and can 
 
 If you want to test only the "GraphQL Introspection Enabled" vulnerability, you can use the following command:
 
-```bash copy
+```bash
 vulnapi scan graphql [url] --scans graphql.introspection_enabled
 ```
 
