@@ -4,7 +4,7 @@
 
 ---
 
-[![Join Discord](https://img.shields.io/discord/1242773130137833493?label=Discord&style=for-the-badge)](https://vulnapi.cerberauth.com/discord)
+[![Join Discord](https://img.shields.io/discord/1242773130137833493?label=Discord&style=for-the-badge)](https://www.cerberauth.com/community)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/cerberauth/vulnapi/ci.yml?branch=main&label=core%20build&style=for-the-badge)](https://github.com/cerberauth/vulnapi/actions/workflows/ci.yml)
 ![Latest version](https://img.shields.io/github/v/release/cerberauth/vulnapi?sort=semver&style=for-the-badge)
 [![Github Repo Stars](https://img.shields.io/github/stars/cerberauth/vulnapi?style=for-the-badge)](https://github.com/cerberauth/vulnapi)
@@ -20,7 +20,7 @@ By using this tool, you can detect and mitigate security vulnerabilities in your
 
 ## Installation
 
-Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation documentation](https://vulnapi.cerberauth.com/docs/installation) page.
+Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation documentation](https://www.cerberauth.com/docs/vulnapi/installation/) page.
 
 ## Documentation
 
@@ -135,7 +135,7 @@ In this example, each line represents a detected vulnerability, severity level (
 
 ## Vulnerabilities Detected
 
-All the vulnerabilities detected by the project are listed at this URL: [API Vulnerabilities Detected](https://vulnapi.cerberauth.com/docs/vulnerabilities?utm_source=github&utm_medium=readme).
+All the vulnerabilities detected by the project are listed at this URL: [API Vulnerabilities Detected](https://www.cerberauth.com/docs/vulnapi/vulnerabilities?utm_source=github&utm_medium=readme).
 
 > More vulnerabilities and best practices will be added in future releases. If you have any suggestions or requests for additional vulnerabilities or best practices to be included, please feel free to open an issue or submit a pull request.
 

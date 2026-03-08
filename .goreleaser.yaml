@@ -80,7 +80,7 @@ brews:
     repository:
       owner: cerberauth
       name: "{{ .ProjectName }}"
-    homepage: https://vulnapi.cerberauth.com/
+    homepage: https://www.cerberauth.com/vulnapi/
     commit_author:
       name: Emmanuel Gautier
       email: emmanuel@cerberauth.com
@@ -88,12 +88,12 @@ brews:
 chocolateys:
   - owners: CerberAuth
     authors: Emmanuel Gautier
-    project_url: https://vulnapi.cerberauth.com/?utm_source=chocolatey
-    icon_url: "https://avatars.githubusercontent.com/u/127022998"
-    license_url: https://github.com/cerberauth/vulnapi/blob/main/LICENSE
+    project_url: https://www.cerberauth.com/vulnapi/
+    icon_url: "https://www.cerberauth.com/icons/vulnapi.png"
+    license_url: https://raw.githubusercontent.com/cerberauth/vulnapi/refs/heads/main/LICENSE
     require_license_acceptance: false
     project_source_url: https://github.com/cerberauth/vulnapi
-    docs_url: https://vulnapi.cerberauth.com/docs?utm_source=chocolatey
+    docs_url: https://www.cerberauth.com/docs/vulnapi/
     bug_tracker_url: https://github.com/cerberauth/vulnapi/issues
     tags: "security vulnerability developer"
     summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
@@ -106,7 +106,7 @@ chocolateys:
 nfpms:
   - package_name: "{{ .ProjectName }}"
     vendor: CerberAuth
-    homepage: https://vulnapi.cerberauth.com/?utm_source=nfpms
+    homepage: https://www.cerberauth.com/vulnapi/
     maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
     description: |-
       VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.

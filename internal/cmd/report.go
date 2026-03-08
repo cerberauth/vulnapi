@@ -102,5 +102,5 @@ func writeFile(path string, output []byte) error {
 }
 
 func sendHTTP(outputURL string, output []byte) error {
-	return fmt.Errorf("HTTP transport not implemented")
+	return fmt.Errorf("HTTP transport not implemented yet")
 }
