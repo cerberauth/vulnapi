@@ -1,0 +1,33 @@
+---
+title: discover domain
+description: Discover API endpoints across common subdomains of a domain.
+---
+
+Enumerate common subdomains of a domain, perform reverse DNS lookups, and run the [discover api](./discover-api) checks against each discovered host.
+
+## Usage
+
+```sh
+vulnapi discover domain <DOMAIN> [flags]
+```
+
+Accepts all [common flags](./#common-flags).
+
+## Examples
+
+**Discover APIs across all subdomains**
+```sh
+vulnapi discover domain example.com
+```
+
+**Limit the request rate**
+```sh
+vulnapi discover domain example.com --rate-limit 5/s
+```
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Discovery completed successfully |
+| `1` | Fatal error (invalid domain, network failure, etc.) |

@@ -1,8 +1,7 @@
 ---
+title: GitHub Action
 description: VulnAPI can be integrated into your CI/CD pipeline using GitHub Actions. This allows you to automate security testing and vulnerability scanning of your APIs as part of your development workflow.
 ---
-
-# Github Action
 
 VulnAPI can be integrated into your CI/CD pipeline using [GitHub Actions](https://github.com/marketplace/actions/vulnapi-action). Integrating VulnAPI with GitHub Actions enables you to scan your APIs for vulnerabilities and security risks as part of your CI/CD pipeline. 
 
@@ -12,7 +11,7 @@ This allows you to automate security testing and vulnerability scanning of your 
 
 Here's an example of a GitHub Actions workflow that uses VulnAPI to scan your API for vulnerabilities:
 
-```yaml copy
+```yaml
 name: VulnAPI
 
 on: [push]
@@ -26,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: VulnAPI
-        uses: cerberauth/vulnapi-action@v1
+        uses: cerberauth/vulnapi-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

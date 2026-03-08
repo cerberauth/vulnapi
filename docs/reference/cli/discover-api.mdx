@@ -1,0 +1,41 @@
+---
+title: discover api
+description: Discover well-known paths and technology fingerprints for an API.
+---
+
+Probe a base URL for common API paths (e.g. `/openapi.json`, `/graphql`, `/.well-known/`) and read response headers to fingerprint the server framework and language.
+
+## Usage
+
+```sh
+vulnapi discover api <URL> [flags]
+```
+
+Accepts all [common flags](./#common-flags).
+
+## Output
+
+The command prints two tables:
+
+- **Well-known paths** — paths that returned a non-404 response, with their HTTP status codes.
+- **Fingerprints** — detected technologies inferred from response headers (server, framework, language, etc.).
+
+## Examples
+
+**Discover well-known paths and fingerprints**
+```sh
+vulnapi discover api https://api.example.com
+```
+
+**Pass an Authorization header**
+```sh
+vulnapi discover api https://api.example.com \
+  -H "Authorization: Bearer <token>"
+```
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Discovery completed successfully |
+| `1` | Fatal error (invalid URL, network failure, etc.) |

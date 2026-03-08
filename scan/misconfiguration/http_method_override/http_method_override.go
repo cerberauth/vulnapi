@@ -17,7 +17,7 @@ const (
 var httpMethodOverrideIssue = report.Issue{
 	ID:   "security_misconfiguration.http_method_allow_override",
 	Name: "Possible HTTP Method Override detected",
-	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi",
+	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,
@@ -34,7 +34,7 @@ var httpMethodOverrideIssue = report.Issue{
 var httpMethodOverrideAuthenticationByPassIssue = report.Issue{
 	ID:   "security_misconfiguration.http_method_override_authentication_bypass",
 	Name: "Possible HTTP Method Override with authentication bypass detected",
-	URL:  "https://vulnapi.cerberauth.com/docs/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi",
+	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,

@@ -1,0 +1,58 @@
+---
+title: API Authentication Brute Force Attack
+description: A brute force attack, in the context of API authentication, is a trial-and-error method used by attackers to guess the correct credentials (username and password) or access tokens. Attackers use automated tools to make multiple requests to the authentication endpoint, trying different combinations of credentials until they find the correct one. This attack can lead to unauthorized access to the API and sensitive data.
+---
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2024-51558">CVE-2024-51558</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/307.html">CWE-307: Improper Restriction of Excessive Authentication Attempts</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+A brute force attack, in the context of API authentication, is a trial-and-error method used by attackers to guess the correct credentials (username and password) or access tokens. Attackers use automated tools to make multiple requests to the authentication endpoint, trying different combinations of credentials until they find the correct one. This attack can lead to unauthorized access to the API and sensitive data.
+
+## Example
+
+TODO: Add an example of a brute force attack on an API authentication endpoint.
+
+## How to test?
+
+TODO: Add steps to test for the API authentication brute force attack vulnerability.
+
+## What is the impact?
+
+When an API authentication endpoint is vulnerable to brute force attacks, attackers can gain unauthorized access to the API and sensitive data. This can lead to data breaches, data manipulation, and other security incidents.
+
+## How to remediate?
+
+To prevent brute force attacks on API authentication endpoints, consider implementing the following security measures. If it is an user authentication, you can:
+* Implement account lockout mechanisms after a certain number of failed login attempts for user authentication.
+* Implement CAPTCHA or reCAPTCHA challenges to prevent automated brute force attacks.
+
+In any case, you can:
+* Implement rate limiting on authentication requests to prevent multiple failed login attempts.
+* Monitor authentication logs for suspicious activities and anomalies.

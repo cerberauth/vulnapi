@@ -1,0 +1,61 @@
+---
+title: CLI reference
+description: Overview of all VulnAPI CLI commands.
+sidebar:
+  order: 1
+---
+
+import { LinkCard, CardGrid } from '@/components/docs';
+
+The `vulnapi` CLI covers API security scanning, discovery, and JWT utilities.
+
+<CardGrid>
+  <LinkCard title="scan curl" description="Scan a single API endpoint using curl-style options." href="./scan-curl/" />
+  <LinkCard title="scan openapi" description="Scan all endpoints defined in an OpenAPI specification." href="./scan-openapi/" />
+  <LinkCard title="scan graphql" description="Scan a GraphQL endpoint." href="./scan-graphql/" />
+  <LinkCard title="discover api" description="Discover well-known paths and technology fingerprints for an API." href="./discover-api/" />
+  <LinkCard title="discover domain" description="Discover API endpoints across common subdomains." href="./discover-domain/" />
+  <LinkCard title="jwt generate" description="Generate a new JWT from an existing token with a different algorithm or key." href="./jwt-generate/" />
+  <LinkCard title="serve" description="Start the VulnAPI HTTP server in REST API mode." href="./serve/" />
+</CardGrid>
+
+## Global usage
+
+```sh
+vulnapi <command> [flags]
+vulnapi --help
+vulnapi version
+```
+
+All commands exit `0` on success and non-zero on error.
+
+## Global flags
+
+| Flag | Description |
+|---|---|
+| `--sqa-opt-out` | Opt out of anonymous usage statistics and crash reporting |
+| `-h, --help` | Show help for any command |
+
+## Common flags
+
+All `scan` and `discover` commands share these flags:
+
+| Flag | Default | Description |
+|---|---|---|
+| `-r, --rate-limit <rate>` | `10/s` | Request rate limit (e.g. `10/s`, `1/m`) |
+| `-p, --proxy <url>` | `` | Proxy URL for all requests |
+| `-H, --header <header>` | `` | Header to include in requests (repeatable) |
+| `-c, --cookie <cookie>` | `` | Cookie to include in requests (repeatable) |
+| `-u, --user <user:pass>` | `` | Username and password for HTTP Basic authentication |
+| `--scans <scan-id>` | `` | Run only specific scans (repeatable; supports wildcards like `jwt.*`) |
+| `-e, --exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable) |
+| `--report-format <format>` | `table` | Output format: `table`, `json`, `yaml` |
+| `--report-transport <transport>` | `file` | Report transport: `file`, `http` |
+| `--report-file <path>` | `` | File path to write the report to |
+| `--report-url <url>` | `` | URL to send the report to (when `--report-transport http`) |
+| `--no-progress` | `false` | Disable the progress bar |
+| `--severity-threshold <score>` | `1.0` | CVSS threshold above which output is also written to stderr |
+
+## Exit behaviour
+
+When at least one finding has a CVSS score above `--severity-threshold`, VulnAPI writes output to **stderr** in addition to stdout. This causes `|| exit 1` patterns and CI/CD failure checks to trigger automatically. The default threshold is `1.0`, meaning any finding with CVSS > 1.0 triggers stderr output.

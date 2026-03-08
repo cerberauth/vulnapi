@@ -1,0 +1,106 @@
+---
+title: JWT Signature Not Verified
+description: A vulnerability where the server accepts JWTs without verifying their cryptographic signature, allowing attackers to forge arbitrary tokens.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Scan ID</th>
+    <td><code>jwt.not_verified</code></td>
+  </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>9.3 — <code>CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N</code></td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The "JWT Signature Not Verified" vulnerability occurs when a server accepts a JWT whose signature was created with a completely different (random) key. If the server returns the same successful response as it does for a legitimately signed token, it is not verifying the signature at all — meaning an attacker can craft any payload they want and the server will accept it.
+
+## Example
+
+VulnAPI takes your valid token, extracts its algorithm and claims, then re-signs it using a randomly generated key:
+
+**Original valid token** (signed with the real private key):
+```
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6InVzZXIifQ.<valid_signature>
+```
+
+**Attack token** (same claims, signed with a random key):
+```
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6InVzZXIifQ.<random_signature>
+```
+
+If both requests return the same HTTP status code (e.g. 200 OK), the server is not verifying the signature.
+
+## How to test?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzI1NiI..." --scans jwt.not_verified
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.not_verified
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzI1NiI..." --scans jwt.not_verified [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+If an attacker can forge arbitrary JWTs without needing the signing key, they can:
+
+- **Escalate privileges**: modify the `role` or `permissions` claim to gain admin access
+- **Impersonate any user**: change the `sub` or `user_id` claim to any value
+- **Bypass all JWT-based access controls**: the entire authentication system is effectively disabled
+- **Access any resource**: the attacker can claim to be any user, including users they do not have credentials for
+
+CVSS 9.3 reflects that this is network-exploitable with no prior authentication required and provides full read/write access to all user data.
+
+## How to remediate?
+
+1. **Always verify signatures**: use a trusted, well-maintained JWT library and call the verification function — never decode-only.
+
+2. **Provide the correct key**: pass the expected public key (for RS/ES) or secret (for HS) explicitly; never allow the library to auto-detect the key from the token header.
+
+3. **Pin allowed algorithms**: configure your library to only accept a specific set of algorithms (e.g. `["RS256"]`). This prevents algorithm-confusion attacks alongside signature bypass.
+
+4. **Use asymmetric algorithms for distributed systems**: RS256 and ES256 allow any service to verify tokens using the public key, while only the issuer holds the private key.
+
+```go
+// Go example — always pass allowed algorithms
+token, err := jwt.Parse(tokenString, keyFunc,
+    jwt.WithValidMethods([]string{"RS256"}),
+)
+```
+
+```python
+# Python example — always pass algorithms and verify=True (default)
+payload = jwt.decode(token, public_key, algorithms=["RS256"], audience="my-service")
+```
