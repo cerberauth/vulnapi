@@ -17,7 +17,7 @@ vulnapi scan openapi <PATH_OR_URL> [flags]
 |---|---|---|
 | `--security-schemes <name=value>` | `` | Override the token value for a named security scheme (repeatable) |
 
-Also accepts all [common flags](../#common-flags).
+Also accepts all [common flags](./#common-flags).
 
 ## Token via stdin
 
@@ -58,4 +58,4 @@ vulnapi scan openapi ./openapi.json \
 | `0` | Scan completed successfully |
 | `1` | Fatal error (invalid spec, network failure, etc.) |
 
-When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](../#exit-behaviour).
+When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](./#exit-behaviour).

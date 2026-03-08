@@ -18,7 +18,7 @@ vulnapi scan curl <URL> [flags]
 | `-X, --request <method>` | `GET` | HTTP method to use |
 | `-d, --data <data>` | `` | HTTP request body |
 
-Also accepts all [common flags](../#common-flags).
+Also accepts all [common flags](./#common-flags).
 
 ## Examples
 
@@ -56,4 +56,4 @@ vulnapi scan curl https://api.example.com/endpoint \
 | `0` | Scan completed successfully |
 | `1` | Fatal error (invalid URL, network failure, etc.) |
 
-When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](../#exit-behaviour).
+When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](./#exit-behaviour).

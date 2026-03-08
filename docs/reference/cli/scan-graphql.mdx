@@ -11,7 +11,7 @@ Run security scans against a GraphQL endpoint, including checks for introspectio
 vulnapi scan graphql <ENDPOINT> [flags]
 ```
 
-Accepts all [common flags](../#common-flags).
+Accepts all [common flags](./#common-flags).
 
 ## Examples
 
@@ -42,4 +42,4 @@ vulnapi scan graphql https://api.example.com/graphql \
 | `0` | Scan completed successfully |
 | `1` | Fatal error (invalid URL, network failure, etc.) |
 
-When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](../#exit-behaviour).
+When a finding exceeds `--severity-threshold`, additional output is written to stderr. See [exit behaviour](./#exit-behaviour).
