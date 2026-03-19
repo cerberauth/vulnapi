@@ -10,15 +10,12 @@ on:
     branches:
       - main
 
-env:
-  GO_VERSION: '1.26'
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -28,29 +25,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v6
+      - uses: cerberauth/ci/actions/go-build-test@main
         with:
-          go-version: ${{ env.GO_VERSION }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Lint
-        uses: golangci/golangci-lint-action@v9
-
-      - name: Build
-        run: go build -v ./...
-
-      - name: Test
-        run: go test -coverprofile=coverage.out -covermode=atomic ./...
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
+  release:
+    needs: build
     if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
 
     permissions:
       contents: write
@@ -65,68 +47,11 @@ jobs:
 
       - run: git fetch --force --tags
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v6
+      - uses: cerberauth/ci/actions/releaser@main
         with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Install Syft
-        uses: anchore/sbom-action/download-syft@v0
-
-      # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
-      # https://github.com/goreleaser/goreleaser/issues/4816
-      - name: Install Snapcraft
-        run: |
-          sudo apt-get --quiet update
-          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install musl-tools snapd
-          sudo snap install snapcraft --classic
-          snapcraft status vulnapi
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-
-      - name: install chocolatey
-        run: |
-          sudo apt-get --quiet update
-          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install dirmngr ca-certificates gnupg
-          sudo gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-          echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/debian stable-buster main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
-          sudo apt-get --quiet update
-          sudo apt-get --no-install-suggests --no-install-recommends --quiet --yes install mono-devel
-          mkdir -p /opt/chocolatey
-          wget -q -O - "https://github.com/chocolatey/choco/releases/download/${CHOCOLATEY_VERSION}/chocolatey.v${CHOCOLATEY_VERSION}.tar.gz" | tar -xz -C "/opt/chocolatey"
-          echo '#!/bin/bash' >> /usr/local/bin/choco
-          echo 'mono /opt/chocolatey/choco.exe $@' >> /usr/local/bin/choco
-          chmod +x /usr/local/bin/choco
-          choco upgrade chocolatey
-          choco info vulnapi
-        env:
-          CHOCOLATEY_VERSION: 2.4.1
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-
-      - uses: goreleaser/goreleaser-action@v7
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+          package-name: vulnapi
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          snapcraft-store-credentials: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          chocolatey-api-key: ${{ secrets.CHOCOLATEY_API_KEY }}
+          github-token: ${{ secrets.PAT }}

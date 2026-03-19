@@ -76,7 +76,7 @@ jobs:
   run-bad-ssl-scan-curl:
     name: Bad SSL Scan ${{ matrix.challenge.name }}
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: true
       matrix:
@@ -397,6 +397,10 @@ jobs:
   run-openapi-scans:
     name: OpenAPI Scans
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
 
     strategy:
       fail-fast: false
