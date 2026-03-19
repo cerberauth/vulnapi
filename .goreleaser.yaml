@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=jcroql
 version: 2
 
 project_name: vulnapi
@@ -7,16 +9,53 @@ before:
     - go mod tidy
     - go generate ./...
 
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+gomod:
+  proxy: true
+
+report_sizes: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
 builds:
-  - env:
+  - id: vulnapi
+    binary: vulnapi
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - "386"
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+      - goos: darwin
+        goarch: "386"
+      - goos: darwin
+        goarch: arm
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }}
 
-gomod:
-  proxy: true
+universal_binaries:
+  - id: vulnapi-universal
+    ids:
+      - vulnapi
+    replace: true
 
 checksum:
   name_template: "checksums.txt"
@@ -25,92 +64,101 @@ source:
   enabled: true
 
 archives:
-  - format: tar.gz
-    name_template: >-
+  - name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
+    formats: ["tar.gz"]
     format_overrides:
-    - goos: windows
-      format: zip
-
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+      - goos: windows
+        formats: ["zip"]
+    builds_info:
+      group: root
+      owner: root
+      mtime: "{{ .CommitDate }}"
+    files:
+      - README.md
+      - LICENSE
 
 sboms:
-  - id: syft-archive
-    artifacts: archive
+  - artifacts: archive
 
 signs:
   - cmd: cosign
-    env:
-      - COSIGN_EXPERIMENTAL=1
-    certificate: "${artifact}.pem"
+    signature: "${artifact}.sigstore.json"
+    output: true
+    artifacts: checksum
     args:
       - sign-blob
-      - "--output-certificate=${certificate}"
-      - "--output-signature=${signature}"
+      - "--bundle=${signature}"
       - "${artifact}"
-      - "--yes"
-    artifacts: checksum
-    output: true
+      - --yes
 
 changelog:
   sort: asc
+  use: github
+  format: "{{ .SHA }}: {{ .Message }}{{ if .Logins }} ({{ .Logins | englishJoin }}){{ end }}"
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 1
+    - title: "Other"
+      order: 999
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^chore\(deps\): '
+      - '^(build|ci): '
+      - Merge pull request
+      - Merge branch
 
 milestones:
-  - repo:
-      owner: cerberauth
-      name: vulnapi
-    close: true
-    fail_on_error: false
+  - close: true
 
-brews:
-  - name: "{{ .ProjectName }}"
-    description: "Scan your APIs for security vulnerabilities and weaknesses"
-    license: "MIT"
+release:
+  name_template: "v{{ .Version }}"
+
+homebrew_casks:
+  - name: vulnapi
+    description: &description "Scan your APIs for security vulnerabilities and weaknesses."
+    license: &license MIT
+    homepage: &homepage https://github.com/cerberauth/vulnapi
     repository:
-      owner: cerberauth
-      name: "{{ .ProjectName }}"
-    homepage: https://www.cerberauth.com/vulnapi/
-    commit_author:
-      name: Emmanuel Gautier
-      email: emmanuel@cerberauth.com
+      owner: &owner cerberauth
+      name: homebrew-tap
+      branch: &main main
+    commit_author: &commit_author
+      name: cerberauth-bot
+      email: 268418261+cerberauth-bot@users.noreply.github.com
 
-chocolateys:
-  - owners: CerberAuth
-    authors: Emmanuel Gautier
-    project_url: https://www.cerberauth.com/vulnapi/
-    icon_url: "https://www.cerberauth.com/icons/vulnapi.png"
-    license_url: https://raw.githubusercontent.com/cerberauth/vulnapi/refs/heads/main/LICENSE
-    require_license_acceptance: false
-    project_source_url: https://github.com/cerberauth/vulnapi
-    docs_url: https://www.cerberauth.com/docs/vulnapi/
-    bug_tracker_url: https://github.com/cerberauth/vulnapi/issues
-    tags: "security vulnerability developer"
-    summary: VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
-    skip_publish: false
-    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
-    source_repo: "https://push.chocolatey.org/"
-    description: |
-      VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
+scoops:
+  - name: vulnapi
+    description: *description
+    homepage: *homepage
+    license: *license
+    repository:
+      owner: *owner
+      name: scoop-bucket
+      branch: *main
+    commit_author: *commit_author
 
 nfpms:
-  - package_name: "{{ .ProjectName }}"
+  - file_name_template: "{{ .ConventionalFileName }}"
+    package_name: vulnapi
     vendor: CerberAuth
-    homepage: https://www.cerberauth.com/vulnapi/
+    homepage: *homepage
     maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
-    description: |-
-      VulnAPI is an open-source project designed to help you scan your APIs for common security vulnerabilities and weaknesses.
-    license: "MIT"
+    description: *description
+    license: *license
+    bindir: /usr/bin
+    section: utils
     formats:
       - apk
       - deb
@@ -119,37 +167,97 @@ nfpms:
       - archlinux
 
 snapcrafts:
-  - title: vulnapi
+  - name_template: "{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    title: VulnAPI
     publish: true
-    summary: "vulnapi"
-    description: "vulnapi"
-    license: MIT
-    apps:
-      vulnapi:
-        command: vulnapi
-        plugs:
-          - network
-          - network-bind
+    summary: *description
+    description: "Scan your APIs for common security vulnerabilities and weaknesses, including OWASP top 10."
+    license: *license
+    confinement: classic
+    grade: stable
+    channel_templates:
+      - edge
+      - beta
+      - candidate
+      - stable
 
-dockers:
-  - image_templates:
-      - "cerberauth/vulnapi:{{ .Tag }}"
-      - "cerberauth/vulnapi:v{{ .Major }}"
-      - "cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
-      - "cerberauth/vulnapi:latest"
-      - "ghcr.io/cerberauth/vulnapi:{{ .Tag }}"
-      - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}"
-      - "ghcr.io/cerberauth/vulnapi:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/cerberauth/vulnapi:latest"
+aurs:
+  - name: vulnapi-bin
+    homepage: *homepage
+    description: *description
+    maintainers:
+      - Emmanuel Gautier <emmanuel@cerberauth.com>
+    license: *license
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: ssh://aur@aur.archlinux.org/vulnapi-bin.git
+    skip_upload: auto
+    package: |-
+      install -Dm755 "./vulnapi" "${pkgdir}/usr/bin/vulnapi"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/vulnapi/LICENSE"
+
+winget:
+  - name: vulnapi
+    publisher: CerberAuth
+    publisher_url: https://www.cerberauth.com
+    license: *license
+    license_url: https://github.com/cerberauth/vulnapi/blob/main/LICENSE
+    homepage: *homepage
+    short_description: *description
+    repository:
+      owner: *owner
+      name: winget-pkgs
+      branch: "vulnapi-{{.Version}}"
+
+chocolateys:
+  - name: vulnapi
+    title: VulnAPI
+    owners: CerberAuth
+    authors: CerberAuth
+    description: *description
+    project_url: *homepage
+    icon_url: "https://www.cerberauth.com/icons/vulnapi.png"
+    license_url: https://github.com/cerberauth/vulnapi/blob/main/LICENSE
+    copyright: CerberAuth
+    tags: "security vulnerability api openapi developer"
+    summary: *description
+    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
+    source_repo: https://push.chocolatey.org/
+    skip_publish: false
+
+dockers_v2:
+  - id: vulnapi-dockerhub
     dockerfile: .docker/Dockerfile-goreleaser
+    images:
+      - "cerberauth/vulnapi"
+    tags:
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+      - linux/arm/v7
+
+  - id: vulnapi-ghcr
+    dockerfile: .docker/Dockerfile-goreleaser
+    images:
+      - "ghcr.io/cerberauth/vulnapi"
+    tags:
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+      - linux/arm/v7
 
 docker_signs:
   - cmd: cosign
-    env:
-      - COSIGN_EXPERIMENTAL=1
-    artifacts: images
+    artifacts: manifests
     output: true
     args:
       - "sign"
-      - "${artifact}"
+      - "${artifact}@${digest}"
       - "--yes"

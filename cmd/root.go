@@ -21,22 +21,23 @@ var (
 
 var name = "vulnapi"
 
-func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
+func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of this application",
 		Long:  `All software has versions. This is this application's`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(projectVersion)
+			fmt.Println(projectVersion + " (commit=" + commit + ", built=" + date + ")")
 		},
 	}
 
 	rootCmd := &cobra.Command{
-		Use:   name,
-		Short: name,
+		Use:     name,
+		Version: projectVersion + " (commit=" + commit + ", built=" + date + ")",
+		Short:   name,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !sqaOptOut {
-				otelShutdown, _ = telemetryx.New(cmd.Context(), name, projectVersion)
+				otelShutdown, _ = telemetryx.New(cmd.Context(), name, projectVersion, telemetryx.WithCommit(commit), telemetryx.WithBuildDate(date))
 			}
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
@@ -57,8 +58,8 @@ func NewRootCmd(projectVersion string) (cmd *cobra.Command) {
 	return rootCmd
 }
 
-func Execute(projectVersion string) {
-	c := NewRootCmd(projectVersion)
+func Execute(projectVersion, commit, date string) {
+	c := NewRootCmd(projectVersion, commit, date)
 	defer func() {
 		if otelShutdown != nil {
 			_ = otelShutdown(context.Background())

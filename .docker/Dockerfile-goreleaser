@@ -1,6 +1,9 @@
 FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY --chown=nonroot:nonroot vulnapi /usr/bin/vulnapi
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-ENTRYPOINT ["vulnapi"]
-CMD ["vulnapi"]
+COPY --chown=nonroot:nonroot ${TARGETOS}/${TARGETARCH}${TARGETVARIANT:+/$TARGETVARIANT}/vulnapi /usr/bin/vulnapi
+
+ENTRYPOINT ["/usr/bin/vulnapi"]
