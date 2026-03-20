@@ -5,6 +5,7 @@ import (
 	authenticationbypass "github.com/cerberauth/vulnapi/scan/broken_authentication/authentication_bypass"
 	algnone "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/alg_none"
 	blanksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/blank_secret"
+	kidinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/kid_injection"
 	notverified "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/not_verified"
 	nullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
 	weaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
@@ -24,6 +25,7 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(authenticationbypass.AcceptsUnauthenticatedOperationScanID, authenticationbypass.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(algnone.AlgNoneJwtScanID, algnone.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(blanksecret.BlankSecretVulnerabilityScanID, blanksecret.ScanHandler))
+	s.AddOperationScanHandler(scan.NewOperationScanHandler(kidinjection.KidInjectionScanID, kidinjection.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(notverified.NotVerifiedJwtScanID, notverified.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(nullsignature.NullSignatureScanID, nullsignature.ScanHandler))
 	s.AddOperationScanHandler(scan.NewOperationScanHandler(weaksecret.WeakSecretVulnerabilityScanID, weaksecret.ScanHandler))

@@ -23,6 +23,7 @@ vulnapi scan curl ... --exclude-scans "discover.*"
 | `jwt.alg_none` | JWT Accepts `alg: none` | API2:2023 | High |
 | `jwt.blank_secret` | JWT Signed With Blank Secret | API2:2023 | High |
 | `jwt.weak_secret` | JWT Signed With Weak Secret | API2:2023 | High |
+| `jwt.kid_injection` | JWT KID Header Injection (SQL injection & path traversal) | API2:2023 | 9.3 |
 | `jwt.not_verified` | JWT Signature Not Verified | API2:2023 | 9.3 |
 | `jwt.null_signature` | JWT Null Signature | API2:2023 | High |
 | `generic.accept_unauthenticated_operation` | Endpoint Accepts Unauthenticated Requests | API2:2023 | 9.3 |

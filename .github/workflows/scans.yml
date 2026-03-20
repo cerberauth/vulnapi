@@ -119,6 +119,8 @@ jobs:
           [
             "jwt-alg-none-bypass",
             "jwt-blank-secret",
+            "jwt-kid-path-traversal",
+            "jwt-kid-sql-injection",
             "jwt-not-verified",
             "jwt-null-signature",
             "jwt-weak-hmac-secret",

@@ -1,0 +1,97 @@
+---
+title: JWT KID Header Injection
+description: JWT KID Header Injection occurs when the `kid` (Key ID) header parameter is passed unsanitized to a database query or file system lookup, allowing attackers to forge trusted tokens.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The `kid` (Key ID) JWT header field is intended to tell the server which key to use for signature verification. When this value is passed unsanitized to a database query or a file system lookup, attackers can inject a payload that causes the server to use an attacker-controlled key, effectively allowing them to forge arbitrary tokens.
+
+VulnAPI tests two variants of this attack:
+
+- **SQL Injection** — injects a SQL payload into `kid` (e.g. `' UNION SELECT 'secret' ...`) so that the database returns a known value as the key.
+- **Path Traversal** — sets `kid` to a filesystem path such as `/dev/null` so the server reads an empty file as the key, which can be matched with an empty HMAC secret.
+
+## Example
+
+Here is a valid JWT signed with HS256:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+### SQL Injection variant
+
+The attacker crafts a token with a `kid` header that injects into the key-lookup query and re-signs it with the value the query is made to return (`secret`):
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "' UNION SELECT 'secret' FROM tokens WHERE '1'='1"
+}
+```
+
+### Path Traversal variant
+
+The attacker sets `kid` to `/dev/null` and re-signs the token with an empty HMAC secret. If the server reads the signing key from the path named by `kid`, it receives zero bytes:
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "/dev/null"
+}
+```
+
+## How to test?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --scans jwt.kid_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJIUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.kid_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --scans jwt.kid_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+A successful KID injection attack allows an attacker to forge a JWT that the server accepts as legitimate. This can lead to full authentication bypass, privilege escalation, or impersonation of any user in the system.
+
+## How to remediate?
+
+- **Validate the `kid` value** before using it — reject values containing SQL metacharacters, path separators, or characters outside a safe allowlist (e.g. alphanumeric and hyphens only).
+- **Use parameterised queries** when looking up keys by `kid` in a database to prevent SQL injection.
+- **Never read key material from user-controlled file paths** — store keys in a secure key store and use `kid` only as an opaque identifier mapped server-side to a known key.
+- **Hard-code or allowlist permitted `kid` values** where possible.
