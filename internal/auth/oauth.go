@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 )
 
 type OAuthFlow string
@@ -65,7 +65,7 @@ func NewOAuthSecurityScheme(name string, in *SchemeIn, value *OAuthValue, config
 		}
 
 		var tokenFormat TokenFormat
-		if jwt.IsJWT(value.AccessToken) {
+		if jwtop.IsJWT(value.AccessToken) {
 			tokenFormat = JWTTokenFormat
 		} else {
 			tokenFormat = NoneTokenFormat

@@ -10,6 +10,8 @@ github.com/bytedance/sonic/loader v0.5.0 h1:gXH3KVnatgY7loH5/TkeVyXPfESoqSBSBEiD
 github.com/bytedance/sonic/loader v0.5.0/go.mod h1:AR4NYCk5DdzZizZ5djGqQ92eEhCCcdf5x77udYiSJRo=
 github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=
 github.com/cenkalti/backoff/v5 v5.0.3/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
+github.com/cerberauth/jwtop v0.3.1 h1:iW710gcgCwY7qP0n1mm42fqRvxCvVpcdmxsd8hvx1i8=
+github.com/cerberauth/jwtop v0.3.1/go.mod h1:9nr9q8lqrZD8Y/DXbxE0c8D9tiZDcbpj3FA4LMq9Zcg=
 github.com/cerberauth/x v0.0.0-20260317231926-a0036313e07f h1:ljBFlcil65D6hay3BjCU7OCDklxKobmWgOlIjiV+amA=
 github.com/cerberauth/x v0.0.0-20260317231926-a0036313e07f/go.mod h1:OZVZeAmCmWPnXSrX08Y1jp11r7HG+Xn7SnBx5yARrow=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

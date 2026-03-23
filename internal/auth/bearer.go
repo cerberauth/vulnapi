@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 )
 
 func NewAuthorizationBearerSecurityScheme(name string, value *string) (*SecurityScheme, error) {
@@ -18,7 +18,7 @@ func NewAuthorizationBearerSecurityScheme(name string, value *string) (*Security
 		}
 
 		var tokenFormat TokenFormat
-		if jwt.IsJWT(*value) {
+		if jwtop.IsJWT(*value) {
 			tokenFormat = JWTTokenFormat
 		} else {
 			tokenFormat = NoneTokenFormat

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/cerberauth/vulnapi/jwt"
+	"github.com/cerberauth/jwtop/jwt/editor"
 	"github.com/cerberauth/x/telemetryx"
 	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/cobra"
@@ -87,7 +87,7 @@ func NewJWTCmd() (cmd *cobra.Command) {
 			tokenString := args[0]
 			var key interface{}
 			var newTokenString string
-			tokenWriter, err := jwt.NewJWTWriter(tokenString)
+			tokenWriter, err := editor.NewTokenEditor(tokenString)
 			if err != nil {
 				telemetryJwtErrorCounter.Add(ctx, 1, metric.WithAttributes(otelAlgorithmAttribute, otelErrorReasonAttributeKey.String("invalid token")))
 				log.Fatal(err)

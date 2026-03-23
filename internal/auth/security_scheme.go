@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/jwt"
+	jwtop "github.com/cerberauth/jwtop/jwt"
+	"github.com/cerberauth/jwtop/jwt/editor"
 )
 
 func NewErrTokenFormatShouldBeJWT() error {
@@ -74,7 +75,7 @@ func (securityScheme *SecurityScheme) GetToken() string {
 }
 
 func (securityScheme *SecurityScheme) SetTokenFormat(tokenFormat TokenFormat) error {
-	if tokenFormat == JWTTokenFormat && securityScheme.HasValidValue() && !jwt.IsJWT(securityScheme.GetToken()) {
+	if tokenFormat == JWTTokenFormat && securityScheme.HasValidValue() && !jwtop.IsJWT(securityScheme.GetToken()) {
 		return NewErrTokenFormatShouldBeJWT()
 	}
 
@@ -133,7 +134,7 @@ func (securityScheme *SecurityScheme) validateValue(value interface{}) error {
 				return fmt.Errorf("invalid value for http security scheme")
 			}
 			if securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == JWTTokenFormat {
-				if _, err := jwt.NewJWTWriter(val); err != nil {
+				if _, err := editor.NewTokenEditor(val); err != nil {
 					return err
 				}
 			}
