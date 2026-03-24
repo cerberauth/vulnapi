@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/cerberauth/cobracurl"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
@@ -27,11 +28,17 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 
 			domain := args[0]
 
-			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
 				log.Fatal(err)
 			}
+			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
+			if err != nil {
+				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error building request headers")))
+				log.Fatal(err)
+			}
+			client = client.WithHeader(headers).WithCookies(cookies)
 
 			fmt.Printf("Discovering APIs for %s\n", domain)
 			scans, err := scenario.NewDiscoverDomainsScan(domain, client, &scan.ScanOptions{

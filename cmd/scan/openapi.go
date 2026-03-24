@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cerberauth/cobracurl"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
@@ -82,11 +83,17 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken)
 
-			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error creating http client"))...))
 				log.Fatal(err)
 			}
+			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
+			if err != nil {
+				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error building request headers"))...))
+				log.Fatal(err)
+			}
+			client = client.WithHeader(headers).WithCookies(cookies)
 			request.SetDefaultClient(client)
 
 			s, err := scenario.NewOpenAPIScan(ctx, doc, securitySchemesValues, client, &scan.ScanOptions{

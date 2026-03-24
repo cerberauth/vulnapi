@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"testing"
 
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

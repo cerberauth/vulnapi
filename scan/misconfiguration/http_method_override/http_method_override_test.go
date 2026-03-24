@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"testing"
 
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
-	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/report"
 	httpmethodoverride "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override"
 	"github.com/jarcoal/httpmock"

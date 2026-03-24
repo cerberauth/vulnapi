@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
-	"go.uber.org/ratelimit"
+	"golang.org/x/time/rate"
 )
 
-var rl = ratelimit.New(10)
+var rl = rate.NewLimiter(rate.Every(100*time.Millisecond), 1) // 10 req/s default
 
 var defaultClient *Client = nil
 
@@ -42,6 +42,18 @@ type NewClientOptions struct {
 	Cookies []*http.Cookie
 }
 
+func NewClientFromHTTPClient(httpClient *http.Client, limiter *rate.Limiter) *Client {
+	if limiter != nil {
+		rl = limiter
+	}
+
+	return &Client{
+		Client:  httpClient,
+		Header:  http.Header{},
+		Cookies: []*http.Cookie{},
+	}
+}
+
 func NewClient(opts NewClientOptions) *Client {
 	var proxy func(*http.Request) (*url.URL, error)
 	if opts.ProxyURL != nil && opts.ProxyURL.String() != "" {
@@ -66,7 +78,7 @@ func NewClient(opts NewClientOptions) *Client {
 	}
 
 	if opts.RateLimit > 0 {
-		rl = ratelimit.New(opts.RateLimit)
+		rl = rate.NewLimiter(rate.Every(time.Second/time.Duration(opts.RateLimit)), 1)
 	}
 
 	if opts.Header == nil {
