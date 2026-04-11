@@ -20,7 +20,7 @@ const (
 var issue = report.Issue{
 	ID:   "broken_authentication.weak_secret",
 	Name: "JWT Secret used for signing is weak",
-	URL:  "https://www.cerberauth.com/docs/vulnapi/docs/vulnerabilities/broken-authentication/jwt-weak-secret?utm_source=vulnapi-report",
+	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-weak-secret?utm_source=vulnapi-report",
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_BrokenAuthentication,
