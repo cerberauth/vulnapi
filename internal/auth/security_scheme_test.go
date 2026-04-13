@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
 	jwtop "github.com/cerberauth/jwtop/jwt"
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 
@@ -149,7 +150,9 @@ func (r *Request) Do() (*Response, error) {
 	r.SetHeader("user-agent", "vulnapi")
 	r.SetHeader("x-vulnapi-request-id", r.GetID())
 
-	rl.Take()
+	if err := rl.Wait(context.Background()); err != nil {
+		return nil, err
+	}
 	httpRes, err := r.Client.Do(r.HttpRequest) //nolint:gosec
 	if err != nil {
 		return nil, err

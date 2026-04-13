@@ -38,23 +38,27 @@ All commands exit `0` on success and non-zero on error.
 
 ## Common flags
 
-All `scan` and `discover` commands share these flags:
+All `scan` and `discover` commands share these flags. HTTP client flags follow the same conventions as `curl`.
 
 | Flag | Default | Description |
 |---|---|---|
-| `-r, --rate-limit <rate>` | `10/s` | Request rate limit (e.g. `10/s`, `1/m`) |
-| `-p, --proxy <url>` | `` | Proxy URL for all requests |
+| `--rate <rate>` | `` | Request rate limit (e.g. `10/s`, `1/m`) |
+| `-x, --proxy <url>` | `` | Proxy URL for all requests |
 | `-H, --header <header>` | `` | Header to include in requests (repeatable) |
-| `-c, --cookie <cookie>` | `` | Cookie to include in requests (repeatable) |
+| `-b, --cookie <cookie>` | `` | Cookie to include in requests (repeatable) |
 | `-u, --user <user:pass>` | `` | Username and password for HTTP Basic authentication |
+| `--basic` | `` | Use HTTP Basic Auth (use with `-u`) |
+| `--digest` | `` | Use HTTP Digest Auth (use with `-u`) |
 | `--scans <scan-id>` | `` | Run only specific scans (repeatable; supports wildcards like `jwt.*`) |
-| `-e, --exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable) |
+| `--exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable) |
 | `--report-format <format>` | `table` | Output format: `table`, `json`, `yaml` |
 | `--report-transport <transport>` | `file` | Report transport: `file`, `http` |
 | `--report-file <path>` | `` | File path to write the report to |
 | `--report-url <url>` | `` | URL to send the report to (when `--report-transport http`) |
 | `--no-progress` | `false` | Disable the progress bar |
 | `--severity-threshold <score>` | `1.0` | CVSS threshold above which output is also written to stderr |
+
+> **Deprecated:** `--rate-limit` (`-r`) was replaced by `--rate`. The old flag is still accepted as an alias.
 
 ## Exit behaviour
 

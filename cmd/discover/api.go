@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cerberauth/cobracurl"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
@@ -37,11 +38,17 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			client, err := internalCmd.NewHTTPClientFromArgs(internalCmd.GetRateLimit(), internalCmd.GetProxy(), internalCmd.GetHeaders(), internalCmd.GetCookies())
+			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
 				log.Fatal(err)
 			}
+			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
+			if err != nil {
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error building request headers")))
+				log.Fatal(err)
+			}
+			client = client.WithHeader(headers).WithCookies(cookies)
 
 			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, parsedUrl, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
