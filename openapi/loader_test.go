@@ -3,8 +3,8 @@ package openapi_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/cerberauth/vulnapi/openapi"
@@ -23,9 +23,7 @@ func TestLoadOpenAPIWithInvalidURL(t *testing.T) {
 	invalidURL := "invalid-url"
 	_, err := openapi.LoadOpenAPI(context.Background(), invalidURL)
 
-	expectedErr := fmt.Errorf("the openapi file has not been found on %s", invalidURL)
-
-	assert.Equal(t, expectedErr, err)
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestLoadOpenAPIWithValidURL(t *testing.T) {
@@ -46,9 +44,7 @@ func TestLoadOpenAPIWithNonExistentFile(t *testing.T) {
 	nonExistentFile := "/path/to/nonexistent.yaml"
 	_, err := openapi.LoadOpenAPI(context.Background(), nonExistentFile)
 
-	expectedErr := fmt.Errorf("the openapi file has not been found on %s", nonExistentFile)
-
-	assert.Equal(t, expectedErr, err)
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestLoadOpenAPIWithValidFilePath(t *testing.T) {

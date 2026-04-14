@@ -173,8 +173,14 @@ snapcrafts:
     summary: *description
     description: "Scan your APIs for common security vulnerabilities and weaknesses, including OWASP top 10."
     license: *license
-    confinement: classic
+    confinement: strict
     grade: stable
+    apps:
+      vulnapi:
+        plugs:
+          - home
+          - network
+          - removable-media
     channel_templates:
       - edge
       - beta
