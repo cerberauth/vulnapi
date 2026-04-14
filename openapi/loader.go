@@ -3,10 +3,9 @@ package openapi
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/url"
-	"os"
 
+	"github.com/cerberauth/x/fsx"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -50,11 +49,12 @@ func LoadOpenAPI(ctx context.Context, urlOrPath string) (*OpenAPI, error) {
 		return openapi, nil
 	}
 
-	if _, err := os.Stat(urlOrPath); err != nil {
-		return nil, fmt.Errorf("the openapi file has not been found on %s", urlOrPath)
+	data, err := fsx.ReadFile(urlOrPath)
+	if err != nil {
+		return nil, err
 	}
 
-	doc, err := newLoader(ctx).LoadFromFile(urlOrPath)
+	doc, err := newLoader(ctx).LoadFromDataWithPath(data, &url.URL{Path: urlOrPath})
 	if err != nil {
 		return nil, err
 	}
