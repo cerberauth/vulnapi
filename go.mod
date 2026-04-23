@@ -6,7 +6,7 @@ require (
 	github.com/brianvoe/gofakeit/v7 v7.14.1
 	github.com/cerberauth/cobracurl v0.4.1
 	github.com/cerberauth/jwtop v0.3.1
-	github.com/cerberauth/x v0.0.0-20260328225930-85a91f5d7ee2
+	github.com/cerberauth/x v0.0.0-20260422224355-776c8f41c352
 	github.com/fatih/color v1.19.0
 	github.com/getkin/kin-openapi v0.135.0
 	github.com/gin-contrib/requestid v1.0.6
