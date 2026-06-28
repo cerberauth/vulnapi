@@ -20,6 +20,8 @@ const (
 const (
 	HTTPHeadersScanID   = "misconfiguration.http_headers"
 	HTTPHeadersScanName = "HTTP Headers Misconfiguration"
+
+	cvssVectorA = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
 )
 
 var contentOptionsMissingIssue = report.Issue{
@@ -34,7 +36,7 @@ var contentOptionsMissingIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorA,
 		Score:   0,
 	},
 }
@@ -51,7 +53,7 @@ var corsMissingIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorA,
 		Score:   5.1,
 	},
 }
@@ -68,7 +70,7 @@ var corsWildcardIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorA,
 		Score:   0,
 	},
 }
@@ -119,7 +121,7 @@ var cspMissingIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorA,
 		Score:   0,
 	},
 }
@@ -136,7 +138,7 @@ var hstsMissingIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorA,
 		Score:   0,
 	},
 }

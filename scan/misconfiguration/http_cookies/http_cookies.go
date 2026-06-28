@@ -12,12 +12,15 @@ import (
 const (
 	HTTPCookiesScanID   = "misconfiguration.http_cookies"
 	HTTPCookiesScanName = "HTTP Cookies Misconfiguration"
+
+	cookiesSecurityURL = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
+	cvssVectorP        = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
 )
 
 var httpNotHttpOnlyIssue = report.Issue{
 	ID:   "security_misconfiguration.http_cookies_not_http_only",
 	Name: "Cookies not HTTP-Only",
-	URL:  "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security",
+	URL:  cookiesSecurityURL,
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,
@@ -35,7 +38,7 @@ var httpNotHttpOnlyIssue = report.Issue{
 var notSecureIssue = report.Issue{
 	ID:   "security_misconfiguration.http_cookies_not_secure",
 	Name: "Cookies not Secure",
-	URL:  "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security",
+	URL:  cookiesSecurityURL,
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,
@@ -45,7 +48,7 @@ var notSecureIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorP,
 		Score:   0,
 	},
 }
@@ -63,7 +66,7 @@ var sameSiteNoneIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorP,
 		Score:   0,
 	},
 }
@@ -81,7 +84,7 @@ var withoutSameSiteIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorP,
 		Score:   0,
 	},
 }
@@ -89,7 +92,7 @@ var withoutSameSiteIssue = report.Issue{
 var withoutExpiresIssue = report.Issue{
 	ID:   "security_misconfiguration.http_cookies_without_expires",
 	Name: "Cookies Expires not set",
-	URL:  "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security",
+	URL:  cookiesSecurityURL,
 
 	Classifications: &report.Classifications{
 		OWASP: report.OWASP_2023_SecurityMisconfiguration,
@@ -98,7 +101,7 @@ var withoutExpiresIssue = report.Issue{
 
 	CVSS: report.CVSS{
 		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
+		Vector:  cvssVectorP,
 		Score:   0,
 	},
 }
