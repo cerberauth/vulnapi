@@ -65,12 +65,6 @@ vulnapi scan curl [API_URL] [CURL_OPTIONS]
 
 Replace `[API_URL]` with the URL of the API to scan, and `[CURL_OPTIONS]` with any additional curl options you wish to include.
 
-Example:
-
-```bash
-vulnapi scan curl -X POST https://vulnapi.cerberauth.com/vulnerable/api -H "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ."
-```
-
 ### Using OpenAPI Contracts
 
 To perform a scan using OpenAPI contracts, execute the following command:
@@ -80,12 +74,6 @@ echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE]
 ```
 
 Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.
-
-Example:
-
-```bash
-vulnapi scan openapi https://vulnapi.cerberauth.com/vulnerable/.well-known/openapi.json
-```
 
 ## Output
 
@@ -190,6 +178,7 @@ This scanner is provided for educational and informational purposes only. It sho
 ## Thanks
 
 This project used the following open-source libraries:
+* [jwtop](https://github.com/cerberauth/jwtop)
 * [SecLists](https://github.com/danielmiessler/SecLists)
 * [projectdiscovery/wappalyzergo](https://github.com/projectdiscovery/wappalyzergo)
 
