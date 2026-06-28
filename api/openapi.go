@@ -23,18 +23,18 @@ type NewOpenAPIScanRequest struct {
 func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	var form NewOpenAPIScanRequest
 	if err := ctx.ShouldBindJSON(&form); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 		return
 	}
 
 	doc, err := openapi.LoadFromData(ctx, []byte(form.Schema))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
 		return
 	}
 
 	if err := doc.Validate(ctx); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
 		return
 	}
 
@@ -55,13 +55,13 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		ExcludeScans: form.Opts.ExcludeScans,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
 		return
 	}
 
 	reporter, _, err := s.Execute(ctx, nil)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 	}
 	_, err = json.Marshal(response)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
 		return
 	}
 

@@ -100,8 +100,11 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 					header.Add(name, value)
 				case "cookie":
 					cookies = append(cookies, &http.Cookie{
-						Name:  name,
-						Value: value,
+						Name:     name,
+						Value:    value,
+						HttpOnly: true,
+						Secure:   true,
+						SameSite: http.SameSiteLaxMode,
 					})
 				}
 			}
