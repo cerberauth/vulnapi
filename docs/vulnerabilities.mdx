@@ -5,6 +5,8 @@ sidebar:
   order: 100
 ---
 
+VulnAPI detects a wide range of API vulnerabilities, including those from the OWASP API Security Top 10.
+
 ✅ = automated scan available
 
 | Name                                                                                                  | OWASP                                       | Severity | Automated Scan |
@@ -19,9 +21,9 @@ sidebar:
 | [JWT Audience cross service relay attack](./vulnerabilities/broken-authentication/jwt-cross-service-relay-attack) | API2:2023 Broken Authentication             | High     | |
 | [JWT Null Signature](./vulnerabilities/broken-authentication/jwt-null-signature)                     | API2:2023 Broken Authentication             | High     | ✅ |
 | [JWT KID Header Injection](./vulnerabilities/broken-authentication/jwt-kid-injection)                | API2:2023 Broken Authentication             | High     | ✅ |
-| JWT Algorithm Confusion                                                                               | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Algorithm Confusion](./vulnerabilities/broken-authentication/jwt-algorithm-confusion)           | API2:2023 Broken Authentication             | High     | ✅ |
 | [JWT Signature not verified](./vulnerabilities/broken-authentication/jwt-not-verified)               | API2:2023 Broken Authentication             | High     | ✅ |
-| JWT Expired                                                                                           | API2:2023 Broken Authentication             | High     | |
+| [JWT Expired](./vulnerabilities/broken-authentication/jwt-expired)                                     | API2:2023 Broken Authentication             | High     | |
 | Discoverable OpenAPI                                                                                  | API7:2023 Server Side Request Forgery       | Info     | ✅ |
 | Discoverable GraphQL Endpoint                                                                         | API7:2023 Server Side Request Forgery       | Info     | ✅ |
 | [GraphQL Introspection Enabled](./vulnerabilities/security-misconfiguration/graphql-introspection)   | API8:2023 Security Misconfiguration         | Info     | ✅ |
@@ -42,3 +44,5 @@ sidebar:
 | SSL Certificate Not Trusted                                                                           | API8:2023 Security Misconfiguration         | Medium   | |
 | SSL Not Enforced                                                                                      | API8:2023 Security Misconfiguration         | Medium   | |
 | Directory Traversal                                                                                   | API10:2023 Unsafe Consumption of APIs       | High     | |
+
+The JWT vulnerability scans are partially powered by the [CerberAuth JWTop](https://github.com/cerberauth/jwtop) project.

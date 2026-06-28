@@ -27,6 +27,8 @@ description: A vulnerability arises when a Token is forged by the same service b
 
 A vulnerability arises when a JSON Web Token (JWT) is signed by the same service but doesn't verify the issuer (the source of the token) and/or the audience (the intended recipient). This can lead to security risks, as it means an attacker could create a forged JWT with the same service signature and manipulate the issuer and audience fields. Without proper verification, the service may accept the forged token, potentially granting unauthorized access or compromising the system's security.
 
+For more details, you can refer to the [jwtop documentation on Cross-Service Relay Attack](https://www.cerberauth.com/docs/jwtop/vulnerabilities/cross-service-relay-attack/).
+
 ![JWT Cross Service Relay Attack](./jwt-cross-service-relay-attack.png)
 
 ## Services impacted

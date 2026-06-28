@@ -1,0 +1,90 @@
+---
+title: JWT Algorithm Confusion
+description: JWT Algorithm Confusion, also known as HMAC confusion attack, occurs when an attacker tricks a server into verifying a JWT using a symmetric algorithm (like HS256) instead of an asymmetric one (like RS256).
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2016-5431">CVE-2016-5431</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/347.html">CWE-347: Improper Verification of Cryptographic Signature</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+JWT Algorithm Confusion, also known as HMAC confusion attack, occurs when an attacker tricks a server into verifying a JWT using a symmetric algorithm (like HS256) instead of an asymmetric one (like RS256). This typically happens when a server uses a public key (intended for RS256) as the secret for HS256 verification.
+
+For more details, you can refer to the [jwtop documentation on HMAC Confusion](https://www.cerberauth.com/docs/jwtop/vulnerabilities/hmac-confusion/).
+
+## Example
+
+An application is expected to receive a JWT signed with an asymmetric algorithm like RS256. The server uses a public key to verify the signature.
+
+If the application is vulnerable, an attacker can:
+1. Obtain the public key (which is often public).
+2. Create a new JWT with the algorithm header set to `HS256`.
+3. Sign the JWT using the public key as the HMAC secret.
+4. Send the forged token to the server.
+
+The server, seeing `HS256` in the header, might use its public key as the secret to verify the HMAC signature, and if it doesn't strictly enforce the algorithm, the verification will succeed.
+
+## How to test?
+
+If you want to test only the "JWT Algorithm Confusion" vulnerability, you can use the following command:
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.hmac_confusion
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.hmac_confusion
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.hmac_confusion [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+The potential security impacts of JWT Algorithm Confusion are:
+
+- **Full Authentication Bypass**: An attacker can forge tokens for any user, including administrative accounts.
+- **Unauthorized Access**: Gaining access to sensitive data and functionalities.
+- **Account Takeover**: Impersonating any user in the system.
+
+## How to remediate?
+
+- **Strict Algorithm Enforcement**: Always specify the expected algorithm(s) when verifying a JWT. Do not rely on the `alg` header from the token.
+- **Use Secure Libraries**: Use JWT libraries that are not vulnerable to this attack and ensure they are correctly configured.
+- **Separate Keys**: Use different keys for different purposes and ensure that public keys are only used for asymmetric verification.

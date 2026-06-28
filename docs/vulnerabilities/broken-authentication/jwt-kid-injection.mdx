@@ -26,6 +26,8 @@ import { Tabs, TabItem } from '@/components/docs'
 
 The `kid` (Key ID) JWT header field is intended to tell the server which key to use for signature verification. When this value is passed unsanitized to a database query or a file system lookup, attackers can inject a payload that causes the server to use an attacker-controlled key, effectively allowing them to forge arbitrary tokens.
 
+For more details, you can refer to the [jwtop documentation on KID Header Injection](https://www.cerberauth.com/docs/jwtop/vulnerabilities/kid-header-injection/).
+
 VulnAPI tests two variants of this attack:
 
 - **SQL Injection** — injects a SQL payload into `kid` (e.g. `' UNION SELECT 'secret' ...`) so that the database returns a known value as the key.

@@ -34,6 +34,8 @@ import { Tabs, TabItem } from '@/components/docs'
 
 The "JWT Signature Not Verified" vulnerability occurs when a server accepts a JWT whose signature was created with a completely different (random) key. If the server returns the same successful response as it does for a legitimately signed token, it is not verifying the signature at all — meaning an attacker can craft any payload they want and the server will accept it.
 
+For more details, you can refer to the [jwtop documentation on Signature Not Verified](https://www.cerberauth.com/docs/jwtop/vulnerabilities/signature-not-verified/).
+
 ## Example
 
 VulnAPI takes your valid token, extracts its algorithm and claims, then re-signs it using a randomly generated key:
