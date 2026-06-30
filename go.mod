@@ -13,10 +13,10 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/jarcoal/httpmock v1.3.1
+	github.com/jarcoal/httpmock v1.4.1
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/projectdiscovery/wappalyzergo v0.2.87
-	github.com/schollz/progressbar/v3 v3.19.0
+	github.com/schollz/progressbar/v3 v3.19.1
 	github.com/spf13/cobra v1.10.2
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.10
 	github.com/stretchr/testify v1.11.1
