@@ -1,0 +1,65 @@
+---
+title: Référence CLI
+description: Vue d'ensemble de toutes les commandes CLI de VulnAPI.
+sidebar:
+  order: 1
+---
+
+import { LinkCard, CardGrid } from '@/components/docs';
+
+Le CLI `vulnapi` couvre le scan de sécurité API, la découverte, et les utilitaires JWT.
+
+<CardGrid>
+  <LinkCard title="scan curl" description="Scanner un unique endpoint API avec des options de type curl." href="./scan-curl/" />
+  <LinkCard title="scan openapi" description="Scanner tous les endpoints définis dans une spécification OpenAPI." href="./scan-openapi/" />
+  <LinkCard title="scan graphql" description="Scanner un endpoint GraphQL." href="./scan-graphql/" />
+  <LinkCard title="discover api" description="Découvrir les chemins bien connus et les empreintes technologiques d'une API." href="./discover-api/" />
+  <LinkCard title="discover domain" description="Découvrir des endpoints API à travers des sous-domaines courants." href="./discover-domain/" />
+  <LinkCard title="jwt generate" description="Générer un nouveau JWT à partir d'un token existant avec un algorithme ou une clé différente." href="./jwt-generate/" />
+  <LinkCard title="serve" description="Démarrer le serveur HTTP VulnAPI en mode API REST." href="./serve/" />
+</CardGrid>
+
+## Usage global
+
+```sh
+vulnapi <command> [flags]
+vulnapi --help
+vulnapi version
+```
+
+Toutes les commandes retournent `0` en cas de succès et une valeur non nulle en cas d'erreur.
+
+## Options globales
+
+| Option | Description |
+|---|---|
+| `--sqa-opt-out` | Se désinscrire des statistiques d'usage anonymes et des rapports de crash |
+| `-h, --help` | Afficher l'aide pour n'importe quelle commande |
+
+## Options communes
+
+Toutes les commandes `scan` et `discover` partagent ces options. Les options du client HTTP suivent les mêmes conventions que `curl`.
+
+| Option | Par défaut | Description |
+|---|---|---|
+| `--rate <rate>` | `` | Limite de débit des requêtes (ex. `10/s`, `1/m`) |
+| `-x, --proxy <url>` | `` | URL de proxy pour toutes les requêtes |
+| `-H, --header <header>` | `` | En-tête à inclure dans les requêtes (répétable) |
+| `-b, --cookie <cookie>` | `` | Cookie à inclure dans les requêtes (répétable) |
+| `-u, --user <user:pass>` | `` | Nom d'utilisateur et mot de passe pour l'authentification HTTP Basic |
+| `--basic` | `` | Utiliser l'authentification HTTP Basic (avec `-u`) |
+| `--digest` | `` | Utiliser l'authentification HTTP Digest (avec `-u`) |
+| `--scans <scan-id>` | `` | Exécuter uniquement des scans spécifiques (répétable ; supporte les jokers comme `jwt.*`) |
+| `--exclude-scans <scan-id>` | `` | Exclure des scans spécifiques (répétable) |
+| `--report-format <format>` | `table` | Format de sortie : `table`, `json`, `yaml` |
+| `--report-transport <transport>` | `file` | Transport du rapport : `file`, `http` |
+| `--report-file <path>` | `` | Chemin du fichier où écrire le rapport |
+| `--report-url <url>` | `` | URL vers laquelle envoyer le rapport (avec `--report-transport http`) |
+| `--no-progress` | `false` | Désactiver la barre de progression |
+| `--severity-threshold <score>` | `1.0` | Seuil CVSS au-dessus duquel la sortie est aussi écrite sur stderr |
+
+> **Déprécié :** `--rate-limit` (`-r`) a été remplacé par `--rate`. L'ancienne option est toujours acceptée en tant qu'alias.
+
+## Comportement de sortie
+
+Lorsqu'au moins un résultat a un score CVSS supérieur à `--severity-threshold`, VulnAPI écrit la sortie sur **stderr** en plus de stdout. Cela déclenche automatiquement les patterns `|| exit 1` et les contrôles d'échec en CI/CD. Le seuil par défaut est `1.0`, ce qui signifie que tout résultat avec un CVSS > 1.0 déclenche une sortie sur stderr.

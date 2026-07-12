@@ -1,0 +1,127 @@
+---
+title: Mauvaise configuration des cookies HTTP
+description: Des indicateurs de sécurité de cookies manquants ou mal configurés exposent les tokens de session au vol via XSS, l'interception réseau, et la falsification de requête cross-site.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Identifiant de scan</th>
+    <td><code>misconfiguration.http_cookies</code></td>
+  </tr>
+  <tr>
+    <th>Gravité</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>0.0</td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+Les indicateurs de sécurité des cookies protègent les tokens de session et cookies d'authentification du vol et des usages abusifs. Des indicateurs manquants ou mal configurés représentent individuellement des risques de faible gravité, mais combinés, ils augmentent significativement le risque de détournement de session, de vol de token via XSS, et d'attaques cross-site.
+
+## Contrôles effectués
+
+Le scan `misconfiguration.http_cookies` de VulnAPI vérifie cinq problèmes sur chaque en-tête de réponse `Set-Cookie` :
+
+### Indicateur `HttpOnly` manquant (CWE-1004)
+
+Sans `HttpOnly`, le JavaScript exécuté sur la page (y compris les scripts injectés via XSS) peut lire la valeur du cookie via `document.cookie`.
+
+```
+Set-Cookie: session=abc123                ← vulnérable
+Set-Cookie: session=abc123; HttpOnly      ← correct
+```
+
+### Indicateur `Secure` manquant (CWE-614)
+
+Sans `Secure`, le cookie est envoyé sur des connexions HTTP non chiffrées, l'exposant à l'interception réseau (attaques de type man-in-the-middle).
+
+```
+Set-Cookie: session=abc123               ← vulnérable
+Set-Cookie: session=abc123; Secure       ← correct
+```
+
+### `SameSite=None` sans restrictions (CWE-1275)
+
+`SameSite=None` permet l'envoi du cookie dans tous les contextes cross-site, ce qui peut permettre des attaques CSRF si `Secure` n'est pas également défini. Utilisez plutôt `SameSite=Strict` ou `SameSite=Lax`.
+
+```
+Set-Cookie: session=abc123; SameSite=None                    ← vulnérable
+Set-Cookie: session=abc123; SameSite=Strict; Secure          ← correct
+```
+
+### Attribut `SameSite` non défini (CWE-1275)
+
+Sans attribut `SameSite`, les navigateurs appliquent la politique par défaut (Lax dans les navigateurs modernes, mais None dans les plus anciens). Définissez explicitement `SameSite` pour ne pas dépendre des valeurs par défaut du navigateur.
+
+### Absence d'expiration (`Expires` / `Max-Age` manquant) (CWE-613)
+
+Sans expiration, le cookie est un cookie de session — il n'expire que lorsque l'onglet du navigateur se ferme. Les utilisateurs qui ne ferment pas leur navigateur peuvent conserver l'accès à la session indéfiniment.
+
+```
+Set-Cookie: session=abc123                        ← pas d'expiration
+Set-Cookie: session=abc123; Max-Age=3600          ← expire après 1 heure
+```
+
+## Comment tester ?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_cookies
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_cookies
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_cookies [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Les indicateurs de cookie manquants représentent individuellement des résultats de faible gravité, mais combinés, ils créent une surface d'attaque significative :
+
+- **XSS + `HttpOnly` manquant** → l'attaquant peut voler le token de session via `document.cookie`
+- **`Secure` manquant** → token exposé en HTTP (ex. pages en contenu mixte, portails captifs)
+- **`SameSite` manquant** → les attaques CSRF peuvent utiliser le cookie de session cross-origin
+- **Absence d'expiration** → des sessions de longue durée augmentent la fenêtre d'opportunité pour les abus
+
+## Comment corriger ?
+
+Définissez tous les indicateurs de sécurité sur les cookies transportant des tokens de session ou des données d'authentification :
+
+```http
+Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/
+```
+
+| Indicateur | Valeur | Objectif |
+|------|-------|---------|
+| `HttpOnly` | (indicateur) | Empêcher l'accès JavaScript |
+| `Secure` | (indicateur) | HTTPS uniquement |
+| `SameSite` | `Strict` ou `Lax` | Restreindre l'envoi cross-site |
+| `Max-Age` | secondes | Définir la durée de vie de la session |
+| `Path` | `/` ou chemin spécifique | Restreindre la portée du cookie |
+
+Pour les applications monopages nécessitant des cookies cross-origin (ex. domaines API et frontend séparés), utilisez `SameSite=None; Secure` accompagné de tokens CSRF.
+
+## Références
+
+- [OWASP Secure Cookie Attributes](https://owasp.org/www-community/controls/SecureCookieAttribute)
+- [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)

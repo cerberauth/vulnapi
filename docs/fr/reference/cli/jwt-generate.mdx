@@ -1,0 +1,48 @@
+---
+title: jwt generate
+description: Générer un nouveau JWT à partir d'un token existant, re-signé avec un algorithme ou une clé différente.
+---
+
+Analyse un JWT existant et le re-signe avec un nouvel algorithme et une nouvelle clé. Les claims d'origine sont préservés. Utile pour fabriquer manuellement des tokens afin de tester les mitigations de vulnérabilités JWT.
+
+## Usage
+
+```sh
+vulnapi jwt generate <TOKEN> --alg <alg> --secret <secret>
+```
+
+## Options
+
+| Option | Description |
+|---|---|
+| `--alg <algorithm>` | Algorithme de signature **(requis)** : `HS256`, `HS384`, `HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `NONE` |
+| `--secret <secret>` | Clé secrète pour signer le token (requise pour les algorithmes HMAC) |
+| `--aud <audience>` | Claim d'audience (`aud`) à définir dans le token |
+
+## Exemples
+
+**Re-signer avec un secret HMAC différent**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg HS256 --secret newsecret
+```
+
+**Retirer la signature (alg=none)**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg NONE
+```
+
+**Re-signer avec une audience personnalisée**
+```sh
+vulnapi jwt generate eyJhbGciOiJIUzI1NiI... --alg HS256 --secret mysecret --aud myservice
+```
+
+## Sortie
+
+La chaîne du token signé est affichée sur stdout.
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Token généré avec succès |
+| `1` | Token d'entrée invalide, algorithme inconnu, ou options requises manquantes |

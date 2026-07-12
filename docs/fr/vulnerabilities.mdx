@@ -1,0 +1,48 @@
+---
+title: Vulnérabilités API
+description: Liste de toutes les vulnérabilités détectées par VulnAPI.
+sidebar:
+  order: 100
+---
+
+VulnAPI détecte un large éventail de vulnérabilités API, y compris celles du OWASP API Security Top 10.
+
+✅ = scan automatisé disponible
+
+| Nom                                                                                                  | OWASP                                       | Gravité | Scan Automatisé |
+|-------------------------------------------------------------------------------------------------------|---------------------------------------------|:--------:|:--------------:|
+| Rupture d'autorisation au niveau de l'objet (BOLA)                                                    | API1:2023 Broken Object Level Authorization | Moyenne   | |
+| Accès aux champs privés                                                                               | API1:2023 Broken Object Level Authorization | Moyenne   | |
+| Affectation de masse                                                                                  | API1:2023 Broken Object Level Authorization | Moyenne   | |
+| [Contournement de l'authentification](./vulnerabilities/broken-authentication/authentication-bypass)  | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Algorithme JWT `none`](./vulnerabilities/broken-authentication/jwt-alg-none)                        | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Secret JWT vide](./vulnerabilities/broken-authentication/jwt-blank-secret)                          | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Secret JWT faible](./vulnerabilities/broken-authentication/jwt-weak-secret)                         | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Attaque de relais inter-services via l'audience JWT](./vulnerabilities/broken-authentication/jwt-cross-service-relay-attack) | API2:2023 Broken Authentication             | Élevée     | |
+| [Signature JWT nulle](./vulnerabilities/broken-authentication/jwt-null-signature)                    | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Injection d'en-tête JWT KID](./vulnerabilities/broken-authentication/jwt-kid-injection)              | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Confusion d'algorithme JWT](./vulnerabilities/broken-authentication/jwt-algorithm-confusion)         | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [Signature JWT non vérifiée](./vulnerabilities/broken-authentication/jwt-not-verified)               | API2:2023 Broken Authentication             | Élevée     | ✅ |
+| [JWT expiré](./vulnerabilities/broken-authentication/jwt-expired)                                     | API2:2023 Broken Authentication             | Élevée     | |
+| OpenAPI détectable                                                                                    | API7:2023 Server Side Request Forgery       | Info     | ✅ |
+| Point de terminaison GraphQL détectable                                                               | API7:2023 Server Side Request Forgery       | Info     | ✅ |
+| [Introspection GraphQL activée](./vulnerabilities/security-misconfiguration/graphql-introspection)   | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Fuite de secrets                                                                                      | API8:2023 Security Misconfiguration         | Élevée     | |
+| Listage de répertoires                                                                                | API8:2023 Security Misconfiguration         | Moyenne   | |
+| Divulgation d'IP privée                                                                               | API8:2023 Security Misconfiguration         | Faible      | |
+| [Mauvaise configuration des cookies HTTP](./vulnerabilities/security-misconfiguration/http-cookies)  | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Absence d'en-têtes CORS                                                                               | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| En-têtes CORS permissifs                                                                              | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| [Substitution de méthode HTTP activée](./vulnerabilities/security-misconfiguration/http-method-allow-override) | API8:2023 Security Misconfiguration         | Info - Élevée | ✅ |
+| En-tête X-Content-Type-Options non défini                                                            | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| En-tête X-Frame-Options non défini                                                                   | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| En-tête CSP non défini                                                                                | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Directive CSP frame-ancestors non définie                                                            | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| En-tête HSTS non défini                                                                               | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| [Méthodes HTTP TRACE/TRACK activées](./vulnerabilities/security-misconfiguration/http-trace-track)   | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Fuite de signature du serveur                                                                        | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Certificat SSL non fiable                                                                             | API8:2023 Security Misconfiguration         | Moyenne   | |
+| SSL non imposé                                                                                        | API8:2023 Security Misconfiguration         | Moyenne   | |
+| Traversée de répertoires                                                                              | API10:2023 Unsafe Consumption of APIs       | Élevée     | |
+
+Les scans de vulnérabilités JWT sont en partie propulsés par le projet [CerberAuth JWTop](https://github.com/cerberauth/jwtop).

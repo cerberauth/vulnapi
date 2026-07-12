@@ -1,0 +1,123 @@
+---
+title: Méthodes HTTP TRACE et TRACK activées
+description: Les méthodes HTTP TRACE et TRACK renvoient la requête entrante en écho, exposant potentiellement les en-têtes d'autorisation aux attaquants.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Identifiants de scan</th>
+    <td><code>misconfiguration.http_trace</code>, <code>misconfiguration.http_track</code></td>
+  </tr>
+  <tr>
+    <th>Gravité</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/489.html">CWE-489: Active Debug Code</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+Les méthodes HTTP `TRACE` et `TRACK` sont des méthodes de débogage qui demandent au serveur web de renvoyer en écho la requête entrante complète — y compris tous les en-têtes — dans le corps de la réponse. Cela signifie que tout en-tête `Authorization`, `Cookie`, ou personnalisé envoyé avec la requête est renvoyé tel quel dans la réponse.
+
+Dans une attaque de Cross-Site Tracing (XST), un script exécuté dans un navigateur pouvant émettre des requêtes TRACE pourrait utiliser ce comportement d'écho pour voler des cookies `HttpOnly` ou des en-têtes d'autorisation normalement inaccessibles à JavaScript. Bien que les politiques de sécurité des navigateurs modernes (CSP, CORS, `SameSite`) atténuent de nombreux chemins XST, laisser TRACE/TRACK activés viole le principe du moindre privilège et peut exposer des en-têtes sensibles dans des journaux, des proxies, ou des environnements moins protégés.
+
+## Exemple
+
+```http
+TRACE /api/users HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+X-Custom-Internal: secret
+
+HTTP/1.1 200 OK
+Content-Type: message/http
+
+TRACE /api/users HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+X-Custom-Internal: secret
+```
+
+La requête complète — y compris `Authorization` — est reflétée dans le corps de la réponse.
+
+## Comment tester ?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_trace --scans misconfiguration.http_track
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_trace --scans misconfiguration.http_track
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans misconfiguration.http_trace --scans misconfiguration.http_track [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+- **Exposition d'en-têtes** : `Authorization`, `Cookie`, et les en-têtes internes personnalisés envoyés avec une requête TRACE sont reflétés dans le corps de la réponse, les rendant lisibles par toute partie pouvant observer la réponse (proxies intermédiaires, journaux, scripts de navigateur dans certaines conditions).
+- **Fuite d'informations de débogage** : des en-têtes internes (`X-Internal-User`, `X-Request-ID`, etc.) normalement invisibles aux clients peuvent être exposés.
+- **Cross-Site Tracing (XST)** : dans des environnements de navigateur plus anciens ou combiné à d'autres vulnérabilités, TRACE peut être utilisé pour voler des identifiants depuis des clients basés navigateur.
+
+## Comment corriger ?
+
+Désactivez TRACE et TRACK au niveau du serveur web.
+
+**Nginx** — restreindre aux méthodes autorisées uniquement :
+
+```nginx
+location / {
+    limit_except GET POST PUT DELETE PATCH OPTIONS {
+        deny all;
+    }
+}
+```
+
+**Apache** — désactiver TRACE globalement :
+
+```apache
+TraceEnable Off
+```
+
+**Express (Node.js)** — rejeter TRACE/TRACK dans un middleware :
+
+```js
+app.use((req, res, next) => {
+  if (req.method === 'TRACE' || req.method === 'TRACK') {
+    return res.status(405).send('Method Not Allowed');
+  }
+  next();
+});
+```
+
+Vérifiez la correction en vérifiant que TRACE renvoie une réponse `405 Method Not Allowed` :
+
+```bash
+curl -X TRACE https://api.example.com/ -i
+# Attendu : HTTP/1.1 405 Method Not Allowed
+```
+
+## Références
+
+- [OWASP Testing for HTTP Methods](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods)
+- [CWE-489: Active Debug Code](https://cwe.mitre.org/data/definitions/489.html)

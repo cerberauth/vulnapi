@@ -1,0 +1,66 @@
+---
+title: JWT expiré
+description: Une vulnérabilité survient lorsqu'un JSON Web Token (JWT) est accepté par le serveur même après le passage de son heure d'expiration (claim `exp`).
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Moyenne</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/613.html">CWE-613: Insufficient Session Expiration</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+Une vulnérabilité survient lorsqu'un JSON Web Token (JWT) est accepté par le serveur même après le passage de son heure d'expiration (claim `exp`). Les JWT sont conçus pour être de courte durée de vie, et une fois expirés, ils ne devraient plus être considérés comme valides pour l'authentification ou l'autorisation.
+
+## Exemple
+
+Un JWT contient un claim `exp`, qui est un timestamp Unix indiquant quand le token expire :
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "exp": 1516242622
+}
+```
+
+Si l'heure actuelle est `1516243000` (soit après l'heure `exp`), le serveur devrait rejeter ce token. S'il l'accepte, il est vulnérable à l'utilisation de tokens expirés.
+
+## Comment tester ?
+
+Pour tester si le serveur accepte des tokens expirés, vous pouvez obtenir un token valide, attendre son expiration, puis essayer de l'utiliser. Autrement, si vous disposez de la clé de signature, vous pouvez créer un token déjà expiré.
+
+VulnAPI n'automatise pas encore ce scan. Vous pouvez utiliser des outils comme [jwtop](https://github.com/cerberauth/jwtop) pour créer des tokens expirés à des fins de test manuel.
+
+## Quel est l'impact ?
+
+L'impact de l'acceptation de tokens expirés inclut :
+
+- **Fenêtre d'opportunité prolongée** : les attaquants peuvent utiliser des tokens volés pendant une période plus longue.
+- **Contournement de la révocation** : si un utilisateur est déconnecté ou si son accès est révoqué, un token expiré peut tout de même accorder l'accès si le serveur ne vérifie pas l'expiration.
+- **Détournement de session** : risque accru de détournement de session si les tokens restent valides trop longtemps ou indéfiniment.
+
+## Comment corriger ?
+
+- **Vérification stricte de l'expiration** : assurez-vous que votre bibliothèque ou implémentation JWT vérifie strictement le claim `exp`.
+- **Tokens de courte durée** : utilisez des durées d'expiration courtes pour les tokens d'accès (ex. 15 à 60 minutes).
+- **Utiliser des tokens de rafraîchissement** : mettez en place des tokens de rafraîchissement pour permettre aux utilisateurs d'obtenir de nouveaux tokens d'accès sans se réauthentifier, tout en gardant les tokens d'accès de courte durée.
+- **Prise en compte du décalage d'horloge** : autorisez un petit décalage d'horloge raisonnable (ex. quelques minutes) lors de la vérification de l'expiration, sans pour autant l'ignorer complètement.

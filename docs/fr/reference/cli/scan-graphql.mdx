@@ -1,0 +1,45 @@
+---
+title: scan graphql
+description: Scanner un endpoint GraphQL à la recherche de vulnérabilités de sécurité.
+---
+
+Exécute des scans de sécurité sur un endpoint GraphQL, incluant des contrôles pour l'exposition de l'introspection et d'autres vulnérabilités spécifiques à GraphQL.
+
+## Usage
+
+```sh
+vulnapi scan graphql <ENDPOINT> [flags]
+```
+
+Accepte toutes les [options communes](./#common-flags).
+
+## Exemples
+
+**Scanner un endpoint GraphQL avec un bearer token**
+```sh
+vulnapi scan graphql https://api.example.com/graphql \
+  -H "Authorization: Bearer <token>"
+```
+
+**Scanner via un proxy**
+```sh
+vulnapi scan graphql https://api.example.com/graphql \
+  -H "Authorization: Bearer <token>" \
+  --proxy http://localhost:8080
+```
+
+**Exporter les résultats en JSON**
+```sh
+vulnapi scan graphql https://api.example.com/graphql \
+  --report-format json \
+  --report-file report.json
+```
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Scan terminé avec succès |
+| `1` | Erreur fatale (URL invalide, échec réseau, etc.) |
+
+Quand un résultat dépasse `--severity-threshold`, une sortie supplémentaire est écrite sur stderr. Voir [comportement de sortie](./#exit-behaviour).

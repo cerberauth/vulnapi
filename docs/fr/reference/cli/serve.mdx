@@ -1,0 +1,37 @@
+---
+title: serve
+description: Démarrer le serveur HTTP VulnAPI en mode API REST.
+---
+
+Démarre VulnAPI en tant que serveur HTTP exposant une API REST, permettant de déclencher des scans par programmation plutôt que via le CLI.
+
+## Usage
+
+```sh
+vulnapi serve [flags]
+```
+
+## Options
+
+| Option | Par défaut | Description |
+|---|---|---|
+| `-p, --port <port>` | `8080` | Port d'écoute |
+
+## Exemples
+
+**Démarrer sur le port par défaut**
+```sh
+vulnapi serve
+```
+
+**Démarrer sur un port personnalisé**
+```sh
+vulnapi serve --port 9090
+```
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Le serveur s'est arrêté proprement |
+| `1` | Erreur fatale (port déjà utilisé, etc.) |

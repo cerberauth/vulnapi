@@ -1,0 +1,41 @@
+---
+title: discover api
+description: Découvrir les chemins bien connus et les empreintes technologiques d'une API.
+---
+
+Sonde une URL de base à la recherche de chemins API courants (ex. `/openapi.json`, `/graphql`, `/.well-known/`) et lit les en-têtes de réponse pour identifier le framework et le langage du serveur.
+
+## Usage
+
+```sh
+vulnapi discover api <URL> [flags]
+```
+
+Accepte toutes les [options communes](./#common-flags).
+
+## Sortie
+
+La commande affiche deux tableaux :
+
+- **Well-known paths** — chemins ayant renvoyé une réponse différente de 404, avec leurs codes de statut HTTP.
+- **Fingerprints** — technologies détectées à partir des en-têtes de réponse (serveur, framework, langage, etc.).
+
+## Exemples
+
+**Découvrir les chemins bien connus et les empreintes**
+```sh
+vulnapi discover api https://api.example.com
+```
+
+**Passer un en-tête Authorization**
+```sh
+vulnapi discover api https://api.example.com \
+  -H "Authorization: Bearer <token>"
+```
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Découverte terminée avec succès |
+| `1` | Erreur fatale (URL invalide, échec réseau, etc.) |

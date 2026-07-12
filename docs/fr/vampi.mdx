@@ -1,0 +1,89 @@
+---
+title: Entraînement VulnAPI sur VAmPI (API REST vulnérable)
+description: Entraînez-vous à utiliser VulnAPI pour scanner des API REST à la recherche de vulnérabilités et de risques de sécurité.
+sidebar:
+  order: 5
+---
+
+VulnAPI est un outil puissant qui vous permet de scanner des API REST à la recherche de vulnérabilités et de risques de sécurité. Ce module d'entraînement vous guidera à travers le processus d'utilisation de VulnAPI pour scanner vos API à la recherche de vulnérabilités et de risques de sécurité.
+
+VAmPI est une API REST vulnérable comportant des vulnérabilités du OWASP Top 10. Vous pouvez utiliser VAmPI pour vous entraîner à scanner des API REST à la recherche de vulnérabilités et de risques de sécurité avec VulnAPI.
+
+## Prérequis
+
+Avant de commencer ce module d'entraînement, vous devez disposer des prérequis suivants :
+
+- [VulnAPI](./installation) installé sur votre machine.
+- [VAmPI](https://github.com/erev0s/VAmPI) installé sur votre machine.
+
+## Objectifs de l'entraînement
+
+À la fin de ce module d'entraînement, vous serez capable de :
+
+- Scanner une API REST à la recherche de vulnérabilités et de risques de sécurité avec VulnAPI.
+- Identifier et corriger les vulnérabilités et risques de sécurité d'une API REST.
+
+## Étapes de l'entraînement
+
+Suivez les étapes ci-dessous pour terminer ce module d'entraînement :
+
+1. Démarrez le serveur VAmPI en exécutant la commande suivante :
+
+    ```bash
+    docker run -e vulnerable=1 -p 5000:5000 erev0s/vampi
+    ```
+
+2. Ouvrez une nouvelle fenêtre de terminal et exécutez la commande suivante pour effectuer un scan de découverte de l'API VAmPI avec VulnAPI :
+
+    ```bash
+    vulnapi scan discover http://localhost:5000
+    ```
+
+3. Consultez les résultats du scan pour identifier le contrat OpenAPI et les informations de service supplémentaires.
+4. Téléchargez le contrat OpenAPI et enregistrez-le dans un fichier nommé `vampi-openapi.json`. Modifiez le fichier, ajoutez une URL de base au serveur ainsi qu'un schéma de sécurité.
+
+    La sécurité doit être ajoutée pour les endpoints `PUT /users/v1/{username}/email`, `PUT /users/v1/{username}/password` et `DELETE /users/v1/{username}` avec le schéma de sécurité `bearerAuth`.
+
+    ```json
+    {
+      "components": {
+        "securitySchemes": {
+          "bearerAuth": {
+            "bearerFormat": "JWT",
+            "scheme": "bearer",
+            "type": "http"
+          }
+        }
+      },
+      "info": {
+        "description": "OpenAPI v3 specs for VAmPI",
+        "title": "VAmPI",
+        "version": "0.1"
+      },
+      "openapi": "3.0.1",
+      "paths": {
+        "/users/v1/{username}/email": {
+          "put": {
+            "description": "Update a single users email",
+            "operationId": "api_views.users.update_email",
+            "security": [
+              {
+                "bearerAuth": []
+              }
+            ],
+        ...
+      "servers": [
+        {
+          "url": "http://localhost:5000"
+        }
+      ]
+    }
+    ```
+
+5. Exécutez la commande suivante pour scanner l'API VAmPI à l'aide du contrat OpenAPI :
+
+    ```bash
+    vulnapi scan openapi vampi-openapi.json
+    ```
+
+6. Consultez les résultats du scan pour identifier les vulnérabilités et risques de sécurité de l'API VAmPI.

@@ -1,0 +1,59 @@
+---
+title: scan curl
+description: Scanner un unique endpoint API avec des options de type curl.
+---
+
+Scanne un unique endpoint API en spécifiant une URL et, optionnellement, une méthode HTTP et un corps de requête. Accepte les mêmes options que `curl` pour faciliter le copier-coller de commandes depuis la documentation ou les DevTools du navigateur.
+
+## Usage
+
+```sh
+vulnapi scan curl <URL> [flags]
+```
+
+## Options
+
+| Option | Par défaut | Description |
+|---|---|---|
+| `-X, --request <method>` | `GET` | Méthode HTTP à utiliser |
+| `-d, --data <data>` | `` | Corps de la requête HTTP |
+
+Accepte aussi toutes les [options communes](./#common-flags).
+
+## Exemples
+
+**Simple requête GET**
+```sh
+vulnapi scan curl https://api.example.com/endpoint
+```
+
+**POST avec un corps JSON et un en-tête Authorization**
+```sh
+vulnapi scan curl https://api.example.com/endpoint \
+  -X POST \
+  -d '{"key":"value"}' \
+  -H "Authorization: Bearer <token>"
+```
+
+**Exécuter uniquement les scans liés au JWT**
+```sh
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  --scans "jwt.*"
+```
+
+**Écrire le rapport en JSON dans un fichier**
+```sh
+vulnapi scan curl https://api.example.com/endpoint \
+  --report-format json \
+  --report-file report.json
+```
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Scan terminé avec succès |
+| `1` | Erreur fatale (URL invalide, échec réseau, etc.) |
+
+Quand un résultat dépasse `--severity-threshold`, une sortie supplémentaire est écrite sur stderr. Voir [comportement de sortie](./#exit-behaviour).

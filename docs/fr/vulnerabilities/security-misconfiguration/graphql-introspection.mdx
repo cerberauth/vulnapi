@@ -1,0 +1,56 @@
+---
+title: Introspection GraphQL activée
+description: L'introspection GraphQL est une fonctionnalité permettant aux clients d'interroger le schéma du serveur. Elle peut être utilisée pour découvrir le schéma et les types, mais aussi par des attaquants pour en apprendre davantage sur les détails d'implémentation du serveur et trouver des vulnérabilités potentielles.
+---
+
+<table>
+    <tr>
+        <th>Gravité</th>
+        <td>Faible</td>
+    </tr>
+    <tr>
+        <th>CVEs</th>
+        <td></td>
+    </tr>
+    <tr>
+        <th>Classifications</th>
+        <td>
+            <a href="https://cwe.mitre.org/data/definitions/200.html">CWE-200: Information Exposure</a>
+        </td>
+    </tr>
+    <tr>
+        <th>Catégorie OWASP</th>
+        <td>
+            <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+        </td>
+    </tr>
+</table>
+
+L'introspection GraphQL est une fonctionnalité permettant aux clients d'interroger le schéma du serveur. Elle peut être utilisée pour découvrir le schéma et les types, mais aussi par des attaquants pour en apprendre davantage sur les détails d'implémentation du serveur et trouver des vulnérabilités potentielles.
+
+## Quel est l'impact ?
+
+Les impacts potentiels de l'introspection GraphQL sur la sécurité sont significatifs et peuvent inclure :
+* **Divulgation d'informations** : les attaquants peuvent utiliser l'introspection pour en apprendre davantage sur les détails d'implémentation du serveur, tels que les types, champs, et arguments, ce qui peut mener à une divulgation d'informations et des vulnérabilités de sécurité potentielles.
+* **Énumération du schéma** : l'introspection peut être utilisée pour énumérer le schéma et découvrir des champs cachés ou dépréciés, qui peuvent être exploités pour fabriquer des attaques ciblées ou exploiter des vulnérabilités.
+* **Mauvaise configuration de sécurité** : une introspection mal configurée peut exposer des informations sensibles ou des détails d'implémentation internes, menant à des mauvaises configurations de sécurité et des risques potentiels.
+* **Exposition de données** : l'introspection peut révéler des structures de données sensibles, telles que des tables de base de données, des champs, ou des relations, qui peuvent être exploitées pour accéder à des données ou les manipuler de façon non autorisée.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Introspection GraphQL activée », vous pouvez utiliser la commande suivante :
+
+```bash
+vulnapi scan graphql [url] --scans graphql.introspection_enabled
+```
+
+## Comment corriger ?
+
+Pour corriger les vulnérabilités d'introspection GraphQL, vous pouvez suivre les étapes suivantes :
+* **Désactiver l'introspection** : désactivez l'introspection dans les environnements de production pour empêcher les attaquants d'interroger le schéma et de découvrir des informations sensibles ou des vulnérabilités de sécurité potentielles.
+* **Limiter l'accès** : restreignez l'accès aux requêtes d'introspection aux utilisateurs ou applications autorisés, et assurez-vous que seules des entités de confiance peuvent interroger le schéma et accéder aux détails d'implémentation internes.
+
+## Références
+
+- [GraphQL Introspection](https://graphql.org/learn/introspection/)
+- [PortSwigger - GraphQL Introspection enabled](https://portswigger.net/kb/issues/00200512_graphql-introspection-enabled)

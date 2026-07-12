@@ -1,0 +1,122 @@
+---
+title: Installation
+description: Apprenez à installer VulnAPI.
+sidebar:
+  order: 3
+---
+
+Vous pouvez installer les binaires précompilés de VulnAPI sur Linux, Windows et macOS.
+
+Vous trouverez ci-dessous les instructions pour installer VulnAPI sur Linux, Windows, macOS et Docker. Vous pouvez choisir la méthode d'installation qui correspond le mieux à vos besoins et à votre environnement.
+
+## Linux
+
+### Snap
+
+Vous pouvez installer VulnAPI sur Linux en utilisant [Snap](https://snapcraft.io/vulnapi).
+
+```bash
+sudo snap install vulnapi
+```
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+### APT
+
+Téléchargez la dernière [version de VulnAPI](https://github.com/cerberauth/vulnapi/releases?ref=deb) et installez-la à l'aide de `dpkg`.
+
+```bash
+sudo dpkg -i vulnapi.deb
+```
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+### RPM
+
+Téléchargez la dernière [version de VulnAPI](https://github.com/cerberauth/vulnapi/releases?ref=rpm) et installez-la à l'aide de `rpm -i`.
+
+```bash
+sudo rpm -i vulnapi.rpm
+```
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+### Autre
+
+Vous pouvez installer VulnAPI sur Linux en téléchargeant la dernière [version de VulnAPI](https://github.com/cerberauth/vulnapi/releases?ref=other) et en extrayant le contenu du fichier ZIP. Après l'extraction, exécutez le binaire `vulnapi` depuis la ligne de commande.
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+## Windows
+
+### Chocolatey
+
+Vous pouvez installer VulnAPI sur Windows en utilisant [Chocolatey](https://chocolatey.org/packages/vulnapi).
+
+```bash
+choco install vulnapi
+```
+
+Vous pouvez également installer VulnAPI sur Windows en téléchargeant la dernière [version de VulnAPI](https://github.com/cerberauth/vulnapi/releases?ref=windows) et en extrayant le contenu du fichier ZIP. Après l'extraction, vous pouvez exécuter le binaire `vulnapi.exe` depuis la ligne de commande.
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+## macOS (Homebrew)
+
+Vous pouvez installer VulnAPI sur macOS en utilisant Homebrew. Pour ce faire, exécutez la commande suivante :
+
+```bash
+brew tap cerberauth/vulnapi https://github.com/cerberauth/vulnapi
+brew install $(brew --repository cerberauth/vulnapi)/vulnapi.rb
+```
+
+Vérifier :
+
+```bash
+vulnapi --version
+```
+
+## Docker
+
+Vous pouvez également utiliser VulnAPI sous forme de conteneur Docker avec [l'image Docker VulnAPI](https://hub.docker.com/r/cerberauth/vulnapi). Pour ce faire, exécutez la commande suivante :
+
+```bash
+docker run --rm cerberauth/vulnapi scan curl [API_URL] [CURL_OPTIONS]
+```
+
+## GitHub Action
+
+VulnAPI peut être intégré à votre pipeline CI/CD en utilisant [les GitHub Actions](./github-action). L'intégration de VulnAPI avec les GitHub Actions vous permet d'analyser vos API à la recherche de vulnérabilités et de risques de sécurité dans le cadre de votre pipeline. Cela vous permet d'automatiser les tests de sécurité et l'analyse des vulnérabilités de vos API au sein de votre flux de développement, garantissant que vos API sont **sécurisées** et exemptes de vulnérabilités **avant d'être déployées en production**.
+
+## Mise à jour
+
+Gardez VulnAPI à jour pour bénéficier des dernières vérifications de vulnérabilités et corrections de bugs.
+
+| Plateforme | Commande |
+|------------|----------|
+| Snap | `sudo snap refresh vulnapi` |
+| Chocolatey | `choco upgrade vulnapi` |
+| Homebrew | `brew upgrade vulnapi` |
+| Docker | `docker pull cerberauth/vulnapi` |
+
+Pour les installations APT/RPM, téléchargez le package de la dernière version et réinstallez-le en utilisant les mêmes commandes que ci-dessus.
