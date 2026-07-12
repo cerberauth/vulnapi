@@ -1,0 +1,83 @@
+---
+title: Votre première analyse
+description: Lancez votre première analyse de sécurité d'API en moins d'une minute avec vulnapi scan curl.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, CardGrid, LinkCard } from '@/components/docs'
+
+Le moyen le plus rapide d'essayer VulnAPI est d'utiliser `vulnapi scan curl`. Cela fonctionne comme curl — pointez-le vers n'importe quel point de terminaison HTTP et il commencera immédiatement à tester les vulnérabilités.
+
+## Analyse de base
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint
+```
+
+C'est tout. VulnAPI envoie une série de requêtes conçues au point de terminaison et affiche un rapport.
+
+## Analyser un point de terminaison authentifié
+
+La plupart des API réelles nécessitent une authentification. Transmettez un en-tête `Authorization` de la même manière que vous le feriez avec curl :
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+```
+
+Vous pouvez répéter `-H` pour des en-têtes supplémentaires (clés d'API, en-têtes personnalisés, etc.) :
+
+```bash
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  -H "X-API-Key: <key>"
+```
+
+## Analyser un point de terminaison qui n'est pas en GET
+
+Utilisez `-X` pour définir la méthode HTTP et `-d` pour envoyer un corps de requête :
+
+```bash
+vulnapi scan curl https://api.example.com/login \
+  -X POST \
+  -d '{"username":"alice","password":"secret"}' \
+  -H "Content-Type: application/json"
+```
+
+## Lire le rapport
+
+Une fois l'analyse terminée, VulnAPI affiche un tableau comme celui-ci :
+
+```
+|          OPERATION          | RISK LEVEL | CVSS 4.0 SCORE |          OWASP           |        VULNERABILITY        |
+|-----------------------------|------------|----------------|--------------------------|-----------------------------|
+| GET /endpoint               | High       |            9.3 | API2:2023 Broken Auth    | JWT Token is not verified   |
+| GET /endpoint               | Medium     |            5.1 | API8:2023 Security Misc  | X-Frame-Options is missing  |
+| GET /endpoint               | Info       |            0.0 | API8:2023 Security Misc  | HSTS Header is missing      |
+```
+
+| Colonne | Signification |
+|---------|---------------|
+| **OPERATION** | La méthode HTTP et le chemin qui ont été testés |
+| **RISK LEVEL** | Sévérité : Info / Low / Medium / High / Critical |
+| **CVSS 4.0 SCORE** | Score numérique de 0.0 à 10.0 |
+| **OWASP** | La catégorie OWASP API Security Top 10 |
+| **VULNERABILITY** | Une brève description du résultat |
+
+<Aside type="tip">
+Une ligne de résumé située au-dessus du tableau indique le niveau de risque global le plus élevé. Commencez par là pour évaluer rapidement si le point de terminaison présente des problèmes critiques.
+</Aside>
+
+## Aucun résultat ?
+
+Une analyse sans aucune ligne dans le tableau des vulnérabilités signifie que VulnAPI n'a rien trouvé avec un score CVSS supérieur au seuil par défaut de `1.0`. C'est un bon signe, mais pas une garantie — VulnAPI recherche un ensemble spécifique de [vulnérabilités connues](./vulnerabilities).
+
+## Prochaines étapes
+
+<CardGrid>
+  <LinkCard title="GitHub Action" href="./github-action" description="Automatiser les analyses sur chaque pull request." />
+  <LinkCard title="Formats de sortie" href="./reference/output-formats" description="Exporter les résultats au format JSON ou YAML." />
+  <LinkCard title="Référence de la CLI" href="./reference/cli" description="Toutes les options d'analyse et leurs valeurs par défaut." />
+  <LinkCard title="Vulnérabilités" href="./vulnerabilities" description="Toutes les vulnérabilités vérifiées par VulnAPI." />
+</CardGrid>

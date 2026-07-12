@@ -1,0 +1,107 @@
+---
+title: Signature JWT nulle
+description: La vulnérabilité de signature JWT nulle survient lorsqu'un JSON Web Token (JWT) est dépourvu de partie signature, permettant aux attaquants de manipuler le contenu du token.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <a href="https://www.cve.org/CVERecord?id=CVE-2020-28042">CVE-2020-28042</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327: Use of a Broken or Risky Cryptographic Algorithm</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Signature JWT nulle » survient lorsqu'un JSON Web Token (JWT) est dépourvu de partie signature, permettant aux attaquants de manipuler le contenu du token, ce qui peut mener à un accès non autorisé et à une falsification des données.
+
+Pour plus de détails, consultez la [documentation jwtop sur la signature nulle](https://www.cerberauth.com/docs/jwtop/vulnerabilities/null-signature/).
+
+Cette vulnérabilité est similaire à celle du « secret JWT vide », mais dans ce cas, le token est dépourvu de partie signature, ce qui facilite encore davantage la manipulation de son contenu par un attaquant.
+
+## Exemple
+
+Voici un JWT valide signé avec l'algorithme RS512 :
+
+```bash
+eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.MnECRBSUQEi8GjiAyWHPhPhhpzCiMLldkq-N_VS-iwI08c4xEVUhT1Xrx9kNGuwusiQuLI3AOBTPwtbdaasQDCOpF0nxxQNKkufJYFds61ooFZfXCuRyXe1yGnXPRzTfgr5YVe9-T8_JDccx5JP70d9hoO4DU4GNYQMvrOQl4xu8DEyyDT2hsjyTbrodVhrV9znMfEBCsYPPLI-Q-HYLquGThPdJe2kBNA-CiLRV6Mwzji67cTd_4P_oUHKXsAxMqVpo-xC2xiVpO2P9X1__uXrRrfiNFUur4B71UMgGYJ2z_cQqwFfSXz9glBIf_-BJU10Rkmyo2ew862d7WsHx8g
+```
+
+Ce JWT décodé contient ces parties :
+
+```json
+{
+  "alg": "RS512",
+  "typ": "JWT"
+}
+```
+
+```json
+{
+  "sub": "1234567890",
+  "iat": 1516239022
+}
+```
+
+Le JWT suivant a sa signature retirée (attaque par signature nulle) :
+
+```bash
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkxNTU4MDksImlhdCI6MTcyOTE1MjIwOSwibmFtZSI6IkpvaG4gRG9lIiwic3ViIjoiMmNiMzA3YmEtYmI0Ni00MTk0LTg1NGYtNDc3NDA0NmQ5YzliIn0.
+```
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Signature JWT nulle », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.null_signature
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.null_signature [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Signer un JWT avec une signature nulle a un impact significatif sur la sécurité du token. Une signature nulle signifie qu'aucune partie signature n'est utilisée pour signer le token, ce qui le rend vulnérable à la falsification et à l'accès non autorisé.
+
+En manipulant le contenu du token, les attaquants peuvent obtenir un accès non autorisé à des données sensibles, usurper l'identité d'utilisateurs, et mener d'autres activités malveillantes.
+
+## Comment corriger ?
+
+Pour corriger la vulnérabilité « Signature JWT nulle », vous devez vous assurer que tous les JWT sont vérifiés avec une signature valide avant d'être traités.
+
+Voici quelques bonnes pratiques à suivre :
+- Utilisez toujours un algorithme cryptographique robuste comme HS512, RS512, ou EdDSA pour signer les JWT.
+- Assurez-vous que la clé secrète utilisée pour signer les JWT est conservée de façon sécurisée et non exposée à des utilisateurs non autorisés.
+- Mettez en place une validation et une désinfection appropriées des entrées pour empêcher les attaquants d'injecter du contenu malveillant dans les JWT.
+- Surveillez et auditez régulièrement les JWT pour détecter toute tentative d'accès non autorisé ou de falsification.

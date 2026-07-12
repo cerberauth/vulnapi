@@ -1,0 +1,103 @@
+---
+title: Contournement de l'authentification
+description: Une vulnérabilité où un endpoint nécessitant une authentification accepte des requêtes sans identifiants, permettant un accès non authentifié.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Identifiant de scan</th>
+    <td><code>generic.accept_unauthenticated_operation</code></td>
+  </tr>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>9.3 — <code>CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N</code></td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Contournement de l'authentification » survient lorsqu'un endpoint censé nécessiter une authentification renvoie une réponse de succès (2xx) alors que la requête ne contient aucun identifiant. VulnAPI la détecte en envoyant une requête au endpoint sans en-tête `Authorization`, cookies, ou autres identifiants, et en vérifiant si la réponse indique un succès plutôt que de renvoyer `401 Unauthorized` ou `403 Forbidden`.
+
+## Exemple
+
+**Requête authentifiée normale** (devrait réussir) :
+```http
+GET /api/users/profile HTTP/1.1
+Authorization: Bearer eyJhbGciOiJSUzI1NiI...
+
+HTTP/1.1 200 OK
+```
+
+**Requête non authentifiée** (devrait être rejetée — mais est vulnérable si elle renvoie 200) :
+```http
+GET /api/users/profile HTTP/1.1
+
+HTTP/1.1 200 OK   ← vulnérable !
+```
+
+## Comment tester ?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans generic.accept_unauthenticated_operation
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Si un attaquant peut accéder à un endpoint protégé sans aucun identifiant, il peut :
+
+- **Accéder à des données sensibles** : lire des profils utilisateur, des dossiers financiers, des messages privés, ou toute autre donnée renvoyée par le endpoint
+- **Effectuer des opérations privilégiées** : créer, modifier, ou supprimer des ressources sans être connecté
+- **Contourner entièrement la couche d'authentification** : tous les contrôles de sécurité dépendant de l'authentification deviennent inefficaces
+- **Énumérer des utilisateurs ou des données** : extraire toutes les données de l'API sans avoir besoin de compte
+
+Le score CVSS 9.3 reflète le fait qu'il s'agit d'une faille exploitable réseau, sans authentification préalable requise, donnant un accès complet en lecture/écriture.
+
+## Comment corriger ?
+
+1. **Imposer l'authentification sur chaque endpoint protégé** : chaque route servant ou modifiant des données utilisateur doit valider les identifiants avant de traiter la requête.
+
+2. **Renvoyer 401 pour les requêtes non authentifiées** : renvoyez toujours `401 Unauthorized` (et non `200`, `404`, ou `500`) lorsqu'aucun identifiant valide n'est fourni. Un `403 Forbidden` est approprié lorsque l'utilisateur est authentifié mais ne dispose pas des permissions requises.
+
+3. **Appliquer un middleware d'authentification global** : utilisez un middleware au niveau de la passerelle ou du framework qui intercepte toutes les requêtes et impose l'authentification, plutôt que d'ajouter des contrôles d'auth endpoint par endpoint.
+
+4. **Tester l'accès non authentifié pour chaque nouveau endpoint** : ajoutez un test automatisé vérifiant que chaque endpoint protégé renvoie 401 lorsqu'aucun identifiant n'est fourni.
+
+```python
+# Exemple FastAPI — imposer l'authentification globalement
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
+
+@app.get("/api/users/profile")
+async def get_profile(credentials = Security(security)):
+    # credentials.credentials est le Bearer token
+    user = verify_token(credentials.credentials)
+    return user
+```

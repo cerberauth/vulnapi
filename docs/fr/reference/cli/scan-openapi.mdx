@@ -1,0 +1,61 @@
+---
+title: scan openapi
+description: Scanner tous les endpoints définis dans une spécification OpenAPI.
+---
+
+Charge une spécification OpenAPI (fichier local ou URL distante) et exécute des scans de sécurité sur chaque opération qu'elle définit.
+
+## Usage
+
+```sh
+vulnapi scan openapi <PATH_OR_URL> [flags]
+```
+
+## Options
+
+| Option | Par défaut | Description |
+|---|---|---|
+| `--security-schemes <name=value>` | `` | Remplace la valeur du token pour un schéma de sécurité nommé (répétable) |
+
+Accepte aussi toutes les [options communes](./#common-flags).
+
+## Token via stdin
+
+Un token transmis via stdin est utilisé comme valeur par défaut pour tous les schémas de sécurité acceptant un bearer token. Les surcharges nommées via `--security-schemes` sont prioritaires.
+
+```sh
+echo "<token>" | vulnapi scan openapi ./openapi.json
+```
+
+## Exemples
+
+**Spécification locale avec un token transmis via stdin**
+```sh
+echo "<token>" | vulnapi scan openapi ./openapi.json
+```
+
+**Spécification distante avec un token transmis via stdin**
+```sh
+echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json
+```
+
+**Surcharge d'un schéma de sécurité nommé**
+```sh
+vulnapi scan openapi ./openapi.json --security-schemes bearerAuth=<token>
+```
+
+**Plusieurs surcharges de schémas**
+```sh
+vulnapi scan openapi ./openapi.json \
+  --security-schemes bearerAuth=<token> \
+  --security-schemes apiKey=<key>
+```
+
+## Codes de sortie
+
+| Code | Signification |
+|---|---|
+| `0` | Scan terminé avec succès |
+| `1` | Erreur fatale (spécification invalide, échec réseau, etc.) |
+
+Quand un résultat dépasse `--severity-threshold`, une sortie supplémentaire est écrite sur stderr. Voir [comportement de sortie](./#exit-behaviour).

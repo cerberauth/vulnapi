@@ -1,0 +1,58 @@
+---
+title: Attaque par force brute sur l'authentification API
+description: Une attaque par force brute, dans le contexte de l'authentification API, est une méthode d'essai-erreur utilisée par les attaquants pour deviner les bons identifiants (nom d'utilisateur et mot de passe) ou tokens d'accès. Les attaquants utilisent des outils automatisés pour effectuer de multiples requêtes vers le endpoint d'authentification, en essayant différentes combinaisons d'identifiants jusqu'à trouver la bonne. Cette attaque peut mener à un accès non autorisé à l'API et aux données sensibles.
+---
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2024-51558">CVE-2024-51558</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/307.html">CWE-307: Improper Restriction of Excessive Authentication Attempts</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+Une attaque par force brute, dans le contexte de l'authentification API, est une méthode d'essai-erreur utilisée par les attaquants pour deviner les bons identifiants (nom d'utilisateur et mot de passe) ou tokens d'accès. Les attaquants utilisent des outils automatisés pour effectuer de multiples requêtes vers le endpoint d'authentification, en essayant différentes combinaisons d'identifiants jusqu'à trouver la bonne. Cette attaque peut mener à un accès non autorisé à l'API et aux données sensibles.
+
+## Exemple
+
+TODO : ajouter un exemple d'attaque par force brute sur un endpoint d'authentification API.
+
+## Comment tester ?
+
+TODO : ajouter les étapes pour tester la vulnérabilité d'attaque par force brute sur l'authentification API.
+
+## Quel est l'impact ?
+
+Lorsqu'un endpoint d'authentification API est vulnérable aux attaques par force brute, les attaquants peuvent obtenir un accès non autorisé à l'API et aux données sensibles. Cela peut mener à des fuites de données, des manipulations de données, et d'autres incidents de sécurité.
+
+## Comment corriger ?
+
+Pour prévenir les attaques par force brute sur les endpoints d'authentification API, envisagez de mettre en place les mesures de sécurité suivantes. S'il s'agit d'une authentification utilisateur, vous pouvez :
+* Mettre en place des mécanismes de verrouillage de compte après un certain nombre de tentatives de connexion échouées pour l'authentification utilisateur.
+* Mettre en place des défis CAPTCHA ou reCAPTCHA pour empêcher les attaques par force brute automatisées.
+
+Dans tous les cas, vous pouvez :
+* Mettre en place une limitation de débit sur les requêtes d'authentification pour empêcher de multiples tentatives de connexion échouées.
+* Surveiller les journaux d'authentification à la recherche d'activités suspectes et d'anomalies.

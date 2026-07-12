@@ -1,0 +1,71 @@
+---
+title: TLS manquant ou mal configuré
+description: TLS (Transport Layer Security) est un protocole assurant une communication sécurisée. Un TLS manquant ou mal configuré pour une API peut exposer des données sensibles aux attaquants.
+---
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Info</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2011-3389">CVE-2011-3389</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2012-4929">CVE-2012-4929</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2013-3587">CVE-2013-3587</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2014-0160">CVE-2014-0160</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2014-3566">CVE-2014-3566</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+## Qu'est-ce que TLS ?
+
+Transport Layer Security (TLS) est un protocole assurant une communication sécurisée sur un réseau informatique. Il est largement utilisé pour sécuriser le trafic web, les e-mails, et d'autres types de communication. TLS chiffre les données transmises entre deux parties, garantissant qu'elles ne peuvent pas être lues ou falsifiées par des attaquants. Dans le contexte des API, TLS est utilisé pour sécuriser la communication entre clients et serveurs.
+
+## Quel est l'impact ?
+
+Si TLS est manquant ou mal configuré pour une API, les données sensibles transmises entre clients et serveurs peuvent être exposées aux attaquants. Cela peut mener à des fuites de données, un accès non autorisé à des informations sensibles, et d'autres risques de sécurité. Les attaquants peuvent intercepter et lire les données transmises sur le réseau, obtenant potentiellement l'accès à des informations sensibles telles que des identifiants utilisateur, des données personnelles, et d'autres informations confidentielles.
+
+## Vulnérabilités
+
+### TLS manquant
+
+C'est la mauvaise configuration la plus facile à détecter. Si une API n'utilise pas TLS, vous pouvez facilement le constater en regardant l'URL. Si l'URL commence par `http://` au lieu de `https://`, alors l'API n'utilise pas TLS.
+
+### POODLE (Padding Oracle On Downgraded Legacy Encryption)
+
+POODLE est une vulnérabilité affectant le protocole SSLv3. Si une API supporte SSLv3, elle est vulnérable aux attaques POODLE.
+
+### CRIME (Compression Ratio Info-leak Made Easy)
+
+CRIME est une vulnérabilité affectant TLS et SPDY utilisant la compression de données. Si une API supporte la compression de données et TLS, elle est vulnérable aux attaques CRIME pouvant divulguer des cookies.
+
+### Heartbleed
+
+Heartbleed est une vulnérabilité de la bibliothèque OpenSSL permettant aux attaquants de lire des données sensibles dans la mémoire du serveur. Si une API utilise une version vulnérable d'OpenSSL, elle est susceptible aux attaques Heartbleed.
+
+## Comment tester ?
+
+Utilisez un outil comme [SSL Labs](https://www.ssllabs.com/ssltest/) pour tester la configuration TLS d'une API. L'outil vérifiera les vulnérabilités TLS courantes et fournira une note pour la configuration TLS de l'API.
+
+## Comment corriger ?
+
+Tout d'abord, si vous n'avez pas encore ajouté TLS, vous devriez l'ajouter à votre API. Vous pouvez utiliser [Let's Encrypt](https://letsencrypt.org/) pour obtenir un certificat TLS gratuit pour votre API, ou utiliser votre hébergeur ou fournisseur cloud pour obtenir un certificat.
+
+Ensuite, si vous avez TLS activé et que vous avez détecté l'une des vulnérabilités mentionnées ci-dessus, vous devriez mettre à jour votre configuration TLS pour atténuer la vulnérabilité. Par exemple, si votre API supporte SSLv3, vous devriez le désactiver et ne supporter que TLS 1.2 ou supérieur.
+
+## Références
+
+- [Let's Encrypt](https://letsencrypt.org/)
+- [SSL Labs](https://www.ssllabs.com/ssltest/)
+- [Breach Attack](https://www.breachattack.com/)

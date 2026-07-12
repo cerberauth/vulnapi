@@ -1,0 +1,90 @@
+---
+title: Confusion d'algorithme JWT
+description: La confusion d'algorithme JWT, aussi connue sous le nom d'attaque de confusion HMAC, survient lorsqu'un attaquant trompe un serveur pour qu'il vérifie un JWT avec un algorithme symétrique (comme HS256) au lieu d'un algorithme asymétrique (comme RS256).
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2016-5431">CVE-2016-5431</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/347.html">CWE-347: Improper Verification of Cryptographic Signature</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La confusion d'algorithme JWT, aussi connue sous le nom d'attaque de confusion HMAC, survient lorsqu'un attaquant trompe un serveur pour qu'il vérifie un JWT avec un algorithme symétrique (comme HS256) au lieu d'un algorithme asymétrique (comme RS256). Cela se produit généralement lorsqu'un serveur utilise une clé publique (prévue pour RS256) comme secret pour la vérification HS256.
+
+Pour plus de détails, consultez la [documentation jwtop sur la confusion HMAC](https://www.cerberauth.com/docs/jwtop/vulnerabilities/hmac-confusion/).
+
+## Exemple
+
+Une application s'attend à recevoir un JWT signé avec un algorithme asymétrique comme RS256. Le serveur utilise une clé publique pour vérifier la signature.
+
+Si l'application est vulnérable, un attaquant peut :
+1. Obtenir la clé publique (souvent publique par nature).
+2. Créer un nouveau JWT avec l'en-tête d'algorithme défini sur `HS256`.
+3. Signer le JWT en utilisant la clé publique comme secret HMAC.
+4. Envoyer le token forgé au serveur.
+
+Le serveur, voyant `HS256` dans l'en-tête, peut utiliser sa clé publique comme secret pour vérifier la signature HMAC, et s'il n'impose pas strictement l'algorithme, la vérification réussira.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Confusion d'algorithme JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.hmac_confusion
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.hmac_confusion
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.hmac_confusion [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Les impacts potentiels de la confusion d'algorithme JWT sur la sécurité sont :
+
+- **Contournement complet de l'authentification** : un attaquant peut forger des tokens pour n'importe quel utilisateur, y compris des comptes administrateurs.
+- **Accès non autorisé** : obtention d'un accès à des données et fonctionnalités sensibles.
+- **Prise de contrôle de compte** : usurpation de l'identité de n'importe quel utilisateur du système.
+
+## Comment corriger ?
+
+- **Imposition stricte de l'algorithme** : spécifiez toujours le ou les algorithmes attendus lors de la vérification d'un JWT. Ne vous fiez pas à l'en-tête `alg` du token.
+- **Utiliser des bibliothèques sécurisées** : utilisez des bibliothèques JWT non vulnérables à cette attaque et assurez-vous qu'elles sont correctement configurées.
+- **Séparer les clés** : utilisez des clés différentes pour des usages différents et assurez-vous que les clés publiques ne sont utilisées que pour la vérification asymétrique.

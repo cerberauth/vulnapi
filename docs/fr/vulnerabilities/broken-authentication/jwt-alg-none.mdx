@@ -1,0 +1,124 @@
+---
+title: Algorithme JWT None
+description: L'acceptation de l'algorithme « none » dans un JSON Web Token (JWT) survient lorsqu'un JWT est signé avec l'algorithme « none » ; cela signifie qu'il n'y a pas de signature, ce qui facilite la falsification du contenu du token par un attaquant sans être détecté.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2015-9235">CVE-2015-9235</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2015-2951">CVE-2015-2951</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/327.html">CWE-327: Use of a Broken or Risky Cryptographic Algorithm</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/20.html">CWE-20: Improper Input Validation</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+L'acceptation de l'algorithme « none » dans un JSON Web Token (JWT) survient lorsqu'un JWT est signé avec l'algorithme « none » ; cela signifie qu'il n'y a pas de signature, ce qui facilite la falsification du contenu du token par un attaquant sans être détecté. Cela peut mener à un accès non autorisé et à une manipulation des données.
+
+Pour plus de détails, consultez la [documentation JWTop sur l'algorithme none](https://www.cerberauth.com/docs/jwtop/vulnerabilities/none-algorithm/).
+
+## Exemple
+
+Voici un JWT valide signé avec l'algorithme RS512 :
+
+```bash
+eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.MnECRBSUQEi8GjiAyWHPhPhhpzCiMLldkq-N_VS-iwI08c4xEVUhT1Xrx9kNGuwusiQuLI3AOBTPwtbdaasQDCOpF0nxxQNKkufJYFds61ooFZfXCuRyXe1yGnXPRzTfgr5YVe9-T8_JDccx5JP70d9hoO4DU4GNYQMvrOQl4xu8DEyyDT2hsjyTbrodVhrV9znMfEBCsYPPLI-Q-HYLquGThPdJe2kBNA-CiLRV6Mwzji67cTd_4P_oUHKXsAxMqVpo-xC2xiVpO2P9X1__uXrRrfiNFUur4B71UMgGYJ2z_cQqwFfSXz9glBIf_-BJU10Rkmyo2ew862d7WsHx8g
+```
+
+Ce JWT décodé contient ces parties :
+
+```json
+{
+  "alg": "RS512",
+  "typ": "JWT"
+}
+```
+
+```json
+{
+  "sub": "1234567890",
+  "iat": 1516239022
+}
+```
+
+Le JWT suivant est invalide mais est autorisé à tort lorsque l'implémentation est vulnérable à cette attaque.
+
+```bash
+eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+```
+
+Le JWT invalide a cet en-tête avec l'algorithme défini sur none.
+
+```json
+{
+  "alg": "none",
+  "typ": "JWT"
+}
+```
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « JWT Alg None », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.alg_none
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.alg_none [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Les impacts potentiels de la vulnérabilité JWT « alg none » sur la sécurité sont significatifs et peuvent inclure :
+
+- **Accès non autorisé** : les attaquants peuvent falsifier le payload du JWT pour modifier les rôles, permissions ou identifiants des utilisateurs, leur accordant ainsi un accès non autorisé à des ressources ou fonctionnalités du système.
+- **Falsification des données** : sans signature pour garantir l'intégrité, les attaquants peuvent modifier les données du payload du JWT, altérant potentiellement des informations sensibles telles que les détails utilisateur, les paramètres de session, ou l'état de l'application.
+- **Usurpation d'identité** : les attaquants peuvent forger des JWT en fabriquant leurs propres payloads et en les présentant comme des tokens valides, menant à des attaques d'usurpation d'identité où ils prennent l'identité d'utilisateurs ou de systèmes légitimes.
+- **Élévation de privilèges** : en manipulant le payload du JWT, les attaquants peuvent élever leurs privilèges au sein du système en s'accordant des rôles ou permissions plus élevés que ceux initialement attribués.
+- **Attaques par rejeu** : les attaquants peuvent capturer et rejouer des JWT valides puisqu'il n'y a pas de vérification de signature, leur permettant de réutiliser les tokens pour obtenir un accès non autorisé ou mener des actions malveillantes.
+- **Déni de service (DDoS)** : dans certains cas, les attaquants peuvent exploiter la vulnérabilité pour fabriquer des JWT avec des payloads provoquant un comportement inattendu ou des erreurs dans l'application, pouvant mener à des interruptions de service ou des plantages du système.
+- **Contournement des contrôles de sécurité** : dans les systèmes où les JWT sont utilisés pour le contrôle d'accès (autorisation) ou l'authentification, la vulnérabilité « alg none » peut contourner entièrement les contrôles de sécurité, rendant inefficace tout mécanisme de sécurité reposant sur les JWT.
+
+## Comment corriger ?
+
+Pour corriger la vulnérabilité JWT « alg none », vous devez vous assurer que la bibliothèque ou l'implémentation JWT utilisée n'est pas vulnérable à ce problème et est correctement configurée.
+
+- **Mise à jour de la bibliothèque** : assurez-vous que votre bibliothèque JWT est mise à jour vers une version corrigeant la vulnérabilité « alg none ». Vérifiez régulièrement les mises à jour de sécurité et correctifs fournis par les mainteneurs de la bibliothèque.
+- **Configuration de la vérification d'algorithme** : configurez la bibliothèque ou l'implémentation JWT pour imposer la vérification de l'algorithme utilisé dans l'en-tête du JWT. Configurez-la spécifiquement pour rejeter les tokens signés avec l'algorithme « none ». Cela garantit que seuls les tokens signés avec des algorithmes sécurisés (ex. HMAC, RSA) sont acceptés.

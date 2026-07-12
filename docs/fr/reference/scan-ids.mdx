@@ -1,0 +1,80 @@
+---
+title: Référence des identifiants de scan
+description: Tableau de référence complet de tous les identifiants de scan VulnAPI, catégories et scores de gravité.
+---
+
+Utilisez les identifiants de scan avec les options `--scans` et `--exclude-scans` pour filtrer les contrôles exécutés par VulnAPI.
+
+```bash
+# Exécuter uniquement les contrôles JWT
+vulnapi scan curl https://api.example.com -H "Authorization: Bearer <token>" --scans jwt.alg_none
+
+# Exécuter tous les contrôles JWT avec un joker
+vulnapi scan curl ... --scans "jwt.*"
+
+# Exclure tous les contrôles de découverte
+vulnapi scan curl ... --exclude-scans "discover.*"
+```
+
+## Broken Authentication
+
+| Identifiant de scan | Nom | OWASP | CVSS |
+|---------|------|-------|------|
+| `jwt.alg_none` | JWT accepte `alg: none` | API2:2023 | Élevé |
+| `jwt.blank_secret` | JWT signé avec un secret vide | API2:2023 | Élevé |
+| `jwt.weak_secret` | JWT signé avec un secret faible | API2:2023 | Élevé |
+| `jwt.kid_injection` | Injection d'en-tête JWT KID (injection SQL et traversée de chemin) | API2:2023 | 9.3 |
+| `jwt.not_verified` | Signature JWT non vérifiée | API2:2023 | 9.3 |
+| `jwt.null_signature` | Signature JWT nulle | API2:2023 | Élevé |
+| `generic.accept_unauthenticated_operation` | Le endpoint accepte les requêtes non authentifiées | API2:2023 | 9.3 |
+
+## Security Misconfiguration
+
+| Identifiant de scan | Nom | OWASP | CVSS |
+|---------|------|-------|------|
+| `misconfiguration.http_headers` | En-têtes de réponse de sécurité manquants | API8:2023 | Info–Moyen |
+| `misconfiguration.http_cookies` | Indicateurs de sécurité des cookies mal configurés | API8:2023 | 0.0 |
+| `misconfiguration.http_trace` | Méthode HTTP TRACE activée | API8:2023 | Info |
+| `misconfiguration.http_track` | Méthode HTTP TRACK activée | API8:2023 | Info |
+| `misconfiguration.http_method_override` | En-têtes de substitution de méthode HTTP acceptés | API8:2023 | Info–Élevé |
+
+## GraphQL
+
+| Identifiant de scan | Nom | OWASP | CVSS |
+|---------|------|-------|------|
+| `graphql.introspection_enabled` | Introspection GraphQL activée | API8:2023 | Faible |
+
+## Discovery
+
+Les scans de découverte s'exécutent automatiquement avec les commandes `vulnapi discover`. Ils peuvent aussi être inclus/exclus sur les commandes de scan.
+
+| Identifiant de scan | Nom | Description |
+|---------|------|-------------|
+| `discover.api` | Empreinte API | Détecte le framework, le langage et le serveur à partir des en-têtes de réponse |
+| `discover.well_known_paths` | Découverte de chemins bien connus | Vérifie la présence d'OpenAPI, GraphQL et autres chemins courants |
+| `discover.domain` | Découverte de domaine | Motifs de sous-domaines courants et résolution DNS inverse |
+
+## En-têtes de sécurité HTTP (sous-contrôles de `misconfiguration.http_headers`)
+
+Le scan `misconfiguration.http_headers` couvre plusieurs contrôles d'en-têtes individuels. Vous pouvez exclure l'identifiant de scan parent pour tous les ignorer.
+
+| En-tête | Risque |
+|--------|------|
+| `Content-Security-Policy` | Moyen |
+| `X-Frame-Options` | Moyen |
+| `X-Content-Type-Options` | Info |
+| `Strict-Transport-Security` | Info |
+| `Access-Control-Allow-Origin` (CORS) | Moyen |
+| Fuite de signature du serveur | Info |
+
+## Sécurité des cookies (sous-contrôles de `misconfiguration.http_cookies`)
+
+Le scan `misconfiguration.http_cookies` couvre cinq contrôles individuels d'indicateurs de cookies :
+
+| Identifiant de contrôle | Description | CWE |
+|----------|-------------|-----|
+| `security_misconfiguration.http_cookies_not_http_only` | Cookie accessible via JavaScript (risque XSS) | CWE-1004 |
+| `security_misconfiguration.http_cookies_not_secure` | Cookie transmis en HTTP | CWE-614 |
+| `security_misconfiguration.http_cookies_same_site_none` | `SameSite=None` autorise les requêtes cross-site | CWE-1275 |
+| `security_misconfiguration.http_cookies_without_same_site` | Attribut `SameSite` non défini | CWE-1275 |
+| `security_misconfiguration.http_cookies_without_expires` | Le cookie de session n'expire jamais | CWE-613 |

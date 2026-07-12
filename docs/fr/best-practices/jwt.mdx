@@ -1,0 +1,100 @@
+---
+title: Bonnes pratiques de sécurité JWT
+description: Bonnes pratiques pour implémenter de manière sécurisée les JSON Web Tokens (JWT) dans vos API.
+---
+
+Les JSON Web Tokens (JWT) sont largement utilisés pour l'authentification et l'autorisation dans les API. Lorsqu'ils sont mal implémentés, ils deviennent une surface d'attaque à haute sévérité. Ce guide présente les meilleures pratiques les plus importantes et associe chaque point à l'analyse VulnAPI correspondante.
+
+## Utiliser des algorithmes de signature forts
+
+Privilégiez les algorithmes asymétriques (RS256, ES256) pour les systèmes distribués où plusieurs services vérifient les jetons mais un seul les émet. Cela garantit que la clé privée ne quitte jamais l'émetteur.
+
+- **Recommandé** : RS256, RS384, RS512, ES256, ES384
+- **Acceptable pour les systèmes à service unique** : HS256, HS384, HS512 (avec un secret fort — voir ci-dessous)
+- **À ne jamais utiliser** : `alg: none` en production
+
+L'utilisation de `alg: none` supprime toute protection cryptographique, rendant les jetons facilement falsifiables. VulnAPI détecte cela avec l'analyse [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt-alg-none).
+
+## Utiliser un secret aléatoire d'au moins 256 bits pour HMAC
+
+Lors de l'utilisation d'algorithmes HMAC (HS256/HS384/HS512), la clé secrète doit être :
+
+- Au moins 256 bits (32 octets) de données cryptographiquement aléatoires
+- Pas un mot du dictionnaire, un défaut bien connu ou une chaîne prévisible
+- Pas une chaîne vide
+
+Les jetons signés avec des secrets vides ou faibles sont détectés par les analyses [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt-blank-secret) et [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt-weak-secret).
+
+```bash
+# Générer un secret sécurisé de 256 bits (Linux/macOS)
+openssl rand -base64 32
+```
+
+## Toujours vérifier les signatures côté serveur
+
+Ne faites jamais confiance à un JWT sans vérifier sa signature à l'aide de la clé appropriée. L'omission de la vérification des signatures est l'une des erreurs d'implémentation les plus dangereuses.
+
+VulnAPI détecte cela avec l'analyse [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt-not-verified) (CVSS 9.3).
+
+```python
+# Exemple Python avec PyJWT — passez toujours explicitement les algorithmes
+import jwt
+payload = jwt.decode(token, public_key, algorithms=["RS256"])
+```
+
+## Rejeter les jetons avec une signature supprimée
+
+Certaines bibliothèques JWT acceptent des jetons dont le segment de signature est vide (signature nulle). Configurez toujours votre bibliothèque pour exiger une signature valide et non vide.
+
+VulnAPI détecte cela avec l'analyse [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature).
+
+## Valider les revendications standards (Claims)
+
+Après avoir vérifié la signature, valisez ces revendications avant de faire confiance aux données de la charge utile (payload) :
+
+| Revendication | Description | Action |
+|---------------|-------------|--------|
+| `iss` | Émetteur (Issuer) — qui a créé le jeton | Rejeter s'il ne provient pas d'un émetteur de confiance |
+| `aud` | Audience — à qui le jeton est destiné | Rejeter si votre service n'est pas l'audience visée |
+| `exp` | Date d'expiration | Rejeter si l'heure actuelle est postérieure à `exp` |
+| `nbf` | Date d'effet (Not-before) | Rejeter si l'heure actuelle est antérieure à `nbf` |
+| `sub` | Sujet (Subject) — qui le jeton représente | Vérifier que l'utilisateur existe toujours / est actif |
+
+Le fait de ne pas valider `iss` et `aud` permet des [attaques par relais inter-services](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
+
+## Utiliser des durées de vie de jeton courtes avec rotation des jetons de rafraîchissement (Refresh Tokens)
+
+Les jetons d'accès à courte durée de vie limitent les dommages causés par un jeton volé :
+
+- **Jetons d'accès** : 5 à 15 minutes
+- **Jetons de rafraîchissement** : de quelques heures à plusieurs jours, à usage unique (rotation à chaque utilisation)
+
+Effectuez une rotation des jetons de rafraîchissement à chaque utilisation pour détecter le vol de jeton (si un jeton de rafraîchissement déjà utilisé est présenté, révoquez toute la session).
+
+## Ne jamais utiliser `alg: none` en production
+
+La spécification JWT autorise `alg: none` pour les jetons non sécurisés (par exemple, les messages échangés localement). Cela ne doit jamais être accepté par un point de terminaison d'API de production.
+
+Sécurisez votre bibliothèque JWT pour rejeter explicitement `none` :
+
+```go
+// Exemple Go utilisant golang-jwt
+token, err := jwt.Parse(tokenString, keyFunc, jwt.WithValidMethods([]string{"RS256", "ES256"}))
+```
+
+## Stocker les jetons de manière sécurisée sur le client
+
+| Stockage | Risque XSS | Risque CSRF | Recommandation |
+|----------|------------|-------------|----------------|
+| `localStorage` | Élevé (lisible par JS) | Aucun | À éviter pour les jetons sensibles |
+| `sessionStorage` | Élevé (lisible par JS) | Aucun | À éviter pour les jetons sensibles |
+| Cookie `HttpOnly` | Aucun (non lisible par JS) | Moyen (à atténuer avec SameSite) | **Préféré** |
+| Mémoire (variable JS) | Faible | Aucun | Acceptable pour les SPA |
+
+Préférerez les cookies `HttpOnly; Secure; SameSite=Strict` pour les applications web. Voir [Mauvaise configuration des cookies HTTP](../vulnerabilities/security-misconfiguration/http-cookies) pour les vérifications associées.
+
+## Références
+
+- [OWASP JWT Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html)
+- [RFC 7519 — JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519)
+- [Auth0 — JWT Best Practices](https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-token-best-practices)

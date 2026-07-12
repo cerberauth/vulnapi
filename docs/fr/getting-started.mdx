@@ -1,0 +1,29 @@
+---
+title: Prise en main
+description: Lancez votre première analyse de sécurité d'API en moins de cinq minutes.
+sidebar:
+  order: 2
+---
+
+import { CardGrid, LinkCard, Steps } from '@/components/docs'
+
+Lancez votre première analyse de sécurité d'API en moins de de cinq minutes.
+
+<Steps>
+
+1. **[Installer VulnAPI](./installation)** — Téléchargez un binaire précompilé pour Linux, macOS, Windows, ou exécutez-le via Docker.
+
+2. **[Lancer votre première analyse](./first-scan)** — Utilisez `vulnapi scan curl` ou pointez VulnAPI vers votre spécification OpenAPI.
+
+3. **Lire le rapport** — Comprenez les colonnes OPERATION / RISK LEVEL / CVSS / OWASP / VULNERABILITY et ce que signifie chaque résultat.
+
+4. **[Automatiser dans la CI/CD](./github-action)** — Ajoutez l'action GitHub VulnAPI à votre workflow afin que chaque PR soit analysée automatiquement.
+
+</Steps>
+
+<CardGrid>
+  <LinkCard title="Installation" href="./installation" description="Télécharger et installer VulnAPI sur votre plateforme." />
+  <LinkCard title="Première analyse" href="./first-scan" description="Guide étape par étape pour votre première analyse." />
+  <LinkCard title="GitHub Action" href="./github-action" description="Automatiser les analyses dans votre pipeline CI/CD." />
+  <LinkCard title="Référence de la CLI" href="./reference/cli" description="Toutes les commandes, options et leurs valeurs par défaut." />
+</CardGrid>

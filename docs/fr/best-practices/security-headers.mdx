@@ -1,0 +1,102 @@
+---
+title: En-têtes HTTP de sécurité pour API
+description: Découvrez l'importance des en-têtes HTTP de sécurité pour la sécurité des API et comment les tester à l'aide de VulnAPI.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+Il est crucial de comprendre l'importance des en-têtes HTTP de sécurité, en particulier en ce qui concerne la sécurité des API. Ces en-têtes fournissent des fonctionnalités de sécurité et des protections importantes à la fois pour le serveur et pour le client.
+
+## Comment tester ?
+
+Si vous souhaitez tester uniquement que l'API envoie les bons en-têtes de sécurité, vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] --scans misconfiguration.http_headers
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_headers
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql --scans misconfiguration.http_headers [url]
+```
+  </TabItem>
+</Tabs>
+
+## Politiques de sécurité du contenu de l'API (CSP)
+
+Les en-têtes de politique de sécurité du contenu (CSP) sont essentiels pour atténuer divers risques de sécurité dans le contexte des API. CSP permet de prévenir un ensemble d'attaques, notamment :
+
+- **Attaques par injection de données :** CSP peut restreindre les types de contenu pouvant être chargés, réduisant ainsi le risque que des attaquants injectent des données malveillantes dans les réponses de l'API.
+- **Clickjacking (Détournement de clic) :** Bien qu'il s'agisse principalement d'une préoccupation pour les pages web, CSP peut également aider à atténuer le clickjacking en contrôlant l'encadrement du contenu.
+
+### Exemple d'en-tête CSP sécurisé pour les API
+
+```http
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none';
+```
+
+`frame-ancestors 'none';` garantit que la réponse de l'API ne peut pas être intégrée dans des iframes, empêchant ainsi les attaques de clickjacking car votre API ne devrait probablement pas être intégrée dans des iframes.
+
+### Risques atténués par CSP
+
+1. **Script intersite (XSS) :** En limitant les sources à partir desquelles les scripts peuvent être chargés, CSP aide à empêcher les attaquants d'injecter et d'exécuter des scripts malveillants.
+2. **Injection de données :** En contrôlant les sources de contenu, CSP réduit le risque que des attaquants injectent des données malveillantes dans les réponses de l'API.
+3. **Clickjacking (Détournement de clic) :** En spécifiant frame-ancestors, CSP peut empêcher l'intégration des réponses de l'API dans des iframes, atténuant ainsi les attaques de clickjacking.
+
+L'implémentation d'en-têtes CSP dans vos réponses d'API est une mesure proactive pour améliorer la posture de sécurité de votre API, protégeant ainsi le serveur et les clients contre divers types d'attaques.
+
+## Partage de ressources entre origines multiples de l'API (CORS)
+
+Les en-têtes CORS contrôlent l'accès aux ressources à partir de différentes origines. Pour les API, une configuration CORS appropriée garantit que seuls les domaines de confiance peuvent accéder aux ressources de l'API, empêchant ainsi les accès non autorisés provenant de sites web potentiellement malveillants.
+
+### Exemple d'en-tête CORS sécurisé pour les API
+
+```http
+Access-Control-Allow-Origin: https://trusted-domain.com
+```
+
+## Sécurité stricte du transport HTTP (HSTS)
+
+Les en-têtes HSTS demandent au navigateur de toujours utiliser HTTPS lors de la communication avec le serveur, même si l'utilisateur saisit « http » dans la barre d'adresse. Cela permet d'éviter les attaques de l'homme du milieu et de garantir que toutes les données échangées entre le client et le serveur sont chiffrées.
+
+### Exemple d'en-tête HSTS sécurisé pour les API
+
+```http
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
+## X-Content-Type-Options
+
+Cet en-tête empêche les navigateurs de procéder à l'analyse MIME (**MIME-sniffing**) d'une réponse pour s'écarter du type de contenu déclaré, ce qui peut aider à prévenir certains types d'attaques, telles que les attaques par confusion de type de contenu.
+
+### Exemple d'en-tête X-Content-Type-Options sécurisé pour les API
+
+```http
+X-Content-Type-Options: nosniff
+```
+
+## X-Frame-Options
+
+L'en-tête X-Frame-Options protège contre les attaques de clickjacking en empêchant la réponse de l'API d'être intégrée dans un frame ou une iframe sur un autre domaine.
+
+### Exemple d'en-tête X-Frame-Options sécurisé pour les API
+
+```http
+X-Frame-Options: DENY
+```
+
+## X-Permitted-Cross-Domain-Policies (obsolète)
+
+Cet en-tête spécifie le fichier de stratégie qui régit la manière dont les applications Flash et Adobe AIR peuvent interagir avec les ressources de l'API à travers différents domaines. Cependant, cet en-tête est obsolète et ne doit pas être utilisé dans les applications modernes.
+
+## Références
+
+- [OWASP REST Security Headers](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers)
+- [MDN CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)

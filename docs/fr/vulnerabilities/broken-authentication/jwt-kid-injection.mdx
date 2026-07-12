@@ -1,0 +1,99 @@
+---
+title: Injection d'en-tête JWT KID
+description: L'injection d'en-tête JWT KID survient lorsque le paramètre d'en-tête `kid` (Key ID) est transmis sans désinfection à une requête de base de données ou une recherche sur le système de fichiers, permettant aux attaquants de forger des tokens de confiance.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+Le champ d'en-tête JWT `kid` (Key ID) est censé indiquer au serveur quelle clé utiliser pour la vérification de la signature. Lorsque cette valeur est transmise sans désinfection à une requête de base de données ou une recherche sur le système de fichiers, les attaquants peuvent injecter un payload amenant le serveur à utiliser une clé contrôlée par l'attaquant, leur permettant ainsi de forger des tokens arbitraires.
+
+Pour plus de détails, consultez la [documentation jwtop sur l'injection d'en-tête KID](https://www.cerberauth.com/docs/jwtop/vulnerabilities/kid-header-injection/).
+
+VulnAPI teste deux variantes de cette attaque :
+
+- **Injection SQL** — injecte un payload SQL dans `kid` (ex. `' UNION SELECT 'secret' ...`) pour que la base de données renvoie une valeur connue en tant que clé.
+- **Traversée de chemin** — définit `kid` avec un chemin du système de fichiers tel que `/dev/null` pour que le serveur lise un fichier vide comme clé, ce qui peut correspondre à un secret HMAC vide.
+
+## Exemple
+
+Voici un JWT valide signé avec HS256 :
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+### Variante par injection SQL
+
+L'attaquant fabrique un token avec un en-tête `kid` qui s'injecte dans la requête de recherche de clé et le re-signe avec la valeur que la requête est censée renvoyer (`secret`) :
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "' UNION SELECT 'secret' FROM tokens WHERE '1'='1"
+}
+```
+
+### Variante par traversée de chemin
+
+L'attaquant définit `kid` sur `/dev/null` et re-signe le token avec un secret HMAC vide. Si le serveur lit la clé de signature depuis le chemin indiqué par `kid`, il reçoit zéro octet :
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "/dev/null"
+}
+```
+
+## Comment tester ?
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --scans jwt.kid_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJIUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.kid_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --scans jwt.kid_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+Une attaque par injection KID réussie permet à un attaquant de forger un JWT que le serveur accepte comme légitime. Cela peut mener à un contournement complet de l'authentification, une élévation de privilèges, ou l'usurpation de l'identité de n'importe quel utilisateur du système.
+
+## Comment corriger ?
+
+- **Valider la valeur `kid`** avant de l'utiliser — rejeter les valeurs contenant des métacaractères SQL, des séparateurs de chemin, ou des caractères en dehors d'une liste blanche sûre (ex. alphanumérique et tirets uniquement).
+- **Utiliser des requêtes paramétrées** lors de la recherche de clés par `kid` dans une base de données pour prévenir l'injection SQL.
+- **Ne jamais lire le matériel de clé depuis des chemins de fichiers contrôlés par l'utilisateur** — stockez les clés dans un coffre-fort sécurisé et n'utilisez `kid` que comme identifiant opaque associé côté serveur à une clé connue.
+- **Coder en dur ou mettre en liste blanche les valeurs `kid` autorisées** lorsque c'est possible.

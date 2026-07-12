@@ -1,0 +1,79 @@
+---
+title: Substitution de méthode HTTP activée
+description: La substitution de méthode HTTP est une fonctionnalité permettant aux clients de remplacer la méthode HTTP par défaut utilisée dans une requête. Cette fonctionnalité peut être exploitée par des attaquants pour contourner les contrôles de sécurité et effectuer des actions non autorisées sur le serveur.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Info - Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <ul>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2023-30845">CVE-2023-30845</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2023-29003">CVE-2023-29003</a></li>
+        <li><a href="https://www.cve.org/CVERecord?id=CVE-2019-19326">CVE-2019-19326</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/">OWASP API8:2023 Security Misconfiguration</a>
+    </td>
+  </tr>
+</table>
+
+La substitution de méthode HTTP est une fonctionnalité permettant aux clients de remplacer la méthode HTTP par défaut utilisée dans une requête. Cette fonctionnalité est couramment utilisée pour effectuer des actions sur le serveur avec des méthodes HTTP autres que GET et POST, telles que PUT, DELETE, PATCH, etc. Elle est généralement implémentée via des en-têtes personnalisés ou des paramètres de requête spécifiant la méthode HTTP souhaitée.
+
+Cette fonctionnalité peut être exploitée par des attaquants pour contourner les contrôles de sécurité et effectuer des actions non autorisées sur le serveur.
+
+## Quel est l'impact ?
+
+Les attaquants peuvent exploiter cette fonctionnalité pour contourner les contrôles de sécurité et effectuer des actions non autorisées sur le serveur. Voici quelques attaques courantes pouvant être menées via la substitution de méthode HTTP :
+- Attaques CSRF
+- Contournement de l'authentification
+- Contournement des contrôles d'accès
+
+## Comment tester ?
+
+Si vous voulez tester uniquement les problèmes de « Substitution de méthode HTTP activée », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] --scans misconfiguration.http_method_override
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans misconfiguration.http_method_override
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql --scans misconfiguration.http_method_override [url]
+```
+  </TabItem>
+</Tabs>
+
+## Comment corriger ?
+
+Pour corriger ce problème, vous devez désactiver la fonctionnalité de substitution de méthode HTTP sur l'API ou le proxy intermédiaire. Vous pouvez le faire en configurant le serveur pour n'accepter que les méthodes HTTP attendues (GET, POST, PUT, DELETE, etc.) et rejeter toute autre méthode non explicitement autorisée.
+
+Si vous ne pouvez pas désactiver ce comportement, assurez-vous de mettre en place des contrôles d'accès et des vérifications de validation adéquats pour empêcher les actions non autorisées, et que ces contrôles ne sont pas impactés par la méthode substituée. Pour ce faire, la pratique habituelle consiste à effectuer les vérifications avant que la substitution de méthode ne soit appliquée.
+
+## Références
+
+- [X-HTTP-Method](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-odata/bdbabfa6-8c4a-4741-85a9-8d93ffd66c41)
+- [HTTP Method Override Blog Post](https://www.sidechannel.blog/en/http-method-override-what-it-is-and-how-a-pentester-can-use-it/)
