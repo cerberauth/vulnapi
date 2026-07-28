@@ -8,7 +8,7 @@ require (
 	github.com/cerberauth/jwtop v0.4.0
 	github.com/cerberauth/x v0.0.0-20260623190707-13254fad694d
 	github.com/fatih/color v1.19.0
-	github.com/getkin/kin-openapi v0.140.0
+	github.com/getkin/kin-openapi v0.144.0
 	github.com/gin-contrib/requestid v1.0.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
