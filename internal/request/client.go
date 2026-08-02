@@ -1,6 +1,7 @@
 package request
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"net/url"
@@ -11,6 +12,13 @@ import (
 )
 
 var rl = rate.NewLimiter(rate.Every(100*time.Millisecond), 1) // 10 req/s default
+
+// Wait blocks until the package-level rate limiter allows another request.
+// Callers that send HTTP requests outside of a Client method (e.g. via
+// probe.Do) should call this first to keep proactive rate limiting.
+func Wait(ctx context.Context) error {
+	return rl.Wait(ctx)
+}
 
 var defaultClient *Client = nil
 

@@ -1,26 +1,38 @@
 package cmd
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"os"
 
-	printtable "github.com/cerberauth/vulnapi/internal/cmd/printtable"
-	"github.com/cerberauth/vulnapi/report"
-	"gopkg.in/yaml.v3"
+	"github.com/cerberauth/reportx"
+	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
+	"github.com/spf13/cobra"
 )
 
-func PrintOrExportReport(format string, transport string, report *report.Reporter) error {
+func highestCVSSScore(r *reportx.Report) float64 {
+	var max float64
+	for _, f := range r.Findings {
+		if f.CVSS40Score > max {
+			max = f.CVSS40Score
+		}
+	}
+	return max
+}
+
+// WriteReport formats and writes r according to the --format/--output/
+// --report-url/--report-header flags registered via cobrareportx.
+func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report) error {
 	outputStream := os.Stdout
-	if report.HasHigherThanSeverityThresholdIssue(GetSeverityThreshold()) {
+	if highestCVSSScore(r) >= GetSeverityThreshold() {
 		outputStream = os.Stderr
 	}
 
 	var outputMessage string
 	switch {
-	case !report.HasIssue():
+	case len(r.Findings) == 0:
 		outputMessage = "Success: No issue detected!"
-	case report.HasHighRiskOrHigherSeverityIssue():
+	case highestCVSSScore(r) >= 7.0:
 		outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
 	default:
 		outputMessage = "Warning: There are some issues. It's advised to take action."
@@ -29,78 +41,46 @@ func PrintOrExportReport(format string, transport string, report *report.Reporte
 	fmt.Println()
 	fmt.Fprintln(outputStream, outputMessage)
 
-	var output []byte
-	var err error
-	switch format {
-	case "json":
-		output, err = ExportJSON(report)
-	case "yaml":
-		output, err = ExportYAML(report)
-	case "table":
-		PrintTable(report)
-	}
-
+	formatter, err := cobrareportx.FormatterFromFlags(cmd)
 	if err != nil {
 		return err
 	}
+	writer, cleanup, err := cobrareportx.WriterFromFlags(cmd)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 
-	if output != nil && transport != "" {
-		exportErr := exportWithTransport(transport, output)
-		if exportErr != nil {
-			return exportErr
+	if err := r.WriteTo(ctx, writer, formatter); err != nil {
+		return err
+	}
+
+	httpTransport, err := cobrareportx.HTTPTransportFromFlags(cmd)
+	if err != nil {
+		return err
+	}
+	if httpTransport != nil {
+		if err := r.Send(ctx, httpTransport, formatter); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func PrintTable(report *report.Reporter) {
-	printtable.WellKnownPathsScanReport(report)
-	printtable.FingerprintScanReport(report)
-	printtable.DisplayReportSummaryTable(report)
-	printtable.DisplayReportTable(report)
-}
-
-func ExportJSON(report *report.Reporter) ([]byte, error) {
-	return json.Marshal(report)
-}
-
-func ExportYAML(report *report.Reporter) ([]byte, error) {
-	return yaml.Marshal(report)
-}
-
-func exportWithTransport(transport string, output []byte) error {
-	switch transport {
-	case "file":
-		if reportFile == "" {
-			return fmt.Errorf("output file is not specified")
+// ExitIfFindings exits with status 1 if r has findings. When scansFiltered is
+// true (the caller explicitly selected scans via --scans), any finding exits,
+// ignoring the severity threshold. Otherwise, only findings meeting the
+// severity threshold exit.
+func ExitIfFindings(r *reportx.Report, scansFiltered bool) {
+	if scansFiltered {
+		if len(r.Findings) > 0 {
+			os.Exit(1)
 		}
-		return writeFile(reportFile, output)
-	case "http":
-		if reportURL == "" {
-			return fmt.Errorf("output URL is not specified")
-		}
-		return sendHTTP(reportURL, output)
+		return
 	}
 
-	return nil
-}
-
-func writeFile(path string, output []byte) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
+	if highestCVSSScore(r) >= GetSeverityThreshold() {
+		os.Exit(1)
 	}
-	defer file.Close()
-
-	_, err = file.Write(output)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func sendHTTP(outputURL string, output []byte) error {
-	return fmt.Errorf("HTTP transport not implemented yet")
 }

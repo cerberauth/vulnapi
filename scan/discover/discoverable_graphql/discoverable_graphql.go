@@ -1,39 +1,41 @@
 package discoverablegraphql
 
 import (
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"context"
+	_ "embed"
+	"errors"
+
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
 )
 
-const (
-	DiscoverableGraphQLPathScanID   = "discover.graphql"
-	DiscoverableGraphQLPathScanName = "Discoverable GraphQL Path"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-type DiscoverableGraphQLPathData = discover.DiscoverData
-
-var issue = report.Issue{
-	ID:   "discover.discoverable_graphql",
-	Name: "Discoverable GraphQL Endpoint",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SSRF,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
+var Def = hxcheckdef.MustParseCheckDefYAML("discoverable_graphql", checkYAML)
 
 var graphqlSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/graphql.txt"
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverableGraphQLPathScanID, DiscoverableGraphQLPathScanName, op)
-	r.AddIssueReport(vulnReport)
-	return discover.DownloadAndScanURLs("GraphQL", graphqlSeclistUrl, r, vulnReport, op, securityScheme)
-}
+var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
+	resources := store.Resources()
+	if len(resources) == 0 {
+		return harnessx.Result{Skipped: true, SkipReason: "no resources"}, nil
+	}
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resources[0])
+	if !ok {
+		return harnessx.Result{Err: errors.New("discoverable_graphql: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
+
+	f, err := discover.DownloadAndScanURLs(ctx, "GraphQL", graphqlSeclistUrl, op, securityScheme)
+	if err != nil {
+		return harnessx.Result{}, err
+	}
+	if f == nil {
+		return harnessx.Result{}, nil
+	}
+	f.Operation = op
+	return harnessx.Result{Data: f}, nil
+})

@@ -1,0 +1,10 @@
+id: "misconfiguration.http_headers_cors_wildcard"
+name: "CORS Allow-Origin Header is set to wildcard (*)"
+description: ""
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin"
+tags: []
+depends_on: ["misconfiguration.http_headers_fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-942"
+owasp: "API8:2023"

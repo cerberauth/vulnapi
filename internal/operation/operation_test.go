@@ -10,7 +10,6 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/assert"
 )
@@ -111,38 +110,30 @@ func TestOperation_IsReachableWhenUnsupportedScheme(t *testing.T) {
 	assert.Equal(t, "unsupported scheme: ftp", err.Error())
 }
 
-func TestNewOperationFromRequest(t *testing.T) {
-	r, _ := request.NewRequest(http.MethodGet, "http://example.com", nil, nil)
-	r.WithHeader(http.Header{
-		"Content-Type": []string{"application/json"},
+func TestNewOperationFromHTTPRequest(t *testing.T) {
+	r, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
+	r.Header.Set("Content-Type", "application/json")
+	r.AddCookie(&http.Cookie{
+		Name:  "cookie1",
+		Value: "value1",
 	})
-	r.WithCookies([]*http.Cookie{
-		{
-			Name:  "cookie1",
-			Value: "value1",
-		},
-	})
-	operation, err := operation.NewOperationFromRequest(r)
+	operation, err := operation.NewOperationFromHTTPRequest(r)
 
 	assert.NoError(t, err)
-	assert.Equal(t, r.HttpRequest.URL.String(), operation.URL.String())
-	assert.Equal(t, r.HttpRequest.Method, operation.Method)
-	assert.Equal(t, r.HttpRequest.Header, operation.Header)
-	assert.Equal(t, r.HttpRequest.Cookies(), operation.Cookies)
+	assert.Equal(t, r.URL.String(), operation.URL.String())
+	assert.Equal(t, r.Method, operation.Method)
+	assert.Equal(t, r.Header, operation.Header)
+	assert.Equal(t, r.Cookies(), operation.Cookies)
 }
 
-func TestNewOperationFromRequest_WithBody(t *testing.T) {
+func TestNewOperationFromHTTPRequest_WithBody(t *testing.T) {
 	body := strings.NewReader("test")
-	r, _ := request.NewRequest(http.MethodPost, "http://example.com", body, nil)
-	header := http.Header{}
-	r.WithHeader(header)
-	cookies := []*http.Cookie{}
-	r.WithCookies(cookies)
-	operation, err := operation.NewOperationFromRequest(r)
+	r, _ := http.NewRequest(http.MethodPost, "http://example.com", body)
+	operation, err := operation.NewOperationFromHTTPRequest(r)
 
 	assert.NoError(t, err)
-	assert.Equal(t, r.HttpRequest.URL.String(), operation.URL.String())
-	assert.Equal(t, r.HttpRequest.Method, operation.Method)
+	assert.Equal(t, r.URL.String(), operation.URL.String())
+	assert.Equal(t, r.Method, operation.Method)
 	assert.Equal(t, []byte("test"), operation.Body)
 }
 

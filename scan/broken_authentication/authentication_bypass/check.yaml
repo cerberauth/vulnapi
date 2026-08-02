@@ -1,0 +1,10 @@
+id: "generic.accept_unauthenticated_operation"
+name: "Authentication is expected but can be bypassed"
+description: ""
+link: ""
+tags: []
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 9.3
+cwe_id: ""
+owasp: "API2:2023"

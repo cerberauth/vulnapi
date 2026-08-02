@@ -1,10 +1,13 @@
 package introspectionenabled_test
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
@@ -13,21 +16,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type resourceStore struct{ resources []harnessx.Resource }
+
+func (s *resourceStore) Get(_ harnessx.CheckID) (harnessx.Result, bool)                     { return harnessx.Result{}, false }
+func (s *resourceStore) GetForResource(_ harnessx.CheckID, _ string) (harnessx.Result, bool) { return harnessx.Result{}, false }
+func (s *resourceStore) Observations() []harnessx.Observation                               { return nil }
+func (s *resourceStore) Resources() []harnessx.Resource                                     { return s.resources }
+
+func runIntrospectionEnabledCheck(op *operation.Operation) (harnessx.Result, error) {
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+	store := &resourceStore{resources: []harnessx.Resource{resource}}
+	return introspectionenabled.Check.Run(context.Background(), harnessx.Target{URL: op.URL.String()}, store)
+}
+
 func TestGraphqlIntrospectionScanHandler_Failed_WhenRespondHTTPStatusIsOK(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	resBody := []byte(`{"data": {"__schema": {"queryType": {"name": "Query"}}}}`)
-	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
-	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
+	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
+	httpmock.RegisterResponder(http.MethodGet, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
+	result, err := runIntrospectionEnabledCheck(op)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasFailed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.True(t, ok)
 }
 
 func TestGraphqlIntrospectionScanHandler_Failed_WhenRespond_GETMethodOnly_HTTPStatusIsOK(t *testing.T) {
@@ -35,16 +53,18 @@ func TestGraphqlIntrospectionScanHandler_Failed_WhenRespond_GETMethodOnly_HTTPSt
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	resBody := []byte(`{"data": {"__schema": {"queryType": {"name": "Query"}}}}`)
-	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
+	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
+	httpmock.RegisterResponder(http.MethodGet, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, resBody))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
+	result, err := runIntrospectionEnabledCheck(op)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasFailed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.True(t, ok)
 }
 
 func TestGraphqlIntrospectionScanHandler_Passed_WhenBadRequestStatus(t *testing.T) {
@@ -52,15 +72,17 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenBadRequestStatus(t *testing.
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
+	op := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
+	httpmock.RegisterResponder(http.MethodGet, op.URL.String(), httpmock.NewBytesResponder(http.StatusBadRequest, nil))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
+	result, err := runIntrospectionEnabledCheck(op)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasPassed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.False(t, ok)
 }
 
 func TestGraphqlIntrospectionScanHandler_Passed_WhenOKStatusButNoQuery(t *testing.T) {
@@ -68,13 +90,15 @@ func TestGraphqlIntrospectionScanHandler_Passed_WhenOKStatusButNoQuery(t *testin
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(http.MethodPost, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
-	httpmock.RegisterResponder(http.MethodGet, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	op := operation.MustNewOperation(http.MethodPost, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	httpmock.RegisterResponder(http.MethodGet, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
-	report, err := introspectionenabled.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
+	result, err := runIntrospectionEnabledCheck(op)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, httpmock.GetTotalCallCount())
-	assert.True(t, report.Issues[0].HasPassed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.False(t, ok)
 }

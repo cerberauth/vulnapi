@@ -1,37 +1,41 @@
 package healthcheck
 
 import (
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"context"
+	_ "embed"
+	"errors"
+
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
 )
 
-const (
-	DiscoverableHealthCheckScanID   = "discover.healthcheck"
-	DiscoverableHealthCheckScanName = "Discoverable healthcheck endpoint"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var issue = report.Issue{
-	ID:   "discover.discoverable_healthcheck",
-	Name: "Discoverable healthcheck endpoint",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SSRF,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
+var Def = hxcheckdef.MustParseCheckDefYAML("healthcheck", checkYAML)
 
 var healthcheckSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/healthcheck.txt"
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverableHealthCheckScanID, DiscoverableHealthCheckScanName, op)
-	r.AddIssueReport(vulnReport)
-	return discover.DownloadAndScanURLs("HealthCheck", healthcheckSeclistUrl, r, vulnReport, op, securityScheme)
-}
+var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
+	resources := store.Resources()
+	if len(resources) == 0 {
+		return harnessx.Result{Skipped: true, SkipReason: "no resources"}, nil
+	}
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resources[0])
+	if !ok {
+		return harnessx.Result{Err: errors.New("healthcheck: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
+
+	f, err := discover.DownloadAndScanURLs(ctx, "HealthCheck", healthcheckSeclistUrl, op, securityScheme)
+	if err != nil {
+		return harnessx.Result{}, err
+	}
+	if f == nil {
+		return harnessx.Result{}, nil
+	}
+	f.Operation = op
+	return harnessx.Result{Data: f}, nil
+})

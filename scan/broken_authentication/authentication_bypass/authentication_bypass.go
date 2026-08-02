@@ -1,48 +1,53 @@
 package authenticationbypass
 
 import (
+	"context"
+	_ "embed"
+	"errors"
+
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-const (
-	AcceptsUnauthenticatedOperationScanID   = "generic.accept_unauthenticated_operation"
-	AcceptsUnauthenticatedOperationScanName = "Accept Unauthenticated Operation"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var issue = report.Issue{
-	ID:   "broken_authentication.authentication_bypass",
-	Name: "Authentication is expected but can be bypassed",
+var Def = hxcheckdef.MustParseCheckDefYAML("authentication_bypass", checkYAML)
 
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_BrokenAuthentication,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
-		Score:   9.3,
-	},
+func operationOf(resource harnessx.Resource) (*operation.Operation, bool) {
+	return harnessx.ResourceDataAs[*operation.Operation](resource)
 }
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-
-	r := report.NewScanReport(AcceptsUnauthenticatedOperationScanID, AcceptsUnauthenticatedOperationScanName, op)
-	if securityScheme.GetType() == auth.None {
-		return r.AddIssueReport(vulnReport.Skip()).End(), nil
+var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+	op, ok := operationOf(resource)
+	if !ok {
+		return harnessx.Result{Err: errors.New("authentication_bypass: resource missing *operation.Operation")}, nil
 	}
 
 	noAuthSecurityScheme := auth.MustNewNoAuthSecurityScheme()
-	vsa, err := scan.ScanURL(op, noAuthSecurityScheme)
+	attempt, err := finding.Fetch(ctx, op, noAuthSecurityScheme)
 	if err != nil {
-		return r, err
+		return harnessx.Result{}, err
 	}
-	vsa.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(vsa.Response))
-	vulnReport.WithBooleanStatus(vsa.HasPassed()).AddScanAttempt(vsa)
-	r.AddIssueReport(vulnReport).AddScanAttempt(vsa).End()
+	if finding.IsUnauthorizedStatusCodeOrSimilar(attempt.Response) {
+		return harnessx.Result{}, nil
+	}
 
-	return r, nil
-}
+	return harnessx.Result{Data: &finding.Finding{
+		Attempt: attempt,
+	}}, nil
+},
+	hxcheckdef.WithSkip(harnessx.SkipResourceWhen(func(_ context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) string {
+		op, ok := operationOf(resource)
+		if !ok {
+			return "resource is missing operation data"
+		}
+		if op.GetSecurityScheme().GetType() == auth.None {
+			return "operation has no authentication to bypass"
+		}
+		return ""
+	})),
+)

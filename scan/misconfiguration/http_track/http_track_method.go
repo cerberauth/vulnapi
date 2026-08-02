@@ -1,53 +1,45 @@
 package httptrack
 
 import (
+	"context"
+	_ "embed"
+	"errors"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-const (
-	HTTPTrackScanID   = "misconfiguration.http_track"
-	HTTPTrackScanName = "HTTP TRACK Method Misconfiguration"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var issue = report.Issue{
-	ID:   "security_misconfiguration.http_track_method_enabled",
-	Name: "HTTP TRACK Method enabled",
-	URL:  "https://techcommunity.microsoft.com/t5/iis-support-blog/http-track-and-trace-verbs/ba-p/784482",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-		CWE:   report.CWE_489_Active_Debug_Code,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
+var Def = hxcheckdef.MustParseCheckDefYAML("http_track", checkYAML)
 
 const TrackMethod = "TRACK"
 
-func ScanHandler(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(HTTPTrackScanID, HTTPTrackScanName, operation)
-	r.AddIssueReport(vulnReport)
+var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resource)
+	if !ok {
+		return harnessx.Result{Err: errors.New("http_track: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
 
-	newOperation, err := operation.Clone()
+	newOperation, err := op.Clone()
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
 	newOperation.Method = TrackMethod
 
-	attempt, err := scan.ScanURL(newOperation, securityScheme)
-	attempt.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK)
-	r.AddScanAttempt(attempt)
-	vulnReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
-
-	return r.End(), nil
-}
+	attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
+	if err != nil {
+		return harnessx.Result{}, err
+	}
+	if attempt.Response.GetStatusCode() != http.StatusOK {
+		return harnessx.Result{}, nil
+	}
+	return harnessx.Result{Data: &finding.Finding{
+		Attempt: attempt,
+	}}, nil
+})

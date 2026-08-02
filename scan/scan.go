@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
+	"github.com/cerberauth/harnessx"
+	"github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/reportx"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/x/telemetryx"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -15,7 +18,12 @@ import (
 type ScanOptions struct {
 	IncludeScans []string
 	ExcludeScans []string
-	Reporter     *report.Reporter
+
+	// Title names the report (e.g. "cURL Scan", "OpenAPI Scan"). Defaults to
+	// "Scan" when empty.
+	Title string
+	// ToolVersion is recorded in the report metadata.
+	ToolVersion string
 }
 
 type Scan struct {
@@ -24,7 +32,9 @@ type Scan struct {
 	Operations      operation.Operations
 	OperationsScans []OperationScan
 
-	telemetryScanHandlerCounter   metric.Int64Counter
+	harnessxChecks []harnessx.Check
+	checkDefs      map[harnessx.CheckID]checkdef.CheckDef
+
 	telemetryOperationScanHandler metric.Int64Counter
 }
 
@@ -44,14 +54,12 @@ func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) 
 	if opts == nil {
 		opts = &ScanOptions{}
 	}
-
-	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporter()
+	if opts.Title == "" {
+		opts.Title = "Scan"
 	}
 
 	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
 	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
-	telemetryScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.scan_handler.counter")
 	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
 	telemetryScanCounter.Add(context.Background(), 1, metric.WithAttributes(
 		otelScanIncludeScansAttribute.StringSlice(opts.IncludeScans),
@@ -63,8 +71,9 @@ func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) 
 
 		Operations:      operations,
 		OperationsScans: []OperationScan{},
+		harnessxChecks:  []harnessx.Check{},
+		checkDefs:       map[harnessx.CheckID]checkdef.CheckDef{},
 
-		telemetryScanHandlerCounter:   telemetryScanHandlerCounter,
 		telemetryOperationScanHandler: telemetryOperationScanHandlerCounter,
 	}, nil
 }
@@ -73,77 +82,120 @@ func (s *Scan) GetOperationsScans() []OperationScan {
 	return s.OperationsScans
 }
 
-func (s *Scan) AddOperationScanHandler(handler *OperationScanHandler) *Scan {
-	if !s.shouldAddScan(handler.ID) {
+// AddCheck registers check with the scan. def supplies the CVSS/CWE/OWASP/
+// CAPEC classification used to build a reportx.Finding when the check
+// reports a vulnerability; pass nil for checks that never do (e.g. pure
+// data-provider checks other checks depend on).
+func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
+	// Internal checks (ID prefixed with "_", e.g. the JWT probe) are data
+	// providers other checks depend on, not user-selectable scans, so they
+	// must always run regardless of --scans/--exclude-scans filtering.
+	if !isInternalCheckID(string(check.ID)) && !s.shouldAddScan(string(check.ID)) {
 		return s
 	}
-
-	for _, operation := range s.Operations {
+	if check.RunResource != nil {
+		for _, op := range s.Operations {
+			s.OperationsScans = append(s.OperationsScans, OperationScan{
+				Operation: op,
+				CheckID:   string(check.ID),
+				CheckName: check.Name,
+			})
+		}
+		s.telemetryOperationScanHandler.Add(context.Background(), int64(len(s.Operations)), metric.WithAttributes(
+			otelScanHandlerIdAttribute.String(string(check.ID)),
+		))
+	} else {
 		s.OperationsScans = append(s.OperationsScans, OperationScan{
-			Operation:   operation,
-			ScanHandler: handler,
+			Operation: s.Operations[0],
+			CheckID:   string(check.ID),
+			CheckName: check.Name,
 		})
+		s.telemetryOperationScanHandler.Add(context.Background(), 1, metric.WithAttributes(
+			otelScanHandlerIdAttribute.String(string(check.ID)),
+		))
 	}
-
-	s.telemetryOperationScanHandler.Add(context.Background(), int64(len(s.Operations)), metric.WithAttributes(
-		otelScanHandlerIdAttribute.String(handler.ID),
-	))
-
+	if def != nil {
+		s.checkDefs[check.ID] = *def
+	}
+	check.DependsOn = append([]harnessx.CheckID{operationsLoaderCheckID}, check.DependsOn...)
+	s.harnessxChecks = append(s.harnessxChecks, check)
 	return s
 }
 
-func (s *Scan) AddScanHandler(handler *OperationScanHandler) *Scan {
-	if !s.shouldAddScan(handler.ID) {
-		return s
-	}
-
-	s.OperationsScans = append(s.OperationsScans, OperationScan{
-		Operation:   s.Operations[0],
-		ScanHandler: handler,
-	})
-
-	s.telemetryOperationScanHandler.Add(context.Background(), 1, metric.WithAttributes(
-		otelScanHandlerIdAttribute.String(handler.ID),
-	))
-
-	return s
-}
-
-func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *OperationScan)) (*report.Reporter, []error, error) {
+func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *OperationScan)) (*reportx.Report, []error, error) {
 	if scanCallback == nil {
 		scanCallback = func(operationScan *OperationScan) {}
 	}
 
-	var errors []error
-	for _, scan := range s.OperationsScans {
-		if scan.ScanHandler == nil {
-			continue
-		}
-
-		securityScheme := scan.Operation.GetSecurityScheme() // TODO: handle multiple security schemes
-		report, err := scan.ScanHandler.Handler(scan.Operation, securityScheme)
-		if err != nil {
-			errors = append(errors, err)
-		}
-
-		if report != nil {
-			s.Reporter.AddReport(report)
-		}
-
-		scanCallback(&scan)
+	adapter := &harnessxReporter{
+		title:       s.Title,
+		toolVersion: s.ToolVersion,
+		checkDefs:   s.checkDefs,
+		callback:    scanCallback,
 	}
 
-	return s.Reporter, errors, nil
+	loaderCheck := newOperationsLoaderCheck(s.Operations)
+	checks := append([]harnessx.Check{loaderCheck}, s.harnessxChecks...)
+
+	engine := harnessx.New(
+		harnessx.WithReporters(adapter),
+	)
+
+	scenario := harnessx.Scenario{
+		Name:   s.Title,
+		Checks: checks,
+	}
+
+	target := harnessx.Target{URL: s.Operations[0].URL.String()}
+	summary, err := engine.RunScenario(ctx, target, scenario)
+	if err != nil {
+		return adapter.Report(), nil, err
+	}
+
+	var errs []error
+	for _, result := range summary.Results {
+		if result.Err != nil {
+			errs = append(errs, result.Err)
+		}
+	}
+
+	return adapter.Report(), errs, nil
+}
+
+// legacyCheckIDAliases maps a check's current ID to IDs it was previously
+// known under, so renamed/split checks keep matching users' existing
+// --include-scans/--exclude-scans values. Populated at init time by the
+// check packages that renamed their IDs (see RegisterLegacyCheckIDAlias).
+var legacyCheckIDAliases = map[string][]string{}
+
+// RegisterLegacyCheckIDAlias records that newID was previously known as one
+// or more oldIDs, so shouldAddScan keeps matching the old IDs after a check
+// is renamed or split. Intended to be called from a check package's init().
+func RegisterLegacyCheckIDAlias(newID string, oldIDs ...string) {
+	legacyCheckIDAliases[newID] = append(legacyCheckIDAliases[newID], oldIDs...)
+}
+
+func isInternalCheckID(id string) bool {
+	return strings.HasPrefix(id, "_")
 }
 
 func (s *Scan) shouldAddScan(scanID string) bool {
-	// Check if the scan should be excluded
-	if len(s.ExcludeScans) > 0 && contains(s.ExcludeScans, scanID) {
-		return false
+	ids := append([]string{scanID}, legacyCheckIDAliases[scanID]...)
+
+	if len(s.ExcludeScans) > 0 {
+		for _, id := range ids {
+			if contains(s.ExcludeScans, id) {
+				return false
+			}
+		}
 	}
 
-	// Check if the scan should be included
-	if len(s.IncludeScans) > 0 && !contains(s.IncludeScans, scanID) {
+	if len(s.IncludeScans) > 0 {
+		for _, id := range ids {
+			if contains(s.IncludeScans, id) {
+				return true
+			}
+		}
 		return false
 	}
 

@@ -1,0 +1,10 @@
+id: "misconfiguration.http_method_override"
+name: "Possible HTTP Method Override detected"
+description: ""
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report"
+tags: []
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-16"
+owasp: "API8:2023"

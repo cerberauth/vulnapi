@@ -1,6 +1,7 @@
 package discover_test
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"testing"
@@ -8,10 +9,10 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan/discover"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractBaseURL(t *testing.T) {
@@ -48,15 +49,13 @@ func TestDownloadAndScanURLs_Failed_WhenNotFoundSeclist(t *testing.T) {
 	t.Cleanup(httpmock.DeactivateAndReset)
 
 	seclistUrl := "http://localhost:1234/not_found_seclist"
-	securitySchemes := []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
-	operation.SetSecuritySchemes(securitySchemes)
-	r := report.NewScanReport("test", "test", operation)
-	vulnReport := report.NewIssueReport(report.Issue{})
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 	httpmock.RegisterResponder(http.MethodGet, seclistUrl, httpmock.NewBytesResponder(http.StatusNotFound, nil))
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
-	_, err := discover.DownloadAndScanURLs("test", seclistUrl, r, vulnReport, operation, securitySchemes[0])
+	_, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, "sec list download failed")
@@ -68,30 +67,24 @@ func TestDownloadAndScanURLs_Passed_WhenNotFoundURLs(t *testing.T) {
 	t.Cleanup(httpmock.DeactivateAndReset)
 
 	seclistUrl := "http://localhost:1234/passed_seclist"
-	securitySchemes := []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
-	operation.SetSecuritySchemes(securitySchemes)
-	r := report.NewScanReport("test", "test", operation)
-	vulnReport := report.NewIssueReport(report.Issue{})
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 
 	httpmock.RegisterResponder(
 		http.MethodGet,
 		seclistUrl,
 		httpmock.NewBytesResponder(http.StatusOK, []byte("path1\npath2")),
 	)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path2", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 
-	_, err := discover.DownloadAndScanURLs("test", seclistUrl, r, vulnReport, operation, securitySchemes[0])
+	f, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 3, httpmock.GetTotalCallCount())
-	assert.Equal(t, 2, len(r.Scans))
-	assert.Equal(t, 2, len(vulnReport.Scans))
-	assert.True(t, vulnReport.Scans[0].HasPassed())
-	assert.True(t, vulnReport.Scans[1].HasPassed())
-	assert.True(t, vulnReport.HasPassed())
+	assert.Nil(t, f)
 }
 
 func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
@@ -100,27 +93,23 @@ func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
 	t.Cleanup(httpmock.DeactivateAndReset)
 
 	seclistUrl := "http://localhost:1234/failed_seclist"
-	securitySchemes := []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()}
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
-	operation.SetSecuritySchemes(securitySchemes)
-	r := report.NewScanReport("test", "test", operation)
-	vulnReport := report.NewIssueReport(report.Issue{})
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 
 	httpmock.RegisterResponder(
 		http.MethodGet,
 		seclistUrl,
 		httpmock.NewBytesResponder(http.StatusOK, []byte("path1\npath2")),
 	)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path2", httpmock.NewStringResponder(http.StatusOK, "OK"))
 
-	_, err := discover.DownloadAndScanURLs("test", seclistUrl, r, vulnReport, operation, securitySchemes[0])
+	f, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 3, httpmock.GetTotalCallCount())
-	assert.Equal(t, 2, len(r.Scans))
-	assert.True(t, vulnReport.Scans[0].HasPassed())
-	assert.True(t, vulnReport.Scans[1].HasFailed())
-	assert.True(t, vulnReport.HasFailed())
+	require.NotNil(t, f)
+	assert.Equal(t, "http://localhost:1234/path2", f.Parameter)
 }

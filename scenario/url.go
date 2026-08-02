@@ -8,7 +8,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 )
 
@@ -50,13 +49,8 @@ func NewURLScan(method string, u *url.URL, data string, client *request.Client, 
 	if opts == nil {
 		opts = &scan.ScanOptions{}
 	}
-
-	if opts.Reporter == nil {
-		var reportData interface{} = nil
-		if data != "" {
-			reportData = data
-		}
-		opts.Reporter = report.NewReporterWithCurl(method, u.String(), reportData, client.Header, client.Cookies, securitySchemes)
+	if opts.Title == "" {
+		opts.Title = "cURL Scan"
 	}
 
 	operations := operation.Operations{op}

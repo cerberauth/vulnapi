@@ -5,7 +5,6 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 )
 
@@ -37,9 +36,8 @@ func NewOpenAPIScan(ctx context.Context, openapi *openapi.OpenAPI, securitySchem
 	if opts == nil {
 		opts = &scan.ScanOptions{}
 	}
-
-	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporterWithOpenAPIDoc(openapi.Doc, operations)
+	if opts.Title == "" {
+		opts.Title = "OpenAPI Scan"
 	}
 
 	openapiScan, err := scan.NewScan(operations, opts)

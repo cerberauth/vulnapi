@@ -1,0 +1,10 @@
+id: "misconfiguration.http_track"
+name: "HTTP TRACK Method enabled"
+description: ""
+link: "https://techcommunity.microsoft.com/t5/iis-support-blog/http-track-and-trace-verbs/ba-p/784482"
+tags: []
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-489"
+owasp: "API8:2023"

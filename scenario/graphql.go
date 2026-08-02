@@ -8,7 +8,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
 )
@@ -49,9 +48,8 @@ func NewGraphQLScan(u *url.URL, client *request.Client, opts *scan.ScanOptions) 
 	if opts == nil {
 		opts = &scan.ScanOptions{}
 	}
-
-	if opts.Reporter == nil {
-		opts.Reporter = report.NewReporterWithGraphQL(u.String(), securitySchemes)
+	if opts.Title == "" {
+		opts.Title = "GraphQL Scan"
 	}
 
 	operations := operation.Operations{op}
@@ -61,7 +59,7 @@ func NewGraphQLScan(u *url.URL, client *request.Client, opts *scan.ScanOptions) 
 	}
 
 	WithAllCommonScans(graphqlScan)
-	graphqlScan.AddScanHandler(scan.NewOperationScanHandler(introspectionenabled.GraphqlIntrospectionScanID, introspectionenabled.ScanHandler))
+	graphqlScan.AddCheck(introspectionenabled.Check, &introspectionenabled.Def)
 
 	return graphqlScan, nil
 }

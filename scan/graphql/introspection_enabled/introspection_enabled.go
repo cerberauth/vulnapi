@@ -1,118 +1,94 @@
 package introspectionenabled
 
 import (
+	"context"
+	_ "embed"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/harnessx/probe"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-const (
-	GraphqlIntrospectionScanID   = "graphql.introspection_enabled"
-	GraphqlIntrospectionScanName = "GraphQL Introspection Enabled"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var issue = report.Issue{
-	ID:   "graphql.introspection_enabled",
-	Name: "GraphQL Introspection enabled",
-	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/graphql-introspection?utm_source=vulnapi-report",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
+var Def = hxcheckdef.MustParseCheckDefYAML("introspection_enabled", checkYAML)
 
 const graphqlQuery = `query{__schema{queryType{name}}}`
 
-func newPostGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
+func newPostGraphqlIntrospectionRequest(ctx context.Context, endpoint url.URL) (*http.Request, error) {
 	payload := strings.NewReader("{\"query\":\"" + graphqlQuery + "\"}")
-	req, err := request.NewRequest(http.MethodPost, endpoint.String(), payload, client)
-	if err != nil {
-		return nil, err
-	}
-
-	req.SetHeader("Content-Type", "application/json")
-	return req, nil
+	return probe.NewRequest(ctx, http.MethodPost, endpoint.String(), payload, probe.WithHeader("Content-Type", "application/json"))
 }
 
-func newGetGraphqlIntrospectionRequest(client *request.Client, endpoint url.URL) (*request.Request, error) {
+func newGetGraphqlIntrospectionRequest(ctx context.Context, endpoint url.URL) (*http.Request, error) {
 	values := url.Values{}
 	values.Add("query", graphqlQuery)
 	endpoint.RawQuery = values.Encode()
 
-	req, err := request.NewRequest(http.MethodGet, endpoint.String(), nil, client)
-	if err != nil {
-		return nil, err
-	}
-
-	req.SetHeader("Content-Type", "application/json")
-	return req, nil
+	return probe.NewRequest(ctx, http.MethodGet, endpoint.String(), nil, probe.WithHeader("Content-Type", "application/json"))
 }
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
+func introspectionSucceeded(attempt *finding.Attempt) bool {
+	return attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType")
+}
+
+var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
+	resources := store.Resources()
+	if len(resources) == 0 {
+		return harnessx.Result{Skipped: true, SkipReason: "no resources"}, nil
+	}
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resources[0])
+	if !ok {
+		return harnessx.Result{Err: errors.New("introspection_enabled: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
 	securitySchemes := []*auth.SecurityScheme{securityScheme}
-	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(GraphqlIntrospectionScanID, GraphqlIntrospectionScanName, op)
-	r.AddIssueReport(vulnReport)
 
-	newRequest, err := newPostGraphqlIntrospectionRequest(op.Client, op.URL)
+	newRequest, err := newPostGraphqlIntrospectionRequest(ctx, op.URL)
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
-	newOperation, err := operation.NewOperationFromRequest(newRequest)
+	newOperation, err := operation.NewOperationFromHTTPRequest(newRequest)
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
-	attempt, err := scan.ScanURL(newOperation, securityScheme)
+	attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
 	if err != nil {
-		return r.End(), err
-	}
-	r.AddScanAttempt(attempt)
-	vulnReport.AddScanAttempt(attempt)
-
-	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
-		attempt.Fail()
-		vulnReport.Fail()
-		return r.End(), nil
+		return harnessx.Result{}, err
 	}
 
-	newRequest, err = newGetGraphqlIntrospectionRequest(op.Client, op.URL)
-	if err != nil {
-		return r.End(), err
+	if introspectionSucceeded(attempt) {
+		return harnessx.Result{Data: &finding.Finding{Operation: op, Attempt: attempt}}, nil
 	}
-	newOperation, err = operation.NewOperationFromRequest(newRequest)
+
+	newRequest, err = newGetGraphqlIntrospectionRequest(ctx, op.URL)
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
+	}
+	newOperation, err = operation.NewOperationFromHTTPRequest(newRequest)
+	if err != nil {
+		return harnessx.Result{}, err
 	}
 
 	newOperation.SetSecuritySchemes(securitySchemes)
-	attempt, err = scan.ScanURL(newOperation, securityScheme)
+	attempt, err = finding.Fetch(ctx, newOperation, securityScheme)
 	if err != nil {
-		return r.End(), err
-	}
-	r.AddScanAttempt(attempt)
-	vulnReport.AddScanAttempt(attempt)
-
-	if attempt.Response.GetStatusCode() == http.StatusOK && strings.Contains(attempt.Response.GetBody().String(), "queryType") {
-		attempt.Fail()
-		vulnReport.Fail()
-		return r.End(), nil
+		return harnessx.Result{}, err
 	}
 
-	attempt.Pass()
-	vulnReport.Pass()
-	return r.End(), nil
-}
+	if introspectionSucceeded(attempt) {
+		return harnessx.Result{Data: &finding.Finding{Operation: op, Attempt: attempt}}, nil
+	}
+
+	return harnessx.Result{}, nil
+})
