@@ -9,6 +9,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
+	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -24,10 +25,6 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	var (
 		includeScans      []string
 		excludeScans      []string
-		reportFormat      string
-		reportTransport   string
-		reportFile        string
-		reportURL         string
 		noProgress        bool
 		severityThreshold float64
 	)
@@ -56,7 +53,6 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			telemetryScanCurlErrorCounter, _ := telemetryMeter.Int64Counter("scan.curl.error.counter")
 			ctx := cmd.Context()
 
-			// Extract body from the request for NewURLScan
 			var curlData string
 			if req.Body != nil {
 				bodyBytes, readErr := io.ReadAll(req.Body)
@@ -72,13 +68,9 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid client"))...))
 				log.Fatal(err)
 			}
-			// Transfer headers and cookies from the built request onto the vulnapi client
 			client = client.WithHeader(req.Header).WithCookies(req.Cookies())
 			request.SetDefaultClient(client)
 
-			// Set package-level report vars used by PrintOrExportReport
-			internalCmd.SetReportFile(reportFile)
-			internalCmd.SetReportURL(reportURL)
 			internalCmd.SetSeverityThreshold(severityThreshold)
 
 			s, err := scenario.NewURLScan(req.Method, req.URL, curlData, client, &scan.ScanOptions{
@@ -93,13 +85,11 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			var bar *progressbar.ProgressBar
 			if !noProgress {
 				bar = internalCmd.NewProgressBar(len(s.GetOperationsScans()))
-				// nolint:errcheck
-				defer bar.Finish()
+				defer func() { _ = bar.Finish() }()
 			}
 			reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
 				if bar != nil {
-					// nolint:errcheck
-					bar.Add(1)
+					_ = bar.Add(1)
 				}
 			})
 			if err != nil {
@@ -107,25 +97,24 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			err = internalCmd.PrintOrExportReport(reportFormat, reportTransport, reporter)
+			err = internalCmd.WriteReport(ctx, cmd, reporter)
 			if err != nil {
 				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
 				log.Fatal(err)
 			}
 
 			telemetryScanCurlSuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
+
+			internalCmd.ExitIfFindings(reporter, len(internalCmd.FilterScans(includeScans)) > 0)
 		},
 	}
 
 	cobracurl.RegisterFlags(scanCmd.Flags())
 
-	// vulnapi-specific flags (no conflicting shorthands with cobracurl)
 	scanCmd.Flags().StringArrayVar(&includeScans, "scans", nil, "Include specific scans")
 	scanCmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", nil, "Exclude specific scans")
-	scanCmd.Flags().StringVar(&reportFormat, "report-format", "table", "Report format (table, json, yaml)")
-	scanCmd.Flags().StringVar(&reportTransport, "report-transport", "file", "The transport to use for report (e.g. file, http)")
-	scanCmd.Flags().StringVar(&reportFile, "report-file", "", "The file to write the report to")
-	scanCmd.Flags().StringVar(&reportURL, "report-url", "", "The URL to send the report to")
+	cobrareportx.RegisterFormatFlags(scanCmd)
+	cobrareportx.RegisterTransportFlags(scanCmd)
 	scanCmd.Flags().BoolVar(&noProgress, "no-progress", false, "Disable progress output")
 	scanCmd.Flags().Float64Var(&severityThreshold, "severity-threshold", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 

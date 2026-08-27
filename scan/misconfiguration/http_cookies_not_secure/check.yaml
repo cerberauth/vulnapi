@@ -1,0 +1,11 @@
+id: "misconfiguration.http_cookies_not_secure"
+name: "Cookies not Secure"
+description: ""
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security"
+tags: []
+depends_on: ["misconfiguration.http_cookies_fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-614"
+owasp: "API8:2023"
+capec_id: "CAPEC-31"

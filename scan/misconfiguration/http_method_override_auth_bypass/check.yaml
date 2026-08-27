@@ -1,0 +1,10 @@
+id: "misconfiguration.http_method_override_authentication_bypass"
+name: "Possible HTTP Method Override with authentication bypass detected"
+description: ""
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report"
+tags: []
+depends_on: ["misconfiguration.http_method_override"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.8
+cwe_id: "CWE-287"
+owasp: "API8:2023"

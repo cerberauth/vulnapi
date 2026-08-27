@@ -49,7 +49,5 @@ func (h *Handler) ScanGraphQL(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, HTTPResponseReports{
-		Reports: reporter.GetScanReports(),
-	})
+	writeReport(ctx, reporter)
 }

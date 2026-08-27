@@ -6,7 +6,6 @@ import (
 
 	"github.com/cerberauth/cobracurl"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
-	"github.com/cerberauth/vulnapi/internal/cmd/printtable"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/telemetryx"
@@ -72,8 +71,10 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					log.Fatal(err)
 				}
 
-				printtable.WellKnownPathsScanReport(reporter)
-				printtable.FingerprintScanReport(reporter)
+				if err := internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
+					telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error printing report")))
+					log.Fatal(err)
+				}
 
 				telemetryDiscoverDomainSuccessCounter.Add(ctx, 1)
 			}

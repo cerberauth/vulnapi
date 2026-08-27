@@ -1,0 +1,10 @@
+id: "graphql.introspection_enabled"
+name: "GraphQL Introspection enabled"
+description: ""
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/graphql-introspection?utm_source=vulnapi-report"
+tags: []
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: ""
+owasp: "API8:2023"

@@ -1,10 +1,13 @@
 package healthcheck_test
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan/discover/healthcheck"
@@ -12,6 +15,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type resourceStore struct{ resources []harnessx.Resource }
+
+func (s *resourceStore) Get(_ harnessx.CheckID) (harnessx.Result, bool)                     { return harnessx.Result{}, false }
+func (s *resourceStore) GetForResource(_ harnessx.CheckID, _ string) (harnessx.Result, bool) { return harnessx.Result{}, false }
+func (s *resourceStore) Observations() []harnessx.Observation                               { return nil }
+func (s *resourceStore) Resources() []harnessx.Resource                                     { return s.resources }
+
+func runHealthcheckCheck(op *operation.Operation) (harnessx.Result, error) {
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+	store := &resourceStore{resources: []harnessx.Resource{resource}}
+	return healthcheck.Check.Run(context.Background(), harnessx.Target{URL: op.URL.String()}, store)
+}
 
 func TestDiscoverableScanner_Passed_WhenNoDiscoverableHealthCheckEndpointFound(t *testing.T) {
 	client := request.NewClient(request.NewClientOptions{
@@ -21,14 +37,16 @@ func TestDiscoverableScanner_Passed_WhenNoDiscoverableHealthCheckEndpointFound(t
 	defer httpmock.DeactivateAndReset()
 
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := healthcheck.ScanHandler(op, auth.MustNewNoAuthSecurityScheme())
+	result, err := runHealthcheckCheck(op)
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 5)
-	assert.True(t, report.Issues[0].HasPassed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.False(t, ok)
 }
 
 func TestDiscoverableScanner_Failed_WhenOneHealthCheckEndpointFound(t *testing.T) {
@@ -38,13 +56,15 @@ func TestDiscoverableScanner_Failed_WhenOneHealthCheckEndpointFound(t *testing.T
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/healthz", nil, client)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/healthz", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 	httpmock.RegisterNoResponder(httpmock.NewBytesResponder(http.StatusNotFound, nil))
 
-	report, err := healthcheck.ScanHandler(operation, auth.MustNewNoAuthSecurityScheme())
+	result, err := runHealthcheckCheck(op)
 
 	require.NoError(t, err)
 	assert.Greater(t, httpmock.GetTotalCallCount(), 0)
-	assert.True(t, report.Issues[0].HasFailed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.True(t, ok)
 }

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -65,14 +64,5 @@ func (h *Handler) ScanOpenAPI(ctx *gin.Context) {
 		return
 	}
 
-	response := HTTPResponseReports{
-		Reports: reporter.GetScanReports(),
-	}
-	_, err = json.Marshal(response)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{errorKey: err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, response)
+	writeReport(ctx, reporter)
 }

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/harnessx"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,42 +22,27 @@ func TestNewScanWithNoOperations(t *testing.T) {
 func TestNewScan(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	expected := scan.Scan{
-		ScanOptions: &scan.ScanOptions{
-			Reporter: report.NewReporter(),
-		},
-
-		Operations:      operations,
-		OperationsScans: []scan.OperationScan{},
-	}
 
 	s, err := scan.NewScan(operations, nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, expected.Operations, s.Operations)
-	assert.Equal(t, expected.Reporter, s.Reporter)
-	assert.Equal(t, expected.OperationsScans, s.OperationsScans)
+	assert.Equal(t, operations, s.Operations)
+	assert.Equal(t, []scan.OperationScan{}, s.OperationsScans)
 }
 
 func TestNewScanWithOptions(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	opts := &scan.ScanOptions{
-		Reporter: report.NewReporter(),
-	}
-	expected := scan.Scan{
-		ScanOptions: opts,
-
-		Operations:      operations,
-		OperationsScans: []scan.OperationScan{},
+		Title: "custom title",
 	}
 
 	s, err := scan.NewScan(operations, opts)
 
 	require.NoError(t, err)
-	assert.Equal(t, expected.Operations, s.Operations)
-	assert.Equal(t, expected.Reporter, s.Reporter)
-	assert.Equal(t, expected.OperationsScans, s.OperationsScans)
+	assert.Equal(t, operations, s.Operations)
+	assert.Equal(t, "custom title", s.Title)
+	assert.Equal(t, []scan.OperationScan{}, s.OperationsScans)
 }
 
 func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
@@ -74,9 +59,13 @@ func TestScanGetOperationsScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	s, _ := scan.NewScan(operations, nil)
-	s.AddOperationScanHandler(scan.NewOperationScanHandler("test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return nil, nil
-	}))
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
 	operationsScans := s.GetOperationsScans()
 
@@ -88,28 +77,31 @@ func TestScanExecuteWithNoHandlers(t *testing.T) {
 	operations := operation.Operations{op}
 	s, _ := scan.NewScan(operations, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 0, len(reporter.GetScanReports()))
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
 }
 
 func TestScanExecuteWithHandler(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	s, _ := scan.NewScan(operations, nil)
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 1, len(reporter.GetScanReports()))
-	assert.Equal(t, "test-report", reporter.GetScanReports()[0].ID)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
 }
 
 func TestScanExecuteWithIncludeScans(t *testing.T) {
@@ -118,17 +110,20 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		IncludeScans: []string{"test-handler"},
 	})
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 1, len(reporter.GetScanReports()))
-	assert.Equal(t, "test-report", reporter.GetScanReports()[0].ID)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
 }
 
 func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
@@ -137,17 +132,20 @@ func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		IncludeScans: []string{""},
 	})
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 1, len(reporter.GetScanReports()))
-	assert.Equal(t, "test-report", reporter.GetScanReports()[0].ID)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
 }
 
 func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
@@ -156,17 +154,20 @@ func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		IncludeScans: []string{"category.*"},
 	})
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "category.test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 1, len(reporter.GetScanReports()))
-	assert.Equal(t, "test-report", reporter.GetScanReports()[0].ID)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
 }
 
 func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
@@ -175,16 +176,19 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		IncludeScans: []string{"wrong-category.*"},
 	})
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "category.test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 0, len(reporter.GetScanReports()))
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
 }
 
 func TestScanExecuteWithExcludeScans(t *testing.T) {
@@ -193,16 +197,19 @@ func TestScanExecuteWithExcludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		ExcludeScans: []string{"test-handler"},
 	})
-	handler := scan.NewOperationScanHandler("test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 0, len(reporter.GetScanReports()))
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
 }
 
 func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
@@ -211,16 +218,19 @@ func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		ExcludeScans: []string{"category.*"},
 	})
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "category.test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 0, len(reporter.GetScanReports()))
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
 }
 
 func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
@@ -229,15 +239,65 @@ func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
 	s, _ := scan.NewScan(operations, &scan.ScanOptions{
 		ExcludeScans: []string{"wrong-category.*"},
 	})
-	handler := scan.NewOperationScanHandler("category.test-handler", func(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-		return &report.ScanReport{ID: "test-report"}, nil
-	})
-	s.AddOperationScanHandler(handler)
+	s.AddCheck(harnessx.Check{
+		ID:    "category.test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
 
-	reporter, errors, err := s.Execute(context.TODO(), nil)
+	report, errs, err := s.Execute(context.TODO(), nil)
 
 	require.NoError(t, err)
-	assert.Empty(t, errors)
-	assert.Equal(t, 1, len(reporter.GetScanReports()))
-	assert.Equal(t, "test-report", reporter.GetScanReports()[0].ID)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
+}
+
+func TestScanExecuteWithLegacyAliasExcludeScans(t *testing.T) {
+	scan.RegisterLegacyCheckIDAlias("new-handler-id-exclude", "old-handler-id-exclude")
+
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		ExcludeScans: []string{"old-handler-id-exclude"},
+	})
+	s.AddCheck(harnessx.Check{
+		ID:    "new-handler-id-exclude",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
+}
+
+func TestScanExecuteWithLegacyAliasIncludeScans(t *testing.T) {
+	scan.RegisterLegacyCheckIDAlias("new-handler-id-include", "old-handler-id-include")
+
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"old-handler-id-include"},
+	})
+	s.AddCheck(harnessx.Check{
+		ID:    "new-handler-id-include",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
 }

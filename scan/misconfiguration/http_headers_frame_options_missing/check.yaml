@@ -1,0 +1,10 @@
+id: "misconfiguration.http_headers_frame_options_missing"
+name: "X-Frame-Options Header is missing"
+description: ""
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
+tags: []
+depends_on: ["misconfiguration.http_headers_fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.1
+cwe_id: "CWE-1021"
+owasp: "API8:2023"

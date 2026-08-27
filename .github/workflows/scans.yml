@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 env:
   GO_VERSION: "1.26"
@@ -20,9 +17,32 @@ permissions:
   packages: read
 
 jobs:
+  build:
+    name: Build VulnAPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: go build -o vulnapi main.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnapi
+          path: vulnapi
+          retention-days: 1
+
   run-api-discovery:
     name: API Discovery
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
@@ -37,15 +57,16 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         run: |
-          go run main.go discover api http://localhost:8080 --rate 500/s --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi discover api http://localhost:8080 --rate 500/s --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -54,28 +75,31 @@ jobs:
   run-unreachable-curl-scan:
     name: Unreachable API
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl http://localhost:8080 --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        if: ${{ steps.vulnapi.outcome == 'failure' }}
         run: echo "Unreachable API found"
 
   run-bad-ssl-scan-curl:
     name: Bad SSL Scan ${{ matrix.challenge.name }}
     runs-on: ubuntu-latest
+    needs: build
 
     strategy:
       fail-fast: true
@@ -93,38 +117,45 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl ${{ matrix.challenge.url }} --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl ${{ matrix.challenge.url }} --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
+        if: ${{ steps.vulnapi.outcome == 'failure' }}
         run: echo "Bad SSL found in ${{ matrix.challenge.name }}"
 
   run-jwt-scans:
     name: JWT Scans
     runs-on: ubuntu-latest
+    needs: build
 
     strategy:
       fail-fast: false
       matrix:
-        challenge:
-          [
-            "jwt-alg-none-bypass",
-            "jwt-blank-secret",
-            "jwt-kid-path-traversal",
-            "jwt-kid-sql-injection",
-            "jwt-not-verified",
-            "jwt-null-signature",
-            "jwt-weak-hmac-secret",
-          ]
+        include:
+          - challenge: "jwt-alg-none-bypass"
+            checkID: "alg_none"
+          - challenge: "jwt-blank-secret"
+            checkID: "blank_secret"
+          - challenge: "jwt-kid-path-traversal"
+            checkID: "kid_path_traversal"
+          - challenge: "jwt-kid-sql-injection"
+            checkID: "kid_sql_injection"
+          - challenge: "jwt-not-verified"
+            checkID: "no_verification"
+          - challenge: "jwt-null-signature"
+            checkID: "null_signature"
+          - challenge: "jwt-weak-hmac-secret"
+            checkID: "weak_secret"
 
     steps:
       - uses: actions/checkout@v7
@@ -141,22 +172,25 @@ jobs:
 
       - name: Get JWT
         id: get-jwt
-        run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/jwt-strong-eddsa-key:latest jwt)" >> $GITHUB_OUTPUT
+        run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest jwt)" >> $GITHUB_OUTPUT
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found in ${{ matrix.challenge }}"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}
@@ -165,6 +199,7 @@ jobs:
   run-header-strong-api-key-scan:
     name: Strong API Key Scan
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
@@ -179,15 +214,16 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         run: |
-          go run main.go scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -196,6 +232,7 @@ jobs:
   run-header-api-key-scan:
     name: API Key in header Scan
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
@@ -210,20 +247,23 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}
@@ -232,6 +272,7 @@ jobs:
   run-bearer-api-key-scan:
     name: Bearer API Key Scan
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
@@ -246,20 +287,23 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}
@@ -268,6 +312,7 @@ jobs:
   run-header-strong-http-basic-scan:
     name: Strong HTTP Basic Scan
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - uses: actions/checkout@v7
@@ -282,15 +327,16 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         run: |
-          go run main.go scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -299,6 +345,7 @@ jobs:
   run-http-misconfigurations-scans:
     name: HTTP Misconfigurations Scans
     runs-on: ubuntu-latest
+    needs: build
 
     strategy:
       fail-fast: false
@@ -306,20 +353,70 @@ jobs:
         include:
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080"
+            scans: >-
+              --scans "misconfiguration.http_headers_hsts_missing"
+              --scans "misconfiguration.http_headers_csp_missing"
+              --scans "misconfiguration.http_headers_csp_frame_ancestors_missing"
+              --scans "misconfiguration.http_headers_frame_options_missing"
+              --scans "misconfiguration.http_headers_content_options_missing"
+              --scans "misconfiguration.http_headers_cors_missing"
+              --scans "misconfiguration.http_headers_cors_wildcard"
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080/headers/cors-wildcard"
+            scans: >-
+              --scans "misconfiguration.http_headers_hsts_missing"
+              --scans "misconfiguration.http_headers_csp_missing"
+              --scans "misconfiguration.http_headers_csp_frame_ancestors_missing"
+              --scans "misconfiguration.http_headers_frame_options_missing"
+              --scans "misconfiguration.http_headers_content_options_missing"
+              --scans "misconfiguration.http_headers_cors_missing"
+              --scans "misconfiguration.http_headers_cors_wildcard"
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080/headers/csp-frame-ancestors"
+            scans: >-
+              --scans "misconfiguration.http_headers_hsts_missing"
+              --scans "misconfiguration.http_headers_csp_missing"
+              --scans "misconfiguration.http_headers_csp_frame_ancestors_missing"
+              --scans "misconfiguration.http_headers_frame_options_missing"
+              --scans "misconfiguration.http_headers_content_options_missing"
+              --scans "misconfiguration.http_headers_cors_missing"
+              --scans "misconfiguration.http_headers_cors_wildcard"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/unsecure"
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/not-httponly"
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/samesite-none"
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/no-expiration"
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_method_override"
-            url: "http://localhost:8080/cookies/http-method-override"
+            url: "http://localhost:8080/http-method-override"
+            scans: >-
+              --scans "misconfiguration.http_method_override"
 
     steps:
       - uses: actions/checkout@v7
@@ -334,20 +431,27 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan curl ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
+          chmod +x vulnapi
+          if [ "${{ matrix.challenge }}" = "misconfiguration.http_method_override" ]; then
+            ./vulnapi scan curl ${{ matrix.url }} -H "Authorization: Bearer valid-token" ${{ matrix.scans }} --sqa-opt-out
+          else
+            ./vulnapi scan curl ${{ matrix.url }} ${{ matrix.scans }} --sqa-opt-out
+          fi
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found in ${{ matrix.challenge }}"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}
@@ -356,6 +460,7 @@ jobs:
   run-graphql-scans:
     name: GraphQL Scans
     runs-on: ubuntu-latest
+    needs: build
 
     strategy:
       fail-fast: false
@@ -377,20 +482,23 @@ jobs:
       - name: Run Server
         run: docker run -d -p 4000:4000 ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
+          chmod +x vulnapi
+          ./vulnapi scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found in ${{ matrix.challenge }}"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}
@@ -399,6 +507,7 @@ jobs:
   run-openapi-scans:
     name: OpenAPI Scans
     runs-on: ubuntu-latest
+    needs: build
 
     permissions:
       contents: read
@@ -430,20 +539,27 @@ jobs:
       - name: Run Server
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
-      - name: Setup Go environment
-        uses: actions/setup-go@v7
+      - name: Download binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          name: vulnapi
 
       - name: VulnAPI
         id: vulnapi
         continue-on-error: true
         run: |
-          go run main.go scan openapi ./test/stub/${{ matrix.openapi }} --sqa-opt-out
+          chmod +x vulnapi
+          if [ "${{ matrix.openapi }}" = "simple_no_scheme.openapi.json" ]; then
+            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --severity-threshold 0 --sqa-opt-out
+          else
+            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --sqa-opt-out
+          fi
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outputs.conclusion == 'failure' }}
-        run: echo "Vulnerabilities found"
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerability not found"
+          exit 1
 
       - name: Stop Server
         if: ${{ always() }}

@@ -2,6 +2,7 @@ package operation
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cerberauth/harnessx/probe"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -135,14 +137,22 @@ func (operation *Operation) IsReachable() error {
 	return nil
 }
 
-func NewOperationFromRequest(r *request.Request) (*Operation, error) {
+// NewOperationFromHTTPRequest builds an Operation from a plain *http.Request
+// (e.g. one built via probe.NewRequest), reading its body into memory so
+// the Operation can be replayed via NewHTTPRequest.
+func NewOperationFromHTTPRequest(r *http.Request) (*Operation, error) {
+	body, err := getBody(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Operation{
-		ID:      r.GetURL(),
-		Method:  r.GetMethod(),
-		URL:     *r.HttpRequest.URL,
-		Header:  r.GetHeader(),
-		Cookies: r.GetCookies(),
-		Body:    r.GetBody(),
+		ID:      r.URL.String(),
+		Method:  r.Method,
+		URL:     *r.URL,
+		Header:  r.Header,
+		Cookies: r.Cookies(),
+		Body:    body,
 
 		SecuritySchemes: []*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()},
 	}, nil
@@ -169,15 +179,32 @@ func (operation *Operation) WithCookies(cookies []*http.Cookie) *Operation {
 	return operation
 }
 
-func (operation *Operation) NewRequest() (*request.Request, error) {
-	req, err := request.NewRequest(operation.Method, operation.URL.String(), bytes.NewReader(operation.Body), operation.Client)
-	if err != nil {
-		return nil, err
+// NewHTTPRequest builds a plain *http.Request for this operation via
+// probe.NewRequest, applying the operation's own headers/cookies plus any
+// extra mutators (e.g. auth.RequestMutators for a security scheme).
+func (operation *Operation) NewHTTPRequest(ctx context.Context, mutators ...probe.RequestMutator) (*http.Request, error) {
+	all := make([]probe.RequestMutator, 0, len(operation.Header)+len(operation.Cookies)+len(mutators))
+	for k, v := range operation.Header {
+		if len(v) == 0 {
+			continue
+		}
+		all = append(all, probe.WithHeader(k, v[0]))
 	}
+	for _, c := range operation.Cookies {
+		all = append(all, probe.WithCookie(c))
+	}
+	all = append(all, mutators...)
 
-	req.WithHeader(operation.Header).WithCookies(operation.Cookies)
+	return probe.NewRequest(ctx, operation.Method, operation.URL.String(), bytes.NewReader(operation.Body), all...)
+}
 
-	return req, nil
+// HTTPClient returns the *http.Client this operation's requests should be
+// sent through.
+func (operation *Operation) HTTPClient() *http.Client {
+	if operation.Client == nil {
+		return request.GetDefaultClient().Client
+	}
+	return operation.Client.Client
 }
 
 func (operation *Operation) GetSecuritySchemes() []*auth.SecurityScheme {

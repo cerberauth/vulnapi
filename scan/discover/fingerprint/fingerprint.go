@@ -1,17 +1,22 @@
 package fingerprint
 
 import (
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"context"
+	_ "embed"
+	"errors"
+	"strings"
+
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 	wappalyzer "github.com/projectdiscovery/wappalyzergo"
 )
 
-const (
-	DiscoverFingerPrintScanID   = "discover.server_signature"
-	DiscoverFingerPrintScanName = "Server Signature Discovery"
-)
+//go:embed check.yaml
+var checkYAML []byte
+
+var Def = hxcheckdef.MustParseCheckDefYAML("fingerprint", checkYAML)
 
 type FingerPrintApp struct {
 	Name    string  `json:"name" yaml:"name"`
@@ -34,21 +39,6 @@ type FingerPrintData struct {
 	SecurityServices     []FingerPrintApp `json:"security_services" yaml:"security_services"`
 }
 
-var issue = report.Issue{
-	ID:   "discover.fingerprint",
-	Name: "Service Fingerprinting",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
-
 func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintApp {
 	for _, element := range slice {
 		if element.Name == app.Name {
@@ -58,81 +48,122 @@ func appendIfMissing(slice []FingerPrintApp, app FingerPrintApp) []FingerPrintAp
 	return append(slice, app)
 }
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(DiscoverFingerPrintScanID, DiscoverFingerPrintScanName, op)
-
-	attempt, err := scan.ScanURL(op, securityScheme)
-	if err != nil {
-		return nil, err
+func names(apps []FingerPrintApp) []string {
+	out := make([]string, len(apps))
+	for i, app := range apps {
+		out[i] = app.Name
 	}
+	return out
+}
 
-	r.AddScanAttempt(attempt)
+func extraFrom(data FingerPrintData) map[string]string {
+	extra := map[string]string{}
+	add := func(key string, apps []FingerPrintApp) {
+		if len(apps) > 0 {
+			extra[key] = strings.Join(names(apps), ", ")
+		}
+	}
+	add("fingerprint_certificate_authority", data.CertificateAuthority)
+	add("fingerprint_hosting", data.Hosting)
+	add("fingerprint_os", data.OS)
+	add("fingerprint_softwares", data.Softwares)
+	add("fingerprint_databases", data.Databases)
+	add("fingerprint_servers", data.Servers)
+	add("fingerprint_server_extensions", data.ServerExtensions)
+	add("fingerprint_auth_services", data.AuthServices)
+	add("fingerprint_cdns", data.CDNs)
+	add("fingerprint_caching", data.Caching)
+	add("fingerprint_languages", data.Languages)
+	add("fingerprint_frameworks", data.Frameworks)
+	add("fingerprint_security_services", data.SecurityServices)
+	return extra
+}
+
+var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
+	resources := store.Resources()
+	if len(resources) == 0 {
+		return harnessx.Result{Skipped: true, SkipReason: "no resources"}, nil
+	}
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resources[0])
+	if !ok {
+		return harnessx.Result{Err: errors.New("fingerprint: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
+
+	attempt, err := finding.Fetch(ctx, op, securityScheme)
+	if err != nil {
+		return harnessx.Result{}, err
+	}
 	if attempt.Err != nil {
-		return r.AddIssueReport(vulnReport.AddScanAttempt(attempt).Skip()).End(), attempt.Err
+		return harnessx.Result{Skipped: true, SkipReason: attempt.Err.Error()}, nil
 	}
 
 	wappalyzerClient, err := wappalyzer.New()
 	if err != nil {
-		return r.AddIssueReport(vulnReport.AddScanAttempt(attempt).Skip()).End(), err
+		return harnessx.Result{}, err
 	}
 
 	fingerprints := wappalyzerClient.FingerprintWithInfo(attempt.Response.GetHeader(), attempt.Response.GetBody().Bytes())
-	reportData := FingerPrintData{}
+	data := FingerPrintData{}
 	fingerPrintIdentifier := false
-	for name, fingerprint := range fingerprints {
-		if len(fingerprint.Categories) == 0 {
+	for name, fp := range fingerprints {
+		if len(fp.Categories) == 0 {
 			continue
 		}
 
-		for _, category := range fingerprint.Categories {
+		for _, category := range fp.Categories {
 			switch category {
 			case "SSL/TLS certificate authorities":
 				fingerPrintIdentifier = true
-				reportData.CertificateAuthority = appendIfMissing(reportData.CertificateAuthority, FingerPrintApp{Name: name})
+				data.CertificateAuthority = appendIfMissing(data.CertificateAuthority, FingerPrintApp{Name: name})
 			case "Operating systems":
 				fingerPrintIdentifier = true
-				reportData.OS = appendIfMissing(reportData.OS, FingerPrintApp{Name: name})
+				data.OS = appendIfMissing(data.OS, FingerPrintApp{Name: name})
 			case "Containers", "PaaS", "IaaS", "Hosting":
 				fingerPrintIdentifier = true
-				reportData.Hosting = appendIfMissing(reportData.Hosting, FingerPrintApp{Name: name})
+				data.Hosting = appendIfMissing(data.Hosting, FingerPrintApp{Name: name})
 			case "CMS", "Ecommerce", "Wikis", "Blogs", "LMS", "DMS", "Page builders", "Static site generator":
 				fingerPrintIdentifier = true
-				reportData.Softwares = appendIfMissing(reportData.Softwares, FingerPrintApp{Name: name})
+				data.Softwares = appendIfMissing(data.Softwares, FingerPrintApp{Name: name})
 			case "Databases":
 				fingerPrintIdentifier = true
-				reportData.Databases = appendIfMissing(reportData.Databases, FingerPrintApp{Name: name})
+				data.Databases = appendIfMissing(data.Databases, FingerPrintApp{Name: name})
 			case "Web servers", "Reverse proxies":
 				fingerPrintIdentifier = true
-				reportData.Servers = appendIfMissing(reportData.Servers, FingerPrintApp{Name: name})
+				data.Servers = appendIfMissing(data.Servers, FingerPrintApp{Name: name})
 			case "Web server extensions":
 				fingerPrintIdentifier = true
-				reportData.ServerExtensions = appendIfMissing(reportData.ServerExtensions, FingerPrintApp{Name: name})
+				data.ServerExtensions = appendIfMissing(data.ServerExtensions, FingerPrintApp{Name: name})
 			case "Authentication":
 				fingerPrintIdentifier = true
-				reportData.AuthServices = appendIfMissing(reportData.AuthServices, FingerPrintApp{Name: name})
+				data.AuthServices = appendIfMissing(data.AuthServices, FingerPrintApp{Name: name})
 			case "CDN":
 				fingerPrintIdentifier = true
-				reportData.CDNs = appendIfMissing(reportData.CDNs, FingerPrintApp{Name: name})
+				data.CDNs = appendIfMissing(data.CDNs, FingerPrintApp{Name: name})
 			case "Caching":
 				fingerPrintIdentifier = true
-				reportData.Caching = appendIfMissing(reportData.Caching, FingerPrintApp{Name: name})
+				data.Caching = appendIfMissing(data.Caching, FingerPrintApp{Name: name})
 			case "JavaScript frameworks", "Web frameworks":
 				fingerPrintIdentifier = true
-				reportData.Frameworks = appendIfMissing(reportData.Frameworks, FingerPrintApp{Name: name})
+				data.Frameworks = appendIfMissing(data.Frameworks, FingerPrintApp{Name: name})
 			case "Programming languages":
 				fingerPrintIdentifier = true
-				reportData.Languages = appendIfMissing(reportData.Languages, FingerPrintApp{Name: name})
+				data.Languages = appendIfMissing(data.Languages, FingerPrintApp{Name: name})
 			case "Security":
 				fingerPrintIdentifier = true
-				reportData.SecurityServices = appendIfMissing(reportData.SecurityServices, FingerPrintApp{Name: name})
+				data.SecurityServices = appendIfMissing(data.SecurityServices, FingerPrintApp{Name: name})
 			}
 		}
 	}
 
-	attempt.WithBooleanStatus(!fingerPrintIdentifier)
-	vulnReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
-	r.WithData(reportData).AddIssueReport(vulnReport).End()
+	if !fingerPrintIdentifier {
+		return harnessx.Result{}, nil
+	}
 
-	return r, nil
-}
+	return harnessx.Result{Data: &finding.Finding{
+		Operation: op,
+		Attempt:   attempt,
+		Extra:     extraFrom(data),
+		Data:      data,
+	}}, nil
+})

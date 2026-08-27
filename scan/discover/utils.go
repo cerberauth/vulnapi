@@ -1,20 +1,18 @@
 package discover
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 	"github.com/cerberauth/vulnapi/seclist"
 )
-
-type DiscoverData []struct {
-	URL string
-}
 
 func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	return &url.URL{
@@ -23,11 +21,13 @@ func ExtractBaseURL(inputURL *url.URL) *url.URL {
 	}
 }
 
-func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.SecurityScheme, r *report.ScanReport, vulnReport *report.IssueReport) (*report.ScanReport, error) {
-	securitySchemes := []*auth.SecurityScheme{securityScheme}
+// ScanURLs probes scanUrls (resolved against op's base URL) concurrently and
+// returns a *finding.Finding naming every URL that responded 200 OK, or nil
+// if none did. The decisive Attempt is the first exposed URL found.
+func ScanURLs(ctx context.Context, scanUrls []string, op *operation.Operation, securityScheme *auth.SecurityScheme) (*finding.Finding, error) {
 	base := ExtractBaseURL(&op.URL)
 	chunkSize := 20
-	results := make(chan *scan.IssueScanAttempt, len(scanUrls))
+	results := make(chan *finding.Attempt, len(scanUrls))
 	errs := make(chan error, len(scanUrls))
 
 	for i := 0; i < len(scanUrls); i += chunkSize {
@@ -40,13 +40,13 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		go func(chunk []string) {
 			for _, path := range chunk {
 				newOperation, err := operation.NewOperation(http.MethodGet, base.ResolveReference(&url.URL{Path: path}).String(), nil, op.Client)
-				newOperation.SetSecuritySchemes(securitySchemes)
+				newOperation.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 				if err != nil {
 					errs <- err
 					return
 				}
 
-				attempt, err := scan.ScanURL(newOperation, securityScheme)
+				attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
 				if err != nil {
 					errs <- err
 					return
@@ -57,21 +57,20 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		}(chunk)
 	}
 
-	data := DiscoverData{}
+	var exposedURLs []string
+	var decisiveAttempt *finding.Attempt
 	for i := 0; i < len(scanUrls); i++ {
 		select {
 		case attempt := <-results:
-			r.AddScanAttempt(attempt)
-			vulnReport.AddScanAttempt(attempt)
 			if attempt.Err != nil {
 				errs <- attempt.Err
 				continue
 			}
 			if attempt.Response.GetStatusCode() == http.StatusOK { // TODO: check if the response contains the expected content
-				attempt.Fail()
-				data = append(data, struct{ URL string }{URL: attempt.Request.GetURL()})
-			} else {
-				attempt.Pass()
+				exposedURLs = append(exposedURLs, attempt.Request.URL.String())
+				if decisiveAttempt == nil {
+					decisiveAttempt = attempt
+				}
 			}
 		case err := <-errs:
 			log.Printf("Error scanning URL: %v", err)
@@ -79,22 +78,25 @@ func ScanURLs(scanUrls []string, op *operation.Operation, securityScheme *auth.S
 		}
 	}
 
-	if len(data) > 0 {
-		vulnReport.Fail()
-		r.WithData(data)
-		return r.End(), nil
+	if len(exposedURLs) == 0 {
+		return nil, nil
 	}
 
-	vulnReport.Pass()
-	return r.End(), nil
+	return &finding.Finding{
+		Parameter: exposedURLs[0],
+		Attempt:   decisiveAttempt,
+		Extra: map[string]string{
+			"discovered_urls":  strings.Join(exposedURLs, ", "),
+			"discovered_count": strconv.Itoa(len(exposedURLs)),
+		},
+	}, nil
 }
 
-func DownloadAndScanURLs(name string, seclistUrl string, r *report.ScanReport, vulnReport *report.IssueReport, op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
+func DownloadAndScanURLs(ctx context.Context, name string, seclistUrl string, op *operation.Operation, securityScheme *auth.SecurityScheme) (*finding.Finding, error) {
 	urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl)
 	if err != nil {
 		return nil, err
 	}
-	scanUrls := urlsFromSeclist.Items
 
-	return ScanURLs(scanUrls, op, securityScheme, r, vulnReport)
+	return ScanURLs(ctx, urlsFromSeclist.Items, op, securityScheme)
 }

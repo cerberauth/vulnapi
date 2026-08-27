@@ -16,7 +16,7 @@ func TestAddCommonArgs(t *testing.T) {
 			includeScans      []string
 			excludeScans      []string
 			outputFormat      string
-			outputTransport   string
+			reportURL         string
 			noProgress        bool
 			severityThreshold float64
 		}
@@ -28,14 +28,14 @@ func TestAddCommonArgs(t *testing.T) {
 				includeScans      []string
 				excludeScans      []string
 				outputFormat      string
-				outputTransport   string
+				reportURL         string
 				noProgress        bool
 				severityThreshold float64
 			}{
 				includeScans:      nil,
 				excludeScans:      nil,
-				outputFormat:      "table",
-				outputTransport:   "file",
+				outputFormat:      "terminal",
+				reportURL:         "",
 				noProgress:        false,
 				severityThreshold: 1,
 			},
@@ -48,9 +48,7 @@ func TestAddCommonArgs(t *testing.T) {
 				"--cookie=sessionid=12345",
 				"--scans=scan1",
 				"--scans=scan2",
-				"--report-format=json",
-				"--report-transport=http",
-				"--report-file=/tmp/output",
+				"--format=json",
 				"--report-url=http://example.com/output",
 				"--no-progress",
 				"--severity-threshold=5",
@@ -59,14 +57,14 @@ func TestAddCommonArgs(t *testing.T) {
 				includeScans      []string
 				excludeScans      []string
 				outputFormat      string
-				outputTransport   string
+				reportURL         string
 				noProgress        bool
 				severityThreshold float64
 			}{
 				includeScans:      []string{"scan1", "scan2"},
 				excludeScans:      nil,
 				outputFormat:      "json",
-				outputTransport:   "http",
+				reportURL:         "http://example.com/output",
 				noProgress:        true,
 				severityThreshold: 5,
 			},
@@ -81,10 +79,13 @@ func TestAddCommonArgs(t *testing.T) {
 			testCmd.SetArgs(tt.args)
 			testCmd.Execute()
 
+			format, _ := testCmd.Flags().GetString("format")
+			reportURL, _ := testCmd.Flags().GetString("report-url")
+
 			assert.Equal(t, tt.expected.includeScans, cmd.GetIncludeScans())
 			assert.Equal(t, tt.expected.excludeScans, cmd.GetExcludeScans())
-			assert.Equal(t, tt.expected.outputFormat, cmd.GetReportFormat())
-			assert.Equal(t, tt.expected.outputTransport, cmd.GetReportTransport())
+			assert.Equal(t, tt.expected.outputFormat, format)
+			assert.Equal(t, tt.expected.reportURL, reportURL)
 			assert.Equal(t, tt.expected.noProgress, cmd.GetNoProgress())
 			assert.Equal(t, tt.expected.severityThreshold, cmd.GetSeverityThreshold())
 		})

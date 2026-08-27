@@ -11,7 +11,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 	discoverablegraphql "github.com/cerberauth/vulnapi/scan/discover/discoverable_graphql"
 	discoverableopenapi "github.com/cerberauth/vulnapi/scan/discover/discoverable_openapi"
-	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
+	"github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 )
 
 var commonHostnames = []string{"www", "api", "graphql", "graph", "app", "auth", "login", "oauth", "admin", "dashboard", "dev", "staging", "test", "stage", "prod", "production", "uat", "qa", "sandbox", "old", "demo", "blog", "forum", "community", "calendar", "contacts", "chat", "support", "help", "docs"}
@@ -135,9 +135,9 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *sca
 				return nil, err
 			}
 
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-			domainScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
+			domainScan.AddCheck(fingerprint.Check, &fingerprint.Def)
+			domainScan.AddCheck(discoverableopenapi.Check, &discoverableopenapi.Def)
+			domainScan.AddCheck(discoverablegraphql.Check, &discoverablegraphql.Def)
 			domainsScan = append(domainsScan, domainScan)
 		}
 	}

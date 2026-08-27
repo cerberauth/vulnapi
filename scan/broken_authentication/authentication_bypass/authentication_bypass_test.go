@@ -1,10 +1,13 @@
 package authenticationbypass_test
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	authenticationbypass "github.com/cerberauth/vulnapi/scan/broken_authentication/authentication_bypass"
@@ -13,44 +16,56 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuthenticationByPassScanHandler_Skipped_WhenNoAuthSecurityScheme(t *testing.T) {
+func runAuthBypassCheck(op *operation.Operation) (harnessx.Result, error) {
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+	return authenticationbypass.Check.RunResource(context.Background(), harnessx.Target{URL: op.URL.String()}, resource, nil)
+}
+
+func evalAuthBypassSkip(op *operation.Operation) string {
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+	return authenticationbypass.Check.Skip.EvalResource(context.Background(), harnessx.Target{URL: op.URL.String()}, resource, harnessx.NewStaticResultStore())
+}
+
+func TestAuthBypassScanHandler_Skip_WithoutSecurityScheme(t *testing.T) {
 	securityScheme := auth.MustNewNoAuthSecurityScheme()
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 
-	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
-
-	require.NoError(t, err)
-	assert.True(t, report.Issues[0].HasBeenSkipped())
+	assert.NotEmpty(t, evalAuthBypassSkip(op))
 }
 
-func TestAuthenticationByPassScanHandler_Failed_WhenAuthIsByPassed(t *testing.T) {
+func TestAuthBypassScanHandler_Failed_WhenOKResponse(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	token := "token"
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusOK, nil))
 
-	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
+	result, err := runAuthBypassCheck(op)
 
 	require.NoError(t, err)
-	assert.True(t, report.Issues[0].HasFailed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.True(t, ok)
 }
 
-func TestAuthenticationByPassScanHandler_Passed_WhenAuthIsNotByPassed(t *testing.T) {
+func TestAuthBypassScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	token := "token"
 	securityScheme := auth.MustNewAuthorizationBearerSecurityScheme("default", &token)
-	operation := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
-	httpmock.RegisterResponder(operation.Method, operation.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusUnauthorized, nil))
 
-	report, err := authenticationbypass.ScanHandler(operation, securityScheme)
+	result, err := runAuthBypassCheck(op)
 
 	require.NoError(t, err)
-	assert.True(t, report.Issues[0].HasPassed())
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.False(t, ok)
 }

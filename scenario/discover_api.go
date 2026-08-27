@@ -40,12 +40,12 @@ func NewDiscoverAPIScan(method string, u *url.URL, client *request.Client, opts 
 		return nil, err
 	}
 
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(fingerprint.DiscoverFingerPrintScanID, fingerprint.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverableopenapi.DiscoverableOpenAPIScanID, discoverableopenapi.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(discoverablegraphql.DiscoverableGraphQLPathScanID, discoverablegraphql.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(exposedfiles.DiscoverableFilesScanID, exposedfiles.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(wellknown.DiscoverableWellKnownScanID, wellknown.ScanHandler))
-	urlScan.AddScanHandler(scan.NewOperationScanHandler(healthcheck.DiscoverableHealthCheckScanID, healthcheck.ScanHandler))
+	urlScan.AddCheck(fingerprint.Check, &fingerprint.Def)
+	urlScan.AddCheck(discoverableopenapi.Check, &discoverableopenapi.Def)
+	urlScan.AddCheck(discoverablegraphql.Check, &discoverablegraphql.Def)
+	urlScan.AddCheck(exposedfiles.Check, &exposedfiles.Def)
+	urlScan.AddCheck(wellknown.Check, &wellknown.Def)
+	urlScan.AddCheck(healthcheck.Check, &healthcheck.Def)
 
 	return urlScan, nil
 }

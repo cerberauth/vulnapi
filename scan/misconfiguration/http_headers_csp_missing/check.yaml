@@ -1,0 +1,10 @@
+id: "misconfiguration.http_headers_csp_missing"
+name: "CSP Header is not set"
+description: ""
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy"
+tags: []
+depends_on: ["misconfiguration.http_headers_fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-1021"
+owasp: "API8:2023"

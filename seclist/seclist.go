@@ -2,6 +2,8 @@ package seclist
 
 import (
 	"bufio"
+	"bytes"
+	"context"
 	"embed"
 	"errors"
 	"io"
@@ -10,6 +12,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/cerberauth/harnessx/probe"
 	"github.com/cerberauth/vulnapi/internal/request"
 )
 
@@ -94,18 +97,24 @@ func (s *SecList) loadFromTmpFile(filepath string) error {
 }
 
 func (s *SecList) DownloadFromURL(url string) error {
+	ctx := context.Background()
 	client := request.GetDefaultClient()
-	req, err := request.NewRequest(http.MethodGet, url, nil, client)
+
+	req, err := probe.NewRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
 
-	res, err := req.Do()
+	if err := request.Wait(ctx); err != nil {
+		return err
+	}
+
+	statusCode, _, body, _, err := probe.Do(ctx, client.Client, req)
 	if err != nil {
 		return err
 	}
 
-	if res.GetStatusCode() != http.StatusOK {
+	if statusCode != http.StatusOK {
 		return errors.New("sec list download failed")
 	}
 
@@ -115,7 +124,7 @@ func (s *SecList) DownloadFromURL(url string) error {
 	}
 	defer tempFile.Close()
 
-	_, err = io.Copy(tempFile, res.GetBody())
+	_, err = io.Copy(tempFile, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,10 @@
+id: "discover.exposed_files"
+name: "Discoverable exposed files"
+description: ""
+link: ""
+tags: []
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: ""
+owasp: "API7:2023"

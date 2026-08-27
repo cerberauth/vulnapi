@@ -122,12 +122,14 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				log.Fatal(err)
 			}
 
-			if err = internalCmd.PrintOrExportReport(internalCmd.GetReportFormat(), internalCmd.GetReportTransport(), reporter); err != nil {
+			if err = internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
 				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
 				log.Fatal(err)
 			}
 
 			telemetryScanOpenAPISuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
+
+			internalCmd.ExitIfFindings(reporter, len(internalCmd.GetIncludeScans()) > 0)
 		},
 	}
 

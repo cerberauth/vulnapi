@@ -1,52 +1,21 @@
 package httpmethodoverride
 
 import (
+	"context"
+	_ "embed"
+	"errors"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-const (
-	HTTPMethodOverrideScanID   = "misconfiguration.http_method_override"
-	HTTPMethodOverrideScanName = "HTTP Method Override Misconfiguration"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var httpMethodOverrideIssue = report.Issue{
-	ID:   "security_misconfiguration.http_method_allow_override",
-	Name: "Possible HTTP Method Override detected",
-	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-		CWE:   report.CWE_16_Configuration,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
-
-var httpMethodOverrideAuthenticationByPassIssue = report.Issue{
-	ID:   "security_misconfiguration.http_method_override_authentication_bypass",
-	Name: "Possible HTTP Method Override with authentication bypass detected",
-	URL:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/http-method-allow-override?utm_source=vulnapi-report",
-
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-		CWE:   report.CWE_287_Improper_Authentication,
-	},
-
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N",
-		Score:   8.8,
-	},
-}
+var Def = hxcheckdef.MustParseCheckDefYAML("http_method_override", checkYAML)
 
 var httpMethods = []string{
 	http.MethodGet,
@@ -72,36 +41,28 @@ var methodOverrideQueryParams = []string{
 	"_httpMethod",
 }
 
-func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	var err error
-	var newOperation *operation.Operation
+var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resource)
+	if !ok {
+		return harnessx.Result{Err: errors.New("http_method_override: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
 
-	httpMethodOverrideIssueReport := report.NewIssueReport(httpMethodOverrideIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	httpMethodOverrideAuthenticationByPassIssueReport := report.NewIssueReport(httpMethodOverrideAuthenticationByPassIssue).WithOperation(op).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(HTTPMethodOverrideScanID, HTTPMethodOverrideScanName, op)
-	r.AddIssueReport(httpMethodOverrideIssueReport)
-	r.AddIssueReport(httpMethodOverrideAuthenticationByPassIssueReport)
-
-	newOperation, err = op.Clone()
+	newOperation, err := op.Clone()
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
 
-	initialAttempt, err := scan.ScanURL(newOperation, securityScheme)
+	initialAttempt, err := finding.Fetch(ctx, newOperation, securityScheme)
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
-	r.AddScanAttempt(initialAttempt)
-	httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(initialAttempt)
-	httpMethodOverrideIssueReport.AddScanAttempt(initialAttempt)
 
 	if initialAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
-		httpMethodOverrideIssueReport.Skip()
-		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
-		return r.End(), nil
+		return harnessx.Result{Skipped: true, SkipReason: "operation already returns 405 for its own method"}, nil
 	}
 
-	var methodAttempt *scan.IssueScanAttempt
+	var methodAttempt *finding.Attempt
 	for _, method := range httpMethods {
 		if method == op.Method {
 			continue
@@ -109,49 +70,43 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 
 		newOperation, err = op.Clone()
 		if err != nil {
-			return r.End(), err
+			return harnessx.Result{}, err
 		}
 
 		newOperation.Method = method
-		methodAttempt, err = scan.ScanURL(newOperation, securityScheme)
-		r.AddScanAttempt(methodAttempt)
-		httpMethodOverrideIssueReport.AddScanAttempt(methodAttempt)
-		httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(methodAttempt)
-		if err == nil && methodAttempt != nil && methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
-			methodAttempt.Pass()
+		methodAttempt, err = finding.Fetch(ctx, newOperation, securityScheme)
+		if err != nil {
+			return harnessx.Result{}, err
+		}
+		if methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
 			break
 		}
 	}
 
-	if err != nil {
-		return r.End(), err
-	}
-
 	if methodAttempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-		httpMethodOverrideIssueReport.Pass()
-		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
-		return r.End(), nil
+		return harnessx.Result{}, nil
 	}
 
 	var attemptFailed = false
-	var attempt *scan.IssueScanAttempt
-	newOperationMethod := methodAttempt.Request.GetMethod()
+	var attempt *finding.Attempt
+	var winningOperation *operation.Operation
+	newOperationMethod := methodAttempt.Request.Method
 	for _, header := range methodOverrideHeaders {
 		newOperation, err = op.Clone()
 		if err != nil {
-			return r.End(), err
+			return harnessx.Result{}, err
 		}
 
 		newOperation.Header.Set(header, op.Method)
 		newOperation.Method = newOperationMethod
-		attempt, err = scan.ScanURL(newOperation, securityScheme)
-		r.AddScanAttempt(attempt)
-		httpMethodOverrideIssueReport.AddScanAttempt(attempt)
-		httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(attempt)
+		attempt, err = finding.Fetch(ctx, newOperation, securityScheme)
+		if err != nil {
+			return harnessx.Result{}, err
+		}
 
-		if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-			attempt.Fail()
+		if attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
 			attemptFailed = true
+			winningOperation = newOperation
 			break
 		}
 	}
@@ -160,45 +115,32 @@ func ScanHandler(op *operation.Operation, securityScheme *auth.SecurityScheme) (
 		for _, queryParam := range methodOverrideQueryParams {
 			newOperation, err = op.Clone()
 			if err != nil {
-				return r.End(), err
+				return harnessx.Result{}, err
 			}
 
 			newOperationQueryValues := newOperation.URL.Query()
 			newOperationQueryValues.Set(queryParam, op.Method)
 			newOperation.URL.RawQuery = newOperationQueryValues.Encode()
 			newOperation.Method = newOperationMethod
-			attempt, err = scan.ScanURL(newOperation, securityScheme)
-			r.AddScanAttempt(attempt)
-			httpMethodOverrideIssueReport.AddScanAttempt(attempt)
-			httpMethodOverrideAuthenticationByPassIssueReport.AddScanAttempt(attempt)
+			attempt, err = finding.Fetch(ctx, newOperation, securityScheme)
+			if err != nil {
+				return harnessx.Result{}, err
+			}
 
-			if err == nil && attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-				attempt.Fail()
+			if attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
 				attemptFailed = true
+				winningOperation = newOperation
 				break
 			}
 		}
 	}
 
 	if !attemptFailed {
-		httpMethodOverrideIssueReport.Pass()
-		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
-		return r.End(), nil
+		return harnessx.Result{}, nil
 	}
 
-	httpMethodOverrideIssueReport.Fail()
-	if securityScheme.GetType() == auth.None {
-		httpMethodOverrideAuthenticationByPassIssueReport.Skip()
-		return r.End(), nil
-	}
-
-	attempt, err = scan.ScanURL(newOperation, auth.MustNewNoAuthSecurityScheme())
-	if err != nil {
-		return r.End(), err
-	}
-	attempt.WithBooleanStatus(scan.IsUnauthorizedStatusCodeOrSimilar(attempt.Response))
-	r.AddScanAttempt(attempt)
-	httpMethodOverrideAuthenticationByPassIssueReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
-
-	return r.End(), nil
-}
+	return harnessx.Result{Data: &finding.Finding{
+		Attempt: attempt,
+		Data:    winningOperation,
+	}}, nil
+})

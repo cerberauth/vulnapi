@@ -1,51 +1,43 @@
 package httptrace
 
 import (
+	"context"
+	_ "embed"
+	"errors"
 	"net/http"
 
-	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/harnessx"
+	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/vulnapi/internal/scan"
-	"github.com/cerberauth/vulnapi/report"
 )
 
-const (
-	HTTPTraceScanID   = "misconfiguration.http_trace"
-	HTTPTraceScanName = "HTTP TRACE Method Misconfiguration"
-)
+//go:embed check.yaml
+var checkYAML []byte
 
-var issue = report.Issue{
-	ID:   "security_misconfiguration.http_trace_method_enabled",
-	Name: "HTTP TRACE Method enabled",
-	URL:  "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE",
+var Def = hxcheckdef.MustParseCheckDefYAML("http_trace", checkYAML)
 
-	Classifications: &report.Classifications{
-		OWASP: report.OWASP_2023_SecurityMisconfiguration,
-		CWE:   report.CWE_489_Active_Debug_Code,
-	},
+var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+	op, ok := harnessx.ResourceDataAs[*operation.Operation](resource)
+	if !ok {
+		return harnessx.Result{Err: errors.New("http_trace: resource missing *operation.Operation")}, nil
+	}
+	securityScheme := op.GetSecurityScheme()
 
-	CVSS: report.CVSS{
-		Version: 4.0,
-		Vector:  "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N",
-		Score:   0,
-	},
-}
-
-func ScanHandler(operation *operation.Operation, securityScheme *auth.SecurityScheme) (*report.ScanReport, error) {
-	vulnReport := report.NewIssueReport(issue).WithOperation(operation).WithSecurityScheme(securityScheme)
-	r := report.NewScanReport(HTTPTraceScanID, HTTPTraceScanName, operation)
-	r.AddIssueReport(vulnReport)
-
-	newOperation, err := operation.Clone()
+	newOperation, err := op.Clone()
 	if err != nil {
-		return r.End(), err
+		return harnessx.Result{}, err
 	}
 	newOperation.Method = http.MethodTrace
 
-	attempt, err := scan.ScanURL(newOperation, securityScheme)
-	attempt.WithBooleanStatus(err != nil || attempt.Response.GetStatusCode() != http.StatusOK)
-	r.AddScanAttempt(attempt)
-	vulnReport.WithBooleanStatus(attempt.HasPassed()).WithScanAttempt(attempt)
-
-	return r.End(), nil
-}
+	attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
+	if err != nil {
+		return harnessx.Result{}, err
+	}
+	if attempt.Response.GetStatusCode() != http.StatusOK {
+		return harnessx.Result{}, nil
+	}
+	return harnessx.Result{Data: &finding.Finding{
+		Attempt: attempt,
+	}}, nil
+})
