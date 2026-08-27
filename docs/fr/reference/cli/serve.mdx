@@ -1,37 +1,16 @@
 ---
 title: serve
-description: Démarrer le serveur HTTP VulnAPI en mode API REST.
+description: Obsolète — le serveur HTTP VulnAPI a été supprimé.
 ---
 
-Démarre VulnAPI en tant que serveur HTTP exposant une API REST, permettant de déclencher des scans par programmation plutôt que via le CLI.
+:::caution
+**Obsolète.** La commande `serve` a été supprimée. Le serveur HTTP n'était pas correctement conçu et a été retiré en attendant une refonte. Suivez l'avancement et partagez vos retours sur [https://github.com/cerberauth/vulnapi/issues/303](https://github.com/cerberauth/vulnapi/issues/303).
+:::
 
 ## Usage
 
 ```sh
-vulnapi serve [flags]
-```
-
-## Options
-
-| Option | Par défaut | Description |
-|---|---|---|
-| `-p, --port <port>` | `8080` | Port d'écoute |
-
-## Exemples
-
-**Démarrer sur le port par défaut**
-```sh
 vulnapi serve
 ```
 
-**Démarrer sur un port personnalisé**
-```sh
-vulnapi serve --port 9090
-```
-
-## Codes de sortie
-
-| Code | Signification |
-|---|---|
-| `0` | Le serveur s'est arrêté proprement |
-| `1` | Erreur fatale (port déjà utilisé, etc.) |
+Cette commande affiche un avertissement d'obsolescence puis se termine ; elle ne démarre plus de serveur.

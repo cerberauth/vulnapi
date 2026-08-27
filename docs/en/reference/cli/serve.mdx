@@ -1,37 +1,16 @@
 ---
 title: serve
-description: Start the VulnAPI HTTP server in REST API mode.
+description: Deprecated — the VulnAPI HTTP server has been removed.
 ---
 
-Start VulnAPI as an HTTP server that exposes a REST API, allowing scans to be triggered programmatically rather than through the CLI.
+:::caution
+**Deprecated.** The `serve` command has been removed. The HTTP server was not properly designed and has been removed pending a redesign. Track progress and share feedback at [https://github.com/cerberauth/vulnapi/issues/303](https://github.com/cerberauth/vulnapi/issues/303).
+:::
 
 ## Usage
 
 ```sh
-vulnapi serve [flags]
-```
-
-## Flags
-
-| Flag | Default | Description |
-|---|---|---|
-| `-p, --port <port>` | `8080` | Port to listen on |
-
-## Examples
-
-**Start on the default port**
-```sh
 vulnapi serve
 ```
 
-**Start on a custom port**
-```sh
-vulnapi serve --port 9090
-```
-
-## Exit codes
-
-| Code | Meaning |
-|---|---|
-| `0` | Server exited cleanly |
-| `1` | Fatal error (port already in use, etc.) |
+Running this command prints a deprecation notice and exits; it no longer starts a server.
