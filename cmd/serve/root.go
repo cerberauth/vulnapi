@@ -1,37 +1,20 @@
 package serve
 
 import (
-	"log"
+	"fmt"
 
-	"github.com/cerberauth/vulnapi/api"
-	"github.com/gin-contrib/requestid"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-)
-
-var (
-	port string
 )
 
 func NewServeCmd() (serveCmd *cobra.Command) {
 	serveCmd = &cobra.Command{
-		Use:   "serve",
-		Short: "Start the server",
+		Use:        "serve",
+		Short:      "[DEPRECATED] The HTTP server has been removed",
+		Deprecated: "the HTTP server was removed pending a proper redesign; see https://github.com/cerberauth/vulnapi/issues/303",
 		Run: func(cmd *cobra.Command, args []string) {
-			r := gin.New()
-			r.Use(gin.Recovery())
-			r.Use(requestid.New())
-
-			handler := api.NewHandler()
-			api.Routes(r, handler)
-
-			if err := r.Run(":" + port); err != nil {
-				log.Fatal(err)
-			}
+			fmt.Println("vulnapi serve has been removed. It was not properly designed and is being rethought. Track progress at https://github.com/cerberauth/vulnapi/issues/303")
 		},
 	}
-
-	serveCmd.Flags().StringVarP(&port, "port", "p", "8080", "Port to listen to")
 
 	return serveCmd
 }
