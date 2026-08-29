@@ -99,6 +99,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			s, err := scenario.NewOpenAPIScan(ctx, doc, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
+				MinSeverity:  internalCmd.GetMinSeverity(),
 			})
 			if err != nil {
 				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
@@ -129,7 +130,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			telemetryScanOpenAPISuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
 
-			internalCmd.ExitIfFindings(reporter, len(internalCmd.GetIncludeScans()) > 0)
+			internalCmd.ExitIfFindings(reporter, len(internalCmd.GetIncludeScans()) > 0 || internalCmd.GetOnlyScansAboveThreshold())
 		},
 	}
 

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cerberauth/harnessx"
+	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/scan"
@@ -300,4 +301,126 @@ func TestScanExecuteWithLegacyAliasIncludeScans(t *testing.T) {
 	assert.Empty(t, errs)
 	assert.Equal(t, 1, len(report.Findings))
 	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
+}
+
+// TestScanExecuteWithIncludeScansKeepsDependency guards against a
+// dependency-chain break: narrowing --scans to a check that depends on
+// another (non-internal) check must still run that dependency, rather than
+// failing with harnessx.ErrUnknownDependency.
+func TestScanExecuteWithIncludeScansKeepsDependency(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"dependent-handler"},
+	})
+	s.AddCheck(harnessx.Check{
+		ID: "dependency-handler",
+		Run: func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{}, nil
+		},
+	}, nil)
+	s.AddCheck(harnessx.Check{
+		ID:        "dependent-handler",
+		DependsOn: []harnessx.CheckID{"dependency-handler"},
+		Run: func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	assert.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "test-finding", report.Findings[0].Parameter)
+}
+
+// TestScanExecuteWithMinSeverityFiltersLowSeverityChecks guards the new
+// severity-based check filtering: a check whose static CVSS score is below
+// MinSeverity must not run, while one at or above it does.
+func TestScanExecuteWithMinSeverityFiltersLowSeverityChecks(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	minSeverity := 5.0
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		MinSeverity: &minSeverity,
+	})
+	s.AddCheck(harnessx.Check{
+		ID:    "low-severity-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "low-finding"}}, nil
+		},
+	}, &checkdef.CheckDef{ID: "low-severity-handler", CVSSScore: 2.0})
+	s.AddCheck(harnessx.Check{
+		ID:    "high-severity-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "high-finding"}}, nil
+		},
+	}, &checkdef.CheckDef{ID: "high-severity-handler", CVSSScore: 7.0})
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	require.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "high-finding", report.Findings[0].Parameter)
+}
+
+// TestScanExecuteWithMinSeverityKeepsLowSeverityDependency guards the
+// dependency-chain safety of severity filtering: a high-severity check's
+// dependency must still run even though its own score is below MinSeverity.
+func TestScanExecuteWithMinSeverityKeepsLowSeverityDependency(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	minSeverity := 5.0
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		MinSeverity: &minSeverity,
+	})
+	s.AddCheck(harnessx.Check{
+		ID: "low-severity-dependency",
+		Run: func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{}, nil
+		},
+	}, &checkdef.CheckDef{ID: "low-severity-dependency", CVSSScore: 2.0})
+	s.AddCheck(harnessx.Check{
+		ID:        "high-severity-dependent",
+		DependsOn: []harnessx.CheckID{"low-severity-dependency"},
+		Run: func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "high-finding"}}, nil
+		},
+	}, &checkdef.CheckDef{ID: "high-severity-dependent", CVSSScore: 7.0})
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	require.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "high-finding", report.Findings[0].Parameter)
+}
+
+// TestScanExecuteWithIncludeScansMatchingNothingRunsNothing guards the other
+// side: --scans matching no registered check must run no (non-internal)
+// checks — not silently fall back to "run everything" because harnessx's
+// WithOnly can't itself express an empty-match restriction.
+func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+		IncludeScans: []string{"no-such-check"},
+	})
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Empty(t, errs)
+	assert.Equal(t, 0, len(report.Findings))
 }

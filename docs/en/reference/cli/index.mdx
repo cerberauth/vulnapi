@@ -57,9 +57,12 @@ All `scan` and `discover` commands share these flags. HTTP client flags follow t
 | `--report-url <url>` | `` | URL to send the report to (when `--report-transport http`) |
 | `--no-progress` | `false` | Disable the progress bar |
 | `--severity-threshold <score>` | `1.0` | CVSS threshold above which output is also written to stderr |
+| `--only-scans-above-threshold` | `false` | Only run checks that could reach `--severity-threshold`; exits on any finding since all of them do |
 
 > **Deprecated:** `--rate-limit` (`-r`) was replaced by `--rate`. The old flag is still accepted as an alias.
 
 ## Exit behaviour
 
 When at least one finding has a CVSS score above `--severity-threshold`, VulnAPI writes output to **stderr** in addition to stdout. This causes `|| exit 1` patterns and CI/CD failure checks to trigger automatically. The default threshold is `1.0`, meaning any finding with CVSS > 1.0 triggers stderr output.
+
+Add `--only-scans-above-threshold` to instead skip any check that couldn't reach the threshold before the scan runs. Since every check that does run can reach it, VulnAPI then exits non-zero on any finding at all. See [Only Running Checks That Could Reach the Threshold](/reference/output-formats#only-running-checks-that-could-reach-the-threshold).

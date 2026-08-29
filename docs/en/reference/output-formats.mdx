@@ -91,3 +91,17 @@ vulnapi scan curl https://api.example.com/endpoint \
 ```
 
 Set `--severity-threshold 0` to always write to stderr regardless of CVSS score.
+
+## Only Running Checks That Could Reach the Threshold
+
+By default, `--severity-threshold` only changes exit behavior — every check still runs, and findings below the threshold are still reported (on stdout). Pass `--only-scans-above-threshold` to instead skip any check whose maximum possible CVSS score is below `--severity-threshold` before the scan even starts. Since every check that does run can reach the threshold, VulnAPI exits non-zero on any finding at all, not just ones above the threshold:
+
+```bash
+# Only run checks that could report CVSS >= 7.0, and fail on any of their findings
+vulnapi scan curl https://api.example.com/endpoint \
+  -H "Authorization: Bearer <token>" \
+  --severity-threshold 7.0 \
+  --only-scans-above-threshold
+```
+
+A check that a kept check depends on still runs regardless of its own score — dependency chains are never broken by this filter.
