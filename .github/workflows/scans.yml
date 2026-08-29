@@ -33,7 +33,7 @@ jobs:
         run: go build -o vulnapi main.go
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vulnapi
           path: vulnapi
@@ -58,7 +58,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/discoverable:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -118,7 +118,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -175,7 +175,7 @@ jobs:
         run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest jwt)" >> $GITHUB_OUTPUT
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -215,7 +215,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -248,7 +248,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -288,7 +288,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -328,7 +328,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -432,7 +432,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -483,7 +483,7 @@ jobs:
         run: docker run -d -p 4000:4000 ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
@@ -540,7 +540,7 @@ jobs:
         run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
 
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vulnapi
 
