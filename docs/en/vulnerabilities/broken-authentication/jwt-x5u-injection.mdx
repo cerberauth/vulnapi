@@ -1,0 +1,77 @@
+---
+title: JWT X5U Header Injection
+description: The JWT X5U Header Injection vulnerability occurs when a server fetches the token's x5u header URL and trusts whatever certificate it returns, instead of validating it against a pinned CA.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/295.html">CWE-295: Improper Certificate Validation</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/194.html">CAPEC-194: Fake the Source of Data</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The "JWT X5U Header Injection" vulnerability occurs when a server reads the `x5u` (X.509 URL) header from an incoming token, fetches the certificate at that URL, and uses it to verify the signature without checking that it chains to a trusted CA. Because the attacker controls the header, they can point `x5u` at a server they own that serves an attacker-generated certificate. This is also a Server-Side Request Forgery primitive.
+
+For more details, you can refer to the [jwtop documentation on X5U Injection](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-x5u-injection).
+
+## Example
+
+1. The attacker hosts a self-signed certificate for a key pair they generated.
+2. They build a token with the desired claims and a header `"x5u": "https://attacker.example/cert.pem"`.
+3. They sign it with the matching private key.
+4. The server fetches the attacker's certificate, verifies the signature against it, and accepts the token.
+
+## How to test?
+
+If you want to test only the "JWT X5U Header Injection" vulnerability, you can use the following command:
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.x5u_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.x5u_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.x5u_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+This check requires a live target that can reach a callback server run by the scanner, so it only runs when the token uses an asymmetric algorithm and a reachable callback address has been configured.
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+- **Full Authentication Bypass**: An attacker can forge tokens for any user, including administrative accounts.
+- **Server-Side Request Forgery**: The target can be coerced into making outbound requests to attacker-chosen URLs.
+- **Account Takeover**: Impersonating any user in the system.
+
+## How to remediate?
+
+- **Ignore token-supplied URLs**: Never fetch keys or certificates from the `x5u` or `jku` header. Use a certificate configured out of band.
+- **Allowlist endpoints**: If dynamic retrieval is required, validate `x5u` against a strict allowlist of known, trusted URLs and verify the certificate chains to a pinned CA.
+- **Strict Algorithm Enforcement**: Always pin the expected algorithm(s) when verifying a JWT.

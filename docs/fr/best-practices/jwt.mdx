@@ -48,6 +48,18 @@ Certaines bibliothèques JWT acceptent des jetons dont le segment de signature e
 
 VulnAPI détecte cela avec l'analyse [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature).
 
+## Ne jamais résoudre les clés depuis l'en-tête du jeton
+
+La clé de vérification doit provenir de la configuration côté serveur, jamais du jeton lui-même. Un attaquant contrôle tous les en-têtes : faire confiance à `jwk`, `jku`, `x5c` ou `x5u` lui permet de signer avec une clé qu'il a générée. Si la rotation des clés est nécessaire, résolvez `kid` avec un jeu de clés de confiance côté serveur et — lorsque la récupération dynamique est inévitable — validez `jku`/`x5u` avec une liste d'autorisation stricte d'URL connues.
+
+VulnAPI détecte cela avec les analyses [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt-x5c-injection) et [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt-x5u-injection).
+
+## Imposer une seule famille d'algorithmes attendue
+
+Fixez le ou les algorithmes exacts que vous attendez. Accepter l'en-tête `alg` du jeton permet l'attaque de [confusion d'algorithme](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) (jeton asymétrique resigné en HMAC avec la clé publique) et, pour les vérificateurs ECDSA sur des environnements vulnérables, l'attaque de [signature psychique](../vulnerabilities/broken-authentication/jwt-psychic-signature) (CVE-2022-21449).
+
+VulnAPI détecte cela avec les analyses [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) et [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt-psychic-signature).
+
 ## Valider les revendications standards (Claims)
 
 Après avoir vérifié la signature, valisez ces revendications avant de faire confiance aux données de la charge utile (payload) :

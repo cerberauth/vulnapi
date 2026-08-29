@@ -1,0 +1,87 @@
+---
+title: Signature psychique JWT
+description: La vulnérabilité de signature psychique JWT survient lorsqu'un serveur accepte des tokens signés en ECDSA dont la signature est entièrement nulle (r=0, s=0), conformément à CVE-2022-21449.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <a href="https://www.cve.org/CVERecord?id=CVE-2022-21449">CVE-2022-21449</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/347.html">CWE-347: Improper Verification of Cryptographic Signature</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/475.html">CAPEC-475: Signature Spoofing by Improper Validation</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Signature psychique JWT » (aussi appelée attaque « Psychic Signature », CVE-2022-21449) affecte le code de vérification JWT qui s'appuie sur une implémentation ECDSA défaillante. Une signature entièrement nulle (`r = 0`, `s = 0`) est mathématiquement invalide, mais les implémentations affectées — notamment Java 15 à 18 — l'acceptent pour n'importe quel message et n'importe quelle clé publique. Un attaquant peut donc falsifier n'importe quel token signé en ECDSA (`ES256`, `ES384`, `ES512`) sans connaître la clé privée.
+
+Pour plus de détails, consultez la [documentation jwtop sur la signature psychique](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-psychic-signature).
+
+## Exemple
+
+Une application émet des tokens signés avec `ES256`. Si elle est vulnérable, un attaquant peut :
+
+1. Prendre n'importe quel en-tête et charge utile (par exemple revendiquant `"sub": "admin"`).
+2. Fixer le segment de signature à un encodage de `r = 0`, `s = 0`.
+3. Envoyer le token falsifié au serveur.
+
+Le vérificateur défaillant renvoie « valide » et le serveur fait confiance aux revendications falsifiées.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Signature psychique JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.psychic_signature
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.psychic_signature
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.psychic_signature [url]
+```
+  </TabItem>
+</Tabs>
+
+Ce contrôle ne s'exécute que lorsque le token testé utilise un algorithme ECDSA (`ES256`, `ES384`, `ES512`) et qu'un serveur en ligne est disponible.
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+- **Contournement total de l'authentification** : un attaquant peut falsifier des tokens pour n'importe quel utilisateur, y compris les comptes d'administration.
+- **Usurpation de compte** : se faire passer pour n'importe quel utilisateur sans connaître aucune clé.
+- **Accès non autorisé** : accès à des données sensibles et à des fonctionnalités privilégiées.
+
+## Comment corriger ?
+
+- **Corriger l'environnement d'exécution** : mettez à jour vers une JVM corrigée (Java 17.0.3 / 18.0.1 ou ultérieure) ou la version corrigée de la bibliothèque cryptographique qui effectue la vérification ECDSA.
+- **Rejeter les signatures dégénérées** : assurez-vous que le vérificateur rejette les signatures où `r` ou `s` est nul ou hors plage.
+- **Application stricte de l'algorithme** : fixez toujours le ou les algorithmes attendus lors de la vérification d'un JWT.
+- **Ajouter des tests** : incluez un token à signature entièrement nulle dans votre suite de tests d'authentification.

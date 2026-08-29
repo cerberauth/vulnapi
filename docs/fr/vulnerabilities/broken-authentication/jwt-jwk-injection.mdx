@@ -1,0 +1,85 @@
+---
+title: Injection d'en-tête JWK JWT
+description: La vulnérabilité d'injection d'en-tête JWK survient lorsqu'un serveur fait confiance à une clé auto-signée intégrée dans l'en-tête jwk du token au lieu de valider la signature avec un jeu de clés connu.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <a href="https://www.cve.org/CVERecord?id=CVE-2018-0114">CVE-2018-0114</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/194.html">CAPEC-194: Fake the Source of Data</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Injection d'en-tête JWK JWT » survient lorsqu'un serveur vérifie un JWT signé de façon asymétrique en utilisant la clé publique fournie dans l'en-tête `jwk` du token lui-même, plutôt qu'une clé à laquelle il fait déjà confiance. Comme l'attaquant contrôle cet en-tête, il peut générer sa propre paire de clés, placer la clé publique dans `jwk` et signer le token avec la clé privée correspondante. La signature est cohérente en interne, donc un vérificateur naïf l'accepte.
+
+Pour plus de détails, consultez la [documentation jwtop sur l'injection JWK](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-jwk-injection).
+
+## Exemple
+
+Une application attend des tokens signés avec `RS256` et vérifiés avec une clé publique fixe. Si elle est vulnérable, un attaquant peut :
+
+1. Générer une nouvelle paire de clés RSA.
+2. Construire un token avec les revendications souhaitées et un en-tête contenant `"jwk": { ...clé publique de l'attaquant... }`.
+3. Le signer avec la clé privée de l'attaquant.
+4. Envoyer le token falsifié ; le serveur le vérifie avec la clé intégrée et l'accepte.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Injection d'en-tête JWK JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.jwk_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.jwk_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.jwk_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+Ce contrôle ne s'exécute que lorsque le token testé utilise un algorithme asymétrique et qu'un serveur en ligne est disponible.
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+- **Contournement total de l'authentification** : un attaquant peut falsifier des tokens pour n'importe quel utilisateur, y compris les comptes d'administration.
+- **Usurpation de compte** : se faire passer pour n'importe quel utilisateur du système.
+- **Accès non autorisé** : accès à des données sensibles et à des fonctionnalités privilégiées.
+
+## Comment corriger ?
+
+- **Ignorer les clés fournies dans le token** : ne résolvez jamais la clé de vérification à partir des en-têtes `jwk`, `jku`, `x5c` ou `x5u`. Utilisez une clé ou un jeu de clés configuré hors bande.
+- **Liste d'autorisation des identifiants de clés** : si la rotation des clés est nécessaire, résolvez `kid` avec un jeu de clés de confiance côté serveur.
+- **Application stricte de l'algorithme** : fixez toujours le ou les algorithmes attendus lors de la vérification d'un JWT.
