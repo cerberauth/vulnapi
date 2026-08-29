@@ -26,7 +26,15 @@ vulnapi scan curl ... --exclude-scans "discover.*"
 | `jwt.kid_injection` | JWT KID Header Injection (SQL injection & path traversal) | API2:2023 | 9.3 |
 | `jwt.not_verified` | JWT Signature Not Verified | API2:2023 | 9.3 |
 | `jwt.null_signature` | JWT Null Signature | API2:2023 | High |
+| `jwt.hmac_confusion` | JWT Algorithm Confusion (HMAC confusion) | API2:2023 | 9.3 |
+| `jwt.psychic_signature` | JWT Psychic Signature (CVE-2022-21449) | API2:2023 | 9.3 |
+| `jwt.jwk_injection` | JWT `jwk` Header Injection | API2:2023 | 9.3 |
+| `jwt.jku_injection` | JWT `jku` Header Injection | API2:2023 | 9.3 |
+| `jwt.x5c_injection` | JWT `x5c` Header Injection | API2:2023 | 9.3 |
+| `jwt.x5u_injection` | JWT `x5u` Header Injection | API2:2023 | 9.3 |
 | `generic.accept_unauthenticated_operation` | Endpoint Accepts Unauthenticated Requests | API2:2023 | 9.3 |
+
+The JWT checks are powered by [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Each check only runs when it applies to the token under test: HMAC-only checks (`jwt.blank_secret`, `jwt.weak_secret`) are skipped for asymmetric tokens, asymmetric-only checks (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) are skipped for HMAC tokens, and `jwt.psychic_signature` only runs for ECDSA tokens. `jwt.jku_injection` and `jwt.x5u_injection` additionally require a callback server address the target can reach and are skipped when none is configured.
 
 ## Security Misconfiguration
 

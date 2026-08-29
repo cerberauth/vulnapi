@@ -1,0 +1,77 @@
+---
+title: Injection d'en-tête X5U JWT
+description: La vulnérabilité d'injection d'en-tête X5U survient lorsqu'un serveur récupère l'URL de l'en-tête x5u du token et fait confiance au certificat renvoyé, au lieu de le valider avec une AC épinglée.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/295.html">CWE-295: Improper Certificate Validation</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/194.html">CAPEC-194: Fake the Source of Data</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Injection d'en-tête X5U JWT » survient lorsqu'un serveur lit l'en-tête `x5u` (URL X.509) d'un token entrant, récupère le certificat à cette URL et l'utilise pour vérifier la signature sans vérifier qu'il remonte à une AC de confiance. Comme l'attaquant contrôle l'en-tête, il peut pointer `x5u` vers un serveur qu'il possède, servant un certificat qu'il a généré. C'est aussi une primitive de falsification de requête côté serveur (SSRF).
+
+Pour plus de détails, consultez la [documentation jwtop sur l'injection X5U](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-x5u-injection).
+
+## Exemple
+
+1. L'attaquant héberge un certificat auto-signé pour une paire de clés qu'il a générée.
+2. Il construit un token avec les revendications souhaitées et un en-tête `"x5u": "https://attacker.example/cert.pem"`.
+3. Il le signe avec la clé privée correspondante.
+4. Le serveur récupère le certificat de l'attaquant, vérifie la signature avec celui-ci et accepte le token.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Injection d'en-tête X5U JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.x5u_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.x5u_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.x5u_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+Ce contrôle nécessite une cible en ligne capable d'atteindre un serveur de rappel exécuté par le scanner ; il ne s'exécute donc que lorsque le token utilise un algorithme asymétrique et qu'une adresse de rappel joignable a été configurée.
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+- **Contournement total de l'authentification** : un attaquant peut falsifier des tokens pour n'importe quel utilisateur, y compris les comptes d'administration.
+- **Falsification de requête côté serveur (SSRF)** : la cible peut être forcée à effectuer des requêtes sortantes vers des URL choisies par l'attaquant.
+- **Usurpation de compte** : se faire passer pour n'importe quel utilisateur du système.
+
+## Comment corriger ?
+
+- **Ignorer les URL fournies dans le token** : ne récupérez jamais de clés ou de certificats à partir des en-têtes `x5u` ou `jku`. Utilisez un certificat configuré hors bande.
+- **Liste d'autorisation des points de terminaison** : si la récupération dynamique est nécessaire, validez `x5u` avec une liste d'autorisation stricte d'URL connues et de confiance, et vérifiez que le certificat remonte à une AC épinglée.
+- **Application stricte de l'algorithme** : fixez toujours le ou les algorithmes attendus lors de la vérification d'un JWT.

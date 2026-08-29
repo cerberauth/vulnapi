@@ -9,11 +9,17 @@ import (
 	"github.com/cerberauth/jwtop/jwt/crack/checkbase"
 	algnone "github.com/cerberauth/jwtop/jwt/crack/checks/alg_none"
 	blanksecret "github.com/cerberauth/jwtop/jwt/crack/checks/blank_secret"
+	hmacconfusion "github.com/cerberauth/jwtop/jwt/crack/checks/hmac_confusion"
+	jkuinjection "github.com/cerberauth/jwtop/jwt/crack/checks/jku_injection"
+	jwkinjection "github.com/cerberauth/jwtop/jwt/crack/checks/jwk_injection"
 	kidpathtraversal "github.com/cerberauth/jwtop/jwt/crack/checks/kid_path_traversal"
 	kidsqlinjection "github.com/cerberauth/jwtop/jwt/crack/checks/kid_sql_injection"
 	noverification "github.com/cerberauth/jwtop/jwt/crack/checks/no_verification"
 	nullsignature "github.com/cerberauth/jwtop/jwt/crack/checks/null_signature"
+	psychicsignature "github.com/cerberauth/jwtop/jwt/crack/checks/psychic_signature"
 	weaksecret "github.com/cerberauth/jwtop/jwt/crack/checks/weak_secret"
+	x5cinjection "github.com/cerberauth/jwtop/jwt/crack/checks/x5c_injection"
+	x5uinjection "github.com/cerberauth/jwtop/jwt/crack/checks/x5u_injection"
 	"github.com/cerberauth/jwtop/jwt/exploit"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/scan"
@@ -79,6 +85,12 @@ var links = map[harnessx.CheckID]string{
 	kidsqlinjection.Check.ID:  "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-kid-injection?utm_source=vulnapi-report",
 	kidpathtraversal.Check.ID: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-kid-injection?utm_source=vulnapi-report",
 	algnone.Check.ID:          "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-alg-none?utm_source=vulnapi-report",
+	hmacconfusion.Check.ID:    "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-algorithm-confusion?utm_source=vulnapi-report",
+	psychicsignature.Check.ID: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-psychic-signature?utm_source=vulnapi-report",
+	jwkinjection.Check.ID:     "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-jwk-injection?utm_source=vulnapi-report",
+	jkuinjection.Check.ID:     "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-jku-injection?utm_source=vulnapi-report",
+	x5cinjection.Check.ID:     "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-x5c-injection?utm_source=vulnapi-report",
+	x5uinjection.Check.ID:     "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-x5u-injection?utm_source=vulnapi-report",
 }
 
 func WithJWTChecks(s *scan.Scan) *scan.Scan {
@@ -114,4 +126,10 @@ func init() {
 	scan.RegisterLegacyCheckIDAlias(string(kidsqlinjection.Check.ID), "jwt.kid_injection", "kid_sql_injection")
 	scan.RegisterLegacyCheckIDAlias(string(kidpathtraversal.Check.ID), "jwt.kid_injection", "kid_path_traversal")
 	scan.RegisterLegacyCheckIDAlias(string(algnone.Check.ID), "jwt.alg_none")
+	scan.RegisterLegacyCheckIDAlias(string(hmacconfusion.Check.ID), "jwt.hmac_confusion", "jwt.algorithm_confusion")
+	scan.RegisterLegacyCheckIDAlias(string(psychicsignature.Check.ID), "jwt.psychic_signature")
+	scan.RegisterLegacyCheckIDAlias(string(jwkinjection.Check.ID), "jwt.jwk_injection")
+	scan.RegisterLegacyCheckIDAlias(string(jkuinjection.Check.ID), "jwt.jku_injection")
+	scan.RegisterLegacyCheckIDAlias(string(x5cinjection.Check.ID), "jwt.x5c_injection")
+	scan.RegisterLegacyCheckIDAlias(string(x5uinjection.Check.ID), "jwt.x5u_injection")
 }

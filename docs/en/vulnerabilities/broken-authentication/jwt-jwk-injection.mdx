@@ -1,0 +1,85 @@
+---
+title: JWT JWK Header Injection
+description: The JWT JWK Header Injection vulnerability occurs when a server trusts a self-signed key embedded in the token's jwk header instead of validating the signature against a known key set.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <a href="https://www.cve.org/CVERecord?id=CVE-2018-0114">CVE-2018-0114</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/345.html">CWE-345: Insufficient Verification of Data Authenticity</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/194.html">CAPEC-194: Fake the Source of Data</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The "JWT JWK Header Injection" vulnerability occurs when a server verifies an asymmetrically signed JWT using the public key supplied in the token's own `jwk` header, rather than a key it already trusts. Because the attacker controls that header, they can generate their own key pair, embed the public key in `jwk`, and sign the token with the matching private key. The signature is internally consistent, so a naive verifier accepts it.
+
+For more details, you can refer to the [jwtop documentation on JWK Injection](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-jwk-injection).
+
+## Example
+
+An application expects tokens signed with `RS256` and verified against a fixed public key. If it is vulnerable, an attacker can:
+
+1. Generate a fresh RSA key pair.
+2. Build a token with the desired claims and a header containing `"jwk": { ...attacker public key... }`.
+3. Sign it with the attacker's private key.
+4. Send the forged token; the server verifies it with the embedded key and accepts it.
+
+## How to test?
+
+If you want to test only the "JWT JWK Header Injection" vulnerability, you can use the following command:
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.jwk_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.jwk_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.jwk_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+This check only runs when the token under test uses an asymmetric algorithm and a live server is available.
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+- **Full Authentication Bypass**: An attacker can forge tokens for any user, including administrative accounts.
+- **Account Takeover**: Impersonating any user in the system.
+- **Unauthorized Access**: Access to sensitive data and privileged functionality.
+
+## How to remediate?
+
+- **Ignore token-supplied keys**: Never resolve the verification key from the `jwk`, `jku`, `x5c`, or `x5u` header. Use a key or key set configured out of band.
+- **Allowlist key identifiers**: If key rotation is needed, resolve `kid` against a trusted, server-side key set.
+- **Strict Algorithm Enforcement**: Always pin the expected algorithm(s) when verifying a JWT.

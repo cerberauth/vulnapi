@@ -1,0 +1,77 @@
+---
+title: Injection d'en-tête JKU JWT
+description: La vulnérabilité d'injection d'en-tête JKU survient lorsqu'un serveur récupère l'URL de l'en-tête jku du token et fait confiance au JWKS renvoyé, au lieu de valider jku avec une liste d'autorisation.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/346.html">CWE-346: Origin Validation Error</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/194.html">CAPEC-194: Fake the Source of Data</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Injection d'en-tête JKU JWT » survient lorsqu'un serveur lit l'en-tête `jku` (URL du jeu de clés JWK) d'un token entrant, récupère le document JWKS à cette URL et l'utilise pour vérifier la signature. Comme l'attaquant contrôle l'en-tête, il peut pointer `jku` vers un serveur qu'il possède, servant une clé publique qu'il a générée. C'est aussi une primitive de falsification de requête côté serveur (SSRF), puisque la cible effectue une requête sortante vers une URL choisie par l'attaquant.
+
+Pour plus de détails, consultez la [documentation jwtop sur l'injection JKU](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-jku-injection).
+
+## Exemple
+
+1. L'attaquant héberge un document JWKS contenant sa propre clé publique.
+2. Il construit un token avec les revendications souhaitées et un en-tête `"jku": "https://attacker.example/jwks.json"`.
+3. Il le signe avec la clé privée correspondante.
+4. Le serveur récupère le JWKS de l'attaquant, vérifie la signature avec celui-ci et accepte le token.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Injection d'en-tête JKU JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.jku_injection
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.jku_injection
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.jku_injection [url]
+```
+  </TabItem>
+</Tabs>
+
+Ce contrôle nécessite une cible en ligne capable d'atteindre un serveur de rappel exécuté par le scanner ; il ne s'exécute donc que lorsque le token utilise un algorithme asymétrique et qu'une adresse de rappel joignable a été configurée.
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../).
+
+## Quel est l'impact ?
+
+- **Contournement total de l'authentification** : un attaquant peut falsifier des tokens pour n'importe quel utilisateur, y compris les comptes d'administration.
+- **Falsification de requête côté serveur (SSRF)** : la cible peut être forcée à effectuer des requêtes sortantes vers des URL choisies par l'attaquant.
+- **Usurpation de compte** : se faire passer pour n'importe quel utilisateur du système.
+
+## Comment corriger ?
+
+- **Ignorer les URL fournies dans le token** : ne récupérez jamais de clés à partir des en-têtes `jku` ou `x5u`. Utilisez un jeu de clés configuré hors bande.
+- **Liste d'autorisation des points de terminaison de clés** : si la récupération dynamique est nécessaire, validez `jku` avec une liste d'autorisation stricte d'URL connues et de confiance.
+- **Application stricte de l'algorithme** : fixez toujours le ou les algorithmes attendus lors de la vérification d'un JWT.

@@ -1,0 +1,87 @@
+---
+title: JWT Psychic Signature
+description: The JWT Psychic Signature vulnerability occurs when a server accepts ECDSA-signed tokens whose signature is entirely zero (r=0, s=0), per CVE-2022-21449.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVEs</th>
+    <td>
+      <a href="https://www.cve.org/CVERecord?id=CVE-2022-21449">CVE-2022-21449</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/347.html">CWE-347: Improper Verification of Cryptographic Signature</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/475.html">CAPEC-475: Signature Spoofing by Improper Validation</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+The "JWT Psychic Signature" vulnerability (also known as the "Psychic Signature" attack, CVE-2022-21449) affects JWT verification code that uses a broken ECDSA implementation. An all-zero signature (`r = 0`, `s = 0`) is mathematically invalid, but affected implementations — notably Java 15 through 18 — accept it for any message and any public key. An attacker can therefore forge any ECDSA-signed token (`ES256`, `ES384`, `ES512`) without knowing the private key.
+
+For more details, you can refer to the [jwtop documentation on Psychic Signature](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-psychic-signature).
+
+## Example
+
+An application issues tokens signed with `ES256`. If it is vulnerable, an attacker can:
+
+1. Take any header and payload (for example, one claiming `"sub": "admin"`).
+2. Set the signature segment to an encoding of `r = 0`, `s = 0`.
+3. Send the forged token to the server.
+
+The broken verifier returns "valid" and the server trusts the forged claims.
+
+## How to test?
+
+If you want to test only the "JWT Psychic Signature" vulnerability, you can use the following command:
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.psychic_signature
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.psychic_signature
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.psychic_signature [url]
+```
+  </TabItem>
+</Tabs>
+
+This check only runs when the token under test uses an ECDSA algorithm (`ES256`, `ES384`, `ES512`) and a live server is available.
+
+VulnAPI supports scanning against various types of other [vulnerabilities](../) as well.
+
+## What is the impact?
+
+- **Full Authentication Bypass**: An attacker can forge tokens for any user, including administrative accounts.
+- **Account Takeover**: Impersonating any user in the system without knowing any key.
+- **Unauthorized Access**: Access to sensitive data and privileged functionality.
+
+## How to remediate?
+
+- **Patch the runtime**: Update to a fixed JVM (Java 17.0.3 / 18.0.1 or later) or the fixed version of whatever crypto library performs ECDSA verification.
+- **Reject degenerate signatures**: Ensure the verifier rejects signatures where `r` or `s` is zero or out of range.
+- **Strict Algorithm Enforcement**: Always pin the expected algorithm(s) when verifying a JWT.
+- **Add test coverage**: Include an all-zero-signature token in your authentication test suite.

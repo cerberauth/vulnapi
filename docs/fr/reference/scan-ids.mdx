@@ -26,7 +26,15 @@ vulnapi scan curl ... --exclude-scans "discover.*"
 | `jwt.kid_injection` | Injection d'en-tête JWT KID (injection SQL et traversée de chemin) | API2:2023 | 9.3 |
 | `jwt.not_verified` | Signature JWT non vérifiée | API2:2023 | 9.3 |
 | `jwt.null_signature` | Signature JWT nulle | API2:2023 | Élevé |
+| `jwt.hmac_confusion` | Confusion d'algorithme JWT (HMAC confusion) | API2:2023 | 9.3 |
+| `jwt.psychic_signature` | Signature psychique JWT (CVE-2022-21449) | API2:2023 | 9.3 |
+| `jwt.jwk_injection` | Injection d'en-tête `jwk` JWT | API2:2023 | 9.3 |
+| `jwt.jku_injection` | Injection d'en-tête `jku` JWT | API2:2023 | 9.3 |
+| `jwt.x5c_injection` | Injection d'en-tête `x5c` JWT | API2:2023 | 9.3 |
+| `jwt.x5u_injection` | Injection d'en-tête `x5u` JWT | API2:2023 | 9.3 |
 | `generic.accept_unauthenticated_operation` | Le endpoint accepte les requêtes non authentifiées | API2:2023 | 9.3 |
+
+Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Chaque contrôle ne s'exécute que lorsqu'il s'applique au token testé : les contrôles HMAC uniquement (`jwt.blank_secret`, `jwt.weak_secret`) sont ignorés pour les tokens asymétriques, les contrôles asymétriques uniquement (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) sont ignorés pour les tokens HMAC, et `jwt.psychic_signature` ne s'exécute que pour les tokens ECDSA. `jwt.jku_injection` et `jwt.x5u_injection` nécessitent en plus une adresse de serveur de rappel joignable par la cible et sont ignorés lorsqu'aucune n'est configurée.
 
 ## Security Misconfiguration
 

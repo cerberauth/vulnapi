@@ -48,6 +48,18 @@ Some JWT libraries accept tokens whose signature segment is empty (null signatur
 
 VulnAPI detects this with the [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature) scan.
 
+## Never Resolve Keys From the Token Header
+
+The verification key must come from server-side configuration, never from the token itself. An attacker controls every header, so trusting `jwk`, `jku`, `x5c`, or `x5u` lets them sign with a key they generated. If key rotation is required, resolve `kid` against a trusted, server-side key set and — where dynamic retrieval is unavoidable — validate `jku`/`x5u` against a strict allowlist of known URLs.
+
+VulnAPI detects these with the [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt-x5c-injection), and [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt-x5u-injection) scans.
+
+## Enforce a Single Expected Algorithm Family
+
+Pin the exact algorithm(s) you expect. Accepting the token's `alg` header enables the [algorithm confusion](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) attack (asymmetric token re-signed as HMAC with the public key) and, for ECDSA verifiers on vulnerable runtimes, the [psychic signature](../vulnerabilities/broken-authentication/jwt-psychic-signature) attack (CVE-2022-21449).
+
+VulnAPI detects these with the [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) and [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt-psychic-signature) scans.
+
 ## Validate Standard Claims
 
 After verifying the signature, validate these claims before trusting any payload data:

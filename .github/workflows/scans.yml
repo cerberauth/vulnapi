@@ -156,6 +156,12 @@ jobs:
             checkID: "null_signature"
           - challenge: "jwt-weak-hmac-secret"
             checkID: "weak_secret"
+          - challenge: "jwt-jwk-header-injection"
+            checkID: "jwt.jwk_injection"
+          - challenge: "jwt-psychic-signature"
+            checkID: "jwt.psychic_signature"
+          - challenge: "jwt-x5c-x5u-header-injection"
+            checkID: "jwt.x5c_injection"
 
     steps:
       - uses: actions/checkout@v7
