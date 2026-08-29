@@ -57,9 +57,12 @@ Toutes les commandes `scan` et `discover` partagent ces options. Les options du 
 | `--report-url <url>` | `` | URL vers laquelle envoyer le rapport (avec `--report-transport http`) |
 | `--no-progress` | `false` | Désactiver la barre de progression |
 | `--severity-threshold <score>` | `1.0` | Seuil CVSS au-dessus duquel la sortie est aussi écrite sur stderr |
+| `--only-scans-above-threshold` | `false` | N'exécute que les contrôles pouvant atteindre `--severity-threshold` ; échoue sur n'importe quel résultat puisque tous peuvent l'atteindre |
 
 > **Déprécié :** `--rate-limit` (`-r`) a été remplacé par `--rate`. L'ancienne option est toujours acceptée en tant qu'alias.
 
 ## Comportement de sortie
 
 Lorsqu'au moins un résultat a un score CVSS supérieur à `--severity-threshold`, VulnAPI écrit la sortie sur **stderr** en plus de stdout. Cela déclenche automatiquement les patterns `|| exit 1` et les contrôles d'échec en CI/CD. Le seuil par défaut est `1.0`, ce qui signifie que tout résultat avec un CVSS > 1.0 déclenche une sortie sur stderr.
+
+Ajoutez `--only-scans-above-threshold` pour ignorer avant l'analyse tout contrôle qui ne pourrait pas atteindre ce seuil. Puisque tous les contrôles exécutés peuvent alors l'atteindre, VulnAPI échoue sur n'importe quel résultat.
