@@ -1,12 +1,12 @@
 module github.com/cerberauth/vulnapi
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.16.0
 	github.com/cerberauth/cobracurl v0.4.2
 	github.com/cerberauth/harnessx v0.4.0
-	github.com/cerberauth/jwtop v0.6.0
+	github.com/cerberauth/jwtop v0.7.0
 	github.com/cerberauth/reportx v0.3.0
 	github.com/cerberauth/x v0.0.0-20260823211232-caf625c6fed2
 	github.com/getkin/kin-openapi v0.149.0
