@@ -1,0 +1,87 @@
+name: VAmPI Scan
+
+on:
+  push:
+    branches:
+      - main
+      - vampi-scan
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.27"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build VulnAPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: go build -o vulnapi main.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulnapi
+          path: vulnapi
+          retention-days: 1
+
+  scan-vampi:
+    name: Scan VAmPI
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Run VAmPI
+        run: docker run -d -p 5000:5000 -e vulnerable=1 erev0s/vampi:latest
+
+      - name: Wait for VAmPI
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:5000/openapi.json -o /dev/null; then
+              echo "VAmPI is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "VAmPI did not become ready"
+          exit 1
+
+      - name: Populate database
+        run: curl -sf http://127.0.0.1:5000/createdb
+
+      - name: Download binary
+        uses: actions/download-artifact@v8
+        with:
+          name: vulnapi
+
+      - name: VulnAPI
+        id: vulnapi
+        continue-on-error: true
+        run: |
+          chmod +x vulnapi
+          ./vulnapi scan openapi http://127.0.0.1:5000/openapi.json --rate 500/s --no-progress --sqa-opt-out
+
+      - name: Fail if no vulnerabilities found
+        if: ${{ steps.vulnapi.outcome != 'failure' }}
+        run: |
+          echo "Expected vulnerabilities not found"
+          exit 1
+
+      - name: Stop VAmPI
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=erev0s/vampi:latest)
