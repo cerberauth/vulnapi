@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   GO_VERSION: "1.27"
@@ -66,7 +67,7 @@ jobs:
         id: vulnapi
         run: |
           chmod +x vulnapi
-          ./vulnapi discover api http://localhost:8080 --rate 500/s --sqa-opt-out
+          ./vulnapi discover api http://localhost:8080 --rate 500/s --no-progress --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -90,7 +91,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome == 'failure' }}
@@ -127,7 +128,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl ${{ matrix.challenge.url }} --sqa-opt-out
+          ./vulnapi scan curl ${{ matrix.challenge.url }} --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome == 'failure' }}
@@ -190,7 +191,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome != 'failure' }}
@@ -229,7 +230,7 @@ jobs:
         id: vulnapi
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -263,7 +264,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome != 'failure' }}
@@ -303,7 +304,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "generic.accept_unauthenticated_operation" --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome != 'failure' }}
@@ -342,7 +343,7 @@ jobs:
         id: vulnapi
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --no-progress --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -448,9 +449,9 @@ jobs:
         run: |
           chmod +x vulnapi
           if [ "${{ matrix.challenge }}" = "misconfiguration.http_method_override" ]; then
-            ./vulnapi scan curl ${{ matrix.url }} -H "Authorization: Bearer valid-token" ${{ matrix.scans }} --sqa-opt-out
+            ./vulnapi scan curl ${{ matrix.url }} -H "Authorization: Bearer valid-token" ${{ matrix.scans }} --no-progress --sqa-opt-out
           else
-            ./vulnapi scan curl ${{ matrix.url }} ${{ matrix.scans }} --sqa-opt-out
+            ./vulnapi scan curl ${{ matrix.url }} ${{ matrix.scans }} --no-progress --sqa-opt-out
           fi
 
       - name: Check for vulnerabilities
@@ -498,7 +499,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --sqa-opt-out
+          ./vulnapi scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         if: ${{ steps.vulnapi.outcome != 'failure' }}
@@ -556,9 +557,9 @@ jobs:
         run: |
           chmod +x vulnapi
           if [ "${{ matrix.openapi }}" = "simple_no_scheme.openapi.json" ]; then
-            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --severity-threshold 0 --sqa-opt-out
+            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --severity-threshold 0 --rate 500/s --no-progress --sqa-opt-out
           else
-            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --sqa-opt-out
+            ./vulnapi scan openapi ./test/stub/${{ matrix.openapi }} --rate 500/s --no-progress --sqa-opt-out
           fi
 
       - name: Check for vulnerabilities
