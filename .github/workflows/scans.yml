@@ -135,7 +135,7 @@ jobs:
         run: echo "Bad SSL found in ${{ matrix.challenge.name }}"
 
   run-jwt-scans:
-    name: JWT Scans
+    name: JWT Scans ${{ matrix.challenge }} (vulnerable=${{ matrix.vulnerable }})
     runs-on: ubuntu-latest
     needs: build
 
@@ -145,24 +145,64 @@ jobs:
         include:
           - challenge: "jwt-alg-none-bypass"
             checkID: "alg_none"
+            vulnerable: true
+          - challenge: "jwt-alg-none-bypass"
+            checkID: "alg_none"
+            vulnerable: false
           - challenge: "jwt-blank-secret"
             checkID: "blank_secret"
+            vulnerable: true
+          - challenge: "jwt-blank-secret"
+            checkID: "blank_secret"
+            vulnerable: false
           - challenge: "jwt-kid-path-traversal"
             checkID: "kid_path_traversal"
+            vulnerable: true
+          - challenge: "jwt-kid-path-traversal"
+            checkID: "kid_path_traversal"
+            vulnerable: false
           - challenge: "jwt-kid-sql-injection"
             checkID: "kid_sql_injection"
+            vulnerable: true
+          - challenge: "jwt-kid-sql-injection"
+            checkID: "kid_sql_injection"
+            vulnerable: false
           - challenge: "jwt-not-verified"
             checkID: "no_verification"
+            vulnerable: true
+          - challenge: "jwt-not-verified"
+            checkID: "no_verification"
+            vulnerable: false
           - challenge: "jwt-null-signature"
             checkID: "null_signature"
+            vulnerable: true
+          - challenge: "jwt-null-signature"
+            checkID: "null_signature"
+            vulnerable: false
           - challenge: "jwt-weak-hmac-secret"
             checkID: "weak_secret"
+            vulnerable: true
+          - challenge: "jwt-weak-hmac-secret"
+            checkID: "weak_secret"
+            vulnerable: false
           - challenge: "jwt-jwk-header-injection"
             checkID: "jwt.jwk_injection"
+            vulnerable: true
+          - challenge: "jwt-jwk-header-injection"
+            checkID: "jwt.jwk_injection"
+            vulnerable: false
           - challenge: "jwt-psychic-signature"
             checkID: "jwt.psychic_signature"
+            vulnerable: true
+          - challenge: "jwt-psychic-signature"
+            checkID: "jwt.psychic_signature"
+            vulnerable: false
           - challenge: "jwt-x5c-x5u-header-injection"
             checkID: "jwt.x5c_injection"
+            vulnerable: true
+          - challenge: "jwt-x5c-x5u-header-injection"
+            checkID: "jwt.x5c_injection"
+            vulnerable: false
 
     steps:
       - uses: actions/checkout@v7
@@ -175,11 +215,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest serve --vulnerable=${{ matrix.vulnerable }}
 
       - name: Get JWT
         id: get-jwt
-        run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest jwt)" >> $GITHUB_OUTPUT
+        run: echo "jwt=$(docker run --rm ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest jwt --vulnerable=${{ matrix.vulnerable }})" >> $GITHUB_OUTPUT
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -194,10 +234,18 @@ jobs:
           ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outcome != 'failure' }}
         run: |
-          echo "Expected vulnerability not found"
-          exit 1
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "${{ steps.vulnapi.outcome }}" != "failure" ]; then
+              echo "Expected vulnerability not found"
+              exit 1
+            fi
+          else
+            if [ "${{ steps.vulnapi.outcome }}" = "failure" ]; then
+              echo "Unexpected vulnerability found on the fixed, non-vulnerable server"
+              exit 1
+            fi
+          fi
 
       - name: Stop Server
         if: ${{ always() }}
@@ -219,7 +267,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest serve --vulnerable=false
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -237,9 +285,14 @@ jobs:
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/strong-api-key:latest)
 
   run-header-api-key-scan:
-    name: API Key in header Scan
+    name: API Key in header Scan (vulnerable=${{ matrix.vulnerable }})
     runs-on: ubuntu-latest
     needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        vulnerable: [true, false]
 
     steps:
       - uses: actions/checkout@v7
@@ -252,7 +305,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest serve --vulnerable=${{ matrix.vulnerable }}
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -267,19 +320,32 @@ jobs:
           ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outcome != 'failure' }}
         run: |
-          echo "Expected vulnerability not found"
-          exit 1
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "${{ steps.vulnapi.outcome }}" != "failure" ]; then
+              echo "Expected vulnerability not found"
+              exit 1
+            fi
+          else
+            if [ "${{ steps.vulnapi.outcome }}" = "failure" ]; then
+              echo "Unexpected vulnerability found on the fixed, non-vulnerable server"
+              exit 1
+            fi
+          fi
 
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest)
 
   run-bearer-api-key-scan:
-    name: Bearer API Key Scan
+    name: Bearer API Key Scan (vulnerable=${{ matrix.vulnerable }})
     runs-on: ubuntu-latest
     needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        vulnerable: [true, false]
 
     steps:
       - uses: actions/checkout@v7
@@ -292,7 +358,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/auth-not-verified:latest serve --vulnerable=${{ matrix.vulnerable }}
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -307,10 +373,18 @@ jobs:
           ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outcome != 'failure' }}
         run: |
-          echo "Expected vulnerability not found"
-          exit 1
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "${{ steps.vulnapi.outcome }}" != "failure" ]; then
+              echo "Expected vulnerability not found"
+              exit 1
+            fi
+          else
+            if [ "${{ steps.vulnapi.outcome }}" = "failure" ]; then
+              echo "Unexpected vulnerability found on the fixed, non-vulnerable server"
+              exit 1
+            fi
+          fi
 
       - name: Stop Server
         if: ${{ always() }}
@@ -332,7 +406,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest serve --vulnerable=false
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -350,7 +424,7 @@ jobs:
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/strong-http-basic:latest)
 
   run-http-misconfigurations-scans:
-    name: HTTP Misconfigurations Scans
+    name: HTTP Misconfigurations Scans (vulnerable=${{ matrix.vulnerable }})
     runs-on: ubuntu-latest
     needs: build
 
@@ -358,8 +432,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # This challenge's baseline "/" endpoint never sets any of these
+          # headers, regardless of --vulnerable, so there is no fixed
+          # counterpart to scan in not-vulnerable mode.
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080"
+            vulnerable: true
             scans: >-
               --scans "misconfiguration.http_headers_hsts_missing"
               --scans "misconfiguration.http_headers_csp_missing"
@@ -370,16 +448,26 @@ jobs:
               --scans "misconfiguration.http_headers_cors_wildcard"
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080/headers/cors-wildcard"
+            vulnerable: true
             scans: >-
               --scans "misconfiguration.http_headers_hsts_missing"
               --scans "misconfiguration.http_headers_csp_missing"
               --scans "misconfiguration.http_headers_csp_frame_ancestors_missing"
               --scans "misconfiguration.http_headers_frame_options_missing"
               --scans "misconfiguration.http_headers_content_options_missing"
+              --scans "misconfiguration.http_headers_cors_missing"
+              --scans "misconfiguration.http_headers_cors_wildcard"
+          # Only the CORS header toggles with --vulnerable on this endpoint,
+          # so the not-vulnerable scan is restricted to the CORS checks.
+          - challenge: "misconfiguration.http_headers"
+            url: "http://localhost:8080/headers/cors-wildcard"
+            vulnerable: false
+            scans: >-
               --scans "misconfiguration.http_headers_cors_missing"
               --scans "misconfiguration.http_headers_cors_wildcard"
           - challenge: "misconfiguration.http_headers"
             url: "http://localhost:8080/headers/csp-frame-ancestors"
+            vulnerable: true
             scans: >-
               --scans "misconfiguration.http_headers_hsts_missing"
               --scans "misconfiguration.http_headers_csp_missing"
@@ -388,8 +476,26 @@ jobs:
               --scans "misconfiguration.http_headers_content_options_missing"
               --scans "misconfiguration.http_headers_cors_missing"
               --scans "misconfiguration.http_headers_cors_wildcard"
+          # Only the CSP header toggles with --vulnerable on this endpoint,
+          # so the not-vulnerable scan is restricted to the CSP checks.
+          - challenge: "misconfiguration.http_headers"
+            url: "http://localhost:8080/headers/csp-frame-ancestors"
+            vulnerable: false
+            scans: >-
+              --scans "misconfiguration.http_headers_csp_missing"
+              --scans "misconfiguration.http_headers_csp_frame_ancestors_missing"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/unsecure"
+            vulnerable: true
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
+          - challenge: "misconfiguration.http_cookies"
+            url: "http://localhost:8080/cookies/unsecure"
+            vulnerable: false
             scans: >-
               --scans "misconfiguration.http_cookies_not_http_only"
               --scans "misconfiguration.http_cookies_not_secure"
@@ -398,6 +504,16 @@ jobs:
               --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/not-httponly"
+            vulnerable: true
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
+          - challenge: "misconfiguration.http_cookies"
+            url: "http://localhost:8080/cookies/not-httponly"
+            vulnerable: false
             scans: >-
               --scans "misconfiguration.http_cookies_not_http_only"
               --scans "misconfiguration.http_cookies_not_secure"
@@ -406,6 +522,16 @@ jobs:
               --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/samesite-none"
+            vulnerable: true
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
+          - challenge: "misconfiguration.http_cookies"
+            url: "http://localhost:8080/cookies/samesite-none"
+            vulnerable: false
             scans: >-
               --scans "misconfiguration.http_cookies_not_http_only"
               --scans "misconfiguration.http_cookies_not_secure"
@@ -414,6 +540,16 @@ jobs:
               --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_cookies"
             url: "http://localhost:8080/cookies/no-expiration"
+            vulnerable: true
+            scans: >-
+              --scans "misconfiguration.http_cookies_not_http_only"
+              --scans "misconfiguration.http_cookies_not_secure"
+              --scans "misconfiguration.http_cookies_same_site_none"
+              --scans "misconfiguration.http_cookies_without_expires"
+              --scans "misconfiguration.http_cookies_without_same_site"
+          - challenge: "misconfiguration.http_cookies"
+            url: "http://localhost:8080/cookies/no-expiration"
+            vulnerable: false
             scans: >-
               --scans "misconfiguration.http_cookies_not_http_only"
               --scans "misconfiguration.http_cookies_not_secure"
@@ -422,6 +558,12 @@ jobs:
               --scans "misconfiguration.http_cookies_without_same_site"
           - challenge: "misconfiguration.http_method_override"
             url: "http://localhost:8080/http-method-override"
+            vulnerable: true
+            scans: >-
+              --scans "misconfiguration.http_method_override"
+          - challenge: "misconfiguration.http_method_override"
+            url: "http://localhost:8080/http-method-override"
+            vulnerable: false
             scans: >-
               --scans "misconfiguration.http_method_override"
 
@@ -436,7 +578,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest serve --vulnerable=${{ matrix.vulnerable }}
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -455,17 +597,25 @@ jobs:
           fi
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outcome != 'failure' }}
         run: |
-          echo "Expected vulnerability not found"
-          exit 1
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "${{ steps.vulnapi.outcome }}" != "failure" ]; then
+              echo "Expected vulnerability not found"
+              exit 1
+            fi
+          else
+            if [ "${{ steps.vulnapi.outcome }}" = "failure" ]; then
+              echo "Unexpected vulnerability found on the fixed, non-vulnerable server"
+              exit 1
+            fi
+          fi
 
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/http-misconfigurations:latest)
 
   run-graphql-scans:
-    name: GraphQL Scans
+    name: GraphQL Scans (vulnerable=${{ matrix.vulnerable }})
     runs-on: ubuntu-latest
     needs: build
 
@@ -475,6 +625,10 @@ jobs:
         include:
           - challenge: "graphql.introspection_enabled"
             url: "http://localhost:4000/graphql"
+            vulnerable: true
+          - challenge: "graphql.introspection_enabled"
+            url: "http://localhost:4000/graphql"
+            vulnerable: false
 
     steps:
       - uses: actions/checkout@v7
@@ -487,7 +641,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Server
-        run: docker run -d -p 4000:4000 ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
+        run: docker run -d -p 4000:4000 -e VULNERABLE=${{ matrix.vulnerable }} ghcr.io/cerberauth/api-vulns-challenges/apollo:latest
 
       - name: Download binary
         uses: actions/download-artifact@v8
@@ -502,10 +656,18 @@ jobs:
           ./vulnapi scan graphql ${{ matrix.url }} --scans "${{ matrix.challenge }}" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
-        if: ${{ steps.vulnapi.outcome != 'failure' }}
         run: |
-          echo "Expected vulnerability not found"
-          exit 1
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "${{ steps.vulnapi.outcome }}" != "failure" ]; then
+              echo "Expected vulnerability not found"
+              exit 1
+            fi
+          else
+            if [ "${{ steps.vulnapi.outcome }}" = "failure" ]; then
+              echo "Unexpected vulnerability found on the fixed, non-vulnerable server"
+              exit 1
+            fi
+          fi
 
       - name: Stop Server
         if: ${{ always() }}
