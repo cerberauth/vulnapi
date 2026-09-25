@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cerberauth/cobracurl"
+	"github.com/cerberauth/harnessx"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
@@ -96,7 +97,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			client = client.WithHeader(headers).WithCookies(cookies)
 			request.SetDefaultClient(client)
 
-			s, err := scenario.NewOpenAPIScan(ctx, doc, securitySchemesValues, client, &scan.ScanOptions{
+			engine := harnessx.New()
+			s, err := scenario.NewOpenAPIScan(ctx, engine, doc, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 				MinSeverity:  internalCmd.GetMinSeverity(),

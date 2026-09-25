@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
@@ -15,7 +16,7 @@ import (
 	wellknown "github.com/cerberauth/vulnapi/scan/discover/well-known"
 )
 
-func NewDiscoverAPIScan(method string, u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewDiscoverAPIScan(engine *harnessx.Engine, method string, u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if u == nil {
 		return nil, errors.New("url is required")
 	}
@@ -35,7 +36,7 @@ func NewDiscoverAPIScan(method string, u *url.URL, client *request.Client, opts 
 	}
 
 	operations := operation.Operations{op}
-	urlScan, err := scan.NewScan(operations, opts)
+	urlScan, err := scan.NewScan(engine, operations, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/cerberauth/cobracurl"
+	"github.com/cerberauth/harnessx"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -49,7 +50,8 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
 
-			s, err := scenario.NewDiscoverAPIScan(http.MethodGet, parsedUrl, client, &scan.ScanOptions{
+			engine := harnessx.New()
+			s, err := scenario.NewDiscoverAPIScan(engine, http.MethodGet, parsedUrl, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

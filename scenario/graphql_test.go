@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -20,7 +21,7 @@ func TestNewGraphQLScan(t *testing.T) {
 	defer server.Close()
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewGraphQLScan(u, nil, nil)
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
@@ -36,7 +37,7 @@ func TestNewGraphQLScanWithoutURLProto(t *testing.T) {
 	u, _ := url.Parse(server.URL)
 	u.Scheme = ""
 
-	s, err := scenario.NewGraphQLScan(u, nil, nil)
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, "http", s.Operations[0].URL.Scheme)
@@ -47,7 +48,7 @@ func TestNewGraphQLScanWithoutURLProto(t *testing.T) {
 func TestNewGraphQLScanWhenNotReachable(t *testing.T) {
 	u, _ := url.Parse("http://localhost:8009")
 
-	_, err := scenario.NewGraphQLScan(u, nil, nil)
+	_, err := scenario.NewGraphQLScan(harnessx.New(), u, nil, nil)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")
@@ -67,7 +68,7 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewGraphQLScan(u, client, nil)
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -89,7 +90,7 @@ func TestNewGraphQLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *tes
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewGraphQLScan(u, client, nil)
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -109,7 +110,7 @@ func TestNewGraphQLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewGraphQLScan(u, client, nil)
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)

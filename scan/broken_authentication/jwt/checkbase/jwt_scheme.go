@@ -1,8 +1,4 @@
-// Package jwtcheck holds what vulnapi's JWT delegation to jwtop needs that
-// jwtop itself has no concept of: deciding whether a resource's security
-// scheme is a JWT bearer token worth scanning, and pulling the
-// *operation.Operation back out of a harnessx.Resource.
-package jwtcheck
+package checkbase
 
 import (
 	"context"
@@ -12,6 +8,8 @@ import (
 	"github.com/cerberauth/vulnapi/internal/operation"
 )
 
+// ShouldBeScanned reports whether securityScheme is a JWT bearer token
+// worth running jwtop's checks against.
 func ShouldBeScanned(securityScheme *auth.SecurityScheme) bool {
 	return securityScheme != nil && securityScheme.GetType() != auth.None &&
 		securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == auth.JWTTokenFormat
@@ -21,6 +19,8 @@ func operationOf(resource harnessx.Resource) (*operation.Operation, bool) {
 	return harnessx.ResourceDataAs[*operation.Operation](resource)
 }
 
+// SkipUnlessJWT skips a resource unless its security scheme is a JWT
+// bearer token.
 func SkipUnlessJWT() harnessx.SkipDecision {
 	return harnessx.SkipResourceWhen(func(_ context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) string {
 		op, ok := operationOf(resource)
@@ -34,6 +34,7 @@ func SkipUnlessJWT() harnessx.SkipDecision {
 	})
 }
 
+// Operation pulls the *operation.Operation back out of resource.
 func Operation(resource harnessx.Resource) (*operation.Operation, bool) {
 	return operationOf(resource)
 }

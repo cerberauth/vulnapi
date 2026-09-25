@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ func TestNewDiscoverScan(t *testing.T) {
 	defer server.Close()
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, u, nil, nil)
+	s, err := scenario.NewDiscoverAPIScan(harnessx.New(), http.MethodGet, u, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
@@ -33,7 +34,7 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 	u, _ := url.Parse(server.URL)
 	u.Scheme = ""
 
-	s, err := scenario.NewDiscoverAPIScan(http.MethodGet, u, nil, nil)
+	s, err := scenario.NewDiscoverAPIScan(harnessx.New(), http.MethodGet, u, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, "http", s.Operations[0].URL.Scheme)
@@ -43,7 +44,7 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 func TestNewDiscoverScanWhenNotReachable(t *testing.T) {
 	u, _ := url.Parse("http://localhost:8009")
 
-	_, err := scenario.NewDiscoverAPIScan(http.MethodGet, u, nil, nil)
+	_, err := scenario.NewDiscoverAPIScan(harnessx.New(), http.MethodGet, u, nil, nil)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")

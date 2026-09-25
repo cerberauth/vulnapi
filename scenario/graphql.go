@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -12,7 +13,7 @@ import (
 	introspectionenabled "github.com/cerberauth/vulnapi/scan/graphql/introspection_enabled"
 )
 
-func NewGraphQLScan(u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewGraphQLScan(engine *harnessx.Engine, u *url.URL, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if u == nil {
 		return nil, errors.New("url is required")
 	}
@@ -53,7 +54,7 @@ func NewGraphQLScan(u *url.URL, client *request.Client, opts *scan.ScanOptions) 
 	}
 
 	operations := operation.Operations{op}
-	graphqlScan, err := scan.NewScan(operations, opts)
+	graphqlScan, err := scan.NewScan(engine, operations, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/cerberauth/cobracurl"
+	"github.com/cerberauth/harnessx"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
@@ -75,7 +76,8 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			internalCmd.SetSeverityThreshold(severityThreshold)
 			internalCmd.SetOnlyScansAboveThreshold(onlyScansAboveThreshold)
 
-			s, err := scenario.NewURLScan(req.Method, req.URL, curlData, client, &scan.ScanOptions{
+			engine := harnessx.New()
+			s, err := scenario.NewURLScan(engine, req.Method, req.URL, curlData, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.FilterScans(includeScans),
 				ExcludeScans: internalCmd.FilterScans(excludeScans),
 				MinSeverity:  internalCmd.GetMinSeverity(),

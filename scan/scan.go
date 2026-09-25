@@ -35,6 +35,8 @@ type ScanOptions struct {
 type Scan struct {
 	*ScanOptions
 
+	Engine *harnessx.Engine
+
 	Operations      operation.Operations
 	OperationsScans []OperationScan
 
@@ -52,7 +54,10 @@ const (
 	otelScanHandlerIdAttribute    = attribute.Key("id")
 )
 
-func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) {
+func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *ScanOptions) (*Scan, error) {
+	if engine == nil {
+		return nil, fmt.Errorf("a scan must have an engine")
+	}
 	if len(operations) == 0 {
 		return nil, fmt.Errorf("a scan must have at least one operation")
 	}
@@ -74,6 +79,8 @@ func NewScan(operations operation.Operations, opts *ScanOptions) (*Scan, error) 
 
 	return &Scan{
 		ScanOptions: opts,
+
+		Engine: engine,
 
 		Operations:      operations,
 		OperationsScans: []OperationScan{},
@@ -125,10 +132,6 @@ func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
 	}
 	if def != nil {
 		s.checkDefs[check.ID] = *def
-		// Mirror the classification onto the harnessx.Check itself so
-		// harnessx.WithMinCVSSScore (see runOptions) can filter on it
-		// directly, even for checks built as a raw harnessx.Check{}
-		// literal instead of via checkdef.NewCheck.
 		check.CVSSVector = def.CVSSVector
 		check.CVSSScore = def.CVSSScore
 		check.CWEID = def.CWEID
@@ -153,17 +156,14 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	}
 
 	loaderCheck := newOperationsLoaderCheck(s.Operations)
-	checks := append([]harnessx.Check{loaderCheck}, s.harnessxChecks...)
-
-	engine := harnessx.New(
-		harnessx.WithReporters(adapter),
-	)
-	if err := engine.Register(checks...); err != nil {
-		return adapter.Report(), nil, err
-	}
+	checks := s.filterChecks(append([]harnessx.Check{loaderCheck}, s.harnessxChecks...))
 
 	target := harnessx.Target{URL: s.Operations[0].URL.String()}
-	summary, err := engine.Run(ctx, target, s.runOptions()...)
+	scenario := harnessx.Scenario{
+		Checks:    checks,
+		Reporters: []harnessx.Reporter{adapter},
+	}
+	summary, err := s.Engine.RunScenario(ctx, target, scenario)
 	if err != nil {
 		return adapter.Report(), nil, err
 	}
@@ -225,30 +225,77 @@ func (s *Scan) matchesIncludeScans(scanID string) bool {
 	return false
 }
 
-// runOptions translates --scans/--exclude-scans/MinSeverity into harnessx
-// RunOptions for Execute. --scans/--exclude-scans become a WithFilter
-// wrapping shouldAddScan, and MinSeverity a WithFilter on CVSSScore (checks
-// carry their static CVSSScore directly — mirrored from def in AddCheck —
-// so no lookup into checkDefs is needed here). Both predicates always keep
-// internal (data-provider) checks: harnessx.RunOption already preserves the
-// transitive DependsOn closure of whatever passes the filters, so a
-// dependency stays even if it wouldn't pass on its own — but a run whose
-// filters match nothing would otherwise drop even the loader and error with
-// ErrNoChecks, which internal checks are never meant to be subject to.
-func (s *Scan) runOptions() []harnessx.RunOption {
-	var opts []harnessx.RunOption
-	if len(s.IncludeScans) > 0 || len(s.ExcludeScans) > 0 {
-		opts = append(opts, harnessx.WithFilter(func(c harnessx.Check) bool {
-			return isInternalCheckID(string(c.ID)) || s.shouldAddScan(string(c.ID))
-		}))
+// filterChecks translates --scans/--exclude-scans/MinSeverity into the
+// checks passed to Engine.RunScenario. Unlike harnessx.Engine.Run,
+// RunScenario runs scenario.Checks as-is with no built-in filtering, so
+// Scan applies --scans/--exclude-scans (via shouldAddScan) and MinSeverity
+// (checks carry their static CVSSScore directly — mirrored from def in
+// AddCheck — so no lookup into checkDefs is needed here) itself, keeping
+// internal (data-provider) checks unconditionally and pulling in the
+// transitive DependsOn closure of whatever's kept — otherwise a kept check
+// could depend on one that got filtered out and fail with
+// harnessx.ErrUnknownDependency, and a run whose filters match nothing would
+// drop even the loader and error with harnessx.ErrNoChecks, which internal
+// checks are never meant to be subject to.
+func (s *Scan) filterChecks(checks []harnessx.Check) []harnessx.Check {
+	hasScanFilter := len(s.IncludeScans) > 0 || len(s.ExcludeScans) > 0
+	hasSeverityFilter := s.MinSeverity != nil
+	if !hasScanFilter && !hasSeverityFilter {
+		return checks
 	}
-	if s.MinSeverity != nil {
-		min := *s.MinSeverity
-		opts = append(opts, harnessx.WithFilter(func(c harnessx.Check) bool {
-			return isInternalCheckID(string(c.ID)) || c.CVSSScore >= min
-		}))
+
+	byID := make(map[harnessx.CheckID]harnessx.Check, len(checks))
+	for _, c := range checks {
+		byID[c.ID] = c
 	}
-	return opts
+
+	keep := func(c harnessx.Check) bool {
+		if isInternalCheckID(string(c.ID)) {
+			return true
+		}
+		if hasScanFilter && !s.shouldAddScan(string(c.ID)) {
+			return false
+		}
+		if hasSeverityFilter && c.CVSSScore < *s.MinSeverity {
+			return false
+		}
+		return true
+	}
+
+	selected := make(map[harnessx.CheckID]struct{}, len(checks))
+	for _, c := range checks {
+		if keep(c) {
+			selected[c.ID] = struct{}{}
+		}
+	}
+
+	queue := make([]harnessx.CheckID, 0, len(selected))
+	for id := range selected {
+		queue = append(queue, id)
+	}
+	for len(queue) > 0 {
+		id := queue[len(queue)-1]
+		queue = queue[:len(queue)-1]
+		c, ok := byID[id]
+		if !ok {
+			continue
+		}
+		for _, dep := range c.DependsOn {
+			if _, has := selected[dep]; has {
+				continue
+			}
+			selected[dep] = struct{}{}
+			queue = append(queue, dep)
+		}
+	}
+
+	filtered := make([]harnessx.Check, 0, len(selected))
+	for _, c := range checks {
+		if _, ok := selected[c.ID]; ok {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
 }
 
 func contains(slice []string, item string) bool {

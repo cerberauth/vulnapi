@@ -3,7 +3,20 @@ package scenario
 import (
 	"github.com/cerberauth/vulnapi/scan"
 	authenticationbypass "github.com/cerberauth/vulnapi/scan/broken_authentication/authentication_bypass"
-	jwtscan "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt"
+	jwtalgnone "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/alg_none"
+	jwtblanksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/blank_secret"
+	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
+	jwthmacconfusion "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/hmac_confusion"
+	jwtjkuinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jku_injection"
+	jwtjwkinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jwk_injection"
+	jwtkidpathtraversal "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/kid_path_traversal"
+	jwtkidsqlinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/kid_sql_injection"
+	jwtnoverification "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/no_verification"
+	jwtnullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
+	jwtpsychicsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/psychic_signature"
+	jwtweaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
+	jwtx5cinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/x5c_injection"
+	jwtx5uinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/x5u_injection"
 	acceptunauthenticated "github.com/cerberauth/vulnapi/scan/discover/accept_unauthenticated"
 	fingerprint "github.com/cerberauth/vulnapi/scan/discover/fingerprint"
 	httpcookiesfetch "github.com/cerberauth/vulnapi/scan/misconfiguration/http_cookies_fetch"
@@ -31,7 +44,22 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 
 	s.AddCheck(acceptunauthenticated.Check, &acceptunauthenticated.Def)
 	s.AddCheck(authenticationbypass.Check, &authenticationbypass.Def)
-	jwtscan.WithJWTChecks(s)
+
+	s.AddCheck(jwtcheckbase.ProbeCtxCheck, nil)
+	s.AddCheck(jwtcheckbase.BaselineCheck, nil)
+	s.AddCheck(jwtnoverification.Check, &jwtnoverification.Def)
+	s.AddCheck(jwtalgnone.Check, &jwtalgnone.Def)
+	s.AddCheck(jwtblanksecret.Check, &jwtblanksecret.Def)
+	s.AddCheck(jwtnullsignature.Check, &jwtnullsignature.Def)
+	s.AddCheck(jwthmacconfusion.Check, &jwthmacconfusion.Def)
+	s.AddCheck(jwtpsychicsignature.Check, &jwtpsychicsignature.Def)
+	s.AddCheck(jwtkidsqlinjection.Check, &jwtkidsqlinjection.Def)
+	s.AddCheck(jwtkidpathtraversal.Check, &jwtkidpathtraversal.Def)
+	s.AddCheck(jwtjwkinjection.Check, &jwtjwkinjection.Def)
+	s.AddCheck(jwtjkuinjection.Check, &jwtjkuinjection.Def)
+	s.AddCheck(jwtx5cinjection.Check, &jwtx5cinjection.Def)
+	s.AddCheck(jwtx5uinjection.Check, &jwtx5uinjection.Def)
+	s.AddCheck(jwtweaksecret.Check, &jwtweaksecret.Def)
 
 	s.AddCheck(httpcookiesfetch.Check, nil)
 	s.AddCheck(httpcookiesnothttponly.Check, &httpcookiesnothttponly.Def)
