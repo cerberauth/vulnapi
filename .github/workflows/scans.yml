@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - shared-engine
   workflow_dispatch:
 
 env:
