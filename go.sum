@@ -8,8 +8,8 @@ github.com/cerberauth/cobracurl v0.4.2 h1:Dwre+jDdvoEx8P+xzETvx5/vloPJpN9YbHXYyJ
 github.com/cerberauth/cobracurl v0.4.2/go.mod h1:HcsHr+1cbYf+8Yav+zdsh1whBSn8fvJ6rmqcU0HiaC4=
 github.com/cerberauth/harnessx v0.4.1 h1:q4F0fdHWxVm7ntxYKfh2PIyOwBEi02yKommAb65SDzA=
 github.com/cerberauth/harnessx v0.4.1/go.mod h1:CPUs+OKTAUgG9ZRcgSufRoRzjQ2oPLWZcFmck6pGDDs=
-github.com/cerberauth/jwtop v0.7.0 h1:4owQ1alW9hevQHtDXfC8mDGU4hBZNk8mLThJMqGlpBE=
-github.com/cerberauth/jwtop v0.7.0/go.mod h1:luvBWP4vhOe2R5JomKItOWpeCJcOz9NqCa/33g7LlAY=
+github.com/cerberauth/jwtop v0.8.0 h1:SlhiskdBz+8GHNEfQg0LhJfbQSnP4Lt23v8j8BE+7A4=
+github.com/cerberauth/jwtop v0.8.0/go.mod h1:BgXFjN71xc9cLL2/GenkeUPYw+0mBRShAKCrQwj1mBc=
 github.com/cerberauth/reportx v0.3.0 h1:/6zrKrCUiMy1ZkF3sAit0Xk8mSiAf11on9NlHbtXKxc=
 github.com/cerberauth/reportx v0.3.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20260901215913-9d7750841dbb h1:p8scU5jV+4nyq6CXRPHnCaB22d9DeyaFmubXeNGT47o=

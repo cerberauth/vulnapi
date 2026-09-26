@@ -203,6 +203,24 @@ jobs:
           - challenge: "jwt-x5c-x5u-header-injection"
             checkID: "jwt.x5c_injection"
             vulnerable: false
+          - challenge: "jwt-claim-type-confusion"
+            checkID: "jwt.fuzz"
+            vulnerable: true
+          - challenge: "jwt-claim-type-confusion"
+            checkID: "jwt.fuzz"
+            vulnerable: false
+          - challenge: "jwt-claim-oversized-value"
+            checkID: "jwt.fuzz"
+            vulnerable: true
+          - challenge: "jwt-claim-oversized-value"
+            checkID: "jwt.fuzz"
+            vulnerable: false
+          - challenge: "jwt-claim-special-chars"
+            checkID: "jwt.fuzz"
+            vulnerable: true
+          - challenge: "jwt-claim-special-chars"
+            checkID: "jwt.fuzz"
+            vulnerable: false
 
     steps:
       - uses: actions/checkout@v7

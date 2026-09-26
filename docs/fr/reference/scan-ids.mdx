@@ -32,9 +32,10 @@ vulnapi scan curl ... --exclude-scans "discover.*"
 | `jwt.jku_injection` | Injection d'en-tête `jku` JWT | API2:2023 | 9.3 |
 | `jwt.x5c_injection` | Injection d'en-tête `x5c` JWT | API2:2023 | 9.3 |
 | `jwt.x5u_injection` | Injection d'en-tête `x5u` JWT | API2:2023 | 9.3 |
+| `jwt.fuzz` | Fuzzing des claims JWT | API8:2023 | 5.4 |
 | `generic.accept_unauthenticated_operation` | Le endpoint accepte les requêtes non authentifiées | API2:2023 | 9.3 |
 
-Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Chaque contrôle ne s'exécute que lorsqu'il s'applique au token testé : les contrôles HMAC uniquement (`jwt.blank_secret`, `jwt.weak_secret`) sont ignorés pour les tokens asymétriques, les contrôles asymétriques uniquement (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) sont ignorés pour les tokens HMAC, et `jwt.psychic_signature` ne s'exécute que pour les tokens ECDSA. `jwt.jku_injection` et `jwt.x5u_injection` nécessitent en plus une adresse de serveur de rappel joignable par la cible et sont ignorés lorsqu'aucune n'est configurée.
+Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Chaque contrôle ne s'exécute que lorsqu'il s'applique au token testé : les contrôles HMAC uniquement (`jwt.blank_secret`, `jwt.weak_secret`) sont ignorés pour les tokens asymétriques, les contrôles asymétriques uniquement (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) sont ignorés pour les tokens HMAC, et `jwt.psychic_signature` ne s'exécute que pour les tokens ECDSA. `jwt.jku_injection` et `jwt.x5u_injection` nécessitent en plus une adresse de serveur de rappel joignable par la cible et sont ignorés lorsqu'aucune n'est configurée. `jwt.fuzz` mute chaque claim (confusion de type, chaînes trop longues, caractères spéciaux, valeur nulle) et signale les réponses qui divergent d'une référence capturée avec le token original ; lorsque `jwt.weak_secret` casse un secret HMAC au préalable, les tokens mutés sont re-signés avec ce secret pour que le fuzzing atteigne aussi les gestionnaires qui vérifient la signature.
 
 ## Security Misconfiguration
 

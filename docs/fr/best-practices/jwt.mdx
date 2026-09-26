@@ -74,6 +74,12 @@ Après avoir vérifié la signature, valisez ces revendications avant de faire c
 
 Le fait de ne pas valider `iss` et `aud` permet des [attaques par relais inter-services](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
 
+## Valider le type et la longueur des revendications avant utilisation
+
+Ne présumez pas qu'une revendication que vous attendez comme courte chaîne l'est réellement — une revendication décodée directement dans la logique applicative (un template, une requête SQL, une commande shell) sans vérification de son type ou de sa longueur peut faire planter le serveur, fuiter une trace de pile, ou permettre une injection si elle arrive sous un type inattendu, une chaîne trop longue, ou `null`.
+
+VulnAPI détecte cela avec l'analyse [`jwt.fuzz`](../vulnerabilities/broken-authentication/jwt-claim-fuzzing), qui mute chaque revendication et signale les réponses qui divergent de la référence.
+
 ## Utiliser des durées de vie de jeton courtes avec rotation des jetons de rafraîchissement (Refresh Tokens)
 
 Les jetons d'accès à courte durée de vie limitent les dommages causés par un jeton volé :

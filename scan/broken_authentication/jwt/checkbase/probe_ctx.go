@@ -14,6 +14,7 @@ import (
 	"github.com/cerberauth/jwtop/jwt/crack/checkbase"
 	"github.com/cerberauth/jwtop/jwt/editor"
 	"github.com/cerberauth/jwtop/jwt/exploit"
+	"github.com/cerberauth/jwtop/jwt/fuzz"
 )
 
 // ProbeCtxCheckID is the CheckID every check directory's Adapt call
@@ -42,11 +43,13 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 	}
 
 	return &checkbase.ProbeCtx{
-		TokenString:   tokenString,
-		Probe:         probe.New(probe.WithTransport(op.Transport), probe.WithTimeout(op.Timeout)),
-		Candidates:    exploit.WeakSecrets(),
-		TokenLocation: checkbase.DefaultTokenLocation(),
-		KidSQLTable:   exploit.DefaultKidSQLTable,
+		TokenString:      tokenString,
+		Probe:            probe.New(probe.WithTransport(op.Transport), probe.WithTimeout(op.Timeout)),
+		Candidates:       exploit.WeakSecrets(),
+		TokenLocation:    checkbase.DefaultTokenLocation(),
+		KidSQLTable:      exploit.DefaultKidSQLTable,
+		FuzzEnabled:      true,
+		FuzzMaxStringLen: fuzz.DefaultMaxStringLen,
 	}, nil
 }
 
