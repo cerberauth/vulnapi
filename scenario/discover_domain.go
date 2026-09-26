@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scan"
@@ -117,7 +118,7 @@ func testFqdnReachable(fqdn string, client *request.Client) (*operation.Operatio
 	return nil, nil
 }
 
-func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *scan.ScanOptions) ([]*scan.Scan, error) {
+func NewDiscoverDomainsScan(engine *harnessx.Engine, rootDomain string, client *request.Client, opts *scan.ScanOptions) ([]*scan.Scan, error) {
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
@@ -130,7 +131,7 @@ func NewDiscoverDomainsScan(rootDomain string, client *request.Client, opts *sca
 	domainsScan := []*scan.Scan{}
 	for _, domain := range domains {
 		if op, err := testFqdnReachable(domain, client); op != nil && err == nil {
-			domainScan, err := scan.NewScan(operation.Operations{op}, opts)
+			domainScan, err := scan.NewScan(engine, operation.Operations{op}, opts)
 			if err != nil {
 				return nil, err
 			}

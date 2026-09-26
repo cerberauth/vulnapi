@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -20,7 +21,7 @@ func TestNewURLScan(t *testing.T) {
 	defer server.Close()
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewURLScan(http.MethodGet, u, "", nil, nil)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, server.URL, s.Operations[0].URL.String())
@@ -42,7 +43,7 @@ func TestNewURLScanWithUpperCaseAuthorizationHeader(t *testing.T) {
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewURLScan(http.MethodGet, u, "", client, nil)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -64,7 +65,7 @@ func TestNewURLScanWithUpperCaseAuthorizationAndLowerCaseBearerHeader(t *testing
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewURLScan(http.MethodGet, u, "", client, nil)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -84,7 +85,7 @@ func TestNewURLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewURLScan(http.MethodGet, u, "", client, nil)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
@@ -126,7 +127,7 @@ func TestNewURLScanWithAPIKeyInHeader(t *testing.T) {
 			})
 			u, _ := url.Parse(server.URL)
 
-			s, err := scenario.NewURLScan(http.MethodGet, u, "", client, nil)
+			s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, nil)
 
 			require.NoError(t, err)
 			assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAPIKeySecurityScheme(tt.name, auth.InHeader, &apiKey)}, s.Operations[0].SecuritySchemes)
@@ -150,7 +151,7 @@ func TestNewURLScanWithHTTPBasic(t *testing.T) {
 	})
 	u, _ := url.Parse(server.URL)
 
-	s, err := scenario.NewURLScan(http.MethodGet, u, "", client, nil)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBasicSecurityScheme("default", credentials)}, s.Operations[0].SecuritySchemes)

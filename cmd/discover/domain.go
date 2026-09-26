@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/cerberauth/cobracurl"
+	"github.com/cerberauth/harnessx"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -40,7 +41,8 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 			client = client.WithHeader(headers).WithCookies(cookies)
 
 			fmt.Printf("Discovering APIs for %s\n", domain)
-			scans, err := scenario.NewDiscoverDomainsScan(domain, client, &scan.ScanOptions{
+			engine := harnessx.New()
+			scans, err := scenario.NewDiscoverDomainsScan(engine, domain, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})

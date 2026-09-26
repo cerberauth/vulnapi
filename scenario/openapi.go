@@ -3,12 +3,13 @@ package scenario
 import (
 	"context"
 
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scan"
 )
 
-func NewOpenAPIScan(ctx context.Context, openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
+func NewOpenAPIScan(ctx context.Context, engine *harnessx.Engine, openapi *openapi.OpenAPI, securitySchemesValues *openapi.SecuritySchemeValues, client *request.Client, opts *scan.ScanOptions) (*scan.Scan, error) {
 	if client == nil {
 		client = request.GetDefaultClient()
 	}
@@ -40,7 +41,7 @@ func NewOpenAPIScan(ctx context.Context, openapi *openapi.OpenAPI, securitySchem
 		opts.Title = "OpenAPI Scan"
 	}
 
-	openapiScan, err := scan.NewScan(operations, opts)
+	openapiScan, err := scan.NewScan(engine, operations, opts)
 	if err != nil {
 		return nil, err
 	}

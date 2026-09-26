@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewScanWithNoOperations(t *testing.T) {
-	_, err := scan.NewScan(operation.Operations{}, nil)
+	_, err := scan.NewScan(harnessx.New(), operation.Operations{}, nil)
 
 	require.Error(t, err)
 }
@@ -24,7 +24,7 @@ func TestNewScan(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 
-	s, err := scan.NewScan(operations, nil)
+	s, err := scan.NewScan(harnessx.New(), operations, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, operations, s.Operations)
@@ -38,7 +38,7 @@ func TestNewScanWithOptions(t *testing.T) {
 		Title: "custom title",
 	}
 
-	s, err := scan.NewScan(operations, opts)
+	s, err := scan.NewScan(harnessx.New(), operations, opts)
 
 	require.NoError(t, err)
 	assert.Equal(t, operations, s.Operations)
@@ -49,7 +49,7 @@ func TestNewScanWithOptions(t *testing.T) {
 func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
 
 	operationsScans := s.GetOperationsScans()
 
@@ -59,7 +59,7 @@ func TestScanGetOperationsScansWhenEmpty(t *testing.T) {
 func TestScanGetOperationsScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
 	s.AddCheck(harnessx.Check{
 		ID:    "test-handler",
 		Scope: harnessx.ScopePerResource,
@@ -76,7 +76,7 @@ func TestScanGetOperationsScans(t *testing.T) {
 func TestScanExecuteWithNoHandlers(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
 
 	report, errs, err := s.Execute(context.TODO(), nil)
 
@@ -88,7 +88,7 @@ func TestScanExecuteWithNoHandlers(t *testing.T) {
 func TestScanExecuteWithHandler(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, nil)
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
 	s.AddCheck(harnessx.Check{
 		ID:    "test-handler",
 		Scope: harnessx.ScopePerResource,
@@ -108,7 +108,7 @@ func TestScanExecuteWithHandler(t *testing.T) {
 func TestScanExecuteWithIncludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"test-handler"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -130,7 +130,7 @@ func TestScanExecuteWithIncludeScans(t *testing.T) {
 func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{""},
 	})
 	s.AddCheck(harnessx.Check{
@@ -152,7 +152,7 @@ func TestScanExecuteWithEmptyStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"category.*"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -174,7 +174,7 @@ func TestScanExecuteWithMatchStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"wrong-category.*"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -195,7 +195,7 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 func TestScanExecuteWithExcludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		ExcludeScans: []string{"test-handler"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -216,7 +216,7 @@ func TestScanExecuteWithExcludeScans(t *testing.T) {
 func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		ExcludeScans: []string{"category.*"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -237,7 +237,7 @@ func TestScanExecuteWithMatchStringExcludeScans(t *testing.T) {
 func TestScanExecuteWithWrongMatchStringExcludeScans(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		ExcludeScans: []string{"wrong-category.*"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -261,7 +261,7 @@ func TestScanExecuteWithLegacyAliasExcludeScans(t *testing.T) {
 
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		ExcludeScans: []string{"old-handler-id-exclude"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -284,7 +284,7 @@ func TestScanExecuteWithLegacyAliasIncludeScans(t *testing.T) {
 
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"old-handler-id-include"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -310,7 +310,7 @@ func TestScanExecuteWithLegacyAliasIncludeScans(t *testing.T) {
 func TestScanExecuteWithIncludeScansKeepsDependency(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"dependent-handler"},
 	})
 	s.AddCheck(harnessx.Check{
@@ -342,7 +342,7 @@ func TestScanExecuteWithMinSeverityFiltersLowSeverityChecks(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	minSeverity := 5.0
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		MinSeverity: &minSeverity,
 	})
 	s.AddCheck(harnessx.Check{
@@ -375,7 +375,7 @@ func TestScanExecuteWithMinSeverityKeepsLowSeverityDependency(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	minSeverity := 5.0
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		MinSeverity: &minSeverity,
 	})
 	s.AddCheck(harnessx.Check{
@@ -407,7 +407,7 @@ func TestScanExecuteWithMinSeverityKeepsLowSeverityDependency(t *testing.T) {
 func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
-	s, _ := scan.NewScan(operations, &scan.ScanOptions{
+	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
 		IncludeScans: []string{"no-such-check"},
 	})
 	s.AddCheck(harnessx.Check{

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/openapi"
 	"github.com/cerberauth/vulnapi/scenario"
@@ -49,7 +50,7 @@ func TestNewOpenAPIScanWithHttpBearer(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), harnessx.New(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -66,7 +67,7 @@ func TestNewOpenAPIScanWithJWTHttpBearer(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), harnessx.New(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(s.Operations))
@@ -85,7 +86,7 @@ func TestNewOpenAPIScanWithMultipleOperations(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), harnessx.New(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
@@ -104,7 +105,7 @@ func TestNewOpenAPIScanWithoutParamsExample(t *testing.T) {
 		"bearer_auth": &token,
 	})
 
-	s, err := scenario.NewOpenAPIScan(t.Context(), doc, securitySchemeValues, nil, nil)
+	s, err := scenario.NewOpenAPIScan(t.Context(), harnessx.New(), doc, securitySchemeValues, nil, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.Operations))
