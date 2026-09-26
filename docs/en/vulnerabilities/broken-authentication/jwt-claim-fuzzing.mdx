@@ -1,0 +1,102 @@
+---
+title: JWT Claim Fuzzing
+description: A vulnerability where a server crashes, leaks a stack trace, or otherwise behaves erratically when a JWT claim contains an unexpected type, an oversized string, special characters, or a null value.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Severity</th>
+    <td>Medium</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      * [CWE-20: Improper Input Validation](https://cwe.mitre.org/data/definitions/20.html)
+      * [CAPEC-28: Fuzzing](https://capec.mitre.org/data/definitions/28.html)
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      [OWASP API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+    </td>
+  </tr>
+</table>
+
+APIs that decode JWT claims into typed fields (structs, ORMs, template variables, SQL parameters, ...) don't always validate a claim's type or length before using it. If a claim that's normally a short string arrives as a number, an array, an oversized string, or `null`, the server may throw an unhandled exception, leak a stack trace, or respond very differently in size — all signs the claim was consumed without validation, and a starting point for further exploitation (denial of service, information disclosure, or worse if the value reaches a template engine, SQL query, or shell).
+
+For more details, you can refer to the [jwtop documentation on Claim Fuzzing](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-claim-fuzzing/).
+
+Unlike the other JWT vulnerabilities documented here, this isn't a single crafted exploit but a fuzzing pass: every claim is mutated with a battery of edge-case values and each response is compared against a reference response captured from the original, unmutated token.
+
+## What are the different scenarios?
+
+- **Type confusion**: a claim that's normally a string, number, or boolean is replaced with a different JSON type — a number, a float, a boolean, an array, or an object.
+- **Oversized string**: a claim is replaced with a very long string (10,000 characters by default) to probe for buffer or allocation issues.
+- **Special characters**: a claim is replaced with a payload exercising common injection and encoding edge cases — SQL injection, XSS, path traversal, null bytes, format strings, CRLF injection, Unicode direction overrides, and command injection.
+- **Null value**: a claim is replaced with a literal JSON `null`.
+
+## Example
+
+Given a token with the claim `"sub": "user123"`, VulnAPI tries mutations such as:
+
+```json
+"sub": ["user123"]
+"sub": 1337
+"sub": {"a":"b"}
+"sub": true
+"sub": "AAAA..."   // 10,000 characters
+"sub": "' OR '1'='1"
+"sub": "<script>alert(1)</script>"
+"sub": "../../../../etc/passwd"
+"sub": "${7*7}{{7*7}}"
+"sub": null
+```
+
+Each mutated token is sent to the target and the response is compared against the reference response captured from the original token. A mutation is flagged when:
+
+- the response status is `5xx`
+- the response body matches a known stack-trace/unhandled-exception signature (e.g. `Traceback (most recent call last)`, `panic: ... goroutine`, `NullPointerException`, `Whitelabel Error Page`, ...)
+- the response body length differs from the reference by more than 50%
+
+If the [JWT Weak Secret](./jwt-weak-secret) check cracks an HMAC secret first, mutated tokens are re-signed with it, so the fuzzing also reaches handlers that verify the signature rather than only rejecting it outright.
+
+## How to test?
+
+If you want to test only the "JWT Claim Fuzzing" vulnerability, you can use the following command:
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.fuzz
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.fuzz
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.fuzz [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI supports scanning against various types of other JWT vulnerabilities as well.
+
+## What is the impact?
+
+- **Denial of service**: an unhandled exception on every request carrying a malformed claim can crash a worker process or exhaust resources on an oversized value.
+- **Information disclosure**: a leaked stack trace can reveal internal file paths, framework/library versions, database schema, or other details useful for further attacks.
+- **Downstream injection**: if a claim value reaches a SQL query, shell command, or template engine without sanitization, the special-character payloads used here are a starting point for SQL injection, command injection, or server-side template injection.
+
+## How to remediate?
+
+1. **Validate claim types and lengths** after decoding, before using them — don't assume a claim you expect to be a short string actually is one.
+2. **Use a schema or typed struct** to decode claims (many JWT libraries support this) so an unexpected type fails decoding cleanly instead of propagating into application logic.
+3. **Return generic error responses** for malformed input — never let a stack trace or exception message reach the client.
+4. **Bound claim sizes** at the API gateway or middleware layer (e.g. reject requests where the token or an individual claim exceeds a sane length) before they reach application code.
+5. **Sanitize/parameterize** any claim value used in a SQL query, shell command, template, or log line, the same as any other untrusted user input.

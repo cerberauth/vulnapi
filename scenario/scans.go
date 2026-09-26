@@ -6,6 +6,7 @@ import (
 	jwtalgnone "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/alg_none"
 	jwtblanksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/blank_secret"
 	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
+	jwtfuzz "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/fuzz"
 	jwthmacconfusion "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/hmac_confusion"
 	jwtjkuinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jku_injection"
 	jwtjwkinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jwk_injection"
@@ -60,6 +61,7 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(jwtx5cinjection.Check, &jwtx5cinjection.Def)
 	s.AddCheck(jwtx5uinjection.Check, &jwtx5uinjection.Def)
 	s.AddCheck(jwtweaksecret.Check, &jwtweaksecret.Def)
+	s.AddCheck(jwtfuzz.Check, &jwtfuzz.Def)
 
 	s.AddCheck(httpcookiesfetch.Check, nil)
 	s.AddCheck(httpcookiesnothttponly.Check, &httpcookiesnothttponly.Def)

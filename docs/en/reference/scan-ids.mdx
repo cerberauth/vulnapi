@@ -32,9 +32,10 @@ vulnapi scan curl ... --exclude-scans "discover.*"
 | `jwt.jku_injection` | JWT `jku` Header Injection | API2:2023 | 9.3 |
 | `jwt.x5c_injection` | JWT `x5c` Header Injection | API2:2023 | 9.3 |
 | `jwt.x5u_injection` | JWT `x5u` Header Injection | API2:2023 | 9.3 |
+| `jwt.fuzz` | JWT Claim Fuzzing | API8:2023 | 5.4 |
 | `generic.accept_unauthenticated_operation` | Endpoint Accepts Unauthenticated Requests | API2:2023 | 9.3 |
 
-The JWT checks are powered by [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Each check only runs when it applies to the token under test: HMAC-only checks (`jwt.blank_secret`, `jwt.weak_secret`) are skipped for asymmetric tokens, asymmetric-only checks (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) are skipped for HMAC tokens, and `jwt.psychic_signature` only runs for ECDSA tokens. `jwt.jku_injection` and `jwt.x5u_injection` additionally require a callback server address the target can reach and are skipped when none is configured.
+The JWT checks are powered by [CerberAuth JWTop](https://github.com/cerberauth/jwtop). Each check only runs when it applies to the token under test: HMAC-only checks (`jwt.blank_secret`, `jwt.weak_secret`) are skipped for asymmetric tokens, asymmetric-only checks (`jwt.hmac_confusion`, `jwt.jwk_injection`, `jwt.jku_injection`, `jwt.x5c_injection`, `jwt.x5u_injection`) are skipped for HMAC tokens, and `jwt.psychic_signature` only runs for ECDSA tokens. `jwt.jku_injection` and `jwt.x5u_injection` additionally require a callback server address the target can reach and are skipped when none is configured. `jwt.fuzz` mutates every claim (type confusion, oversized strings, special characters, null) and flags responses that diverge from a baseline captured with the original token; when `jwt.weak_secret` cracks an HMAC secret first, mutated tokens are re-signed with it so the fuzzing also reaches handlers that verify the signature.
 
 ## Security Misconfiguration
 

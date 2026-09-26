@@ -1,0 +1,102 @@
+---
+title: Fuzzing des claims JWT
+description: Une vulnérabilité où un serveur plante, fuit une trace de pile, ou se comporte de façon erratique lorsqu'un claim JWT contient un type inattendu, une chaîne trop longue, des caractères spéciaux, ou une valeur nulle.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Moyenne</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      * [CWE-20: Improper Input Validation](https://cwe.mitre.org/data/definitions/20.html)
+      * [CAPEC-28: Fuzzing](https://capec.mitre.org/data/definitions/28.html)
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      [OWASP API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+    </td>
+  </tr>
+</table>
+
+Les API qui décodent les claims JWT dans des champs typés (structures, ORM, variables de template, paramètres SQL, ...) ne valident pas toujours le type ou la longueur d'un claim avant de l'utiliser. Si un claim normalement une courte chaîne arrive sous forme de nombre, de tableau, de chaîne trop longue, ou de `null`, le serveur peut lever une exception non gérée, fuiter une trace de pile, ou répondre avec une taille très différente — autant de signes que le claim a été consommé sans validation, et un point de départ pour d'autres exploitations (déni de service, divulgation d'informations, ou pire si la valeur atteint un moteur de template, une requête SQL, ou un shell).
+
+Pour plus de détails, consultez la [documentation jwtop sur le fuzzing des claims](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-claim-fuzzing/).
+
+Contrairement aux autres vulnérabilités JWT documentées ici, il ne s'agit pas d'un exploit unique mais d'une passe de fuzzing : chaque claim est muté avec une batterie de valeurs limites, et chaque réponse est comparée à une réponse de référence capturée à partir du token original, non muté.
+
+## Quels sont les différents scénarios ?
+
+- **Confusion de type** : un claim normalement une chaîne, un nombre, ou un booléen est remplacé par un type JSON différent — un nombre, un flottant, un booléen, un tableau, ou un objet.
+- **Chaîne trop longue** : un claim est remplacé par une chaîne très longue (10 000 caractères par défaut) pour détecter des problèmes de buffer ou d'allocation.
+- **Caractères spéciaux** : un claim est remplacé par une charge utile exploitant des cas limites d'injection et d'encodage courants — injection SQL, XSS, traversée de répertoire, octets nuls, chaînes de format, injection CRLF, inversions Unicode, et injection de commande.
+- **Valeur nulle** : un claim est remplacé par un littéral JSON `null`.
+
+## Exemple
+
+Pour un token avec le claim `"sub": "user123"`, VulnAPI essaie des mutations telles que :
+
+```json
+"sub": ["user123"]
+"sub": 1337
+"sub": {"a":"b"}
+"sub": true
+"sub": "AAAA..."   // 10 000 caractères
+"sub": "' OR '1'='1"
+"sub": "<script>alert(1)</script>"
+"sub": "../../../../etc/passwd"
+"sub": "${7*7}{{7*7}}"
+"sub": null
+```
+
+Chaque token muté est envoyé à la cible et la réponse est comparée à la réponse de référence capturée à partir du token original. Une mutation est signalée lorsque :
+
+- le statut de la réponse est `5xx`
+- le corps de la réponse correspond à une signature connue de trace de pile / exception non gérée (par exemple `Traceback (most recent call last)`, `panic: ... goroutine`, `NullPointerException`, `Whitelabel Error Page`, ...)
+- la longueur du corps de la réponse diffère de la référence de plus de 50 %
+
+Si la vérification [Secret JWT faible](./jwt-weak-secret) parvient à casser un secret HMAC au préalable, les tokens mutés sont re-signés avec ce secret, afin que le fuzzing atteigne aussi les gestionnaires qui vérifient la signature plutôt que de simplement rejeter le token.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Fuzzing des claims JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.fuzz
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.fuzz
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans jwt.fuzz [url]
+```
+  </TabItem>
+</Tabs>
+
+VulnAPI prend aussi en charge le scan d'autres types de vulnérabilités JWT.
+
+## Quel est l'impact ?
+
+- **Déni de service** : une exception non gérée sur chaque requête portant un claim malformé peut planter un worker ou épuiser les ressources sur une valeur trop longue.
+- **Divulgation d'informations** : une trace de pile fuitée peut révéler des chemins de fichiers internes, des versions de frameworks/bibliothèques, un schéma de base de données, ou d'autres détails utiles pour d'autres attaques.
+- **Injection en aval** : si une valeur de claim atteint une requête SQL, une commande shell, ou un moteur de template sans assainissement, les charges utiles à caractères spéciaux utilisées ici sont un point de départ pour l'injection SQL, l'injection de commande, ou l'injection de template côté serveur.
+
+## Comment corriger ?
+
+1. **Valider les types et longueurs des claims** après décodage, avant de les utiliser — ne présumez pas qu'un claim que vous attendez comme courte chaîne l'est réellement.
+2. **Utiliser un schéma ou une structure typée** pour décoder les claims (de nombreuses bibliothèques JWT le permettent) afin qu'un type inattendu échoue proprement au décodage plutôt que de se propager dans la logique applicative.
+3. **Retourner des réponses d'erreur génériques** pour les entrées malformées — ne laissez jamais une trace de pile ou un message d'exception atteindre le client.
+4. **Limiter la taille des claims** au niveau de la passerelle API ou du middleware (par exemple, rejeter les requêtes où le token ou un claim individuel dépasse une longueur raisonnable) avant qu'ils n'atteignent le code applicatif.
+5. **Assainir/paramétrer** toute valeur de claim utilisée dans une requête SQL, une commande shell, un template, ou une ligne de log, comme toute autre entrée non fiable.
