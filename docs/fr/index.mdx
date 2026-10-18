@@ -117,7 +117,7 @@ Consultez la [Référence de la CLI](./reference/cli) pour obtenir la documentat
 
 ## Télémétrie
 
-Le scanner collecte des données d'utilisation anonymes afin de contribuer à l'amélioration de l'outil. Ces données comprennent le nombre d'analyses effectuées, le nombre de vulnérabilités détectées et la sévérité de ces dernières. Aucune information sensible n'est collectée. Vous pouvez désactiver la télémétrie en transmettant le drapeau (flag) `--sqa-opt-out`.
+Le CLI collecte des données d'utilisation anonymes afin de contribuer à l'amélioration de l'outil : la commande exécutée, le nom (jamais la valeur) des options utilisées, le code de sortie et la durée de la commande, la version du CLI, le système d'exploitation et l'architecture, l'utilisation basique des ressources, le nombre de fois où une commande a été mal saisie (jamais ce que vous avez tapé), ainsi que quelques compteurs et durées qui ne contiennent jamais vos données : les opérations OpenAPI analysées (par méthode HTTP), les types de schémas de sécurité utilisés et le temps nécessaire pour construire les opérations. Les exécutions interactives incluent aussi un identifiant d'installation et de session aléatoire, le shell et l'émulateur de terminal utilisés (parmi une liste fixe) et si la sortie est redirigée ; les exécutions en CI sont totalement anonymes. Aucun jeton, aucune cible, aucun secret ni aucune autre donnée saisie n'est collecté. Vous pouvez désactiver la télémétrie avec le drapeau (flag) `--sqa-opt-out`, ou en définissant `DO_NOT_TRACK=1` (ou `ARGVIO_DISABLED=1`).
 
 ## Clause de non-responsabilité (Disclaimer)
 
