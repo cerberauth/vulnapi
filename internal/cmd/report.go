@@ -7,6 +7,7 @@ import (
 
 	"github.com/cerberauth/reportx"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
+	"github.com/cerberauth/x/telemetryx"
 	"github.com/spf13/cobra"
 )
 
@@ -68,19 +69,19 @@ func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report) err
 	return nil
 }
 
-// ExitIfFindings exits with status 1 if r has findings. When scansFiltered is
+// ExitIfFindings exits cmd with status 1 if r has findings. When scansFiltered is
 // true (the caller explicitly selected scans via --scans), any finding exits,
 // ignoring the severity threshold. Otherwise, only findings meeting the
 // severity threshold exit.
-func ExitIfFindings(r *reportx.Report, scansFiltered bool) {
+func ExitIfFindings(cmd *cobra.Command, r *reportx.Report, scansFiltered bool) {
 	if scansFiltered {
 		if len(r.Findings) > 0 {
-			os.Exit(1)
+			telemetryx.Exit(cmd, 1)
 		}
 		return
 	}
 
 	if highestCVSSScore(r) >= GetSeverityThreshold() {
-		os.Exit(1)
+		telemetryx.Exit(cmd, 1)
 	}
 }
