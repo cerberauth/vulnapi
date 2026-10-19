@@ -2,7 +2,6 @@ package discover
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/cerberauth/cobracurl"
 	"github.com/cerberauth/harnessx"
@@ -12,7 +11,6 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/metric"
 )
 
 func NewDomainCmd() (domainCmd *cobra.Command) {
@@ -21,22 +19,17 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 		Short: "Discover subdomains with API endpoints",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-			telemetryDiscoverDomainSuccessCounter, _ := telemetryMeter.Int64Counter("discover.domain.success.counter")
-			telemetryDiscoverDomainErrorCounter, _ := telemetryMeter.Int64Counter("discover.domain.error.counter")
 			ctx := cmd.Context()
 
 			domain := args[0]
 
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
-				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
 			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
 			if err != nil {
-				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error building request headers")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-building-request-headers"))
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
 
@@ -47,8 +40,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scan"))
 			}
 			fmt.Printf("Found %d Domains\n", len(scans))
 
@@ -69,16 +61,13 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					}
 				})
 				if err != nil {
-					telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error executing scan")))
-					log.Fatal(err)
+					telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scan"))
 				}
 
 				if err := internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
-					telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error printing report")))
-					log.Fatal(err)
+					telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
 				}
 
-				telemetryDiscoverDomainSuccessCounter.Add(ctx, 1)
 			}
 		},
 	}

@@ -10,9 +10,6 @@ import (
 	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/reportx"
 	"github.com/cerberauth/vulnapi/internal/operation"
-	"github.com/cerberauth/x/telemetryx"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 type ScanOptions struct {
@@ -42,17 +39,7 @@ type Scan struct {
 
 	harnessxChecks []harnessx.Check
 	checkDefs      map[harnessx.CheckID]checkdef.CheckDef
-
-	telemetryOperationScanHandler metric.Int64Counter
 }
-
-const (
-	otelName = "github.com/cerberauth/vulnapi/scan"
-
-	otelScanIncludeScansAttribute = attribute.Key("include_scans")
-	otelScanExcludeScansAttribute = attribute.Key("exclude_scans")
-	otelScanHandlerIdAttribute    = attribute.Key("id")
-)
 
 func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *ScanOptions) (*Scan, error) {
 	if engine == nil {
@@ -69,14 +56,6 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 		opts.Title = "Scan"
 	}
 
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
-	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
-	telemetryScanCounter.Add(context.Background(), 1, metric.WithAttributes(
-		otelScanIncludeScansAttribute.StringSlice(opts.IncludeScans),
-		otelScanExcludeScansAttribute.StringSlice(opts.ExcludeScans),
-	))
-
 	return &Scan{
 		ScanOptions: opts,
 
@@ -86,8 +65,6 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 		OperationsScans: []OperationScan{},
 		harnessxChecks:  []harnessx.Check{},
 		checkDefs:       map[harnessx.CheckID]checkdef.CheckDef{},
-
-		telemetryOperationScanHandler: telemetryOperationScanHandlerCounter,
 	}, nil
 }
 
@@ -116,18 +93,12 @@ func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
 					CheckName: check.Name,
 				})
 			}
-			s.telemetryOperationScanHandler.Add(context.Background(), int64(len(s.Operations)), metric.WithAttributes(
-				otelScanHandlerIdAttribute.String(string(check.ID)),
-			))
 		} else {
 			s.OperationsScans = append(s.OperationsScans, OperationScan{
 				Operation: s.Operations[0],
 				CheckID:   string(check.ID),
 				CheckName: check.Name,
 			})
-			s.telemetryOperationScanHandler.Add(context.Background(), 1, metric.WithAttributes(
-				otelScanHandlerIdAttribute.String(string(check.ID)),
-			))
 		}
 	}
 	if def != nil {

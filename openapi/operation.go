@@ -12,14 +12,6 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/getkin/kin-openapi/openapi3"
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go/v2"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
-)
-
-const (
-	otelMethodAttributeKey               = attribute.Key("method")
-	otelMediaTypeAttributeKey            = attribute.Key("media_type")
-	otelSecuritySchemesTypesAttributeKey = attribute.Key("security_schemes")
 )
 
 func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) []*auth.SecurityScheme {
@@ -58,28 +50,17 @@ func GetOperationPath(p string, params openapi3.Parameters) (string, error) {
 }
 
 func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, securitySchemes auth.SecuritySchemesMap) (operation.Operations, error) {
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetryPathCounter, _ := telemetryMeter.Int64Counter("openapi.path.counter")
-	telemetryOperationCounter, _ := telemetryMeter.Int64Counter("openapi.operation.counter")
-	telemetryOperationErrorCounter, _ := telemetryMeter.Int64Counter("openapi.operation.error.counter")
-	telemetryOperationHeadersCounter, _ := telemetryMeter.Int64Counter("openapi.operation.headers.counter")
-	telemetryOperationCookiesCounter, _ := telemetryMeter.Int64Counter("openapi.operation.cookies.counter")
 
 	baseUrl := openapi.BaseUrl()
 
 	operations := operation.Operations{}
 	for docPath, p := range openapi.Doc.Paths.Map() {
-		telemetryPathCounter.Add(ctx, 1)
 
 		for method, o := range p.Operations() {
-			var otelAttributes = []attribute.KeyValue{
-				otelMethodAttributeKey.String(method),
-			}
 
 			operationPath, err := GetOperationPath(docPath, o.Parameters)
 			if err != nil {
-				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid operation path"))...))
-				return nil, err
+				return nil, telemetryx.Reason(err, "invalid-operation-path")
 			}
 
 			operationUrl := *baseUrl
@@ -108,8 +89,6 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 					})
 				}
 			}
-			telemetryOperationHeadersCounter.Add(ctx, int64(len(header)), metric.WithAttributes(otelAttributes...))
-			telemetryOperationCookiesCounter.Add(ctx, int64(len(cookies)), metric.WithAttributes(otelAttributes...))
 
 			var body *bytes.Buffer
 			var mediaType string
@@ -121,12 +100,10 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 			} else {
 				body = bytes.NewBuffer(nil)
 			}
-			otelAttributes = append(otelAttributes, otelMediaTypeAttributeKey.String(mediaType))
 
 			operation, err := operation.NewOperation(method, operationUrl.String(), body, client)
 			if err != nil {
-				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("new operation error"))...))
-				return nil, err
+				return nil, telemetryx.Reason(err, "new-operation-error")
 			}
 			operation.WithOpenapiOperation(docPath, o)
 			operation.WithCookies(cookies).WithHeader(header)
@@ -137,14 +114,8 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 				operation.SetSecuritySchemes(getOperationSecuritySchemes(&openapi.Doc.Security, securitySchemes))
 			}
 
-			telemetrySecuritySchemesTypes := []string{}
-			for _, v := range operation.GetSecuritySchemes() {
-				telemetrySecuritySchemesTypes = append(telemetrySecuritySchemesTypes, string(v.GetType()))
-			}
-			otelAttributes = append(otelAttributes, otelSecuritySchemesTypesAttributeKey.StringSlice(telemetrySecuritySchemesTypes))
-
 			operations = append(operations, operation)
-			telemetryOperationCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
+			telemetryx.Counter(ctx, "openapi.operations", 1, telemetryx.Vocab(method, "get", "post", "put", "patch", "delete", "head", "options", "trace", "connect"))
 		}
 	}
 

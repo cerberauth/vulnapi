@@ -2,7 +2,6 @@ package scan
 
 import (
 	"io"
-	"log"
 
 	"github.com/cerberauth/cobracurl"
 	"github.com/cerberauth/harnessx"
@@ -14,12 +13,6 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
-)
-
-var (
-	methodAttributeKey = attribute.Key("method")
 )
 
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
@@ -38,37 +31,23 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			req, err := cobracurl.BuildRequest(cmd, args)
 			if err != nil {
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, err)
 			}
 
-			otelMethodAttribute := methodAttributeKey.String(req.Method)
-			otelIncludeScansAttribute := includeScansAttributeKey.StringSlice(internalCmd.FilterScans(includeScans))
-			otelExcludeScansAttribute := excludeScansAttributeKey.StringSlice(internalCmd.FilterScans(excludeScans))
-			otelAttributes := []attribute.KeyValue{
-				otelMethodAttribute,
-				otelIncludeScansAttribute,
-				otelExcludeScansAttribute,
-			}
-
-			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-			telemetryScanCurlSuccessCounter, _ := telemetryMeter.Int64Counter("scan.curl.success.counter")
-			telemetryScanCurlErrorCounter, _ := telemetryMeter.Int64Counter("scan.curl.error.counter")
 			ctx := cmd.Context()
 
 			var curlData string
 			if req.Body != nil {
 				bodyBytes, readErr := io.ReadAll(req.Body)
 				if readErr != nil {
-					telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error reading body"))...))
-					log.Fatal(readErr)
+					telemetryx.Fatal(cmd, telemetryx.Reason(readErr, "error-reading-body"))
 				}
 				curlData = string(bodyBytes)
 			}
 
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
-				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid client"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
 			client = client.WithHeader(req.Header).WithCookies(req.Cookies())
 			request.SetDefaultClient(client)
@@ -83,8 +62,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				MinSeverity:  internalCmd.GetMinSeverity(),
 			})
 			if err != nil {
-				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scenario"))
 			}
 
 			var bar *progressbar.ProgressBar
@@ -98,19 +76,15 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error executing scenario"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scenario"))
 			}
 
 			err = internalCmd.WriteReport(ctx, cmd, reporter)
 			if err != nil {
-				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
 			}
 
-			telemetryScanCurlSuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
-
-			internalCmd.ExitIfFindings(reporter, len(internalCmd.FilterScans(includeScans)) > 0 || onlyScansAboveThreshold)
+			internalCmd.ExitIfFindings(cmd, reporter, len(internalCmd.FilterScans(includeScans)) > 0 || onlyScansAboveThreshold)
 		},
 	}
 

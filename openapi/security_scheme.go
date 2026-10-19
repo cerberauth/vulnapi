@@ -8,8 +8,6 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/getkin/kin-openapi/openapi3"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -26,13 +24,6 @@ const (
 
 	// NoneScheme    string = "none"
 	// UnknownScheme string = "unknown"
-)
-
-const (
-	otelSchemeTypeAttributeKey   = attribute.Key("scheme_type")
-	otelSchemeSchemeAttributeKey = attribute.Key("scheme_scheme")
-	otelSchemeInAttributeKey     = attribute.Key("scheme_in")
-	otelSchemeBearerFormatKey    = attribute.Key("scheme_bearer_format")
 )
 
 func NewErrUnsupportedBearerFormat(bearerFormat string) error {
@@ -113,11 +104,6 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 	var err error
 	var securitySchemeValue interface{}
 
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetrySecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.counter")
-	telemetryUnsupportedSecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.unsupported.counter")
-	telemetrySecuritySchemeErrorCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.error.counter")
-
 	securitySchemes := map[string]*auth.SecurityScheme{}
 	for name, scheme := range openapi.Doc.Components.SecuritySchemes {
 		securitySchemeValue = values.Get(name)
@@ -128,12 +114,7 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		}
 
 		schemeType := strings.ToLower(scheme.Value.Type)
-		attributes := []attribute.KeyValue{
-			otelSchemeTypeAttributeKey.String(schemeType),
-			otelSchemeSchemeAttributeKey.String(strings.ToLower(scheme.Value.Scheme)),
-			otelSchemeInAttributeKey.String(strings.ToLower(scheme.Value.In)),
-			otelSchemeBearerFormatKey.String(strings.ToLower(scheme.Value.BearerFormat)),
-		}
+		schemeLabel := schemeCounterLabel(schemeType, scheme.Value)
 
 		switch schemeType {
 		case HttpSchemeType:
@@ -147,17 +128,31 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		case ApiKeySchemeType:
 			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
-			telemetryUnsupportedSecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+			telemetryx.Counter(ctx, "openapi.security-scheme.unsupported", 1, schemeLabel)
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
 		if err != nil {
-			telemetrySecuritySchemeErrorCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 			return nil, err
 		}
 
-		telemetrySecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		telemetryx.Counter(ctx, "openapi.security-scheme", 1, schemeLabel)
 	}
 
 	return securitySchemes, nil
+}
+
+// schemeCounterLabel names a security scheme for the Argvio counters from a
+// fixed vocabulary, so nothing taken from the scanned spec is ever sent.
+func schemeCounterLabel(schemeType string, scheme *openapi3.SecurityScheme) string {
+	switch schemeType {
+	case HttpSchemeType:
+		return "http-" + telemetryx.Vocab(scheme.Scheme, "bearer", "basic")
+	case ApiKeySchemeType:
+		return "apikey-" + telemetryx.Vocab(scheme.In, "header", "query", "cookie")
+	case OAuth2SchemeType, OpenIdConnectSchemeType:
+		return schemeType
+	default:
+		return telemetryx.Vocab(schemeType, "mutualtls")
+	}
 }
