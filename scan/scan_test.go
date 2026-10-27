@@ -7,6 +7,9 @@ import (
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/reportx/enrich"
+	"github.com/cerberauth/reportx/evidence"
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/scan"
@@ -423,4 +426,33 @@ func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, errs)
 	assert.Equal(t, 0, len(report.Findings))
+}
+
+func TestScanExecuteRedactsAPIKeyHeaderFromEvidence(t *testing.T) {
+	apiKey := "secret-api-key"
+	securityScheme := auth.MustNewAPIKeySecurityScheme("X-Custom-Token", auth.InHeader, &apiKey)
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
+			req.Header.Set("X-Custom-Token", apiKey)
+			return harnessx.Result{Data: &finding.Finding{
+				Operation: op,
+				Attempt:   &finding.Attempt{ID: "attempt", Request: req},
+			}}, nil
+		},
+	}, nil)
+
+	report, _, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, len(report.Findings))
+	ev, ok := report.Findings[0].Evidence.(*evidence.HTTPEvidence)
+	require.True(t, ok)
+	assert.Equal(t, []string{enrich.RedactedValue}, ev.RequestHeaders["X-Custom-Token"])
 }
