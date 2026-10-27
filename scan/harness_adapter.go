@@ -1,7 +1,9 @@
 package scan
 
 import (
+	"cmp"
 	"context"
+	"slices"
 	"sync"
 	"time"
 
@@ -91,10 +93,11 @@ func (a *harnessxReporter) OnCheckComplete(result harnessx.Result) {
 	}
 }
 
-func (a *harnessxReporter) OnScanComplete(_ harnessx.ScanSummary) {
+func (a *harnessxReporter) OnScanComplete(summary harnessx.ScanSummary) {
 	a.mu.Lock()
 	findings := a.findings
 	target := a.target
+	scanErrors, coverage := a.scanStatus(summary.Results)
 	a.mu.Unlock()
 
 	if target == "" {
@@ -106,12 +109,51 @@ func (a *harnessxReporter) OnScanComplete(_ harnessx.ScanSummary) {
 		Tool(defaultToolName, a.toolVersion).
 		Target(target).
 		Findings(findings).
+		Errors(scanErrors).
+		Coverage(coverage.Run, coverage.Skipped, coverage.Errored).
 		Enrich(enrich.EnrichAll).
 		Build(context.Background())
 
 	a.mu.Lock()
 	a.report = report
 	a.mu.Unlock()
+}
+
+// scanStatus lists the checks that errored and counts run, skipped and
+// errored checks, so a failed check does not read as "no issue" in the
+// report. Internal checks are left out. Callers must hold a.mu.
+func (a *harnessxReporter) scanStatus(results []harnessx.Result) ([]reportx.ScanError, reportx.Coverage) {
+	var scanErrors []reportx.ScanError
+	var coverage reportx.Coverage
+	for _, result := range results {
+		if isInternalCheckID(string(result.CheckID)) {
+			continue
+		}
+
+		switch {
+		case result.Err != nil:
+			coverage.Errored++
+			scanError := reportx.ScanError{
+				CheckID: string(result.CheckID),
+				Message: result.Err.Error(),
+			}
+			if op := a.resources[result.ResourceID]; op != nil {
+				scanError.Resource = op.URL.String()
+			}
+			scanErrors = append(scanErrors, scanError)
+		case result.Skipped:
+			coverage.Skipped++
+		default:
+			coverage.Run++
+		}
+	}
+
+	// Results arrive in completion order; sort for a stable report.
+	slices.SortFunc(scanErrors, func(x, y reportx.ScanError) int {
+		return cmp.Or(cmp.Compare(x.CheckID, y.CheckID), cmp.Compare(x.Resource, y.Resource))
+	})
+
+	return scanErrors, coverage
 }
 
 // Report returns the reportx.Report built from the scan. Safe to call once
@@ -135,13 +177,15 @@ func toFinding(def checkdef.CheckDef, f *finding.Finding, op *operation.Operatio
 		CWEID:        def.CWEID,
 		OwaspTop10:   def.OWASP,
 		CAPECID:      def.CAPECID,
-		URL:          def.Link,
 		Parameter:    f.Parameter,
 		Description:  def.Description,
 		Status:       reportx.StatusActive,
 		FirstSeen:    now,
 		LastSeen:     now,
 		Tags:         def.Tags,
+	}
+	if def.Link != "" {
+		rf.References = []string{def.Link}
 	}
 
 	extra := map[string]string{}
