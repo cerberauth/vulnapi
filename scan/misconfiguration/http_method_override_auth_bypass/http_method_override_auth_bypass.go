@@ -8,6 +8,7 @@ import (
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/checkutil"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	httpmethodoverride "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override"
@@ -17,10 +18,6 @@ import (
 var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("http_method_override_auth_bypass", checkYAML)
-
-func operationOf(resource harnessx.Resource) (*operation.Operation, bool) {
-	return harnessx.ResourceDataAs[*operation.Operation](resource)
-}
 
 func winningOperationOf(store harnessx.ResultStore, resourceID string) (*operation.Operation, bool) {
 	res, ok := store.GetForResource(httpmethodoverride.Check.ID, resourceID)
@@ -36,7 +33,7 @@ func winningOperationOf(store harnessx.ResultStore, resourceID string) (*operati
 }
 
 var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, store harnessx.ResultStore) (harnessx.Result, error) {
-	_, ok := operationOf(resource)
+	_, ok := checkutil.Operation(resource)
 	if !ok {
 		return harnessx.Result{Err: errors.New("http_method_override_auth_bypass: resource missing *operation.Operation")}, nil
 	}
@@ -59,7 +56,7 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 	}}, nil
 },
 	hxcheckdef.WithSkip(harnessx.SkipResourceWhen(func(_ context.Context, _ harnessx.Target, resource harnessx.Resource, store harnessx.ResultStore) string {
-		op, ok := operationOf(resource)
+		op, ok := checkutil.Operation(resource)
 		if !ok {
 			return "resource is missing operation data"
 		}

@@ -25,7 +25,7 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of this application",
-		Long:  `All software has versions. This is this application's`,
+		Long:  "Print the version, commit and build date of this application",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(projectVersion + " (commit=" + commit + ", built=" + date + ")")
 		},

@@ -43,73 +43,52 @@ func TestExtractBaseURL(t *testing.T) {
 	}
 }
 
-func TestDownloadAndScanURLs_Failed_WhenNotFoundSeclist(t *testing.T) {
-	client := request.GetDefaultClient()
-	httpmock.ActivateNonDefault(client.Client)
-	t.Cleanup(httpmock.DeactivateAndReset)
-
-	seclistUrl := "http://localhost:1234/not_found_seclist"
+func TestScanSecList_Failed_WhenUnknownSeclist(t *testing.T) {
 	securityScheme := auth.MustNewNoAuthSecurityScheme()
-	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
-	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
-	httpmock.RegisterResponder(http.MethodGet, seclistUrl, httpmock.NewBytesResponder(http.StatusNotFound, nil))
-	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, nil)
 
-	_, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
+	_, err := discover.ScanSecList(context.Background(), "test", "unknown.txt", op, securityScheme)
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "sec list download failed")
+	assert.ErrorContains(t, err, `unknown sec list "unknown.txt"`)
 }
 
-func TestDownloadAndScanURLs_Passed_WhenNotFoundURLs(t *testing.T) {
+func TestScanURLs_Passed_WhenNotFoundURLs(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	seclistUrl := "http://localhost:1234/passed_seclist"
 	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
 	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 
-	httpmock.RegisterResponder(
-		http.MethodGet,
-		seclistUrl,
-		httpmock.NewBytesResponder(http.StatusOK, []byte("path1\npath2")),
-	)
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path2", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 
-	f, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
+	f, err := discover.ScanURLs(context.Background(), []string{"path1", "path2"}, op, securityScheme)
 
 	require.NoError(t, err)
-	assert.Equal(t, 3, httpmock.GetTotalCallCount())
+	assert.Equal(t, 2, httpmock.GetTotalCallCount())
 	assert.Nil(t, f)
 }
 
-func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
+func TestScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	seclistUrl := "http://localhost:1234/failed_seclist"
 	securityScheme := auth.MustNewNoAuthSecurityScheme()
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
 	op.SetSecuritySchemes([]*auth.SecurityScheme{securityScheme})
 
-	httpmock.RegisterResponder(
-		http.MethodGet,
-		seclistUrl,
-		httpmock.NewBytesResponder(http.StatusOK, []byte("path1\npath2")),
-	)
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path1", httpmock.NewStringResponder(http.StatusNotFound, "Not Found"))
 	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/path2", httpmock.NewStringResponder(http.StatusOK, "OK"))
 
-	f, err := discover.DownloadAndScanURLs(context.Background(), "test", seclistUrl, op, securityScheme)
+	f, err := discover.ScanURLs(context.Background(), []string{"path1", "path2"}, op, securityScheme)
 
 	require.NoError(t, err)
-	assert.Equal(t, 3, httpmock.GetTotalCallCount())
+	assert.Equal(t, 2, httpmock.GetTotalCallCount())
 	require.NotNil(t, f)
 	assert.Equal(t, "http://localhost:1234/path2", f.Parameter)
 }

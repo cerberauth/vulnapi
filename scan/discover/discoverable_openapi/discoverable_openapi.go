@@ -16,7 +16,7 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("discoverable_openapi", checkYAML)
 
-var openapiSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/swagger.txt"
+const openapiSeclist = "swagger.txt"
 
 var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	resources := store.Resources()
@@ -29,7 +29,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 	}
 	securityScheme := op.GetSecurityScheme()
 
-	f, err := discover.DownloadAndScanURLs(ctx, "OpenAPI", openapiSeclistUrl, op, securityScheme)
+	f, err := discover.ScanSecList(ctx, "OpenAPI", openapiSeclist, op, securityScheme)
 	if err != nil {
 		return harnessx.Result{}, err
 	}

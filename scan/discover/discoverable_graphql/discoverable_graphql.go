@@ -16,7 +16,7 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("discoverable_graphql", checkYAML)
 
-var graphqlSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/graphql.txt"
+const graphqlSeclist = "graphql.txt"
 
 var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	resources := store.Resources()
@@ -29,7 +29,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 	}
 	securityScheme := op.GetSecurityScheme()
 
-	f, err := discover.DownloadAndScanURLs(ctx, "GraphQL", graphqlSeclistUrl, op, securityScheme)
+	f, err := discover.ScanSecList(ctx, "GraphQL", graphqlSeclist, op, securityScheme)
 	if err != nil {
 		return harnessx.Result{}, err
 	}

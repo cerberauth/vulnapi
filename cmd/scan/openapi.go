@@ -40,7 +40,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	)
 
 	scanCmd = &cobra.Command{
-		Use:   "openapi [OpenAPIPAth]",
+		Use:   "openapi [OpenAPIPath]",
 		Short: "OpenAPI Operations Scan",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
