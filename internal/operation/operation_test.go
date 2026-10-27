@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cerberauth/harnessx/probe"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/assert"
 )
@@ -265,4 +267,67 @@ func TestMarshalJSON(t *testing.T) {
 	_, err := json.Marshal(operation)
 
 	assert.NoError(t, err)
+}
+
+func TestOperationCloneDoesNotShareMutableState(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodPost, "http://example.com", bytes.NewBufferString("body"), nil)
+	op.Header.Set("X-Original", "value")
+	op.Cookies = []*http.Cookie{{Name: "session", Value: "original"}}
+
+	clonedOperation, err := op.Clone()
+	assert.NoError(t, err)
+	clonedOperation.Header.Set("X-HTTP-Method-Override", "DELETE")
+	clonedOperation.Cookies[0].Value = "changed"
+	clonedOperation.Body[0] = 'B'
+	clonedOperation.URL.Path = "/changed"
+	clonedOperation.SecuritySchemes[0] = nil
+
+	assert.Empty(t, op.Header.Get("X-HTTP-Method-Override"))
+	assert.Equal(t, "value", clonedOperation.Header.Get("X-Original"))
+	assert.Equal(t, "original", op.Cookies[0].Value)
+	assert.Equal(t, []byte("body"), op.Body)
+	assert.Equal(t, "", op.URL.Path)
+	assert.NotNil(t, op.SecuritySchemes[0])
+}
+
+func TestOperation_NewHTTPRequestAppliesClientHeadersAndCookies(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{
+		Header:  http.Header{"X-Tenant": []string{"tenant"}, "X-Override": []string{"client"}},
+		Cookies: []*http.Cookie{{Name: "session", Value: "client-session"}},
+	})
+	op := operation.MustNewOperation(http.MethodGet, "http://example.com", nil, client)
+	op.Header.Set("X-Override", "operation")
+	op.Cookies = []*http.Cookie{{Name: "csrf", Value: "operation-csrf"}}
+
+	req, err := op.NewHTTPRequest(t.Context(), probe.WithHeader("Authorization", "Bearer token"))
+
+	assert.NoError(t, err)
+	assert.Equal(t, "tenant", req.Header.Get("X-Tenant"))
+	assert.Equal(t, "operation", req.Header.Get("X-Override"))
+	assert.Equal(t, "Bearer token", req.Header.Get("Authorization"))
+	assert.Equal(t, request.DefaultUserAgent, req.Header.Get("User-Agent"))
+	sessionCookie, err := req.Cookie("session")
+	assert.NoError(t, err)
+	assert.Equal(t, "client-session", sessionCookie.Value)
+	csrfCookie, err := req.Cookie("csrf")
+	assert.NoError(t, err)
+	assert.Equal(t, "operation-csrf", csrfCookie.Value)
+}
+
+func TestOperation_NewHTTPRequestUserAgent(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{}).WithUserAgent("vulnapi/1.0.0")
+	op := operation.MustNewOperation(http.MethodGet, "http://example.com", nil, client)
+
+	req, err := op.NewHTTPRequest(t.Context())
+
+	assert.NoError(t, err)
+	assert.Equal(t, "vulnapi/1.0.0", req.Header.Get("User-Agent"))
+	assert.Equal(t, "vulnapi/1.0.0", op.UserAgent())
+
+	client.Header.Set("User-Agent", "custom-agent")
+	req, err = op.NewHTTPRequest(t.Context())
+
+	assert.NoError(t, err)
+	assert.Equal(t, "custom-agent", req.Header.Get("User-Agent"))
+	assert.Equal(t, "custom-agent", op.UserAgent())
 }

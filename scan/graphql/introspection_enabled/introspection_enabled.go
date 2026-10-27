@@ -61,6 +61,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 		return harnessx.Result{}, err
 	}
 
+	newOperation.Client = op.Client
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
 	if err != nil {
@@ -80,6 +81,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 		return harnessx.Result{}, err
 	}
 
+	newOperation.Client = op.Client
 	newOperation.SetSecuritySchemes(securitySchemes)
 	attempt, err = finding.Fetch(ctx, newOperation, securityScheme)
 	if err != nil {

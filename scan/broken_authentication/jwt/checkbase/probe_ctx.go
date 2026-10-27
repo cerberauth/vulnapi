@@ -44,7 +44,7 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 
 	return &checkbase.ProbeCtx{
 		TokenString:      tokenString,
-		Probe:            probe.New(probe.WithTransport(op.Transport), probe.WithTimeout(op.Timeout)),
+		Probe:            probe.New(probe.WithTransport(op.Transport), probe.WithTimeout(op.Timeout), probe.WithUserAgent(op.UserAgent())),
 		Candidates:       exploit.WeakSecrets(),
 		TokenLocation:    checkbase.DefaultTokenLocation(),
 		KidSQLTable:      exploit.DefaultKidSQLTable,

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/cerberauth/harnessx/probe"
@@ -179,32 +180,67 @@ func (operation *Operation) WithCookies(cookies []*http.Cookie) *Operation {
 	return operation
 }
 
-// NewHTTPRequest builds a plain *http.Request for this operation via
-// probe.NewRequest, applying the operation's own headers/cookies plus any
-// extra mutators (e.g. auth.RequestMutators for a security scheme).
-func (operation *Operation) NewHTTPRequest(ctx context.Context, mutators ...probe.RequestMutator) (*http.Request, error) {
-	all := make([]probe.RequestMutator, 0, len(operation.Header)+len(operation.Cookies)+len(mutators))
-	for k, v := range operation.Header {
-		if len(v) == 0 {
-			continue
+// withHeaderValues sets every value of a header, replacing existing ones.
+func withHeaderValues(name string, values []string) probe.RequestMutator {
+	return func(req *http.Request) error {
+		req.Header.Del(name)
+		for _, v := range values {
+			req.Header.Add(name, v)
 		}
-		all = append(all, probe.WithHeader(k, v[0]))
+		return nil
 	}
-	for _, c := range operation.Cookies {
-		all = append(all, probe.WithCookie(c))
+}
+
+// NewHTTPRequest builds a plain *http.Request for this operation via
+// probe.NewRequest. It applies, in order: the client's User-Agent, headers
+// and cookies (e.g. -A, -H and -b flags), the operation's own headers and
+// cookies, then any extra mutators (e.g. auth.RequestMutators for a security
+// scheme). Later values override earlier ones.
+func (operation *Operation) NewHTTPRequest(ctx context.Context, mutators ...probe.RequestMutator) (*http.Request, error) {
+	client := operation.requestClient()
+
+	all := make([]probe.RequestMutator, 0, 1+len(client.Header)+len(client.Cookies)+len(operation.Header)+len(operation.Cookies)+len(mutators))
+	all = append(all, probe.WithHeader("User-Agent", client.GetUserAgent()))
+	for _, header := range []http.Header{client.Header, operation.Header} {
+		for k, v := range header {
+			if len(v) == 0 {
+				continue
+			}
+			all = append(all, withHeaderValues(k, v))
+		}
+	}
+	for _, cookies := range [][]*http.Cookie{client.Cookies, operation.Cookies} {
+		for _, c := range cookies {
+			all = append(all, probe.WithCookie(c))
+		}
 	}
 	all = append(all, mutators...)
 
 	return probe.NewRequest(ctx, operation.Method, operation.URL.String(), bytes.NewReader(operation.Body), all...)
 }
 
+// requestClient returns the *request.Client this operation's requests are
+// built from and sent through.
+func (operation *Operation) requestClient() *request.Client {
+	if operation.Client == nil {
+		return request.GetDefaultClient()
+	}
+	return operation.Client
+}
+
 // HTTPClient returns the *http.Client this operation's requests should be
 // sent through.
 func (operation *Operation) HTTPClient() *http.Client {
-	if operation.Client == nil {
-		return request.GetDefaultClient().Client
+	return operation.requestClient().Client
+}
+
+// UserAgent returns the User-Agent this operation's requests are sent with.
+func (operation *Operation) UserAgent() string {
+	client := operation.requestClient()
+	if ua := client.Header.Get("User-Agent"); ua != "" {
+		return ua
 	}
-	return operation.Client.Client
+	return client.GetUserAgent()
 }
 
 func (operation *Operation) GetSecuritySchemes() []*auth.SecurityScheme {
@@ -248,22 +284,42 @@ func (operation *Operation) GetID() string {
 	return operation.ID
 }
 
+// Clone returns a copy of the operation whose URL, body, header, cookies and
+// security scheme list can be changed without affecting the original. The
+// client and the security schemes themselves are shared.
 func (o *Operation) Clone() (*Operation, error) {
-	var clonedSecuritySchemes []*auth.SecurityScheme
-	if o.SecuritySchemes != nil {
-		clonedSecuritySchemes = make([]*auth.SecurityScheme, len(o.SecuritySchemes))
-		copy(clonedSecuritySchemes, o.SecuritySchemes)
+	u := o.URL
+	if o.URL.User != nil {
+		user := *o.URL.User
+		u.User = &user
+	}
+
+	var cookies []*http.Cookie
+	if o.Cookies != nil {
+		cookies = make([]*http.Cookie, len(o.Cookies))
+		for i, c := range o.Cookies {
+			cookie := *c
+			cookies[i] = &cookie
+		}
+	}
+
+	var openAPIDocPath *string
+	if o.OpenAPIDocPath != nil {
+		docPath := *o.OpenAPIDocPath
+		openAPIDocPath = &docPath
 	}
 
 	return &Operation{
 		Client: o.Client,
 
+		OpenAPIDocPath: openAPIDocPath,
+
 		Method:          o.Method,
-		URL:             o.URL,
-		Body:            o.Body,
-		Cookies:         o.Cookies,
-		Header:          o.Header,
-		SecuritySchemes: clonedSecuritySchemes,
+		URL:             u,
+		Body:            bytes.Clone(o.Body),
+		Cookies:         cookies,
+		Header:          o.Header.Clone(),
+		SecuritySchemes: slices.Clone(o.SecuritySchemes),
 
 		ID: o.ID,
 	}, nil
