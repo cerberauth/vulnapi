@@ -91,3 +91,25 @@ func TestAddCommonArgs(t *testing.T) {
 		})
 	}
 }
+
+func TestAllowUnsafeMethodsFlag(t *testing.T) {
+	c := &cobra.Command{}
+	var allow bool
+	cmd.RegisterAllowUnsafeMethodsFlag(c, &allow)
+
+	flag := c.Flags().Lookup("allow-unsafe-methods")
+	if assert.NotNil(t, flag) {
+		assert.Equal(t, "false", flag.DefValue)
+	}
+	assert.NoError(t, c.Flags().Parse([]string{"--allow-unsafe-methods"}))
+	assert.True(t, allow)
+}
+
+func TestGetAllowUnsafeMethodsDefaultsToFalse(t *testing.T) {
+	c := &cobra.Command{}
+	cmd.AddCommonArgs(c)
+
+	assert.False(t, cmd.GetAllowUnsafeMethods())
+	assert.NoError(t, c.Flags().Parse([]string{"--allow-unsafe-methods"}))
+	assert.True(t, cmd.GetAllowUnsafeMethods())
+}

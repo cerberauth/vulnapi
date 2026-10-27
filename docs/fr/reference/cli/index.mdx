@@ -58,6 +58,7 @@ Toutes les commandes `scan` et `discover` partagent ces options. Les options du 
 | `--no-progress` | `false` | Désactiver la barre de progression |
 | `--severity-threshold <score>` | `1.0` | Seuil CVSS au-dessus duquel la sortie est aussi écrite sur stderr |
 | `--only-scans-above-threshold` | `false` | N'exécute que les contrôles pouvant atteindre `--severity-threshold` ; échoue sur n'importe quel résultat puisque tous peuvent l'atteindre |
+| `--allow-unsafe-methods` | `false` | Autorise les contrôles à envoyer des méthodes HTTP non sûres (`POST`, `PUT`, `PATCH`, `DELETE`) avec des identifiants valides |
 
 > **Déprécié :** `--rate-limit` (`-r`) a été remplacé par `--rate`. L'ancienne option est toujours acceptée en tant qu'alias.
 

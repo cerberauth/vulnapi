@@ -5,11 +5,13 @@ import (
 	_ "embed"
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/scan"
 )
 
 //go:embed check.yaml
@@ -17,13 +19,27 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("http_method_override", checkYAML)
 
-var httpMethods = []string{
+// safeHTTPMethods are sent on the wire by default. A server that ignores the
+// override header executes the wire method, so unsafe methods are only sent
+// when the scan allows them (--allow-unsafe-methods).
+var safeHTTPMethods = []string{
 	http.MethodGet,
 	http.MethodHead,
+	http.MethodOptions,
+}
+
+var unsafeHTTPMethods = []string{
 	http.MethodPost,
 	http.MethodPut,
 	http.MethodPatch,
 	http.MethodDelete,
+}
+
+func wireMethods(target harnessx.Target) []string {
+	if scan.GetTargetOptions(target).AllowUnsafeMethods {
+		return append(slices.Clone(safeHTTPMethods), unsafeHTTPMethods...)
+	}
+	return safeHTTPMethods
 }
 
 var methodOverrideHeaders = []string{
@@ -41,7 +57,7 @@ var methodOverrideQueryParams = []string{
 	"_httpMethod",
 }
 
-var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, target harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
 	op, ok := harnessx.ResourceDataAs[*operation.Operation](resource)
 	if !ok {
 		return harnessx.Result{Err: errors.New("http_method_override: resource missing *operation.Operation")}, nil
@@ -62,8 +78,11 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		return harnessx.Result{Skipped: true, SkipReason: "operation already returns 405 for its own method"}, nil
 	}
 
+	// Look for a wire method the operation rejects: the first one answering
+	// 405, else the first one answering differently from the operation's
+	// own method.
 	var methodAttempt *finding.Attempt
-	for _, method := range httpMethods {
+	for _, method := range wireMethods(target) {
 		if method == op.Method {
 			continue
 		}
@@ -74,16 +93,21 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		}
 
 		newOperation.Method = method
-		methodAttempt, err = finding.Fetch(ctx, newOperation, securityScheme)
+		attempt, err := finding.Fetch(ctx, newOperation, securityScheme)
 		if err != nil {
 			return harnessx.Result{}, err
 		}
-		if methodAttempt.Response.GetStatusCode() == http.StatusMethodNotAllowed {
+		statusCode := attempt.Response.GetStatusCode()
+		if statusCode == http.StatusMethodNotAllowed {
+			methodAttempt = attempt
 			break
+		}
+		if methodAttempt == nil && statusCode != initialAttempt.Response.GetStatusCode() {
+			methodAttempt = attempt
 		}
 	}
 
-	if methodAttempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
+	if methodAttempt == nil {
 		return harnessx.Result{}, nil
 	}
 
