@@ -25,6 +25,10 @@ type ScanOptions struct {
 	// dependency of a kept check still runs regardless of its own score.
 	MinSeverity *float64
 
+	// AllowUnsafeMethods lets checks send unsafe HTTP methods (POST, PUT,
+	// PATCH, DELETE) the operation does not declare, with valid credentials.
+	AllowUnsafeMethods bool
+
 	// Title names the report (e.g. "cURL Scan", "OpenAPI Scan"). Defaults to
 	// "Scan" when empty.
 	Title string
@@ -89,6 +93,21 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 
 		telemetryOperationScanHandler: telemetryOperationScanHandlerCounter,
 	}, nil
+}
+
+// TargetOptions holds the scan options checks need, passed to them as the
+// harnessx.Target data.
+type TargetOptions struct {
+	AllowUnsafeMethods bool
+}
+
+// GetTargetOptions returns the TargetOptions of a target built by Execute,
+// or the zero (safest) options for any other target.
+func GetTargetOptions(target harnessx.Target) TargetOptions {
+	if options, ok := target.Data.(*TargetOptions); ok && options != nil {
+		return *options
+	}
+	return TargetOptions{}
 }
 
 func (s *Scan) GetOperationsScans() []OperationScan {
@@ -158,7 +177,10 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	loaderCheck := newOperationsLoaderCheck(s.Operations)
 	checks := s.filterChecks(append([]harnessx.Check{loaderCheck}, s.harnessxChecks...))
 
-	target := harnessx.Target{URL: s.Operations[0].URL.String()}
+	target := harnessx.Target{
+		URL:  s.Operations[0].URL.String(),
+		Data: &TargetOptions{AllowUnsafeMethods: s.AllowUnsafeMethods},
+	}
 	scenario := harnessx.Scenario{
 		Checks:    checks,
 		Reporters: []harnessx.Reporter{adapter},

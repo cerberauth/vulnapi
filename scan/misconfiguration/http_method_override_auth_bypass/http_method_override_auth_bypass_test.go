@@ -57,7 +57,7 @@ func TestHTTPMethodOverrideAuthBypass_Skip_WhenOverrideNotVulnerable(t *testing.
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
 
 	store := overrideStoreFor(t, op)
 	assert.NotEmpty(t, evalAuthBypassSkip(op, store))
@@ -74,7 +74,7 @@ func TestHTTPMethodOverrideAuthBypass_Passed(t *testing.T) {
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), func(req *http.Request) (*http.Response, error) {
 		if req.Header.Get("X-HTTP-Method-Override") == http.MethodGet && req.Header.Get("Authorization") == "Bearer "+string(token) {
 			return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
 		}
@@ -105,7 +105,7 @@ func TestHTTPMethodOverrideAuthBypass_Failed(t *testing.T) {
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("securityScheme", &token)})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), func(req *http.Request) (*http.Response, error) {
 		if req.Header.Get("X-HTTP-Method-Override") == http.MethodGet {
 			return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
 		}

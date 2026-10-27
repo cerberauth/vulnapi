@@ -67,6 +67,8 @@ vulnapi scan graphql --scans misconfiguration.http_method_override [url]
   </TabItem>
 </Tabs>
 
+Par défaut, le contrôle n'envoie que des méthodes sûres (`GET`, `HEAD`, `OPTIONS`) : un serveur qui ignore l'en-tête de substitution exécute la méthode reçue, avec des identifiants valides. Utilisez `--allow-unsafe-methods` pour essayer aussi `POST`, `PUT`, `PATCH` et `DELETE`, uniquement sur un environnement où ces requêtes sont sans conséquence.
+
 ## Comment corriger ?
 
 Pour corriger ce problème, vous devez désactiver la fonctionnalité de substitution de méthode HTTP sur l'API ou le proxy intermédiaire. Vous pouvez le faire en configurant le serveur pour n'accepter que les méthodes HTTP attendues (GET, POST, PUT, DELETE, etc.) et rejeter toute autre méthode non explicitement autorisée.

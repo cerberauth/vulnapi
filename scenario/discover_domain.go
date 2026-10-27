@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/cerberauth/harnessx"
@@ -78,10 +80,36 @@ func searchByLookupIP(rootDomain string) ([]string, error) {
 	return subdomains, nil
 }
 
+// isInScope reports whether host is rootDomain or one of its subdomains.
+// Reverse DNS often returns hosting provider or CDN names that belong to
+// third parties and must not be scanned.
+func isInScope(host string, rootDomain string) bool {
+	host = strings.TrimSuffix(strings.ToLower(host), ".")
+	rootDomain = strings.TrimSuffix(strings.ToLower(rootDomain), ".")
+	return host == rootDomain || strings.HasSuffix(host, "."+rootDomain)
+}
+
+// filterFQDNs keeps the in-scope hosts of fqdns, lowercased and without
+// duplicates, in their original order.
+func filterFQDNs(fqdns []string, rootDomain string) []string {
+	seen := map[string]struct{}{}
+	filtered := []string{}
+	for _, fqdn := range fqdns {
+		fqdn = strings.TrimSuffix(strings.ToLower(fqdn), ".")
+		if _, ok := seen[fqdn]; ok || !isInScope(fqdn, rootDomain) {
+			continue
+		}
+		seen[fqdn] = struct{}{}
+		filtered = append(filtered, fqdn)
+	}
+	return filtered
+}
+
 func getAllFQDNs(domain string) []string {
 	fqdns := []string{domain}
 
 	subdomains := searchByCommonHostnames(domain)
+	slices.Sort(subdomains)
 	fqdns = append(fqdns, subdomains...)
 
 	for _, subdomain := range subdomains {
@@ -90,10 +118,11 @@ func getAllFQDNs(domain string) []string {
 			continue
 		}
 
+		slices.Sort(subdomains)
 		fqdns = append(fqdns, subdomains...)
 	}
 
-	return fqdns
+	return filterFQDNs(fqdns, domain)
 }
 
 func testFqdnReachable(fqdn string, client *request.Client) (*operation.Operation, error) {
