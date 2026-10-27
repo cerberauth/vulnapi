@@ -59,7 +59,7 @@ vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.psychic_sig
   </TabItem>
   <TabItem label="OpenAPI">
 ```bash
-echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.psychic_signature
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.psychic_signature --token-stdin
 ```
   </TabItem>
   <TabItem label="GraphQL">

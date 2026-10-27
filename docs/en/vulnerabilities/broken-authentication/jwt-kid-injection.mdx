@@ -75,7 +75,7 @@ vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --scan
   </TabItem>
   <TabItem label="OpenAPI">
 ```bash
-echo "eyJhbGciOiJIUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.kid_injection
+echo "eyJhbGciOiJIUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.kid_injection --token-stdin
 ```
   </TabItem>
   <TabItem label="GraphQL">
