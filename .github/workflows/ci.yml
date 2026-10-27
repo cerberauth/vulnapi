@@ -25,12 +25,28 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: cerberauth/ci/actions/go-build-test@main
+      - uses: cerberauth/ci/actions/go-build-test@0138d16209aaf063e2e693cf6bb9a2f7d177ac72 # main
         with:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
+  race:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Test with the race detector
+        run: go test -race ./...
+
   publish:
-    needs: build
+    needs: [build, race]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
@@ -47,7 +63,7 @@ jobs:
 
       - run: git fetch --force --tags
 
-      - uses: cerberauth/ci/actions/releaser@main
+      - uses: cerberauth/ci/actions/releaser@0138d16209aaf063e2e693cf6bb9a2f7d177ac72 # main
         with:
           package-name: vulnapi
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}

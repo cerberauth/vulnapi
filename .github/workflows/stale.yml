@@ -7,7 +7,7 @@ on:
 
 jobs:
   stale:
-    uses: cerberauth/ci/.github/workflows/stale.yml@main
+    uses: cerberauth/ci/.github/workflows/stale.yml@0138d16209aaf063e2e693cf6bb9a2f7d177ac72 # main
     permissions:
       contents: write
       issues: write
