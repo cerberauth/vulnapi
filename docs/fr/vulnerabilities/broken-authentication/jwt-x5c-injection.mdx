@@ -50,7 +50,7 @@ vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.x5c_injecti
   </TabItem>
   <TabItem label="OpenAPI">
 ```bash
-echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.x5c_injection
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.x5c_injection --token-stdin
 ```
   </TabItem>
   <TabItem label="GraphQL">

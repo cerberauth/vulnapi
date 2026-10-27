@@ -3,6 +3,7 @@ package auth_test
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 
 	jwtop "github.com/cerberauth/jwtop/jwt"
@@ -139,7 +140,7 @@ func TestSetValidValue(t *testing.T) {
 			schemeName:      auth.PrivateToken,
 			in:              &inCookie,
 			tokenFormat:     nil,
-			value:           http.Cookie{Name: "token", Value: "valid-api-key"},
+			value:           "valid-api-key",
 			expectError:     false,
 			expectedMessage: "",
 		},
@@ -312,7 +313,7 @@ func TestSetAttackValue(t *testing.T) {
 			schemeName:      auth.PrivateToken,
 			in:              &inCookie,
 			tokenFormat:     nil,
-			value:           http.Cookie{Name: "token", Value: "valid-api-key"},
+			value:           "valid-api-key",
 			expectError:     false,
 			expectedMessage: "",
 		},
@@ -486,4 +487,48 @@ func TestGetHeaders(t *testing.T) {
 			assert.Equal(t, tt.expectedHeaders, headers)
 		})
 	}
+}
+
+func TestGetCookiesWithAPIKeyInCookie(t *testing.T) {
+	value := "valid-api-key"
+	attackValue := "attack-api-key"
+	securityScheme := auth.MustNewAPIKeySecurityScheme("session", auth.InCookie, &value)
+
+	assert.Equal(t, []*http.Cookie{{Name: "session", Value: value}}, securityScheme.GetCookies())
+	assert.Empty(t, securityScheme.GetHeaders())
+	assert.Empty(t, securityScheme.GetQueryParams())
+	assert.Equal(t, value, securityScheme.GetToken())
+
+	assert.NoError(t, securityScheme.SetAttackValue(attackValue))
+	assert.Equal(t, []*http.Cookie{{Name: "session", Value: attackValue}}, securityScheme.GetCookies())
+}
+
+func TestGetQueryParamsWithAPIKeyInQuery(t *testing.T) {
+	value := "valid-api-key"
+	securityScheme := auth.MustNewAPIKeySecurityScheme("api_key", auth.InQuery, &value)
+
+	assert.Equal(t, url.Values{"api_key": []string{value}}, securityScheme.GetQueryParams())
+	assert.Empty(t, securityScheme.GetHeaders())
+	assert.Empty(t, securityScheme.GetCookies())
+	assert.Equal(t, value, securityScheme.GetToken())
+}
+
+func TestRequestMutatorsWithAPIKeyInCookieAndQuery(t *testing.T) {
+	cookieValue := "cookie-api-key"
+	queryValue := "query-api-key"
+	req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/?foo=bar", nil)
+
+	mutators := append(
+		auth.RequestMutators(auth.MustNewAPIKeySecurityScheme("session", auth.InCookie, &cookieValue)),
+		auth.RequestMutators(auth.MustNewAPIKeySecurityScheme("api_key", auth.InQuery, &queryValue))...,
+	)
+	for _, m := range mutators {
+		assert.NoError(t, m(req))
+	}
+
+	cookie, err := req.Cookie("session")
+	assert.NoError(t, err)
+	assert.Equal(t, cookieValue, cookie.Value)
+	assert.Equal(t, queryValue, req.URL.Query().Get("api_key"))
+	assert.Equal(t, "bar", req.URL.Query().Get("foo"))
 }

@@ -70,7 +70,7 @@ Replace `[API_URL]` with the URL of the API to scan, and `[CURL_OPTIONS]` with a
 To perform a scan using OpenAPI contracts, execute the following command:
 
 ```bash
-echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE]
+echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE] --token-stdin
 ```
 
 Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.

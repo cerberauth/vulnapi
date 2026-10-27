@@ -1,7 +1,6 @@
 package scan
 
 import (
-	"bufio"
 	"log"
 	"os"
 
@@ -19,24 +18,10 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-func isStdinOpen() bool {
-	stat, _ := os.Stdin.Stat()
-	return (stat.Mode() & os.ModeCharDevice) == 0
-}
-
-func readStdin() *string {
-	scanner := bufio.NewScanner(os.Stdin)
-	if scanner.Scan() {
-		t := scanner.Text()
-		return &t
-	}
-
-	return nil
-}
-
 func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	var (
 		securitySchemesValueArg map[string]string
+		tokenStdin              bool
 	)
 
 	scanCmd = &cobra.Command{
@@ -74,8 +59,20 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			}
 
 			var validToken *string
-			if isStdinOpen() {
-				validToken = readStdin()
+			switch {
+			case tokenStdin:
+				validToken, err = readToken(os.Stdin)
+				if err != nil {
+					telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error reading token from stdin"))...))
+					log.Fatal(err)
+				}
+			case !cmd.Flags().Changed("token-stdin") && isStdinOpen():
+				// Deprecated: reading a piped token without --token-stdin.
+				// Pass --token-stdin=false to skip it, e.g. in CI where
+				// stdin can be an open pipe that never closes.
+				if validToken, err = readToken(os.Stdin); err == nil {
+					cmd.PrintErrln("Warning: reading the token from stdin without --token-stdin is deprecated; pass --token-stdin")
+				}
 			}
 
 			values := make(map[string]interface{}, len(securitySchemesValueArg))
@@ -138,5 +135,6 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 	internalCmd.AddCommonArgs(scanCmd)
 	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Example value for each security scheme")
+	scanCmd.Flags().BoolVar(&tokenStdin, "token-stdin", false, "Read the default security scheme token from stdin")
 	return scanCmd
 }
