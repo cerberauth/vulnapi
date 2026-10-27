@@ -2,6 +2,7 @@ package discover_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"testing"
@@ -112,4 +113,41 @@ func TestDownloadAndScanURLs_Failed_WhenFoundExposedURLs(t *testing.T) {
 	assert.Equal(t, 3, httpmock.GetTotalCallCount())
 	require.NotNil(t, f)
 	assert.Equal(t, "http://localhost:1234/path2", f.Parameter)
+}
+
+func TestScanURLs_DoesNotHangWhenSomeRequestsFail(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{})
+	httpmock.ActivateNonDefault(client.Client)
+	t.Cleanup(httpmock.DeactivateAndReset)
+
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/exposed", httpmock.NewBytesResponder(http.StatusOK, nil))
+	httpmock.RegisterResponder(http.MethodGet, "http://localhost:1234/also-exposed", httpmock.NewBytesResponder(http.StatusOK, nil))
+	httpmock.RegisterNoResponder(httpmock.NewErrorResponder(errors.New("connection reset")))
+
+	// the first request of the chunk fails, which used to drop the rest of
+	// the chunk and hang the collector
+	scanUrls := []string{"/failing", "/exposed", "/missing", "/also-exposed"}
+	f, err := discover.ScanURLs(context.Background(), scanUrls, op, securityScheme)
+
+	require.NoError(t, err)
+	require.NotNil(t, f)
+	assert.Equal(t, "http://localhost:1234/exposed", f.Parameter)
+	assert.Equal(t, "http://localhost:1234/exposed, http://localhost:1234/also-exposed", f.Extra["discovered_urls"])
+}
+
+func TestScanURLs_ReturnsErrorWhenEveryRequestFails(t *testing.T) {
+	client := request.NewClient(request.NewClientOptions{})
+	httpmock.ActivateNonDefault(client.Client)
+	t.Cleanup(httpmock.DeactivateAndReset)
+
+	securityScheme := auth.MustNewNoAuthSecurityScheme()
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:1234", nil, client)
+	httpmock.RegisterNoResponder(httpmock.NewErrorResponder(errors.New("connection refused")))
+
+	f, err := discover.ScanURLs(context.Background(), []string{"/a", "/b"}, op, securityScheme)
+
+	assert.Nil(t, f)
+	assert.ErrorContains(t, err, "connection refused")
 }

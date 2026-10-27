@@ -10,6 +10,7 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/assert"
 )
@@ -263,6 +264,38 @@ func TestMarshalJSON(t *testing.T) {
 	operation, _ := operation.NewOperation(http.MethodGet, "http://example.com", nil, nil)
 
 	_, err := json.Marshal(operation)
+
+	assert.NoError(t, err)
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestOperation_IsReachableWithWrappedTransport(t *testing.T) {
+	var called bool
+	client := request.NewClientFromHTTPClient(&http.Client{
+		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			called = true
+			return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody, Request: r}, nil
+		}),
+	}, nil)
+	op := operation.MustNewOperation(http.MethodGet, "https://example.com", nil, client)
+
+	err := op.IsReachable()
+
+	assert.NoError(t, err)
+	assert.True(t, called)
+}
+
+func TestOperation_IsReachableWhenMethodNotAllowed(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}))
+	defer server.Close()
+	op := operation.MustNewOperation(http.MethodGet, server.URL, nil, nil)
+
+	err := op.IsReachable()
 
 	assert.NoError(t, err)
 }
