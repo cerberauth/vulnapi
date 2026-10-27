@@ -20,6 +20,8 @@ import (
 	"golang.org/x/text/language"
 )
 
+var operationIDInvalidChars = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
 func GenerateOperationID(method string, path string) string {
 	idSource := strings.ToLower(method)
 	pathParts := strings.Split(path, "/")
@@ -35,8 +37,7 @@ func GenerateOperationID(method string, path string) string {
 	}
 
 	idSource += strings.Join(newPathParts, "")
-	re := regexp.MustCompile(`[^a-zA-Z0-9]+`)
-	return re.ReplaceAllString(idSource, "")
+	return operationIDInvalidChars.ReplaceAllString(idSource, "")
 }
 
 type Operation struct {

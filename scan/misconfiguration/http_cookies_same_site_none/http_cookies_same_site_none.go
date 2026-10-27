@@ -8,7 +8,7 @@ import (
 
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
-	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/vulnapi/internal/checkutil"
 	httpcookiesfetch "github.com/cerberauth/vulnapi/scan/misconfiguration/http_cookies_fetch"
 )
 
@@ -17,26 +17,13 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("http_cookies_same_site_none", checkYAML)
 
-func operationOf(resource harnessx.Resource) (*operation.Operation, bool) {
-	return harnessx.ResourceDataAs[*operation.Operation](resource)
-}
-
-func fetchResultOf(store harnessx.ResultStore, resourceID string) (*httpcookiesfetch.FetchResult, bool) {
-	res, ok := store.GetForResource(httpcookiesfetch.Check.ID, resourceID)
-	if !ok {
-		return nil, false
-	}
-	data, ok := harnessx.DataAs[*httpcookiesfetch.FetchResult](res)
-	return data, ok
-}
-
 var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harnessx.Target, resource harnessx.Resource, store harnessx.ResultStore) (harnessx.Result, error) {
-	_, ok := operationOf(resource)
+	_, ok := checkutil.Operation(resource)
 	if !ok {
 		return harnessx.Result{Err: errors.New("http_cookies_same_site_none: resource missing *operation.Operation")}, nil
 	}
 
-	data, ok := fetchResultOf(store, resource.ID)
+	data, ok := checkutil.Dependency[*httpcookiesfetch.FetchResult](store, httpcookiesfetch.Check.ID, resource.ID)
 	if !ok || data.Attempt == nil {
 		return harnessx.Result{Err: errors.New("http_cookies_same_site_none: missing fetch result from dependency")}, nil
 	}

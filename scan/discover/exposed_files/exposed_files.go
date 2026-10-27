@@ -16,7 +16,7 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("exposed_files", checkYAML)
 
-var discoverableFilesSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/exposed-paths.txt"
+const discoverableFilesSeclist = "exposed-paths.txt"
 
 var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	resources := store.Resources()
@@ -29,7 +29,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 	}
 	securityScheme := op.GetSecurityScheme()
 
-	f, err := discover.DownloadAndScanURLs(ctx, "Exposed Files", discoverableFilesSeclistUrl, op, securityScheme)
+	f, err := discover.ScanSecList(ctx, "Exposed Files", discoverableFilesSeclist, op, securityScheme)
 	if err != nil {
 		return harnessx.Result{}, err
 	}

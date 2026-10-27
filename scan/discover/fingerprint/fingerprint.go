@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"strings"
+	"sync"
 
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
@@ -79,6 +80,10 @@ func extraFrom(data FingerPrintData) map[string]string {
 	return extra
 }
 
+// newWappalyzer loads the wappalyzer fingerprints once: parsing them is
+// expensive and the client is safe for concurrent use.
+var newWappalyzer = sync.OnceValues(wappalyzer.New)
+
 var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	resources := store.Resources()
 	if len(resources) == 0 {
@@ -98,7 +103,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 		return harnessx.Result{Skipped: true, SkipReason: attempt.Err.Error()}, nil
 	}
 
-	wappalyzerClient, err := wappalyzer.New()
+	wappalyzerClient, err := newWappalyzer()
 	if err != nil {
 		return harnessx.Result{}, err
 	}

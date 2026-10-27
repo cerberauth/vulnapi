@@ -87,7 +87,7 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		return harnessx.Result{}, nil
 	}
 
-	var attemptFailed = false
+	var overrideAccepted = false
 	var attempt *finding.Attempt
 	var winningOperation *operation.Operation
 	newOperationMethod := methodAttempt.Request.Method
@@ -105,13 +105,13 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		}
 
 		if attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-			attemptFailed = true
+			overrideAccepted = true
 			winningOperation = newOperation
 			break
 		}
 	}
 
-	if !attemptFailed {
+	if !overrideAccepted {
 		for _, queryParam := range methodOverrideQueryParams {
 			newOperation, err = op.Clone()
 			if err != nil {
@@ -128,14 +128,14 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 			}
 
 			if attempt.Response.GetStatusCode() == initialAttempt.Response.GetStatusCode() {
-				attemptFailed = true
+				overrideAccepted = true
 				winningOperation = newOperation
 				break
 			}
 		}
 	}
 
-	if !attemptFailed {
+	if !overrideAccepted {
 		return harnessx.Result{}, nil
 	}
 
