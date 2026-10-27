@@ -16,6 +16,14 @@ vulnapi scan curl ... --scans "jwt.*"
 vulnapi scan curl ... --exclude-scans "discover.*"
 ```
 
+A pattern selects a scan when it is:
+
+- the exact scan ID, such as `jwt.alg_none`
+- a glob over the whole ID, such as `jwt.*` (`*`, `?` and `[...]` are supported)
+- a prefix of the ID that ends at a `.` or `_`, such as `jwt` or `misconfiguration.http_headers`
+
+Patterns are anchored, so `http` does not select `misconfiguration.http_trace`. An invalid pattern, or a `--scans` pattern that selects no scan, stops the scan with an error.
+
 ## Broken Authentication
 
 | Scan ID | Name | OWASP | CVSS |
@@ -74,6 +82,7 @@ The `misconfiguration.http_headers` scan covers multiple individual header check
 | `X-Content-Type-Options` | Info |
 | `Strict-Transport-Security` | Info |
 | `Access-Control-Allow-Origin` (CORS) | Medium |
+| Arbitrary `Origin` reflected with `Access-Control-Allow-Credentials: true` (`misconfiguration.http_headers_cors_origin_reflection`) | High |
 | Server signature leak | Info |
 
 ## Cookie Security (sub-checks of `misconfiguration.http_cookies`)

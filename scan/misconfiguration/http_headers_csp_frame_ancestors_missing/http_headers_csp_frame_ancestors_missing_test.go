@@ -44,7 +44,13 @@ func runCheck(op *operation.Operation, store harnessx.ResultStore) (harnessx.Res
 
 func TestCheckCSPFrameAncestors(t *testing.T) {
 	assert.True(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("default-src 'self'; frame-ancestors 'none'"))
-	assert.False(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("default-src 'self'; frame-ancestors http://example.com"))
+	assert.True(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("default-src 'self'; FRAME-ANCESTORS 'NONE'"))
+	assert.True(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("frame-ancestors 'self'"))
+	assert.True(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("default-src 'self'; frame-ancestors https://example.com https://*.example.com"))
+	assert.True(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("frame-ancestors"))
+	assert.False(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("frame-ancestors *"))
+	assert.False(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("frame-ancestors 'self' https:"))
+	assert.False(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors("default-src 'none'; frame-ancestors-x 'none'"))
 	assert.False(t, httpheaderscspframeancestorsmissing.CheckCSPFrameAncestors(""))
 }
 
@@ -106,7 +112,7 @@ func TestHTTPHeadersCSPFrameAncestorsMissing_FailedWhenDirectiveMissing(t *testi
 	assert.True(t, ok)
 }
 
-func TestHTTPHeadersCSPFrameAncestorsMissing_FailedWhenNotNone(t *testing.T) {
+func TestHTTPHeadersCSPFrameAncestorsMissing_FailedWhenWildcard(t *testing.T) {
 	client := request.GetDefaultClient()
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
@@ -115,7 +121,7 @@ func TestHTTPHeadersCSPFrameAncestorsMissing_FailedWhenNotNone(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)})
 	header := getValidHTTPHeaders()
-	header.Set(httpheadersfetch.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'; frame-ancestors 'http://example.com'")
+	header.Set(httpheadersfetch.CSPHTTPHeader, "default-src 'self' http://example.com; connect-src 'none'; frame-ancestors *")
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil).HeaderAdd(header))
 
 	store := headersStoreFor(t, op)

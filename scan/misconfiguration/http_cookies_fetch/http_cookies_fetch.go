@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
@@ -38,19 +39,28 @@ var Check = hxcheckdef.NewResourceCheck(
 	},
 )
 
-// EvalCookies evaluates predicate against every cookie in the response, in
-// order - the last cookie evaluated determines the outcome, matching this
-// check family's original semantics. skip is true when there are no cookies
-// to evaluate at all.
+// EvalCookies evaluates predicate against every cookie in the response and
+// returns a finding when any cookie fails it. The finding's Parameter is the
+// first failing cookie, and Extra["cookies"] lists every failing cookie.
+// skip is true when there are no cookies to evaluate at all.
 func EvalCookies(attempt *finding.Attempt, predicate func(*http.Cookie) bool) (f *finding.Finding, skip bool) {
 	cookies := attempt.Response.GetCookies()
 	if len(cookies) == 0 {
 		return nil, true
 	}
 
-	last := cookies[len(cookies)-1]
-	if predicate(last) {
+	var failing []string
+	for _, cookie := range cookies {
+		if !predicate(cookie) {
+			failing = append(failing, cookie.Name)
+		}
+	}
+	if len(failing) == 0 {
 		return nil, false
 	}
-	return &finding.Finding{Parameter: last.Name, Attempt: attempt}, false
+	return &finding.Finding{
+		Parameter: failing[0],
+		Attempt:   attempt,
+		Extra:     map[string]string{"cookies": strings.Join(failing, ", ")},
+	}, false
 }

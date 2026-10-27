@@ -185,11 +185,10 @@ func TestScanExecuteWithWrongMatchStringIncludeScans(t *testing.T) {
 		},
 	}, nil)
 
-	report, errs, err := s.Execute(context.TODO(), nil)
+	report, _, err := s.Execute(context.TODO(), nil)
 
-	require.NoError(t, err)
-	assert.Empty(t, errs)
-	assert.Equal(t, 0, len(report.Findings))
+	assert.EqualError(t, err, "no scan matches wrong-category.*")
+	assert.Nil(t, report)
 }
 
 func TestScanExecuteWithExcludeScans(t *testing.T) {
@@ -400,11 +399,10 @@ func TestScanExecuteWithMinSeverityKeepsLowSeverityDependency(t *testing.T) {
 	assert.Equal(t, "high-finding", report.Findings[0].Parameter)
 }
 
-// TestScanExecuteWithIncludeScansMatchingNothingRunsNothing guards the other
-// side: --scans matching no registered check must run no (non-internal)
-// checks — not silently fall back to "run everything" because harnessx's
-// WithOnly can't itself express an empty-match restriction.
-func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
+// TestScanExecuteWithIncludeScansMatchingNothingFails guards the other side:
+// --scans matching no registered check must not silently fall back to "run
+// everything"; it is reported as an error since it is most likely a typo.
+func TestScanExecuteWithIncludeScansMatchingNothingFails(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	operations := operation.Operations{op}
 	s, _ := scan.NewScan(harnessx.New(), operations, &scan.ScanOptions{
@@ -418,9 +416,58 @@ func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
 		},
 	}, nil)
 
-	report, errs, err := s.Execute(context.TODO(), nil)
+	report, _, err := s.Execute(context.TODO(), nil)
 
-	require.NoError(t, err)
-	assert.Empty(t, errs)
-	assert.Equal(t, 0, len(report.Findings))
+	assert.EqualError(t, err, "no scan matches no-such-check")
+	assert.Nil(t, report)
+}
+
+func TestNewScanWithInvalidScanPattern(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+
+	_, err := scan.NewScan(harnessx.New(), operation.Operations{op}, &scan.ScanOptions{
+		ExcludeScans: []string{"jwt.["},
+	})
+
+	assert.ErrorContains(t, err, `invalid scan pattern "jwt.["`)
+}
+
+func TestScanExecuteScanPatternsAreAnchored(t *testing.T) {
+	tests := []struct {
+		name     string
+		exclude  []string
+		expected []string
+	}{
+		{name: "partial word matches nothing", exclude: []string{"http"}, expected: []string{"jwt.alg_none", "misconfiguration.http_headers_csp_missing", "misconfiguration.http_trace"}},
+		{name: "family prefix", exclude: []string{"misconfiguration.http_headers"}, expected: []string{"jwt.alg_none", "misconfiguration.http_trace"}},
+		{name: "category prefix", exclude: []string{"jwt"}, expected: []string{"misconfiguration.http_headers_csp_missing", "misconfiguration.http_trace"}},
+		{name: "glob", exclude: []string{"misconfiguration.*"}, expected: []string{"jwt.alg_none"}},
+		{name: "exact id", exclude: []string{"misconfiguration.http_trace"}, expected: []string{"jwt.alg_none", "misconfiguration.http_headers_csp_missing"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+			s, err := scan.NewScan(harnessx.New(), operation.Operations{op}, &scan.ScanOptions{ExcludeScans: tt.exclude})
+			require.NoError(t, err)
+			for _, id := range []string{"jwt.alg_none", "misconfiguration.http_headers_csp_missing", "misconfiguration.http_trace"} {
+				s.AddCheck(harnessx.Check{
+					ID:    harnessx.CheckID(id),
+					Scope: harnessx.ScopePerResource,
+					RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+						return harnessx.Result{Data: &finding.Finding{Parameter: id}}, nil
+					},
+				}, nil)
+			}
+
+			report, _, err := s.Execute(context.TODO(), nil)
+
+			require.NoError(t, err)
+			var got []string
+			for _, f := range report.Findings {
+				got = append(got, f.Parameter)
+			}
+			assert.ElementsMatch(t, tt.expected, got)
+		})
+	}
 }
