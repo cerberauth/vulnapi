@@ -99,9 +99,10 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewOpenAPIScan(ctx, engine, doc, securitySchemesValues, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
-				MinSeverity:  internalCmd.GetMinSeverity(),
+				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
+				IncludeScans:       internalCmd.GetIncludeScans(),
+				ExcludeScans:       internalCmd.GetExcludeScans(),
+				MinSeverity:        internalCmd.GetMinSeverity(),
 			})
 			if err != nil {
 				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))

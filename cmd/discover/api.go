@@ -52,8 +52,9 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewDiscoverAPIScan(engine, http.MethodGet, parsedUrl, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
+				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
+				IncludeScans:       internalCmd.GetIncludeScans(),
+				ExcludeScans:       internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
 				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))

@@ -13,6 +13,7 @@ var (
 	noProgress              bool
 	severityThreshold       float64
 	onlyScansAboveThreshold bool
+	allowUnsafeMethods      bool
 )
 
 func AddCommonArgs(cmd *cobra.Command) {
@@ -35,6 +36,7 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&noProgress, "no-progress", "", false, "Disable progress output")
 	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 	cmd.Flags().BoolVarP(&onlyScansAboveThreshold, "only-scans-above-threshold", "", false, "Only run checks that could reach --severity-threshold; exits on any finding since all of them do")
+	RegisterAllowUnsafeMethodsFlag(cmd, &allowUnsafeMethods)
 }
 
 func FilterScans(scans []string) []string {
@@ -53,6 +55,15 @@ func GetIncludeScans() []string {
 
 func GetExcludeScans() []string {
 	return FilterScans(excludeScans)
+}
+
+// RegisterAllowUnsafeMethodsFlag registers --allow-unsafe-methods on cmd.
+func RegisterAllowUnsafeMethodsFlag(cmd *cobra.Command, p *bool) {
+	cmd.Flags().BoolVar(p, "allow-unsafe-methods", false, "Allow checks to send unsafe HTTP methods (POST, PUT, PATCH, DELETE) with valid credentials")
+}
+
+func GetAllowUnsafeMethods() bool {
+	return allowUnsafeMethods
 }
 
 func GetNoProgress() bool {

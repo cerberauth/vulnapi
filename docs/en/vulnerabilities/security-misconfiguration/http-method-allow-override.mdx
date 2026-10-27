@@ -67,6 +67,8 @@ vulnapi scan graphql --scans misconfiguration.http_method_override [url]
   </TabItem>
 </Tabs>
 
+By default, the check only sends safe methods (`GET`, `HEAD`, `OPTIONS`) on the wire: a server that ignores the override header executes the method it receives, with valid credentials. Pass `--allow-unsafe-methods` to also try `POST`, `PUT`, `PATCH` and `DELETE`, only against an environment where these requests are harmless.
+
 ## How to remediate?
 
 To remediate this issue, you should disable the HTTP Method Override feature on the API or intermediate proxy. You can do this by configuring the server to only accept the expected HTTP methods (GET, POST, PUT, DELETE, etc.) and reject any other methods that are not explicitly allowed.

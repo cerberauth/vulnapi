@@ -12,6 +12,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/scan"
 	httpmethodoverride "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -102,7 +103,7 @@ func TestHTTPMethodOverrideScanHandler_Passed(t *testing.T) {
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
 
 	result, err := runHTTPMethodOverrideCheck(op)
 
@@ -121,7 +122,7 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Header(t *testing.T) {
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), func(req *http.Request) (*http.Response, error) {
 		if req.Header.Get("X-HTTP-Method-Override") == http.MethodGet {
 			return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
 		}
@@ -148,13 +149,13 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T)
 	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
 	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
-	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), httpmock.NewBytesResponder(http.StatusMethodNotAllowed, nil))
 
 	urlWithOverrideQuery, _ := url.Parse(op.URL.String())
 	newQueryValues := urlWithOverrideQuery.Query()
 	newQueryValues.Set("_method", http.MethodGet)
 	urlWithOverrideQuery.RawQuery = newQueryValues.Encode()
-	httpmock.RegisterResponder(http.MethodPost, urlWithOverrideQuery.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodOptions, urlWithOverrideQuery.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
 
 	result, err := runHTTPMethodOverrideCheck(op)
 
@@ -165,4 +166,55 @@ func TestHTTPMethodOverrideScanHandler_Failed_With_Query_Parameter(t *testing.T)
 	winningOp, ok := f.Data.(*operation.Operation)
 	require.True(t, ok)
 	assert.NotNil(t, winningOp)
+}
+
+func TestHTTPMethodOverrideScanHandler_DoesNotSendUnsafeMethodsByDefault(t *testing.T) {
+	client := request.GetDefaultClient()
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+
+	result, err := runHTTPMethodOverrideCheck(op)
+
+	require.NoError(t, err)
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.False(t, ok)
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		assert.Zero(t, httpmock.GetCallCountInfo()[method+" "+op.URL.String()], method)
+	}
+	assert.Equal(t, 3, httpmock.GetTotalCallCount())
+}
+
+func TestHTTPMethodOverrideScanHandler_Failed_With_UnsafeMethodsAllowed(t *testing.T) {
+	client := request.GetDefaultClient()
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodHead, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodOptions, op.URL.String(), httpmock.NewBytesResponder(http.StatusNoContent, nil))
+	httpmock.RegisterResponder(http.MethodPost, op.URL.String(), func(req *http.Request) (*http.Response, error) {
+		if req.Header.Get("X-HTTP-Method-Override") == http.MethodGet {
+			return httpmock.NewBytesResponse(http.StatusNoContent, nil), nil
+		}
+		return httpmock.NewJsonResponse(http.StatusMethodNotAllowed, nil)
+	})
+
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+	target := harnessx.Target{URL: op.URL.String(), Data: &scan.TargetOptions{AllowUnsafeMethods: true}}
+	result, err := httpmethodoverride.Check.RunResource(context.Background(), target, resource, nil)
+
+	require.NoError(t, err)
+	f, ok := harnessx.DataAs[*finding.Finding](result)
+	require.True(t, ok)
+	winningOp, ok := f.Data.(*operation.Operation)
+	require.True(t, ok)
+	assert.Equal(t, http.MethodPost, winningOp.Method)
 }

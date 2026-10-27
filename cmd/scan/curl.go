@@ -29,6 +29,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 		noProgress              bool
 		severityThreshold       float64
 		onlyScansAboveThreshold bool
+		allowUnsafeMethods      bool
 	)
 
 	scanCmd = &cobra.Command{
@@ -78,9 +79,10 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewURLScan(engine, req.Method, req.URL, curlData, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.FilterScans(includeScans),
-				ExcludeScans: internalCmd.FilterScans(excludeScans),
-				MinSeverity:  internalCmd.GetMinSeverity(),
+				AllowUnsafeMethods: allowUnsafeMethods,
+				IncludeScans:       internalCmd.FilterScans(includeScans),
+				ExcludeScans:       internalCmd.FilterScans(excludeScans),
+				MinSeverity:        internalCmd.GetMinSeverity(),
 			})
 			if err != nil {
 				telemetryScanCurlErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
@@ -123,6 +125,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd.Flags().BoolVar(&noProgress, "no-progress", false, "Disable progress output")
 	scanCmd.Flags().Float64Var(&severityThreshold, "severity-threshold", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 	scanCmd.Flags().BoolVar(&onlyScansAboveThreshold, "only-scans-above-threshold", false, "Only run checks that could reach --severity-threshold; exits on any finding since all of them do")
+	internalCmd.RegisterAllowUnsafeMethodsFlag(scanCmd, &allowUnsafeMethods)
 
 	return scanCmd
 }
