@@ -35,7 +35,10 @@ func NewGraphQLScan(engine *harnessx.Engine, u *url.URL, client *request.Client,
 	}
 	client.ClearSecuritySchemes(securitySchemes)
 
-	u = addDefaultProtocolWhenMissing(u)
+	u, err = normalizeURL(u)
+	if err != nil {
+		return nil, err
+	}
 	op, err := operation.NewOperation(http.MethodPost, u.String(), nil, client)
 	if err != nil {
 		return nil, err

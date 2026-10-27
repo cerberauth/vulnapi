@@ -32,7 +32,12 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				log.Fatal("url is required")
 			}
 
-			parsedUrl, err := url.Parse(args[0])
+			rawUrl, err := cobracurl.NormalizeURL(args[0])
+			if err != nil {
+				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid url")))
+				log.Fatal(err)
+			}
+			parsedUrl, err := url.Parse(rawUrl)
 			if err != nil {
 				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid url")))
 				log.Fatal(err)
