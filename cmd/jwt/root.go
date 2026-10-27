@@ -23,7 +23,13 @@ func NewJWTCmd() (cmd *cobra.Command) {
 		Short: "[DEPRECATED] Use jwtop sign instead",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("vulnapi jwt generate is deprecated. Install jwtop (https://www.cerberauth.com/docs/jwtop/installation/) and run:\n\n  jwtop sign %s --alg %s --secret %s\n", args[0], algFlag, secretFlag)
+			// the secret is never echoed back, so it does not end up in
+			// terminal scrollback or CI logs
+			alg := algFlag
+			if alg == "" {
+				alg = "<alg>"
+			}
+			fmt.Printf("vulnapi jwt generate is deprecated. Install jwtop (https://www.cerberauth.com/docs/jwtop/installation/) and run:\n\n  jwtop sign <token> --alg %s --secret <secret>\n", alg)
 		},
 	}
 
