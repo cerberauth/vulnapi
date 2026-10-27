@@ -11,6 +11,7 @@ import (
 	"github.com/cerberauth/vulnapi/cmd/jwt"
 	"github.com/cerberauth/vulnapi/cmd/scan"
 	"github.com/cerberauth/vulnapi/cmd/serve"
+	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/x/telemetryx"
 )
 
@@ -35,6 +36,9 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 		Use:     name,
 		Version: projectVersion + " (commit=" + commit + ", built=" + date + ")",
 		Short:   name,
+		Annotations: map[string]string{
+			internalCmd.VersionAnnotation: projectVersion,
+		},
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !sqaOptOut {
 				otelShutdown, _ = telemetryx.New(cmd.Context(), name, projectVersion, telemetryx.WithCommit(commit), telemetryx.WithBuildDate(date))

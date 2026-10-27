@@ -4,11 +4,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -157,4 +159,43 @@ func TestNewURLScanWithHTTPBasic(t *testing.T) {
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBasicSecurityScheme("default", credentials)}, s.Operations[0].SecuritySchemes)
 	// Should clear client header after setting security schemes
 	assert.Empty(t, client.Header.Get("Authorization"))
+}
+
+func TestNewURLScanSendsClientHeadersAndCookies(t *testing.T) {
+	var mu sync.Mutex
+	var requests []*http.Request
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		requests = append(requests, r)
+		mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	header := http.Header{}
+	header.Set("X-Tenant", "tenant")
+	header.Set("User-Agent", "custom-agent")
+	client := request.NewClient(request.NewClientOptions{
+		Header:  header,
+		Cookies: []*http.Cookie{{Name: "session", Value: "client-session"}},
+	})
+	u, _ := url.Parse(server.URL)
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, &scan.ScanOptions{
+		IncludeScans: []string{"misconfiguration.http_headers"},
+	})
+	require.NoError(t, err)
+
+	_, _, err = s.Execute(t.Context(), nil)
+
+	require.NoError(t, err)
+	mu.Lock()
+	defer mu.Unlock()
+	require.NotEmpty(t, requests)
+	for _, r := range requests {
+		assert.Equal(t, "tenant", r.Header.Get("X-Tenant"))
+		assert.Equal(t, "custom-agent", r.Header.Get("User-Agent"))
+		cookie, err := r.Cookie("session")
+		require.NoError(t, err)
+		assert.Equal(t, "client-session", cookie.Value)
+	}
 }

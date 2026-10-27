@@ -6,6 +6,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// VersionAnnotation is the root command annotation holding the vulnapi
+// version, used in the default User-Agent.
+const VersionAnnotation = "version"
+
+// UserAgent returns the default User-Agent for requests sent by cmd.
+func UserAgent(cmd *cobra.Command) string {
+	if version := cmd.Root().Annotations[VersionAnnotation]; version != "" {
+		return request.DefaultUserAgent + "/" + version
+	}
+	return request.DefaultUserAgent
+}
+
 func NewHTTPClientFromCmd(cmd *cobra.Command) (*request.Client, error) {
 	httpClient, err := cobracurl.BuildClient(cmd)
 	if err != nil {
@@ -24,5 +36,5 @@ func NewHTTPClientFromCmd(cmd *cobra.Command) (*request.Client, error) {
 		return nil, err
 	}
 
-	return request.NewClientFromHTTPClient(httpClient, limiter), nil
+	return request.NewClientFromHTTPClient(httpClient, limiter).WithUserAgent(UserAgent(cmd)), nil
 }
