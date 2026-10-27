@@ -22,46 +22,47 @@ func TestSecuritySchemeMap_WithoutSecurityComponents(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func TestSecuritySchemeMap_WithUnknownSchemeType(t *testing.T) {
-	expectedErr := openapi.NewErrUnsupportedSecuritySchemeType("other")
+func TestSecuritySchemeMap_SkipsUnknownSchemeType(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
 		t.Context(),
-		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: other}}}}`),
+		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {other_auth: {type: other}, bearer_auth: {type: http, scheme: bearer}}}}`),
 	)
 
 	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
 
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Nil(t, result)
+	assert.NoError(t, err)
+	assert.NotContains(t, result, "other_auth")
+	assert.Contains(t, result, "bearer_auth")
 }
 
-func TestSecuritySchemeMap_WithUnknownScheme(t *testing.T) {
-	expectedErr := openapi.NewErrUnsupportedScheme("other")
+func TestSecuritySchemeMap_SkipsUnknownScheme(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
 		t.Context(),
-		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: other}}}}`),
+		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{digest_auth: []}]}}}, components: {securitySchemes: {digest_auth: {type: http, scheme: digest}}}}`),
 	)
 
 	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
 
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Nil(t, result)
+	assert.NoError(t, err)
+	assert.Empty(t, result)
 }
 
-func TestSecuritySchemeMap_WithUnknownBearerFormat(t *testing.T) {
-	expectedErr := openapi.NewErrUnsupportedBearerFormat("other")
+func TestUnsupportedSecuritySchemeErrors(t *testing.T) {
+	assert.ErrorIs(t, openapi.NewErrUnsupportedScheme("digest"), openapi.ErrUnsupportedSecurityScheme)
+	assert.ErrorIs(t, openapi.NewErrUnsupportedSecuritySchemeType("mutualtls"), openapi.ErrUnsupportedSecurityScheme)
+}
+
+func TestSecuritySchemeMap_WithOpaqueBearerFormat(t *testing.T) {
 	openapiContract, _ := openapi.LoadFromData(
 		t.Context(),
-		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: other}}}}`),
+		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {parameters: [], responses: {'204': {description: successful operation}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer, bearerFormat: opaque}}}}`),
 	)
 
 	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewEmptySecuritySchemeValues())
 
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Nil(t, result)
+	assert.NoError(t, err)
+	assert.Equal(t, auth.BearerScheme, result["bearer_auth"].GetScheme())
+	assert.Nil(t, result["bearer_auth"].GetTokenFormat())
 }
 
 func TestSecuritySchemeMap_WithHTTPJWTBearer(t *testing.T) {
