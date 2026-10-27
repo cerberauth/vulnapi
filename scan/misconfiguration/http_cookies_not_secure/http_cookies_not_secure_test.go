@@ -107,3 +107,27 @@ func TestHTTPCookiesNotSecure_Failed_WhenNotSecure(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "cookie_name", f.Parameter)
 }
+
+func TestHTTPCookiesNotSecure_Failed_WhenAnyCookieIsNotSecure(t *testing.T) {
+	client := request.GetDefaultClient()
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, client)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewNoAuthSecurityScheme()})
+	resp := httpmock.NewStringResponse(http.StatusOK, "OK")
+	// the insecure cookie comes first; only the last one used to be checked
+	resp.Header.Add("Set-Cookie", (&http.Cookie{Name: "insecure", Value: "value", Secure: false}).String())
+	resp.Header.Add("Set-Cookie", (&http.Cookie{Name: "also_insecure", Value: "value", Secure: false}).String())
+	resp.Header.Add("Set-Cookie", (&http.Cookie{Name: "secure", Value: "value", Secure: true}).String())
+	httpmock.RegisterResponder(op.Method, op.URL.String(), httpmock.ResponderFromResponse(resp))
+
+	store := cookiesStoreFor(t, op)
+	result, err := runCheck(op, store)
+
+	require.NoError(t, err)
+	f, ok := harnessx.DataAs[*finding.Finding](result)
+	require.True(t, ok)
+	assert.Equal(t, "insecure", f.Parameter)
+	assert.Equal(t, "insecure, also_insecure", f.Extra["cookies"])
+}

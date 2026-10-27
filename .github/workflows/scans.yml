@@ -144,10 +144,10 @@ jobs:
       matrix:
         include:
           - challenge: "jwt-alg-none-bypass"
-            checkID: "alg_none"
+            checkID: "jwt.alg_none"
             vulnerable: true
           - challenge: "jwt-alg-none-bypass"
-            checkID: "alg_none"
+            checkID: "jwt.alg_none"
             vulnerable: false
           - challenge: "jwt-blank-secret"
             checkID: "blank_secret"
@@ -174,10 +174,10 @@ jobs:
             checkID: "no_verification"
             vulnerable: false
           - challenge: "jwt-null-signature"
-            checkID: "null_signature"
+            checkID: "jwt.null_signature"
             vulnerable: true
           - challenge: "jwt-null-signature"
-            checkID: "null_signature"
+            checkID: "jwt.null_signature"
             vulnerable: false
           - challenge: "jwt-weak-hmac-secret"
             checkID: "weak_secret"

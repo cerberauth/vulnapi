@@ -1,0 +1,9 @@
+id: "misconfiguration.http_headers_cors_origin_reflection"
+name: "CORS reflects arbitrary origins with credentials"
+description: "The API reflects any Origin in Access-Control-Allow-Origin and sets Access-Control-Allow-Credentials to true, so any website can read authenticated responses from the browser of a logged-in user."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials"
+tags: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 7.1
+cwe_id: "CWE-942"
+owasp: "API8:2023"
