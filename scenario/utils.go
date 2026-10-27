@@ -1,12 +1,12 @@
 package scenario
 
 import (
-	"crypto/tls"
 	"encoding/base64"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/cerberauth/cobracurl"
 	"github.com/cerberauth/vulnapi/internal/auth"
 )
 
@@ -99,17 +99,17 @@ func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
 	return nil, nil
 }
 
-func addDefaultProtocolWhenMissing(u *url.URL) *url.URL {
-	if u.Scheme != "" {
-		return u
+// normalizeURL adds a default scheme to a URL that has none, as curl does.
+// url.Parse reads "localhost:5000" as scheme "localhost", so any scheme other
+// than http or https is normalized from the URL string.
+func normalizeURL(u *url.URL) (*url.URL, error) {
+	if u.Scheme == "http" || u.Scheme == "https" {
+		return u, nil
 	}
 
-	tlsConn, err := tls.Dial("tcp", u.String(), nil)
-	if err == nil {
-		defer tlsConn.Close()
-		u.Scheme = "https"
-	} else {
-		u.Scheme = "http"
+	normalized, err := cobracurl.NormalizeURL(u.String())
+	if err != nil {
+		return nil, err
 	}
-	return u
+	return url.Parse(normalized)
 }

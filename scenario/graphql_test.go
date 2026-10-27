@@ -115,3 +115,24 @@ func TestNewGraphQLScanWithLowerCaseAuthorizationHeader(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)}, s.Operations[0].SecuritySchemes)
 }
+
+func TestNewGraphQLScanWithHostPortURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	serverURL, _ := url.Parse(server.URL)
+	u, err := url.Parse("localhost:" + serverURL.Port())
+	require.NoError(t, err)
+
+	s, err := scenario.NewGraphQLScan(harnessx.New(), u, nil, nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, "http://localhost:"+serverURL.Port(), s.Operations[0].URL.String())
+}
+
+func TestNewGraphQLScanWithMissingHost(t *testing.T) {
+	_, err := scenario.NewGraphQLScan(harnessx.New(), &url.URL{}, nil, nil)
+
+	assert.Error(t, err)
+}

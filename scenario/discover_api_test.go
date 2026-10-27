@@ -41,6 +41,22 @@ func TestNewDiscoverScanWithoutURLProto(t *testing.T) {
 	assert.Equal(t, http.MethodGet, s.Operations[0].Method)
 }
 
+func TestNewDiscoverScanWithHostPortURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	serverURL, _ := url.Parse(server.URL)
+	// url.Parse reads "localhost:port" as scheme "localhost"
+	u, err := url.Parse("localhost:" + serverURL.Port())
+	require.NoError(t, err)
+
+	s, err := scenario.NewDiscoverAPIScan(harnessx.New(), http.MethodGet, u, nil, nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, "http://localhost:"+serverURL.Port(), s.Operations[0].URL.String())
+}
+
 func TestNewDiscoverScanWhenNotReachable(t *testing.T) {
 	u, _ := url.Parse("http://localhost:8009")
 
@@ -48,4 +64,10 @@ func TestNewDiscoverScanWhenNotReachable(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), ":8009: connect: connection refused")
+}
+
+func TestNewDiscoverScanWithMissingHost(t *testing.T) {
+	_, err := scenario.NewDiscoverAPIScan(harnessx.New(), http.MethodGet, &url.URL{}, nil, nil)
+
+	assert.Error(t, err)
 }
