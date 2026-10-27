@@ -2,7 +2,9 @@ package openapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -35,16 +37,16 @@ const (
 	otelSchemeBearerFormatKey    = attribute.Key("scheme_bearer_format")
 )
 
-func NewErrUnsupportedBearerFormat(bearerFormat string) error {
-	return fmt.Errorf("unsupported bearer format: %s", bearerFormat)
-}
+// ErrUnsupportedSecurityScheme is wrapped by the errors of security schemes
+// vulnapi cannot use. SecuritySchemeMap skips those schemes.
+var ErrUnsupportedSecurityScheme = errors.New("unsupported security scheme")
 
 func NewErrUnsupportedScheme(scheme string) error {
-	return fmt.Errorf("unsupported scheme: %s", scheme)
+	return fmt.Errorf("%w: unsupported scheme: %s", ErrUnsupportedSecurityScheme, scheme)
 }
 
 func NewErrUnsupportedSecuritySchemeType(schemeType string) error {
-	return fmt.Errorf("unsupported security scheme type: %s", schemeType)
+	return fmt.Errorf("%w: unsupported security scheme type: %s", ErrUnsupportedSecurityScheme, schemeType)
 }
 
 func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (*auth.SecurityScheme, error) {
@@ -55,18 +57,14 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 			return nil, err
 		}
 
-		switch bearerFormat := strings.ToLower(scheme.Value.BearerFormat); bearerFormat {
-		case "":
-			return securityScheme, nil
-		case "jwt":
-			err := securityScheme.SetTokenFormat(auth.JWTTokenFormat)
-			if err != nil {
+		// bearerFormat is only a hint: formats other than JWT, such as
+		// "opaque", are sent as plain bearer tokens
+		if strings.EqualFold(scheme.Value.BearerFormat, "jwt") {
+			if err := securityScheme.SetTokenFormat(auth.JWTTokenFormat); err != nil {
 				return nil, err
 			}
-			return securityScheme, nil
-		default:
-			return nil, NewErrUnsupportedBearerFormat(bearerFormat)
 		}
+		return securityScheme, nil
 	case BasicScheme:
 		return auth.NewAuthorizationBasicSecurityScheme(name, nil)
 	default:
@@ -151,6 +149,11 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
+		if errors.Is(err, ErrUnsupportedSecurityScheme) {
+			delete(securitySchemes, name)
+			fmt.Fprintf(os.Stderr, "Warning: skipping security scheme %q: %v\n", name, err)
+			continue
+		}
 		if err != nil {
 			telemetrySecuritySchemeErrorCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 			return nil, err

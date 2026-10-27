@@ -40,9 +40,12 @@ func LoadOpenAPI(ctx context.Context, urlOrPath string) (*OpenAPI, error) {
 		}
 
 		openapi := NewOpenAPI(doc)
+		docURL := *uri
+		openapi.docURL = &docURL
 		if openapi.BaseUrl() == nil {
 			baseUri := uri
 			baseUri.Path = "/"
+			baseUri.RawQuery = ""
 			openapi.SetBaseUrl(baseUri)
 		}
 
