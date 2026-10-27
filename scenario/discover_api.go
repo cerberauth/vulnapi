@@ -25,7 +25,10 @@ func NewDiscoverAPIScan(engine *harnessx.Engine, method string, u *url.URL, clie
 		client = request.GetDefaultClient()
 	}
 
-	u = addDefaultProtocolWhenMissing(u)
+	u, err := normalizeURL(u)
+	if err != nil {
+		return nil, err
+	}
 	op, err := operation.NewOperation(method, u.String(), nil, client)
 	if err != nil {
 		return nil, err
