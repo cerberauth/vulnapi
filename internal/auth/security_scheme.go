@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/jwtop/jwt/editor"
@@ -28,7 +29,7 @@ type SecuritySchemesMap map[string]*SecurityScheme
 
 type InQueryValue = string
 type InHeaderValue = string
-type InCookieValue = http.Cookie
+type InCookieValue = string
 
 func NewSecurityScheme(name string, config interface{}, t Type, scheme SchemeName, in *SchemeIn, tokenFormat *TokenFormat) (*SecurityScheme, error) {
 	if in != nil && name == "" {
@@ -192,16 +193,22 @@ func (securityScheme *SecurityScheme) GetAttackValue() interface{} {
 	return securityScheme.AttackValue
 }
 
+// requestValue returns the value sent in requests: the attack value when
+// set, the valid value otherwise.
+func (securityScheme *SecurityScheme) requestValue() interface{} {
+	if attackValue := securityScheme.GetAttackValue(); attackValue != nil {
+		return attackValue
+	}
+	return securityScheme.GetValidValue()
+}
+
 func (securityScheme *SecurityScheme) GetHeaders() http.Header {
 	header := http.Header{}
 	if securityScheme.GetIn() == nil || *securityScheme.GetIn() != InHeader {
 		return header
 	}
 
-	attackValue := securityScheme.GetAttackValue()
-	if attackValue == nil && securityScheme.HasValidValue() {
-		attackValue = securityScheme.GetValidValue()
-	}
+	attackValue := securityScheme.requestValue()
 	if attackValue == nil {
 		return header
 	}
@@ -231,11 +238,25 @@ func (securityScheme *SecurityScheme) GetHeaders() http.Header {
 }
 
 func (securityScheme *SecurityScheme) GetCookies() []*http.Cookie {
-	if securityScheme.GetIn() == nil || *securityScheme.GetIn() != InCookie {
-		return []*http.Cookie{}
+	cookies := []*http.Cookie{}
+	if securityScheme.GetIn() == nil || *securityScheme.GetIn() != InCookie || securityScheme.GetType() != ApiKey {
+		return cookies
 	}
 
-	cookies := []*http.Cookie{}
-	// TODO
+	if value, ok := securityScheme.requestValue().(string); ok && value != "" {
+		cookies = append(cookies, &http.Cookie{Name: securityScheme.GetName(), Value: value})
+	}
 	return cookies
+}
+
+func (securityScheme *SecurityScheme) GetQueryParams() url.Values {
+	query := url.Values{}
+	if securityScheme.GetIn() == nil || *securityScheme.GetIn() != InQuery || securityScheme.GetType() != ApiKey {
+		return query
+	}
+
+	if value, ok := securityScheme.requestValue().(string); ok && value != "" {
+		query.Set(securityScheme.GetName(), value)
+	}
+	return query
 }

@@ -75,7 +75,13 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 }
 
 func mapAPIKeySchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *string) (*auth.SecurityScheme, error) {
-	return auth.NewAPIKeySecurityScheme(name, auth.SchemeIn(scheme.Value.In), securitySchemeValue)
+	// The API key is sent under the header, query parameter or cookie name
+	// the scheme declares, not under the scheme's own name.
+	paramName := scheme.Value.Name
+	if paramName == "" {
+		paramName = name
+	}
+	return auth.NewAPIKeySecurityScheme(paramName, auth.SchemeIn(scheme.Value.In), securitySchemeValue)
 }
 
 func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *auth.OAuthValue) (*auth.SecurityScheme, error) {

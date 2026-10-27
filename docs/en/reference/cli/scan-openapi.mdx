@@ -16,27 +16,30 @@ vulnapi scan openapi <PATH_OR_URL> [flags]
 | Flag | Default | Description |
 |---|---|---|
 | `--security-schemes <name=value>` | `` | Override the token value for a named security scheme (repeatable) |
+| `--token-stdin` | `false` | Read the default token from stdin |
 
 Also accepts all [common flags](./#common-flags).
 
 ## Token via stdin
 
-A token piped via stdin is used as the default value for all security schemes that accept a bearer token. Named overrides from `--security-schemes` take precedence.
+With `--token-stdin`, the token piped via stdin is used as the default value for all security schemes that accept a bearer token. Stdin is read until it is closed, and surrounding whitespace is trimmed. Named overrides from `--security-schemes` take precedence.
 
 ```sh
-echo "<token>" | vulnapi scan openapi ./openapi.json
+echo "<token>" | vulnapi scan openapi ./openapi.json --token-stdin
 ```
+
+Without the flag, a piped token is still read, but this is deprecated. Pass `--token-stdin=false` to never read stdin, for example in CI where stdin can be an open pipe that is never closed.
 
 ## Examples
 
 **Local spec with a token piped via stdin**
 ```sh
-echo "<token>" | vulnapi scan openapi ./openapi.json
+echo "<token>" | vulnapi scan openapi ./openapi.json --token-stdin
 ```
 
 **Remote spec with a token piped via stdin**
 ```sh
-echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json
+echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json --token-stdin
 ```
 
 **Named security scheme override**
