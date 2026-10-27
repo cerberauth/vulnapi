@@ -2,6 +2,7 @@ package scan
 
 import (
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/cerberauth/cobracurl"
@@ -22,6 +23,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	var (
 		securitySchemesValueArg map[string]string
 		tokenStdin              bool
+		serverUrl               string
 	)
 
 	scanCmd = &cobra.Command{
@@ -51,6 +53,18 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			if err != nil {
 				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error loading openapi"))...))
 				log.Fatal(err)
+			}
+
+			if serverUrl != "" {
+				baseUrl, err := url.Parse(serverUrl)
+				if err != nil || baseUrl.Scheme == "" || baseUrl.Host == "" {
+					telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid server url"))...))
+					log.Fatalf("invalid --server-url %q: an absolute URL is required", serverUrl)
+				}
+				if baseUrl.Path == "" {
+					baseUrl.Path = "/"
+				}
+				doc.SetBaseUrl(baseUrl)
 			}
 
 			if err := doc.Validate(ctx); err != nil {
@@ -138,5 +152,6 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	internalCmd.AddCommonArgs(scanCmd)
 	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Example value for each security scheme")
 	scanCmd.Flags().BoolVar(&tokenStdin, "token-stdin", false, "Read the default security scheme token from stdin")
+	scanCmd.Flags().StringVar(&serverUrl, "server-url", "", "Base URL of the API, overriding the servers of the OpenAPI document")
 	return scanCmd
 }
