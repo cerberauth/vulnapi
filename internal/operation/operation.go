@@ -3,14 +3,13 @@ package operation
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/cerberauth/harnessx/probe"
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -104,37 +103,32 @@ func MustNewOperation(method string, operationUrl string, body *bytes.Buffer, cl
 	return operation
 }
 
+// ReachabilityTimeout bounds the request IsReachable sends.
+const ReachabilityTimeout = 10 * time.Second
+
+// IsReachable sends one HEAD request to the operation URL through the
+// operation's client, so the proxy, TLS settings and timeouts in use for the
+// scan apply. Any HTTP response, whatever its status, means reachable.
 func (operation *Operation) IsReachable() error {
-	host := operation.URL.Host
-	if _, _, err := net.SplitHostPort(host); err != nil {
-		switch operation.URL.Scheme {
-		case "http":
-			host += ":80"
-		case "https":
-			host += ":443"
-		default:
-			return fmt.Errorf("unsupported scheme: %s", operation.URL.Scheme)
-		}
+	switch operation.URL.Scheme {
+	case "http", "https":
+	default:
+		return fmt.Errorf("unsupported scheme: %s", operation.URL.Scheme)
 	}
 
-	if operation.URL.Scheme == "https" {
-		tlsConfig := operation.Client.Transport.(*http.Transport).TLSClientConfig
-		if tlsConfig == nil || !tlsConfig.InsecureSkipVerify {
-			tlsConn, err := tls.Dial("tcp", host, tlsConfig)
-			if err != nil {
-				return err
-			}
-			defer tlsConn.Close()
-		}
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), ReachabilityTimeout)
+	defer cancel()
 
-	dialConn, err := net.DialTimeout("tcp", host, operation.Timeout)
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, operation.URL.String(), nil)
 	if err != nil {
 		return err
 	}
-	defer dialConn.Close()
 
-	return nil
+	res, err := operation.HTTPClient().Do(req) //nolint:gosec // probing the scan target is the purpose
+	if err != nil {
+		return err
+	}
+	return res.Body.Close()
 }
 
 // NewOperationFromHTTPRequest builds an Operation from a plain *http.Request

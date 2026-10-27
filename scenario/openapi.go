@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/vulnapi/internal/request"
@@ -28,7 +29,7 @@ func NewOpenAPIScan(ctx context.Context, engine *harnessx.Engine, openapi *opena
 	}
 
 	if len(operations) == 0 {
-		return nil, nil
+		return nil, errors.New("no operations found in the OpenAPI document")
 	}
 	if err := operations[0].IsReachable(); err != nil {
 		return nil, err
