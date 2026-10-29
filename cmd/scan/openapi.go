@@ -2,7 +2,7 @@ package scan
 
 import (
 	"bufio"
-	"log"
+	"errors"
 	"os"
 
 	"github.com/cerberauth/cobracurl"
@@ -15,8 +15,6 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 func isStdinOpen() bool {
@@ -44,33 +42,21 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 		Short: "OpenAPI Operations Scan",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			otelIncludeScansAttribute := includeScansAttributeKey.StringSlice(internalCmd.GetIncludeScans())
-			otelExcludeScansAttribute := excludeScansAttributeKey.StringSlice(internalCmd.GetExcludeScans())
-			otelAttributes := []attribute.KeyValue{
-				otelIncludeScansAttribute,
-				otelExcludeScansAttribute,
-			}
 
-			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-			telemetryScanOpenAPISuccessCounter, _ := telemetryMeter.Int64Counter("scan.openapi.success.counter")
-			telemetryScanOpenAPIErrorCounter, _ := telemetryMeter.Int64Counter("scan.openapi.error.counter")
 			ctx := cmd.Context()
 
 			openapiUrlOrPath := args[0]
 			if openapiUrlOrPath == "" {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("openapi path is required"))...))
-				log.Fatal("OpenAPI path is required")
+				telemetryx.Fatal(cmd, telemetryx.Reason(errors.New("OpenAPI path is required"), "openapi-path-is-required"))
 			}
 
 			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error loading openapi"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-loading-openapi"))
 			}
 
 			if err := doc.Validate(ctx); err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid openapi"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-openapi"))
 			}
 
 			var validToken *string
@@ -86,13 +72,11 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error creating http client"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-creating-http-client"))
 			}
 			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
 			if err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error building request headers"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-building-request-headers"))
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
 			request.SetDefaultClient(client)
@@ -104,8 +88,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				MinSeverity:  internalCmd.GetMinSeverity(),
 			})
 			if err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid scenario"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scenario"))
 			}
 
 			var bar *progressbar.ProgressBar
@@ -121,18 +104,14 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error executing scan"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scan"))
 			}
 
 			if err = internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
-				telemetryScanOpenAPIErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("error printing report"))...))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
 			}
 
-			telemetryScanOpenAPISuccessCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
-
-			internalCmd.ExitIfFindings(reporter, len(internalCmd.GetIncludeScans()) > 0 || internalCmd.GetOnlyScansAboveThreshold())
+			internalCmd.ExitIfFindings(cmd, reporter, len(internalCmd.GetIncludeScans()) > 0 || internalCmd.GetOnlyScansAboveThreshold())
 		},
 	}
 

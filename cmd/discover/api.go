@@ -1,7 +1,7 @@
 package discover
 
 import (
-	"log"
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -13,7 +13,6 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/metric"
 )
 
 func NewAPICmd() (apiCmd *cobra.Command) {
@@ -22,31 +21,24 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 		Short: "Discover api endpoints and server information",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-			telemetryDiscoverApiSuccessCounter, _ := telemetryMeter.Int64Counter("discover.api.success.counter")
-			telemetryDiscoverApiErrorCounter, _ := telemetryMeter.Int64Counter("discover.api.error.counter")
 			ctx := cmd.Context()
 
 			if args[0] == "" {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("url is required")))
-				log.Fatal("url is required")
+				telemetryx.Fatal(cmd, telemetryx.Reason(errors.New("url is required"), "url-is-required"))
 			}
 
 			parsedUrl, err := url.Parse(args[0])
 			if err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid url")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-url"))
 			}
 
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid client")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
 			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
 			if err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error building request headers")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-building-request-headers"))
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
 
@@ -56,8 +48,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				ExcludeScans: internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scan"))
 			}
 
 			var bar *progressbar.ProgressBar
@@ -73,16 +64,13 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 				}
 			})
 			if err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error executing scan")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scan"))
 			}
 
 			if err := internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
-				telemetryDiscoverApiErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("error printing report")))
-				log.Fatal(err)
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
 			}
 
-			telemetryDiscoverApiSuccessCounter.Add(ctx, 1)
 		},
 	}
 
