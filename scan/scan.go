@@ -147,12 +147,13 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	checks := s.filterChecks(append([]harnessx.Check{loaderCheck}, s.harnessxChecks...))
 
 	target := harnessx.Target{URL: s.Operations[0].URL.String()}
+	metricsReporter := scanmetrics.New(ctx, scanmetrics.Config{
+		CheckDefs: s.checkDefs,
+		Findings:  countFindings,
+	})
 	scenario := harnessx.Scenario{
-		Checks: checks,
-		Reporters: []harnessx.Reporter{adapter, scanmetrics.New(ctx, scanmetrics.Config{
-			CheckDefs: s.checkDefs,
-			Findings:  countFindings,
-		})},
+		Checks:    checks,
+		Reporters: []harnessx.Reporter{adapter, metricsReporter},
 	}
 	operationsPerScan.Record(ctx, float64(len(s.Operations)))
 	summary, err := s.Engine.RunScenario(ctx, target, scenario)
