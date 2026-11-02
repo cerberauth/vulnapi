@@ -15,6 +15,13 @@ import (
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go/v2"
 )
 
+// Argvio product metrics, declared in argvio.metrics.yaml.
+var (
+	operationsCounter = telemetryx.NewCounter("openapi.operations", "method")
+	loadDuration      = telemetryx.NewDuration("openapi.load")
+	httpMethods       = []string{"get", "post", "put", "patch", "delete", "head", "options", "trace", "connect"}
+)
+
 func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) []*auth.SecurityScheme {
 	operationsSecuritySchemes := []*auth.SecurityScheme{}
 	for _, security := range *securityRequirements {
@@ -117,10 +124,10 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 			}
 
 			operations = append(operations, operation)
-			telemetryx.Counter(ctx, "openapi.operations", 1, telemetryx.Vocab(method, "get", "post", "put", "patch", "delete", "head", "options", "trace", "connect"))
+			operationsCounter.Add(ctx, 1, telemetryx.Vocab(method, httpMethods...))
 		}
 	}
 
-	telemetryx.Duration(ctx, "openapi.operations", time.Since(start), "")
+	loadDuration.Record(ctx, time.Since(start))
 	return operations, nil
 }

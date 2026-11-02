@@ -134,7 +134,7 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		case ApiKeySchemeType:
 			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
-			telemetryx.Counter(ctx, "openapi.security-scheme.unsupported", 1, schemeLabel)
+			securitySchemesCounter.Add(ctx, 1, schemeLabel, "no")
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
@@ -142,11 +142,15 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 			return nil, err
 		}
 
-		telemetryx.Counter(ctx, "openapi.security-scheme", 1, schemeLabel)
+		securitySchemesCounter.Add(ctx, 1, schemeLabel, "yes")
 	}
 
 	return securitySchemes, nil
 }
+
+// securitySchemesCounter counts the security schemes of scanned specs, by
+// scheme and whether vulnapi supports it (argvio.metrics.yaml).
+var securitySchemesCounter = telemetryx.NewCounter("openapi.security-scheme", "scheme", "supported")
 
 // schemeCounterLabel names a security scheme for the Argvio counters from a
 // fixed vocabulary, so nothing taken from the scanned spec is ever sent.

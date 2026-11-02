@@ -10,7 +10,10 @@ import (
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/reportx"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
+	"github.com/cerberauth/x/telemetryx"
+	"github.com/cerberauth/x/telemetryx/scanmetrics"
 )
 
 type ScanOptions struct {
@@ -145,9 +148,13 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 
 	target := harnessx.Target{URL: s.Operations[0].URL.String()}
 	scenario := harnessx.Scenario{
-		Checks:    checks,
-		Reporters: []harnessx.Reporter{adapter},
+		Checks: checks,
+		Reporters: []harnessx.Reporter{adapter, scanmetrics.New(ctx, scanmetrics.Config{
+			CheckDefs: s.checkDefs,
+			Findings:  countFindings,
+		})},
 	}
+	operationsPerScan.Record(ctx, float64(len(s.Operations)))
 	summary, err := s.Engine.RunScenario(ctx, target, scenario)
 	if err != nil {
 		return nil, nil, err
@@ -165,6 +172,20 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 		return nil, errs, err
 	}
 	return report, errs, nil
+}
+
+// operationsPerScan is how many API operations each scan covers
+// (argvio.metrics.yaml).
+var operationsPerScan = telemetryx.NewValue("scan.operations", telemetryx.UnitCount)
+
+// countFindings counts a vulnapi check's finding for scanmetrics: checks
+// report one *finding.Finding per vulnerable operation.
+func countFindings(result harnessx.Result) (int, bool) {
+	f, ok := harnessx.DataAs[*finding.Finding](result)
+	if !ok || f == nil {
+		return 0, false
+	}
+	return 1, true
 }
 
 // legacyCheckIDAliases maps a check's current ID to IDs it was previously

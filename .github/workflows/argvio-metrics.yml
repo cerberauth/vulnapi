@@ -1,0 +1,23 @@
+name: Argvio metrics
+
+# Validates argvio.metrics.yaml on pull requests and syncs it to Argvio on
+# release, so the Product dashboard knows what each metric means.
+on:
+  pull_request:
+    paths:
+      - argvio.metrics.yaml
+      - .github/workflows/argvio-metrics.yml
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  argvio-metrics:
+    uses: cerberauth/ci/.github/workflows/argvio-metrics.yml@main
+    with:
+      sync: ${{ github.event_name != 'pull_request' }}
+    secrets:
+      ARGVIO_METRICS_ADMIN_KEY: ${{ secrets.ARGVIO_METRICS_ADMIN_KEY }}
