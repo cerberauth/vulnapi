@@ -2,11 +2,13 @@ package scan_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/reportx"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/scan"
@@ -423,4 +425,55 @@ func TestScanExecuteWithIncludeScansMatchingNothingRunsNothing(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, errs)
 	assert.Equal(t, 0, len(report.Findings))
+}
+
+func TestScanExecuteReportsCheckErrorsAndCoverage(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
+	s.AddCheck(harnessx.Check{
+		ID:    "failing-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{}, errors.New("request timed out")
+		},
+	}, nil)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{}, nil
+		},
+	}, nil)
+
+	report, errs, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Len(t, errs, 1)
+	assert.Equal(t, []reportx.ScanError{{
+		CheckID:  "failing-handler",
+		Resource: "http://localhost:8080/",
+		Message:  "request timed out",
+	}}, report.Errors)
+	assert.Equal(t, reportx.Coverage{Run: 1, Errored: 1}, report.Coverage)
+}
+
+func TestScanExecuteSetsCheckLinkAsReference(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	operations := operation.Operations{op}
+	s, _ := scan.NewScan(harnessx.New(), operations, nil)
+	s.AddCheck(harnessx.Check{
+		ID:    "test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, &checkdef.CheckDef{ID: "test-handler", Link: "https://vulnapi.cerberauth.com/docs/test-handler"})
+
+	report, _, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, len(report.Findings))
+	assert.Equal(t, "http://localhost:8080/", report.Findings[0].URL)
+	assert.Equal(t, []string{"https://vulnapi.cerberauth.com/docs/test-handler"}, report.Findings[0].References)
 }

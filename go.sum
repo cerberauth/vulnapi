@@ -10,8 +10,8 @@ github.com/cerberauth/harnessx v0.4.1 h1:q4F0fdHWxVm7ntxYKfh2PIyOwBEi02yKommAb65
 github.com/cerberauth/harnessx v0.4.1/go.mod h1:CPUs+OKTAUgG9ZRcgSufRoRzjQ2oPLWZcFmck6pGDDs=
 github.com/cerberauth/jwtop v0.8.0 h1:SlhiskdBz+8GHNEfQg0LhJfbQSnP4Lt23v8j8BE+7A4=
 github.com/cerberauth/jwtop v0.8.0/go.mod h1:BgXFjN71xc9cLL2/GenkeUPYw+0mBRShAKCrQwj1mBc=
-github.com/cerberauth/reportx v0.3.0 h1:/6zrKrCUiMy1ZkF3sAit0Xk8mSiAf11on9NlHbtXKxc=
-github.com/cerberauth/reportx v0.3.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
+github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
+github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20260901215913-9d7750841dbb h1:p8scU5jV+4nyq6CXRPHnCaB22d9DeyaFmubXeNGT47o=
 github.com/cerberauth/x v0.0.0-20260901215913-9d7750841dbb/go.mod h1:hPDTiSdQhIKtCxxNnE1KnNKY2nn9FfsmLz5VfcYCcyo=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
