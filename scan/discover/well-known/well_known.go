@@ -16,7 +16,7 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("well_known", checkYAML)
 
-var wellKnownSeclistUrl = "https://raw.githubusercontent.com/cerberauth/vulnapi/main/seclist/lists/well-known.txt"
+const wellKnownSeclist = "well-known.txt"
 
 var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	resources := store.Resources()
@@ -29,7 +29,7 @@ var Check = hxcheckdef.NewCheck(Def, func(ctx context.Context, _ harnessx.Target
 	}
 	securityScheme := op.GetSecurityScheme()
 
-	f, err := discover.DownloadAndScanURLs(ctx, "Well-Known", wellKnownSeclistUrl, op, securityScheme)
+	f, err := discover.ScanSecList(ctx, "Well-Known", wellKnownSeclist, op, securityScheme)
 	if err != nil {
 		return harnessx.Result{}, err
 	}

@@ -2,7 +2,7 @@ package auth
 
 type SchemeName string
 
-// Values are registred in the IANA Authentication Scheme registry
+// Values are registered in the IANA Authentication Scheme registry
 // https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
 const (
 	BasicScheme  SchemeName = "Basic"

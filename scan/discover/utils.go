@@ -92,11 +92,13 @@ func ScanURLs(ctx context.Context, scanUrls []string, op *operation.Operation, s
 	}, nil
 }
 
-func DownloadAndScanURLs(ctx context.Context, name string, seclistUrl string, op *operation.Operation, securityScheme *auth.SecurityScheme) (*finding.Finding, error) {
-	urlsFromSeclist, err := seclist.NewSecListFromURL(name, seclistUrl)
+// ScanSecList probes every path of the embedded sec list listName (see
+// ScanURLs).
+func ScanSecList(ctx context.Context, name string, listName string, op *operation.Operation, securityScheme *auth.SecurityScheme) (*finding.Finding, error) {
+	list, err := seclist.NewSecListFromEmbeddedFile(name, listName)
 	if err != nil {
 		return nil, err
 	}
 
-	return ScanURLs(ctx, urlsFromSeclist.Items, op, securityScheme)
+	return ScanURLs(ctx, list.Items, op, securityScheme)
 }

@@ -43,8 +43,6 @@ type Scan struct {
 
 	harnessxChecks []harnessx.Check
 	checkDefs      map[harnessx.CheckID]checkdef.CheckDef
-
-	telemetryOperationScanHandler metric.Int64Counter
 }
 
 const (
@@ -79,14 +77,6 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 		}
 	}
 
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
-	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
-	telemetryScanCounter.Add(context.Background(), 1, metric.WithAttributes(
-		otelScanIncludeScansAttribute.StringSlice(opts.IncludeScans),
-		otelScanExcludeScansAttribute.StringSlice(opts.ExcludeScans),
-	))
-
 	return &Scan{
 		ScanOptions: opts,
 
@@ -96,8 +86,6 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 		OperationsScans: []OperationScan{},
 		harnessxChecks:  []harnessx.Check{},
 		checkDefs:       map[harnessx.CheckID]checkdef.CheckDef{},
-
-		telemetryOperationScanHandler: telemetryOperationScanHandlerCounter,
 	}, nil
 }
 
@@ -126,18 +114,12 @@ func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
 					CheckName: check.Name,
 				})
 			}
-			s.telemetryOperationScanHandler.Add(context.Background(), int64(len(s.Operations)), metric.WithAttributes(
-				otelScanHandlerIdAttribute.String(string(check.ID)),
-			))
 		} else {
 			s.OperationsScans = append(s.OperationsScans, OperationScan{
 				Operation: s.Operations[0],
 				CheckID:   string(check.ID),
 				CheckName: check.Name,
 			})
-			s.telemetryOperationScanHandler.Add(context.Background(), 1, metric.WithAttributes(
-				otelScanHandlerIdAttribute.String(string(check.ID)),
-			))
 		}
 	}
 	if def != nil {
@@ -171,6 +153,7 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 
 	loaderCheck := newOperationsLoaderCheck(s.Operations)
 	checks := s.filterChecks(append([]harnessx.Check{loaderCheck}, s.harnessxChecks...))
+	s.recordTelemetry(ctx, checks)
 
 	target := harnessx.Target{URL: s.Operations[0].URL.String()}
 	scenario := harnessx.Scenario{
@@ -190,6 +173,31 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	}
 
 	return adapter.Report(), errs, nil
+}
+
+// recordTelemetry counts the scan and, per check, the operations it runs on,
+// for the checks that actually run after filtering.
+func (s *Scan) recordTelemetry(ctx context.Context, checks []harnessx.Check) {
+	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
+	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
+	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
+
+	telemetryScanCounter.Add(ctx, 1, metric.WithAttributes(
+		otelScanIncludeScansAttribute.StringSlice(s.IncludeScans),
+		otelScanExcludeScansAttribute.StringSlice(s.ExcludeScans),
+	))
+	for _, check := range checks {
+		if isInternalCheckID(string(check.ID)) {
+			continue
+		}
+		count := int64(1)
+		if check.Scope == harnessx.ScopePerResource {
+			count = int64(len(s.Operations))
+		}
+		telemetryOperationScanHandlerCounter.Add(ctx, count, metric.WithAttributes(
+			otelScanHandlerIdAttribute.String(string(check.ID)),
+		))
+	}
 }
 
 // legacyCheckIDAliases maps a check's current ID to IDs it was previously
