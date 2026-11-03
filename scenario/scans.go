@@ -28,6 +28,7 @@ import (
 	httpcookieswithoutsamesite "github.com/cerberauth/vulnapi/scan/misconfiguration/http_cookies_without_same_site"
 	httpheaderscontentoptionsmissing "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_content_options_missing"
 	httpheaderscorsmissing "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_cors_missing"
+	httpheaderscorsoriginreflection "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_cors_origin_reflection"
 	httpheaderscorswildcard "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_cors_wildcard"
 	httpheaderscspframeancestorsmissing "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_csp_frame_ancestors_missing"
 	httpheaderscspmissing "github.com/cerberauth/vulnapi/scan/misconfiguration/http_headers_csp_missing"
@@ -74,6 +75,7 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(httpheaderscontentoptionsmissing.Check, &httpheaderscontentoptionsmissing.Def)
 	s.AddCheck(httpheaderscorsmissing.Check, &httpheaderscorsmissing.Def)
 	s.AddCheck(httpheaderscorswildcard.Check, &httpheaderscorswildcard.Def)
+	s.AddCheck(httpheaderscorsoriginreflection.Check, &httpheaderscorsoriginreflection.Def)
 	s.AddCheck(httpheaderscspframeancestorsmissing.Check, &httpheaderscspframeancestorsmissing.Def)
 	s.AddCheck(httpheaderscspmissing.Check, &httpheaderscspmissing.Def)
 	s.AddCheck(httpheadersframeoptionsmissing.Check, &httpheadersframeoptionsmissing.Def)

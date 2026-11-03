@@ -16,6 +16,14 @@ vulnapi scan curl ... --scans "jwt.*"
 vulnapi scan curl ... --exclude-scans "discover.*"
 ```
 
+Un motif sélectionne un scan lorsqu'il est :
+
+- l'identifiant exact du scan, par exemple `jwt.alg_none`
+- un glob sur tout l'identifiant, par exemple `jwt.*` (`*`, `?` et `[...]` sont pris en charge)
+- un préfixe de l'identifiant qui se termine par un `.` ou un `_`, par exemple `jwt` ou `misconfiguration.http_headers`
+
+Les motifs sont ancrés : `http` ne sélectionne pas `misconfiguration.http_trace`. Un motif invalide, ou un motif `--scans` qui ne sélectionne aucun scan, arrête le scan avec une erreur.
+
 ## Broken Authentication
 
 | Identifiant de scan | Nom | OWASP | CVSS |
@@ -74,6 +82,7 @@ Le scan `misconfiguration.http_headers` couvre plusieurs contrôles d'en-têtes 
 | `X-Content-Type-Options` | Info |
 | `Strict-Transport-Security` | Info |
 | `Access-Control-Allow-Origin` (CORS) | Moyen |
+| `Origin` arbitraire reflétée avec `Access-Control-Allow-Credentials: true` (`misconfiguration.http_headers_cors_origin_reflection`) | Élevé |
 | Fuite de signature du serveur | Info |
 
 ## Sécurité des cookies (sous-contrôles de `misconfiguration.http_cookies`)

@@ -50,7 +50,7 @@ All `scan` and `discover` commands share these flags. HTTP client flags follow t
 | `--basic` | `` | Use HTTP Basic Auth (use with `-u`) |
 | `--digest` | `` | Use HTTP Digest Auth (use with `-u`) |
 | `--scans <scan-id>` | `` | Run only specific scans (repeatable; supports wildcards like `jwt.*`) |
-| `--exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable) |
+| `--exclude-scans <scan-id>` | `` | Exclude specific scans (repeatable; same patterns as `--scans`) |
 | `--report-format <format>` | `table` | Output format: `table`, `json`, `yaml` |
 | `--report-transport <transport>` | `file` | Report transport: `file`, `http` |
 | `--report-file <path>` | `` | File path to write the report to |

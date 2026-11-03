@@ -18,15 +18,22 @@ var checkYAML []byte
 
 var Def = hxcheckdef.MustParseCheckDefYAML("http_headers_csp_frame_ancestors_missing", checkYAML)
 
+// CheckCSPFrameAncestors reports whether cspHeader restricts who can frame
+// the response with a frame-ancestors directive: 'none', 'self' or explicit
+// origins. A wildcard or a bare scheme (e.g. "https:") allows any site.
 func CheckCSPFrameAncestors(cspHeader string) bool {
-	directives := strings.Split(cspHeader, ";")
-	for _, directive := range directives {
-		directive = strings.TrimSpace(directive)
-		if strings.HasPrefix(directive, "frame-ancestors") {
-			if strings.Contains(directive, "none") {
-				return true
+	for _, directive := range strings.Split(cspHeader, ";") {
+		fields := strings.Fields(directive)
+		if len(fields) == 0 || !strings.EqualFold(fields[0], "frame-ancestors") {
+			continue
+		}
+
+		for _, source := range fields[1:] {
+			if source == "*" || strings.HasSuffix(source, ":") {
+				return false
 			}
 		}
+		return true
 	}
 
 	return false

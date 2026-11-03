@@ -3,7 +3,8 @@ package scan
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"path"
+	"slices"
 	"strings"
 
 	"github.com/cerberauth/harnessx"
@@ -67,6 +68,15 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 	}
 	if opts.Title == "" {
 		opts.Title = "Scan"
+	}
+	// empty patterns select nothing and are dropped
+	isEmpty := func(pattern string) bool { return pattern == "" }
+	opts.IncludeScans = slices.DeleteFunc(slices.Clone(opts.IncludeScans), isEmpty)
+	opts.ExcludeScans = slices.DeleteFunc(slices.Clone(opts.ExcludeScans), isEmpty)
+	for _, pattern := range append(slices.Clone(opts.IncludeScans), opts.ExcludeScans...) {
+		if err := validateScanPattern(pattern); err != nil {
+			return nil, err
+		}
 	}
 
 	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
@@ -153,6 +163,10 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 		toolVersion: s.ToolVersion,
 		checkDefs:   s.checkDefs,
 		callback:    scanCallback,
+	}
+
+	if err := s.checkIncludeScansMatch(); err != nil {
+		return nil, nil, err
 	}
 
 	loaderCheck := newOperationsLoaderCheck(s.Operations)
@@ -298,16 +312,58 @@ func (s *Scan) filterChecks(checks []harnessx.Check) []harnessx.Check {
 	return filtered
 }
 
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
+// validateScanPattern returns an error for a malformed --scans or
+// --exclude-scans glob pattern.
+func validateScanPattern(pattern string) error {
+	if _, err := path.Match(pattern, ""); err != nil {
+		return fmt.Errorf("invalid scan pattern %q: %w", pattern, err)
+	}
+	return nil
+}
 
-		match, _ := regexp.MatchString(s, item)
-		if match {
+// matchScanPattern reports whether a --scans or --exclude-scans pattern
+// selects the check id. A pattern matches the exact id, a glob over the
+// whole id (e.g. "jwt.*"), or a family of ids it is a prefix of, up to a
+// "." or "_" boundary (e.g. "misconfiguration.http_headers" or "jwt").
+// Patterns are anchored: "http" does not match "misconfiguration.http_trace".
+func matchScanPattern(pattern string, id string) bool {
+	if pattern == id {
+		return true
+	}
+	if ok, _ := path.Match(pattern, id); ok {
+		return true
+	}
+	return strings.HasPrefix(id, pattern+".") || strings.HasPrefix(id, pattern+"_")
+}
+
+func contains(patterns []string, id string) bool {
+	for _, pattern := range patterns {
+		if matchScanPattern(pattern, id) {
 			return true
 		}
 	}
 	return false
+}
+
+// checkIncludeScansMatch returns an error naming the --scans patterns that
+// match none of the registered checks, which is most likely a typo.
+func (s *Scan) checkIncludeScansMatch() error {
+	var unknown []string
+	for _, pattern := range s.IncludeScans {
+		matched := false
+		for _, check := range s.harnessxChecks {
+			ids := append([]string{string(check.ID)}, legacyCheckIDAliases[string(check.ID)]...)
+			if slices.ContainsFunc(ids, func(id string) bool { return matchScanPattern(pattern, id) }) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			unknown = append(unknown, pattern)
+		}
+	}
+	if len(unknown) > 0 {
+		return fmt.Errorf("no scan matches %s", strings.Join(unknown, ", "))
+	}
+	return nil
 }
