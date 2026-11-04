@@ -556,3 +556,17 @@ func TestScanExecuteRedactsAPIKeyHeaderFromEvidence(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, []string{enrich.RedactedValue}, ev.RequestHeaders["X-Custom-Token"])
 }
+
+func TestGetTargetOptions(t *testing.T) {
+	t.Run("returns the options of a target built by Execute", func(t *testing.T) {
+		target := harnessx.Target{Data: &scan.TargetOptions{AllowUnsafeMethods: true}}
+
+		assert.True(t, scan.GetTargetOptions(target).AllowUnsafeMethods)
+	})
+
+	t.Run("defaults to the safest options", func(t *testing.T) {
+		assert.False(t, scan.GetTargetOptions(harnessx.Target{}).AllowUnsafeMethods)
+		assert.False(t, scan.GetTargetOptions(harnessx.Target{Data: (*scan.TargetOptions)(nil)}).AllowUnsafeMethods)
+		assert.False(t, scan.GetTargetOptions(harnessx.Target{Data: "unexpected"}).AllowUnsafeMethods)
+	})
+}

@@ -43,8 +43,9 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 			fmt.Printf("Discovering APIs for %s\n", domain)
 			engine := harnessx.New()
 			scans, err := scenario.NewDiscoverDomainsScan(engine, domain, client, &scan.ScanOptions{
-				IncludeScans: internalCmd.GetIncludeScans(),
-				ExcludeScans: internalCmd.GetExcludeScans(),
+				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
+				IncludeScans:       internalCmd.GetIncludeScans(),
+				ExcludeScans:       internalCmd.GetExcludeScans(),
 			})
 			if err != nil {
 				telemetryDiscoverDomainErrorCounter.Add(ctx, 1, metric.WithAttributes(otelErrorReasonAttributeKey.String("invalid scan")))
