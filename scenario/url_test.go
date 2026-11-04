@@ -158,3 +158,25 @@ func TestNewURLScanWithHTTPBasic(t *testing.T) {
 	// Should clear client header after setting security schemes
 	assert.Empty(t, client.Header.Get("Authorization"))
 }
+
+func TestNewURLScanWithHostPortURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	serverURL, _ := url.Parse(server.URL)
+	// url.Parse reads "localhost:port" as scheme "localhost"
+	u, err := url.Parse("localhost:" + serverURL.Port())
+	require.NoError(t, err)
+
+	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", nil, nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, "http://localhost:"+serverURL.Port(), s.Operations[0].URL.String())
+}
+
+func TestNewURLScanWithMissingHost(t *testing.T) {
+	_, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, &url.URL{}, "", nil, nil)
+
+	assert.Error(t, err)
+}
