@@ -22,6 +22,17 @@ import (
 // ProbeCtxCheck, read back via store.GetForResource.
 const ProbeCtxCheckID harnessx.CheckID = "jwt.probe_ctx"
 
+// knownHMACSecret is the HMAC secret the user supplied (--jwt-secret), if any.
+var knownHMACSecret string
+
+// SetKnownHMACSecret records a known JWT HMAC secret. buildProbeCtx seeds it
+// as ProbeCtx.CrackedHMACSecret so checks that need a genuinely valid
+// signature to reach a handler that verifies it (e.g. fuzz) can re-sign
+// mutated tokens even when the weak_secret check can't crack the secret.
+func SetKnownHMACSecret(secret string) {
+	knownHMACSecret = secret
+}
+
 // buildProbeCtx builds the *checkbase.ProbeCtx every directly-adapted
 // jwtop check (see Adapt) reads and mutates as it runs — the same scratch
 // state jwtop's own single-target ProbeAll builds before running its
@@ -50,6 +61,8 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 		KidSQLTable:      exploit.DefaultKidSQLTable,
 		FuzzEnabled:      true,
 		FuzzMaxStringLen: fuzz.DefaultMaxStringLen,
+
+		CrackedHMACSecret: knownHMACSecret,
 	}, nil
 }
 

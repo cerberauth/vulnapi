@@ -97,6 +97,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			client = client.WithHeader(headers).WithCookies(cookies)
 			request.SetDefaultClient(client)
 
+			internalCmd.ApplyJWTSecretFlag(cmd)
+
 			engine := harnessx.New()
 			s, err := scenario.NewOpenAPIScan(ctx, engine, doc, securitySchemesValues, client, &scan.ScanOptions{
 				IncludeScans: internalCmd.GetIncludeScans(),

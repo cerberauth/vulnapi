@@ -205,21 +205,33 @@ jobs:
             vulnerable: false
           - challenge: "jwt-claim-type-confusion"
             checkID: "jwt.fuzz"
+            path: "/profile"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: true
           - challenge: "jwt-claim-type-confusion"
             checkID: "jwt.fuzz"
+            path: "/profile"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: false
           - challenge: "jwt-claim-oversized-value"
             checkID: "jwt.fuzz"
+            path: "/checkout"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: true
           - challenge: "jwt-claim-oversized-value"
             checkID: "jwt.fuzz"
+            path: "/checkout"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: false
           - challenge: "jwt-claim-special-chars"
             checkID: "jwt.fuzz"
+            path: "/search"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: true
           - challenge: "jwt-claim-special-chars"
             checkID: "jwt.fuzz"
+            path: "/search"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
             vulnerable: false
 
     steps:
@@ -249,7 +261,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" --no-progress --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080${{ matrix.path }} -H "Authorization: Bearer ${{ steps.get-jwt.outputs.jwt }}" --scans "${{ matrix.checkID }}" ${{ matrix.extraArgs }} --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         run: |
