@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
@@ -34,10 +35,18 @@ func SetDefaultClient(client *Client) {
 	defaultClient = client
 }
 
+// DefaultUserAgent is sent when neither the client nor the request sets a
+// User-Agent.
+const DefaultUserAgent = "vulnapi"
+
 type Client struct {
 	*http.Client
 	Header  http.Header
 	Cookies []*http.Cookie
+
+	// UserAgent is the default User-Agent, overridden by a User-Agent in
+	// Header (e.g. from -A or -H). DefaultUserAgent is used when empty.
+	UserAgent string
 }
 
 type NewClientOptions struct {
@@ -98,13 +107,25 @@ func NewClient(opts NewClientOptions) *Client {
 	}
 
 	return &Client{
-		&http.Client{
+		Client: &http.Client{
 			Timeout:   opts.Timeout,
 			Transport: transport,
 		},
-		opts.Header,
-		opts.Cookies,
+		Header:  opts.Header,
+		Cookies: opts.Cookies,
 	}
+}
+
+func (c *Client) WithUserAgent(userAgent string) *Client {
+	c.UserAgent = userAgent
+	return c
+}
+
+func (c *Client) GetUserAgent() string {
+	if c.UserAgent == "" {
+		return DefaultUserAgent
+	}
+	return c.UserAgent
 }
 
 func (c *Client) WithHeader(header http.Header) *Client {
@@ -117,29 +138,18 @@ func (c *Client) WithCookies(cookies []*http.Cookie) *Client {
 	return c
 }
 
-func removeCookie(cookies []*http.Cookie, cookie *http.Cookie) []*http.Cookie {
-	for i, c := range cookies {
-		if c == cookie {
-			return append(cookies[:i], cookies[i+1:]...)
-		}
-	}
-	return cookies
-}
-
 func (c *Client) ClearSecurityScheme(securityScheme *auth.SecurityScheme) *Client {
 	// delete security schemes headers and cookies when name and value are the same
 	for k, v := range securityScheme.GetHeaders() {
-		if c.Header.Get(k) == v[0] {
+		if len(v) > 0 && c.Header.Get(k) == v[0] {
 			c.Header.Del(k)
 		}
 	}
 
 	for _, sc := range securityScheme.GetCookies() {
-		for _, cookie := range c.Cookies {
-			if cookie.Name == sc.Name && cookie.Value == sc.Value {
-				c.Cookies = removeCookie(c.Cookies, cookie)
-			}
-		}
+		c.Cookies = slices.DeleteFunc(c.Cookies, func(cookie *http.Cookie) bool {
+			return cookie.Name == sc.Name && cookie.Value == sc.Value
+		})
 	}
 	return c
 }

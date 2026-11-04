@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
@@ -45,4 +46,31 @@ func TestWithAllCommonScans_LegacyExcludeScansStillExcludesRenamedCheck(t *testi
 	for _, os := range s.GetOperationsScans() {
 		assert.NotEqual(t, string(blanksecret.Check.ID), os.CheckID)
 	}
+}
+
+// TestWithAllCommonScans_SharedOperationIsNotMutated runs every common check
+// against one operation; run with -race to catch checks that write to the
+// shared operation (e.g. through a shallow Clone).
+func TestWithAllCommonScans_SharedOperationIsNotMutated(t *testing.T) {
+	// Other methods return 405 so http_method_override tries its override
+	// headers on cloned operations.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	op := operation.MustNewOperation(http.MethodGet, server.URL, nil, nil)
+	op.Header.Set("X-Original", "value")
+	s, err := scan.NewScan(harnessx.New(), operation.Operations{op}, &scan.ScanOptions{})
+	require.NoError(t, err)
+	WithAllCommonScans(s)
+
+	_, _, err = s.Execute(t.Context(), nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, http.Header{"X-Original": []string{"value"}}, op.Header)
 }
