@@ -12,6 +12,7 @@ import (
 	"github.com/cerberauth/reportx"
 	"github.com/cerberauth/reportx/enrich"
 	"github.com/cerberauth/reportx/score"
+	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 )
@@ -189,7 +190,9 @@ func toFinding(def checkdef.CheckDef, f *finding.Finding, op *operation.Operatio
 	}
 
 	extra := map[string]string{}
+	var redactHeaders []string
 	if op != nil {
+		redactHeaders = apiKeyHeaderNames(op)
 		rf.URL = op.URL.String()
 		extra["operation_id"] = op.GetID()
 		extra["operation_method"] = op.Method
@@ -201,7 +204,7 @@ func toFinding(def checkdef.CheckDef, f *finding.Finding, op *operation.Operatio
 	} else if target != "" {
 		rf.URL = target
 	}
-	if ev := finding.NewHTTPEvidence(f.Attempt); ev != nil {
+	if ev := finding.NewHTTPEvidence(f.Attempt, redactHeaders...); ev != nil {
 		rf.Evidence = ev
 		extra["attempt_id"] = f.Attempt.ID
 	}
@@ -213,4 +216,16 @@ func toFinding(def checkdef.CheckDef, f *finding.Finding, op *operation.Operatio
 	}
 
 	return rf
+}
+
+// apiKeyHeaderNames returns the header names op sends API keys in, so they
+// are redacted from evidence along with the standard credential headers.
+func apiKeyHeaderNames(op *operation.Operation) []string {
+	var names []string
+	for _, ss := range op.GetSecuritySchemes() {
+		if ss.GetType() == auth.ApiKey && ss.GetIn() != nil && *ss.GetIn() == auth.InHeader {
+			names = append(names, ss.GetName())
+		}
+	}
+	return names
 }
