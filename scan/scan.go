@@ -10,10 +10,10 @@ import (
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/reportx"
+	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/x/telemetryx"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
+	"github.com/cerberauth/x/telemetryx/scanmetrics"
 )
 
 type ScanOptions struct {
@@ -44,14 +44,6 @@ type Scan struct {
 	harnessxChecks []harnessx.Check
 	checkDefs      map[harnessx.CheckID]checkdef.CheckDef
 }
-
-const (
-	otelName = "github.com/cerberauth/vulnapi/scan"
-
-	otelScanIncludeScansAttribute = attribute.Key("include_scans")
-	otelScanExcludeScansAttribute = attribute.Key("exclude_scans")
-	otelScanHandlerIdAttribute    = attribute.Key("id")
-)
 
 func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *ScanOptions) (*Scan, error) {
 	if engine == nil {
@@ -153,13 +145,17 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 
 	loaderCheck := newOperationsLoaderCheck(s.Operations)
 	checks := s.filterChecks(append([]harnessx.Check{loaderCheck}, s.harnessxChecks...))
-	s.recordTelemetry(ctx, checks)
 
 	target := harnessx.Target{URL: s.Operations[0].URL.String()}
+	metricsReporter := scanmetrics.New(ctx, scanmetrics.Config{
+		CheckDefs: s.checkDefs,
+		Findings:  countFindings,
+	})
 	scenario := harnessx.Scenario{
 		Checks:    checks,
-		Reporters: []harnessx.Reporter{adapter},
+		Reporters: []harnessx.Reporter{adapter, metricsReporter},
 	}
+	operationsPerScan.Record(ctx, float64(len(s.Operations)))
 	summary, err := s.Engine.RunScenario(ctx, target, scenario)
 	if err != nil {
 		return nil, nil, err
@@ -179,29 +175,18 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	return report, errs, nil
 }
 
-// recordTelemetry counts the scan and, per check, the operations it runs on,
-// for the checks that actually run after filtering.
-func (s *Scan) recordTelemetry(ctx context.Context, checks []harnessx.Check) {
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetryScanCounter, _ := telemetryMeter.Int64Counter("scan.counter")
-	telemetryOperationScanHandlerCounter, _ := telemetryMeter.Int64Counter("scan.operation_scan_handler.counter")
+// operationsPerScan is how many API operations each scan covers
+// (argvio.metrics.yaml).
+var operationsPerScan = telemetryx.NewValue("scan.operations", telemetryx.UnitCount)
 
-	telemetryScanCounter.Add(ctx, 1, metric.WithAttributes(
-		otelScanIncludeScansAttribute.StringSlice(s.IncludeScans),
-		otelScanExcludeScansAttribute.StringSlice(s.ExcludeScans),
-	))
-	for _, check := range checks {
-		if isInternalCheckID(string(check.ID)) {
-			continue
-		}
-		count := int64(1)
-		if check.Scope == harnessx.ScopePerResource {
-			count = int64(len(s.Operations))
-		}
-		telemetryOperationScanHandlerCounter.Add(ctx, count, metric.WithAttributes(
-			otelScanHandlerIdAttribute.String(string(check.ID)),
-		))
+// countFindings counts a vulnapi check's finding for scanmetrics: checks
+// report one *finding.Finding per vulnerable operation.
+func countFindings(result harnessx.Result) (int, bool) {
+	f, ok := harnessx.DataAs[*finding.Finding](result)
+	if !ok || f == nil {
+		return 0, false
 	}
+	return 1, true
 }
 
 // legacyCheckIDAliases maps a check's current ID to IDs it was previously

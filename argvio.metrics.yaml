@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/getargvio/argvio/main/schema/metrics/v1.schema.json
+#
+# vulnapi's product metrics, as shown on the Argvio Product dashboard.
+# Synced to Argvio on release (.github/workflows/argvio-metrics.yml); see
+# https://github.com/getargvio/argvio/blob/main/docs/metric-catalog.md.
+# Every dimension value is a fixed identifier chosen in code.
+version: 1
+service: vulnapi
+metrics:
+  # OpenAPI specs scanned.
+  - name: openapi.operations
+    kind: counter
+    title: OpenAPI operations scanned
+    description: Operations loaded from scanned OpenAPI specs, by HTTP method.
+    dims: [method]
+    dim_order:
+      method: [get, post, put, patch, delete, head, options, trace, connect, other]
+  - name: openapi.load
+    kind: duration
+    title: OpenAPI load time
+    description: Time to turn a parsed OpenAPI spec into the operations to scan.
+    direction: down_is_good
+  - name: openapi.security-scheme
+    kind: counter
+    title: OpenAPI security schemes
+    description: Security schemes declared by scanned specs, by scheme and whether vulnapi supports it. Unsupported schemes stop the scan.
+    dims: [scheme, supported]
+    dim_order:
+      supported: ["yes", "no"]
+  - name: scan.operations
+    kind: value
+    title: Operations per scan
+    description: API operations covered by one scan (1 for a curl-style scan).
+  # Scan outcome, sent by x/telemetryx/scanmetrics.
+  - name: scan.checks
+    kind: counter
+    title: Check results
+    description: Every check run in a scan, by outcome. Error means the check could not be evaluated.
+    dims: [status]
+    dim_order:
+      status: [vulnerable, passed, skipped, error]
+  - name: scan.vulnerable
+    kind: counter
+    title: Vulnerable checks
+    description: Checks that reported at least one finding, by check and by the check's severity (from its CVSS score).
+    dims: [check, severity]
+    dim_order:
+      severity: [critical, high, medium, low, info]
+  - name: scan.findings
+    kind: value
+    title: Findings per scan
+    description: Findings reported by one scan, by severity, zeros included, so the share of scans that find something is meaningful.
+    dims: [severity]
+    dim_order:
+      severity: [critical, high, medium, low, info]
+  - name: scan.vulnerable-rate
+    kind: ratio
+    title: Share of checks finding something
+    description: Vulnerable check results over all check results that ran to completion or were skipped.
+    unit: "%"
+    scale: 100
+    numerator: { metric: scan.checks, where: { status: vulnerable } }
+    denominator: { metric: scan.checks }
+  - name: scan.error-rate
+    kind: ratio
+    title: Share of checks in error
+    description: Check results that could not be evaluated (network errors, unexpected responses), over all check results.
+    unit: "%"
+    scale: 100
+    direction: down_is_good
+    numerator: { metric: scan.checks, where: { status: error } }
+    denominator: { metric: scan.checks }
