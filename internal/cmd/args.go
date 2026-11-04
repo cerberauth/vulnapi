@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/cerberauth/cobracurl"
+	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/spf13/cobra"
 )
@@ -29,12 +30,26 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", excludeScans, "Exclude specific scans")
 
+	AddJWTSecretFlag(cmd)
+
 	cobrareportx.RegisterFormatFlags(cmd)
 	cobrareportx.RegisterTransportFlags(cmd)
 
 	cmd.Flags().BoolVarP(&noProgress, "no-progress", "", false, "Disable progress output")
 	cmd.Flags().Float64VarP(&severityThreshold, "severity-threshold", "", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
 	cmd.Flags().BoolVarP(&onlyScansAboveThreshold, "only-scans-above-threshold", "", false, "Only run checks that could reach --severity-threshold; exits on any finding since all of them do")
+}
+
+// AddJWTSecretFlag registers --jwt-secret, a known HMAC secret used to re-sign
+// mutated JWTs so checks like jwt.fuzz reach servers that verify signatures.
+func AddJWTSecretFlag(cmd *cobra.Command) {
+	cmd.Flags().String("jwt-secret", "", "Known HMAC secret of the JWT under test, used to re-sign mutated tokens (e.g. for jwt.fuzz)")
+}
+
+// ApplyJWTSecretFlag forwards --jwt-secret to the JWT checks.
+func ApplyJWTSecretFlag(cmd *cobra.Command) {
+	secret, _ := cmd.Flags().GetString("jwt-secret")
+	jwtcheckbase.SetKnownHMACSecret(secret)
 }
 
 func FilterScans(scans []string) []string {

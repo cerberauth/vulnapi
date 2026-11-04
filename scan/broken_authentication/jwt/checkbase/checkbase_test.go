@@ -128,3 +128,25 @@ func TestProbeCtxCheck_RunResource_SharedViaStore(t *testing.T) {
 	assert.Same(t, first, second)
 	assert.Equal(t, "HS256", second.Alg)
 }
+
+func TestProbeCtxCheck_RunResource_SeedsKnownHMACSecret(t *testing.T) {
+	t.Cleanup(func() { SetKnownHMACSecret("") })
+
+	token := "header.payload.signature"
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("Authorization", &token)})
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+
+	run := func() *checkbase.ProbeCtx {
+		result, err := ProbeCtxCheck.RunResource(context.Background(), harnessx.Target{}, resource, harnessx.NewStaticResultStore())
+		require.NoError(t, err)
+		pctx, ok := harnessx.DataAs[*checkbase.ProbeCtx](result)
+		require.True(t, ok)
+		return pctx
+	}
+
+	assert.Empty(t, run().CrackedHMACSecret)
+
+	SetKnownHMACSecret("s3cr3t")
+	assert.Equal(t, "s3cr3t", run().CrackedHMACSecret)
+}
