@@ -16,27 +16,30 @@ vulnapi scan openapi <PATH_OR_URL> [flags]
 | Option | Par défaut | Description |
 |---|---|---|
 | `--security-schemes <name=value>` | `` | Remplace la valeur du token pour un schéma de sécurité nommé (répétable) |
+| `--token-stdin` | `false` | Lit le token par défaut depuis stdin |
 
 Accepte aussi toutes les [options communes](./#common-flags).
 
 ## Token via stdin
 
-Un token transmis via stdin est utilisé comme valeur par défaut pour tous les schémas de sécurité acceptant un bearer token. Les surcharges nommées via `--security-schemes` sont prioritaires.
+Avec `--token-stdin`, le token transmis via stdin est utilisé comme valeur par défaut pour tous les schémas de sécurité acceptant un bearer token. Stdin est lu jusqu'à sa fermeture et les espaces autour du token sont supprimés. Les surcharges nommées via `--security-schemes` sont prioritaires.
 
 ```sh
-echo "<token>" | vulnapi scan openapi ./openapi.json
+echo "<token>" | vulnapi scan openapi ./openapi.json --token-stdin
 ```
+
+Sans l'option, un token transmis via stdin est encore lu, mais ce comportement est déprécié. Utilisez `--token-stdin=false` pour ne jamais lire stdin, par exemple en CI où stdin peut être un pipe ouvert qui n'est jamais fermé.
 
 ## Exemples
 
 **Spécification locale avec un token transmis via stdin**
 ```sh
-echo "<token>" | vulnapi scan openapi ./openapi.json
+echo "<token>" | vulnapi scan openapi ./openapi.json --token-stdin
 ```
 
 **Spécification distante avec un token transmis via stdin**
 ```sh
-echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json
+echo "<token>" | vulnapi scan openapi https://api.example.com/.well-known/openapi.json --token-stdin
 ```
 
 **Surcharge d'un schéma de sécurité nommé**

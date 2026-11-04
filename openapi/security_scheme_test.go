@@ -1,6 +1,7 @@
 package openapi_test
 
 import (
+	"net/http"
 	"testing"
 
 	jwtop "github.com/cerberauth/jwtop/jwt"
@@ -122,6 +123,25 @@ func TestSecuritySchemeMap_WithAPIKeyInHeader(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, auth.ApiKey, result["api_key_auth"].GetType())
 	assert.Equal(t, auth.InHeader, *result["api_key_auth"].In)
+	assert.Equal(t, "X-API-KEY", result["api_key_auth"].GetName())
+}
+
+func TestSecuritySchemeMap_WithAPIKeyInCookieAndQuery(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(
+		t.Context(),
+		[]byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: successful operation}}, security: [{cookie_auth: []}, {query_auth: []}]}}}, components: {securitySchemes: {cookie_auth: {type: apiKey, in: cookie, name: session}, query_auth: {type: apiKey, in: query, name: api_key}}}}`),
+	)
+	cookieValue := "cookie-value"
+	queryValue := "query-value"
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewSecuritySchemeValues(map[string]interface{}{
+		"cookie_auth": &cookieValue,
+		"query_auth":  &queryValue,
+	}))
+
+	assert.NoError(t, err)
+	assert.Equal(t, []*http.Cookie{{Name: "session", Value: cookieValue}}, result["cookie_auth"].GetCookies())
+	assert.Equal(t, queryValue, result["query_auth"].GetQueryParams().Get("api_key"))
 }
 
 func TestSecuritySchemeMap_WithInvalidValueType(t *testing.T) {

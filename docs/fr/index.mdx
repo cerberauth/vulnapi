@@ -71,7 +71,7 @@ Remplacez `[API_URL]` par l'URL de l'API à analyser, et `[CURL_OPTIONS]` par to
 Pour effectuer une analyse à l'aide de contrats OpenAPI, exécutez la commande suivante :
 
 ```bash
-echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE]
+echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE] --token-stdin
 ```
 
 Remplacez `[PATH_OR_URL_TO_OPENAPI_FILE]` par le chemin ou l'URL du fichier JSON du contrat OpenAPI et `[JWT_TOKEN]` par le jeton JWT à utiliser pour l'authentification.
