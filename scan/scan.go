@@ -162,7 +162,7 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 	}
 	summary, err := s.Engine.RunScenario(ctx, target, scenario)
 	if err != nil {
-		return adapter.Report(), nil, err
+		return nil, nil, err
 	}
 
 	var errs []error
@@ -172,7 +172,11 @@ func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *Ope
 		}
 	}
 
-	return adapter.Report(), errs, nil
+	report, err := adapter.Report()
+	if err != nil {
+		return nil, errs, err
+	}
+	return report, errs, nil
 }
 
 // recordTelemetry counts the scan and, per check, the operations it runs on,

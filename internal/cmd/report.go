@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -23,6 +24,10 @@ func highestCVSSScore(r *reportx.Report) float64 {
 // WriteReport formats and writes r according to the --format/--output/
 // --report-url/--report-header flags registered via cobrareportx.
 func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report) error {
+	if r == nil {
+		return errors.New("no report to write")
+	}
+
 	outputStream := os.Stdout
 	if highestCVSSScore(r) >= GetSeverityThreshold() {
 		outputStream = os.Stderr

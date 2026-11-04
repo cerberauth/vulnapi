@@ -3,6 +3,8 @@ package scan
 import (
 	"cmp"
 	"context"
+	"errors"
+	"fmt"
 	"slices"
 	"sync"
 	"time"
@@ -54,6 +56,7 @@ type harnessxReporter struct {
 	resources map[string]*operation.Operation
 	findings  []reportx.Finding
 	report    *reportx.Report
+	reportErr error
 
 	callback func(*OperationScan)
 }
@@ -105,7 +108,7 @@ func (a *harnessxReporter) OnScanComplete(summary harnessx.ScanSummary) {
 		target = "(offline)"
 	}
 
-	report, _ := reportx.NewBuilder().
+	report, err := reportx.NewBuilder().
 		Title(a.title).
 		Tool(defaultToolName, a.toolVersion).
 		Target(target).
@@ -117,6 +120,7 @@ func (a *harnessxReporter) OnScanComplete(summary harnessx.ScanSummary) {
 
 	a.mu.Lock()
 	a.report = report
+	a.reportErr = err
 	a.mu.Unlock()
 }
 
@@ -160,10 +164,16 @@ func (a *harnessxReporter) scanStatus(results []harnessx.Result) ([]reportx.Scan
 // Report returns the reportx.Report built from the scan. Safe to call once
 // the harnessx engine.Run that registered this reporter has returned, since
 // OnScanComplete runs synchronously beforehand.
-func (a *harnessxReporter) Report() *reportx.Report {
+func (a *harnessxReporter) Report() (*reportx.Report, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return a.report
+	if a.reportErr != nil {
+		return nil, fmt.Errorf("building report: %w", a.reportErr)
+	}
+	if a.report == nil {
+		return nil, errors.New("building report: scan did not complete")
+	}
+	return a.report, nil
 }
 
 func toFinding(def checkdef.CheckDef, f *finding.Finding, op *operation.Operation, target string) reportx.Finding {
