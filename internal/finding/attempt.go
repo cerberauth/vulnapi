@@ -64,16 +64,16 @@ func Fetch(ctx context.Context, op *operation.Operation, securityScheme *auth.Se
 		return attempt, err
 	}
 
-	statusCode, header, body, _, doErr := probe.Do(ctx, op.HTTPClient(), req)
+	resp, doErr := probe.DoResponse(ctx, op.HTTPClient(), req)
 	if doErr != nil {
 		attempt.Err = doErr
 		return attempt, doErr
 	}
 
 	attempt.Response = &Response{
-		StatusCode: statusCode,
-		Header:     header,
-		Body:       bytes.NewBuffer(body),
+		StatusCode: resp.StatusCode,
+		Header:     resp.Header,
+		Body:       bytes.NewBuffer(resp.Body),
 	}
 	return attempt, nil
 }

@@ -15,6 +15,12 @@ import (
 	"github.com/cerberauth/x/telemetryx"
 )
 
+// argvioAPIKey is vulnapi's public_ingest-scoped Argvio API key, selecting the
+// "vulnapi" tenant its usage analytics land in. It is not committed: the release
+// build injects it with -ldflags -X from the ARGVIO_API_KEY secret, and a build
+// without one reports nothing.
+var argvioAPIKey string
+
 var (
 	sqaOptOut    bool
 	otelShutdown func(context.Context) error
@@ -64,14 +70,17 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 
 func Execute(projectVersion, commit, date string) {
 	c := NewRootCmd(projectVersion, commit, date)
+	argvioShutdown := telemetryx.Instrument(c, projectVersion, argvioAPIKey)
 	defer func() {
+		_ = argvioShutdown(context.Background())
 		if otelShutdown != nil {
 			_ = otelShutdown(context.Background())
 			otelShutdown = nil
 		}
 	}()
 
-	if err := c.Execute(); err != nil {
+	if err := telemetryx.Execute(c); err != nil {
+		_ = argvioShutdown(context.Background())
 		if otelShutdown != nil {
 			_ = otelShutdown(context.Background())
 			otelShutdown = nil
