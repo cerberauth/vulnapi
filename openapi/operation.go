@@ -4,26 +4,85 @@ import (
 	"bytes"
 	"context"
 	"maps"
+	"mime"
 	"net/http"
 	"net/url"
 	"path"
 	"slices"
+	"strings"
+	"time"
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/x/telemetryx"
+	"github.com/getargvio/argvio-go"
 	"github.com/getkin/kin-openapi/openapi3"
 	stduritemplate "github.com/std-uritemplate/std-uritemplate/go/v2"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
-const (
-	otelMethodAttributeKey               = attribute.Key("method")
-	otelMediaTypeAttributeKey            = attribute.Key("media_type")
-	otelSecuritySchemesTypesAttributeKey = attribute.Key("security_schemes")
+// Argvio product metrics, declared in the Argvio catalog.
+var (
+	pathsCounter            = argvio.NewCounter("openapi.paths")
+	operationsCounter       = argvio.NewCounter("openapi.operations", argvio.Dims("method"))
+	operationParamsCounter  = argvio.NewCounter("openapi.operation-params", argvio.Dims("method", "in"))
+	operationBodiesCounter  = argvio.NewCounter("openapi.operation-bodies", argvio.Dims("method", "media-type"))
+	operationSchemesCounter = argvio.NewCounter("openapi.operation-schemes", argvio.Dims("method", "scheme"))
+	loadDuration            = argvio.NewDuration("openapi.load")
+	httpMethods             = []string{"get", "post", "put", "patch", "delete", "head", "options", "trace", "connect"}
 )
+
+// mediaTypeLabel names a request body media type from a fixed vocabulary
+// (parameters such as charset are ignored), "other" for anything else.
+func mediaTypeLabel(mediaType string) string {
+	mt, _, err := mime.ParseMediaType(mediaType)
+	if err != nil {
+		return "other"
+	}
+	switch {
+	case isJSONMediaType(mt):
+		return "json"
+	case mt == "application/xml" || mt == "text/xml" || strings.HasSuffix(mt, "+xml"):
+		return "xml"
+	case mt == formURLEncodedMediaType:
+		return "form"
+	case mt == "multipart/form-data":
+		return "multipart"
+	case mt == "application/octet-stream":
+		return "binary"
+	case strings.HasPrefix(mt, "text/"):
+		return "text"
+	default:
+		return "other"
+	}
+}
+
+// operationSchemeLabel names an operation's security scheme like
+// SecuritySchemeMap names the spec's, from the same fixed vocabulary.
+func operationSchemeLabel(s *auth.SecurityScheme) string {
+	var in string
+	if s.GetIn() != nil {
+		in = string(*s.GetIn())
+	}
+	return schemeCounterLabel(strings.ToLower(string(s.GetType())), string(s.GetScheme()), in)
+}
+
+// recordOperationSchemes counts the security schemes an operation declares,
+// each scheme once, or "none" for an operation that declares no scheme.
+func recordOperationSchemes(ctx context.Context, method string, schemes []*auth.SecurityScheme) {
+	seen := map[string]bool{}
+	for _, s := range schemes {
+		label := operationSchemeLabel(s)
+		if seen[label] {
+			continue
+		}
+		seen[label] = true
+		operationSchemesCounter.Add(ctx, 1, method, label)
+	}
+	if len(seen) == 0 {
+		operationSchemesCounter.Add(ctx, 1, method, "none")
+	}
+}
 
 // getOperationSecuritySchemes returns one security scheme per security
 // requirement: the alternatives the operation accepts. A requirement that
@@ -97,13 +156,7 @@ func joinOperationURL(baseUrl url.URL, operationPath string) (url.URL, error) {
 }
 
 func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, securitySchemes auth.SecuritySchemesMap) (operation.Operations, error) {
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetryPathCounter, _ := telemetryMeter.Int64Counter("openapi.path.counter")
-	telemetryOperationCounter, _ := telemetryMeter.Int64Counter("openapi.operation.counter")
-	telemetryOperationErrorCounter, _ := telemetryMeter.Int64Counter("openapi.operation.error.counter")
-	telemetryOperationHeadersCounter, _ := telemetryMeter.Int64Counter("openapi.operation.headers.counter")
-	telemetryOperationCookiesCounter, _ := telemetryMeter.Int64Counter("openapi.operation.cookies.counter")
-
+	start := time.Now()
 	baseUrl := openapi.BaseUrl()
 
 	// sort paths and methods so the operation order, and so the scan target
@@ -112,26 +165,22 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 	operations := operation.Operations{}
 	for _, docPath := range slices.Sorted(maps.Keys(pathItems)) {
 		p := pathItems[docPath]
-		telemetryPathCounter.Add(ctx, 1)
+		pathsCounter.Add(ctx, 1)
 
 		pathOperations := p.Operations()
 		for _, method := range slices.Sorted(maps.Keys(pathOperations)) {
 			o := pathOperations[method]
-			var otelAttributes = []attribute.KeyValue{
-				otelMethodAttributeKey.String(method),
-			}
+			methodLabel := telemetryx.Vocab(method, httpMethods...)
 
 			params := mergeParameters(p.Parameters, o.Parameters)
 			operationPath, err := GetOperationPath(docPath, params)
 			if err != nil {
-				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid operation path"))...))
-				return nil, err
+				return nil, telemetryx.Reason(err, "invalid-operation-path")
 			}
 
 			operationUrl, err := joinOperationURL(*baseUrl, operationPath)
 			if err != nil {
-				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("invalid operation path"))...))
-				return nil, err
+				return nil, telemetryx.Reason(err, "invalid-operation-path")
 			}
 
 			header := http.Header{}
@@ -161,8 +210,13 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 				}
 			}
 			operationUrl.RawQuery = query.Encode()
-			telemetryOperationHeadersCounter.Add(ctx, int64(len(header)), metric.WithAttributes(otelAttributes...))
-			telemetryOperationCookiesCounter.Add(ctx, int64(len(cookies)), metric.WithAttributes(otelAttributes...))
+
+			if n := len(header); n > 0 {
+				operationParamsCounter.Add(ctx, int64(n), methodLabel, "header")
+			}
+			if n := len(cookies); n > 0 {
+				operationParamsCounter.Add(ctx, int64(n), methodLabel, "cookie")
+			}
 
 			var body *bytes.Buffer
 			var mediaType string
@@ -171,15 +225,14 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 			}
 			if body != nil && mediaType != "" {
 				header.Set("Content-Type", mediaType)
+				operationBodiesCounter.Add(ctx, 1, methodLabel, mediaTypeLabel(mediaType))
 			} else {
 				body = bytes.NewBuffer(nil)
 			}
-			otelAttributes = append(otelAttributes, otelMediaTypeAttributeKey.String(mediaType))
 
 			operation, err := operation.NewOperation(method, operationUrl.String(), body, client)
 			if err != nil {
-				telemetryOperationErrorCounter.Add(ctx, 1, metric.WithAttributes(append(otelAttributes, otelErrorReasonAttributeKey.String("new operation error"))...))
-				return nil, err
+				return nil, telemetryx.Reason(err, "new-operation-error")
 			}
 			operation.WithOpenapiOperation(docPath, o)
 			operation.WithCookies(cookies).WithHeader(header)
@@ -205,16 +258,12 @@ func (openapi *OpenAPI) Operations(ctx context.Context, client *request.Client, 
 				}
 			}
 
-			telemetrySecuritySchemesTypes := []string{}
-			for _, v := range operation.GetSecuritySchemes() {
-				telemetrySecuritySchemesTypes = append(telemetrySecuritySchemesTypes, string(v.GetType()))
-			}
-			otelAttributes = append(otelAttributes, otelSecuritySchemesTypesAttributeKey.StringSlice(telemetrySecuritySchemesTypes))
-
 			operations = append(operations, operation)
-			telemetryOperationCounter.Add(ctx, 1, metric.WithAttributes(otelAttributes...))
+			operationsCounter.Add(ctx, 1, methodLabel)
+			recordOperationSchemes(ctx, methodLabel, operation.GetSecuritySchemes())
 		}
 	}
 
+	loadDuration.Record(ctx, time.Since(start))
 	return operations, nil
 }

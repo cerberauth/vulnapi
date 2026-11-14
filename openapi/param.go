@@ -17,6 +17,8 @@ import (
 
 const maximumDepth = 4
 
+const formURLEncodedMediaType = "application/x-www-form-urlencoded"
+
 const (
 	FloatParamType   = "float"
 	DoubleParamType  = "double"
@@ -91,7 +93,7 @@ func mediaTypePriority(mediaType string) int {
 		return 0
 	case isJSONMediaType(mediaType):
 		return 1
-	case mediaType == "application/x-www-form-urlencoded":
+	case mediaType == formURLEncodedMediaType:
 		return 2
 	case mediaType == "text/plain":
 		return 3
@@ -104,7 +106,7 @@ func encodeRequestBody(mediaType string, value interface{}) ([]byte, error) {
 	switch {
 	case isJSONMediaType(mediaType):
 		return marshalJSON(value)
-	case mediaType == "application/x-www-form-urlencoded":
+	case mediaType == formURLEncodedMediaType:
 		form := url.Values{}
 		if object, ok := value.(map[string]interface{}); ok {
 			for key, v := range object {

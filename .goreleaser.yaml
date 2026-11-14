@@ -49,7 +49,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }}
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cerberauth/vulnapi/cmd.argvioAPIKey={{ envOrDefault "ARGVIO_API_KEY" "" }}
 
 universal_binaries:
   - id: vulnapi-universal

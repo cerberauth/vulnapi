@@ -7,7 +7,10 @@ import (
 	"os"
 
 	"github.com/cerberauth/reportx"
+	"github.com/cerberauth/reportx/format"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
+	"github.com/cerberauth/x/telemetryx"
+	"github.com/getargvio/argvio-go"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +22,37 @@ func highestCVSSScore(r *reportx.Report) float64 {
 		}
 	}
 	return max
+}
+
+var reportsCounter = argvio.NewCounter("report.written", argvio.Dims("format", "destination"))
+
+var reportFormats = func() []string {
+	names := make([]string, 0, len(format.FormatNames))
+	for _, n := range format.FormatNames {
+		names = append(names, string(n))
+	}
+	return names
+}()
+
+// recordReport counts the report by format and where it goes: stdout,
+// a file (--output) and the --report-url endpoint, neither of which is sent.
+func recordReport(ctx context.Context, cmd *cobra.Command, toURL bool) {
+	f, _ := cmd.Flags().GetString("format")
+	switch f {
+	case "yml":
+		f = string(format.FormatYAML)
+	case "text", "plain":
+		f = string(format.FormatTerminal)
+	}
+	f = telemetryx.Vocab(f, reportFormats...)
+	destination := "stdout"
+	if out, _ := cmd.Flags().GetString("output"); out != "" {
+		destination = "file"
+	}
+	reportsCounter.Add(ctx, 1, f, destination)
+	if toURL {
+		reportsCounter.Add(ctx, 1, f, "http")
+	}
 }
 
 // WriteReport formats and writes r according to the --format/--output/
@@ -70,22 +104,23 @@ func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report) err
 		}
 	}
 
+	recordReport(ctx, cmd, httpTransport != nil)
 	return nil
 }
 
-// ExitIfFindings exits with status 1 if r has findings. When scansFiltered is
+// ExitIfFindings exits cmd with status 1 if r has findings. When scansFiltered is
 // true (the caller explicitly selected scans via --scans), any finding exits,
 // ignoring the severity threshold. Otherwise, only findings meeting the
 // severity threshold exit.
-func ExitIfFindings(r *reportx.Report, scansFiltered bool) {
+func ExitIfFindings(cmd *cobra.Command, r *reportx.Report, scansFiltered bool) {
 	if scansFiltered {
 		if len(r.Findings) > 0 {
-			os.Exit(1)
+			telemetryx.Exit(cmd, 1)
 		}
 		return
 	}
 
 	if highestCVSSScore(r) >= GetSeverityThreshold() {
-		os.Exit(1)
+		telemetryx.Exit(cmd, 1)
 	}
 }

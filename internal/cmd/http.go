@@ -5,6 +5,7 @@ import (
 
 	"github.com/cerberauth/cobracurl"
 	"github.com/cerberauth/vulnapi/internal/request"
+	"github.com/cerberauth/vulnapi/internal/telemetry"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +29,10 @@ func NewHTTPClientFromCmd(cmd *cobra.Command) (*request.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Report the outcome of every request the scan sends (status, error class,
+	// duration) to Argvio.
+	httpClient.Transport = telemetry.WrapTransport(httpClient.Transport)
 
 	// Deprecated: --rate-limit is deprecated in favour of cobracurl's --rate flag.
 	// Forward the value so existing usages keep working.

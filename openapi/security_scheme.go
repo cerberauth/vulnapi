@@ -9,9 +9,8 @@ import (
 
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/x/telemetryx"
+	"github.com/getargvio/argvio-go"
 	"github.com/getkin/kin-openapi/openapi3"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -28,13 +27,6 @@ const (
 
 	// NoneScheme    string = "none"
 	// UnknownScheme string = "unknown"
-)
-
-const (
-	otelSchemeTypeAttributeKey   = attribute.Key("scheme_type")
-	otelSchemeSchemeAttributeKey = attribute.Key("scheme_scheme")
-	otelSchemeInAttributeKey     = attribute.Key("scheme_in")
-	otelSchemeBearerFormatKey    = attribute.Key("scheme_bearer_format")
 )
 
 // ErrUnsupportedSecurityScheme is wrapped by the errors of security schemes
@@ -117,11 +109,6 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 	var err error
 	var securitySchemeValue interface{}
 
-	telemetryMeter := telemetryx.GetMeterProvider().Meter(otelName)
-	telemetrySecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.counter")
-	telemetryUnsupportedSecuritySchemeCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.unsupported.counter")
-	telemetrySecuritySchemeErrorCounter, _ := telemetryMeter.Int64Counter("openapi.security_scheme.error.counter")
-
 	securitySchemes := map[string]*auth.SecurityScheme{}
 	for name, scheme := range openapi.Doc.Components.SecuritySchemes {
 		securitySchemeValue = values.Get(name)
@@ -132,12 +119,8 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		}
 
 		schemeType := strings.ToLower(scheme.Value.Type)
-		attributes := []attribute.KeyValue{
-			otelSchemeTypeAttributeKey.String(schemeType),
-			otelSchemeSchemeAttributeKey.String(strings.ToLower(scheme.Value.Scheme)),
-			otelSchemeInAttributeKey.String(strings.ToLower(scheme.Value.In)),
-			otelSchemeBearerFormatKey.String(strings.ToLower(scheme.Value.BearerFormat)),
-		}
+		schemeLabel := schemeCounterLabel(schemeType, scheme.Value.Scheme, scheme.Value.In)
+		formatLabel := bearerFormatLabel(schemeType, scheme.Value)
 
 		switch schemeType {
 		case HttpSchemeType:
@@ -151,22 +134,65 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		case ApiKeySchemeType:
 			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
-			telemetryUnsupportedSecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
 			err = NewErrUnsupportedSecuritySchemeType(schemeType)
 		}
 
 		if errors.Is(err, ErrUnsupportedSecurityScheme) {
+			securitySchemesCounter.Add(ctx, 1, schemeLabel, formatLabel, supportedLabel(err))
 			delete(securitySchemes, name)
 			fmt.Fprintf(os.Stderr, "Warning: skipping security scheme %q: %v\n", name, err)
 			continue
 		}
 		if err != nil {
-			telemetrySecuritySchemeErrorCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+			securitySchemesCounter.Add(ctx, 1, schemeLabel, formatLabel, supportedLabel(err))
 			return nil, err
 		}
 
-		telemetrySecuritySchemeCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		securitySchemesCounter.Add(ctx, 1, schemeLabel, formatLabel, "yes")
 	}
 
 	return securitySchemes, nil
+}
+
+// securitySchemesCounter counts the security schemes of scanned specs, by
+// scheme, bearer format and whether vulnapi supports it: "yes", "no" for a
+// scheme it skips as unsupported and "error" for one it should handle but
+// that is invalid (Argvio catalog).
+var securitySchemesCounter = argvio.NewCounter("openapi.security-scheme", argvio.Dims("scheme", "format", "supported"))
+
+// supportedLabel is the supported dimension of a scheme that failed to map:
+// "no" for a scheme vulnapi can't scan, "error" for one it should handle but
+// that is invalid.
+func supportedLabel(err error) string {
+	if errors.Is(err, ErrUnsupportedSecurityScheme) {
+		return "no"
+	}
+	return "error"
+}
+
+// schemeCounterLabel names a security scheme for the Argvio counters from a
+// fixed vocabulary, so nothing taken from the scanned spec is ever sent.
+// schemeType is lower case; scheme and in are the spec's (or auth package's)
+// values, of any case.
+func schemeCounterLabel(schemeType, scheme string, in string) string {
+	switch schemeType {
+	case HttpSchemeType:
+		return "http-" + telemetryx.Vocab(scheme, BearerScheme, BasicScheme)
+	case ApiKeySchemeType:
+		return "apikey-" + telemetryx.Vocab(in, "header", "query", "cookie")
+	case OAuth2SchemeType, OpenIdConnectSchemeType:
+		return schemeType
+	default:
+		return telemetryx.Vocab(schemeType, "mutualtls")
+	}
+}
+
+// bearerFormatLabel is the bearer format of an http bearer scheme ("jwt",
+// "other" for any other declared format), and "none" when there is no format
+// to speak of.
+func bearerFormatLabel(schemeType string, scheme *openapi3.SecurityScheme) string {
+	if schemeType != HttpSchemeType || !strings.EqualFold(scheme.Scheme, BearerScheme) || scheme.BearerFormat == "" {
+		return "none"
+	}
+	return telemetryx.Vocab(scheme.BearerFormat, "jwt")
 }
