@@ -30,8 +30,8 @@ For more details, you can refer to the [jwtop documentation on KID Header Inject
 
 VulnAPI tests two variants of this attack:
 
-- **SQL Injection** — injects a SQL payload into `kid` (e.g. `' UNION SELECT 'secret' ...`) so that the database returns a known value as the key.
-- **Path Traversal** — sets `kid` to a filesystem path such as `/dev/null` so the server reads an empty file as the key, which can be matched with an empty HMAC secret.
+- **SQL Injection** — injects a SQL payload into `kid` (e.g. `' UNION SELECT 'secret' ...`) so that the database returns a known value as the key. Since the vulnerable table name is server-specific, VulnAPI tries several common names in turn (`jwk`, `keys`, `jwt_keys`, `api_keys`, `secrets`, `users`) and stops at the first one that succeeds.
+- **Path Traversal** — sets `kid` to a filesystem path such as `/dev/null` so the server reads an empty file as the key, which can be matched with an empty HMAC secret. VulnAPI tries `/dev/null` at several `../` depths, a doubled-separator bypass (`....//`) for filters that strip a single `../`, and the Windows `NUL` device.
 
 ## Example
 

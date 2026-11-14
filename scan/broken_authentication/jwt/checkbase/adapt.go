@@ -52,7 +52,7 @@ func toFindingResult(r harnessx.Result) harnessx.Result {
 }
 
 // runOf returns a plain harnessx.CheckFunc for jc: jc.Run directly for an
-// ordinary check, or — for a Variants check (only alg_none, today) — a func
+// ordinary check, or — for a Variants check (alg_none and kid_path_traversal, today) — a func
 // that runs every variant (respecting jc.VariantMode) via jc.RunVariant and
 // reduces them with jwtop's own checkbase.ResolveVariantResult, the same
 // reduction jwtop's ProbeAll relies on. harnessx's own variant fan-out/
@@ -114,23 +114,6 @@ func runOf(jc harnessx.Check) harnessx.CheckFunc {
 	}
 }
 
-// Option configures Adapt's optional behavior.
-type Option func(*adaptConfig)
-
-type adaptConfig struct {
-	wrapRun func(harnessx.CheckFunc) harnessx.CheckFunc
-}
-
-// WithRunWrapper wraps the composed run function (jc.Run, or the
-// variant-reducing func runOf builds for a Variants check) before Adapt
-// embeds it into the returned Check's RunResource. Used only by
-// kid_sql_injection today, to retry with different table-name candidates.
-func WithRunWrapper(wrap func(harnessx.CheckFunc) harnessx.CheckFunc) Option {
-	return func(cfg *adaptConfig) {
-		cfg.wrapRun = wrap
-	}
-}
-
 // WithLink returns a copy of def with Link overridden — for the checks
 // that have a vulnapi-specific advisory page. Checks that don't call this
 // keep jwtop's own Link (already a valid cerberauth.com/docs/jwtop URL).
@@ -151,16 +134,8 @@ func WithLink(def checkdef.CheckDef, link string) checkdef.CheckDef {
 // jc.Skip run unmodified against the synthetic single-target Target
 // innerTargetFor builds for each resource — Adapt only adapts the Scope
 // and translates the final ProbeResult into a finding.Finding.
-func Adapt(jc harnessx.Check, opts ...Option) harnessx.Check {
-	var cfg adaptConfig
-	for _, opt := range opts {
-		opt(&cfg)
-	}
-
+func Adapt(jc harnessx.Check) harnessx.Check {
 	run := runOf(jc)
-	if cfg.wrapRun != nil {
-		run = cfg.wrapRun(run)
-	}
 
 	dependsOn := append([]harnessx.CheckID{ProbeCtxCheckID}, jc.DependsOn...)
 

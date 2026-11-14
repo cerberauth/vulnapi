@@ -203,6 +203,16 @@ jobs:
           - challenge: "jwt-x5c-x5u-header-injection"
             checkID: "jwt.x5c_injection"
             vulnerable: false
+          - challenge: "jwt-timestamp-tampering"
+            checkID: "jwt.timestamp_tampering"
+            path: "/session"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
+            vulnerable: true
+          - challenge: "jwt-timestamp-tampering"
+            checkID: "jwt.timestamp_tampering"
+            path: "/session"
+            extraArgs: "--jwt-secret s3cr3t-dev-key"
+            vulnerable: false
           - challenge: "jwt-claim-type-confusion"
             checkID: "jwt.fuzz"
             path: "/profile"

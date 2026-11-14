@@ -15,6 +15,7 @@ import (
 	jwtnoverification "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/no_verification"
 	jwtnullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
 	jwtpsychicsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/psychic_signature"
+	jwttimestamptampering "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/timestamp_tampering"
 	jwtweaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
 	jwtx5cinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/x5c_injection"
 	jwtx5uinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/x5u_injection"
@@ -62,6 +63,7 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(jwtx5cinjection.Check, &jwtx5cinjection.Def)
 	s.AddCheck(jwtx5uinjection.Check, &jwtx5uinjection.Def)
 	s.AddCheck(jwtweaksecret.Check, &jwtweaksecret.Def)
+	s.AddCheck(jwttimestamptampering.Check, &jwttimestamptampering.Def)
 	s.AddCheck(jwtfuzz.Check, &jwtfuzz.Def)
 
 	s.AddCheck(httpcookiesfetch.Check, nil)
