@@ -22,6 +22,19 @@ import (
 // ProbeCtxCheck, read back via store.GetForResource.
 const ProbeCtxCheckID harnessx.CheckID = "jwt.probe_ctx"
 
+// KidSQLTableCandidates lists the table names the kid_sql_injection check
+// tries, in order, until one yields a vulnerable result. The vulnerable table
+// name is server-specific and can't be discovered by the check itself, so
+// this covers common naming schemes.
+var KidSQLTableCandidates = []string{
+	exploit.DefaultKidSQLTable,
+	"keys",
+	"jwt_keys",
+	"api_keys",
+	"secrets",
+	"users",
+}
+
 // knownHMACSecret is the HMAC secret the user supplied (--jwt-secret), if any.
 var knownHMACSecret string
 
@@ -58,7 +71,7 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 		Probe:            probe.New(probe.WithTransport(op.Transport), probe.WithTimeout(op.Timeout), probe.WithUserAgent(op.UserAgent())),
 		Candidates:       exploit.WeakSecrets(),
 		TokenLocation:    checkbase.DefaultTokenLocation(),
-		KidSQLTable:      exploit.DefaultKidSQLTable,
+		KidSQLTables:     KidSQLTableCandidates,
 		FuzzEnabled:      true,
 		FuzzMaxStringLen: fuzz.DefaultMaxStringLen,
 

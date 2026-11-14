@@ -74,6 +74,8 @@ After verifying the signature, validate these claims before trusting any payload
 
 Failure to validate `iss` and `aud` enables [cross-service relay attacks](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
 
+VulnAPI detects servers that skip `exp` validation with the [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt-timestamp-tampering) scan, which runs for HMAC tokens once the signing secret is known (cracked by `jwt.weak_secret` or passed with `--jwt-secret`).
+
 ## Validate Claim Types and Lengths Before Use
 
 Don't assume a claim you expect to be a short string actually is one — a claim decoded straight into application logic (a template, a SQL query, a shell command) without checking its type or length can crash the server, leak a stack trace, or enable injection if it arrives as an unexpected type, an oversized string, or `null`.

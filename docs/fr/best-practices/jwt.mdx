@@ -74,6 +74,8 @@ Après avoir vérifié la signature, valisez ces revendications avant de faire c
 
 Le fait de ne pas valider `iss` et `aud` permet des [attaques par relais inter-services](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
 
+VulnAPI détecte les serveurs qui ne valident pas `exp` avec l'analyse [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt-timestamp-tampering), qui s'exécute pour les jetons HMAC une fois le secret de signature connu (cassé par `jwt.weak_secret` ou passé avec `--jwt-secret`).
+
 ## Valider le type et la longueur des revendications avant utilisation
 
 Ne présumez pas qu'une revendication que vous attendez comme courte chaîne l'est réellement — une revendication décodée directement dans la logique applicative (un template, une requête SQL, une commande shell) sans vérification de son type ou de sa longueur peut faire planter le serveur, fuiter une trace de pile, ou permettre une injection si elle arrive sous un type inattendu, une chaîne trop longue, ou `null`.

@@ -30,8 +30,8 @@ Pour plus de détails, consultez la [documentation jwtop sur l'injection d'en-t�
 
 VulnAPI teste deux variantes de cette attaque :
 
-- **Injection SQL** — injecte un payload SQL dans `kid` (ex. `' UNION SELECT 'secret' ...`) pour que la base de données renvoie une valeur connue en tant que clé.
-- **Traversée de chemin** — définit `kid` avec un chemin du système de fichiers tel que `/dev/null` pour que le serveur lise un fichier vide comme clé, ce qui peut correspondre à un secret HMAC vide.
+- **Injection SQL** — injecte un payload SQL dans `kid` (ex. `' UNION SELECT 'secret' ...`) pour que la base de données renvoie une valeur connue en tant que clé. Le nom de la table vulnérable dépendant du serveur, VulnAPI essaie successivement plusieurs noms courants (`jwk`, `keys`, `jwt_keys`, `api_keys`, `secrets`, `users`) et s'arrête au premier qui réussit.
+- **Traversée de chemin** — définit `kid` avec un chemin du système de fichiers tel que `/dev/null` pour que le serveur lise un fichier vide comme clé, ce qui peut correspondre à un secret HMAC vide. VulnAPI essaie `/dev/null` à plusieurs profondeurs de `../`, un contournement par séparateur doublé (`....//`) pour les filtres qui suppriment un seul `../`, ainsi que le périphérique Windows `NUL`.
 
 ## Exemple
 

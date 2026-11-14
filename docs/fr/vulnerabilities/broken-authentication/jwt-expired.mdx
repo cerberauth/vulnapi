@@ -48,7 +48,7 @@ Si l'heure actuelle est `1516243000` (soit après l'heure `exp`), le serveur dev
 
 Pour tester si le serveur accepte des tokens expirés, vous pouvez obtenir un token valide, attendre son expiration, puis essayer de l'utiliser. Autrement, si vous disposez de la clé de signature, vous pouvez créer un token déjà expiré.
 
-VulnAPI n'automatise pas encore ce scan. Vous pouvez utiliser des outils comme [jwtop](https://github.com/cerberauth/jwtop) pour créer des tokens expirés à des fins de test manuel.
+Pour les tokens signés en HMAC, VulnAPI automatise ce test dès que le secret de signature est connu (cassé par le contrôle de secret faible ou passé avec `--jwt-secret`) : voir [Falsification des horodatages JWT](./jwt-timestamp-tampering). Pour les autres algorithmes, vous pouvez utiliser des outils comme [jwtop](https://github.com/cerberauth/jwtop) pour créer des tokens expirés à des fins de test manuel.
 
 ## Quel est l'impact ?
 
