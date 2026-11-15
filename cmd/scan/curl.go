@@ -62,6 +62,9 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
 			client = client.WithHeader(headers).WithCookies(req.Cookies())
+			if _, err := internalCmd.ApplyAuthFlags(cmd, client); err != nil {
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
+			}
 			request.SetDefaultClient(client)
 
 			internalCmd.ApplyJWTSecretFlag(cmd)
@@ -79,6 +82,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 	scanCmd.Flags().StringArray("scans", nil, "Include specific scans")
 	scanCmd.Flags().StringArray("exclude-scans", nil, "Exclude specific scans")
 	internalCmd.AddJWTSecretFlag(scanCmd)
+	internalCmd.AddAuthFlags(scanCmd)
 	cobrareportx.RegisterFormatFlags(scanCmd)
 	cobrareportx.RegisterTransportFlags(scanCmd)
 	scanCmd.Flags().Bool("no-progress", false, "Disable progress output")

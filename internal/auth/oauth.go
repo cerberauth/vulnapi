@@ -49,11 +49,15 @@ type OAuthConfig struct {
 var defaultIn = InHeader
 
 func NewOAuthSecurityScheme(name string, in *SchemeIn, value *OAuthValue, config *OAuthConfig) (*SecurityScheme, error) {
+	return newOAuthBasedSecurityScheme(name, OAuth2, in, value, config)
+}
+
+func newOAuthBasedSecurityScheme(name string, t Type, in *SchemeIn, value *OAuthValue, config interface{}) (*SecurityScheme, error) {
 	if in == nil {
 		in = &defaultIn
 	}
 
-	securityScheme, err := NewSecurityScheme(name, config, OAuth2, OAuthScheme, in, nil)
+	securityScheme, err := NewSecurityScheme(name, config, t, OAuthScheme, in, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/url"
 
@@ -21,7 +22,7 @@ func NewURLScan(engine *harnessx.Engine, method string, u *url.URL, data string,
 		client = request.GetDefaultClient()
 	}
 
-	securityScheme, err := detectSecurityScheme(client.Header)
+	securityScheme, err := clientSecurityScheme(context.Background(), client)
 	if err != nil {
 		return nil, err
 	}

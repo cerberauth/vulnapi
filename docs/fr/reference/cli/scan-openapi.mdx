@@ -15,7 +15,7 @@ vulnapi scan openapi <PATH_OR_URL> [flags]
 
 | Option | Par défaut | Description |
 |---|---|---|
-| `--security-schemes <name=value>` | `` | Remplace la valeur du token pour un schéma de sécurité nommé (répétable) |
+| `--security-schemes <name=value>` | `` | Remplace la valeur d'un schéma de sécurité nommé : un token, une API key, ou `utilisateur:mot-de-passe` pour HTTP Basic (répétable) |
 | `--token-stdin` | `false` | Lit le token par défaut depuis stdin |
 | `--server-url <url>` | `` | URL de base de l'API, qui remplace les `servers` de la spécification |
 

@@ -58,7 +58,15 @@ func mapHTTPSchemeType(name string, scheme *openapi3.SecuritySchemeRef, security
 		}
 		return securityScheme, nil
 	case BasicScheme:
-		return auth.NewAuthorizationBasicSecurityScheme(name, nil)
+		var credentials *auth.HTTPBasicCredentials
+		if securitySchemeValue != nil && *securitySchemeValue != "" {
+			username, password, ok := strings.Cut(*securitySchemeValue, ":")
+			if !ok {
+				return nil, fmt.Errorf("security scheme %q expects a user:password value", name)
+			}
+			credentials = auth.NewHTTPBasicCredentials(username, password)
+		}
+		return auth.NewAuthorizationBasicSecurityScheme(name, credentials)
 	default:
 		return nil, NewErrUnsupportedScheme(schemeScheme)
 	}
@@ -96,9 +104,55 @@ func mapOAuth2SchemeType(name string, scheme *openapi3.SecuritySchemeRef, securi
 			TokenURL:   scheme.Value.Flows.ClientCredentials.TokenURL,
 			RefreshURL: scheme.Value.Flows.ClientCredentials.RefreshURL,
 		}
+	case scheme.Value.Flows.Password != nil:
+		cfg = &auth.OAuthConfig{
+			TokenURL:   scheme.Value.Flows.Password.TokenURL,
+			RefreshURL: scheme.Value.Flows.Password.RefreshURL,
+		}
 	}
 
 	return auth.NewOAuthSecurityScheme(name, nil, securitySchemeValue, cfg)
+}
+
+func oauth2FlowCredential(scheme *openapi3.SecurityScheme, credentials *auth.CredentialRegistry) *auth.ManagedCredential {
+	if scheme.Flows == nil {
+		return nil
+	}
+	if flow := scheme.Flows.ClientCredentials; flow != nil {
+		if credential := credentials.OAuth2(auth.ClientCredentials, flow.TokenURL); credential != nil {
+			return credential
+		}
+	}
+	if flow := scheme.Flows.Password; flow != nil {
+		if credential := credentials.OAuth2(auth.PasswordFlow, flow.TokenURL); credential != nil {
+			return credential
+		}
+	}
+	return nil
+}
+
+func mapOpenIDConnectSchemeType(ctx context.Context, name string, scheme *openapi3.SecuritySchemeRef, securitySchemeValue *auth.OAuthValue, credentials *auth.CredentialRegistry) (*auth.SecurityScheme, *auth.ManagedCredential, error) {
+	config := &auth.OpenIDConnectConfig{URL: scheme.Value.OpenIdConnectUrl}
+	var credential *auth.ManagedCredential
+	options := credentials.Options()
+	if config.URL != "" && (securitySchemeValue != nil || options.ClientID != "") {
+		configuration, err := auth.DiscoverOpenIDConfiguration(ctx, options.HTTPClient, config.URL)
+		if err == nil {
+			config.TokenURL = configuration.TokenEndpoint
+			config.JWKSURL = configuration.JWKSURI
+		} else if options.ClientID != "" && options.TokenURL == "" {
+			return nil, nil, fmt.Errorf("security scheme %q: %w", name, err)
+		}
+	}
+	if securitySchemeValue == nil {
+		if options.Username != "" {
+			credential = credentials.OAuth2(auth.PasswordFlow, config.TokenURL)
+		} else {
+			credential = credentials.OAuth2(auth.ClientCredentials, config.TokenURL)
+		}
+	}
+	securityScheme, err := auth.NewOpenIDConnectSecurityScheme(name, securitySchemeValue, config)
+	return securityScheme, credential, err
 }
 
 func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecuritySchemeValues) (auth.SecuritySchemesMap, error) {
@@ -122,15 +176,22 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		schemeLabel := schemeCounterLabel(schemeType, scheme.Value.Scheme, scheme.Value.In)
 		formatLabel := bearerFormatLabel(schemeType, scheme.Value)
 
+		var oauthValue *auth.OAuthValue
+		if value != nil {
+			oauthValue = auth.NewOAuthValue(*value, nil, nil, nil)
+		}
+
+		var credential *auth.ManagedCredential
 		switch schemeType {
 		case HttpSchemeType:
 			securitySchemes[name], err = mapHTTPSchemeType(name, scheme, value)
-		case OAuth2SchemeType, OpenIdConnectSchemeType:
-			var oauthValue *auth.OAuthValue
-			if value != nil {
-				oauthValue = auth.NewOAuthValue(*value, nil, nil, nil)
-			}
+		case OAuth2SchemeType:
 			securitySchemes[name], err = mapOAuth2SchemeType(name, scheme, oauthValue)
+			if value == nil {
+				credential = oauth2FlowCredential(scheme.Value, values.Credentials)
+			}
+		case OpenIdConnectSchemeType:
+			securitySchemes[name], credential, err = mapOpenIDConnectSchemeType(ctx, name, scheme, oauthValue, values.Credentials)
 		case ApiKeySchemeType:
 			securitySchemes[name], err = mapAPIKeySchemeType(name, scheme, value)
 		default:
@@ -146,6 +207,15 @@ func (openapi *OpenAPI) SecuritySchemeMap(ctx context.Context, values *SecurityS
 		if err != nil {
 			securitySchemesCounter.Add(ctx, 1, schemeLabel, formatLabel, supportedLabel(err))
 			return nil, err
+		}
+
+		if credential == nil && !values.has(name) && securitySchemes[name].GetScheme() != auth.BasicScheme {
+			credential = values.Credentials.Default()
+		}
+		if credential != nil {
+			if err := securitySchemes[name].SetCredential(ctx, credential); err != nil {
+				return nil, err
+			}
 		}
 
 		securitySchemesCounter.Add(ctx, 1, schemeLabel, formatLabel, "yes")

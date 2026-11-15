@@ -2,6 +2,7 @@ package openapi_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	jwtop "github.com/cerberauth/jwtop/jwt"
@@ -238,7 +239,104 @@ func TestSecuritySchemeMap_WithOpenIDConnect(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, auth.OAuth2, result["oidc_auth"].GetType())
+	assert.Equal(t, auth.OpenIdConnect, result["oidc_auth"].GetType())
 	assert.Equal(t, auth.OAuthScheme, result["oidc_auth"].GetScheme())
-	assert.Nil(t, result["oidc_auth"].GetConfig())
+	assert.Equal(t, &auth.OpenIDConnectConfig{}, result["oidc_auth"].GetConfig())
+}
+
+func TestSecuritySchemeMap_WithHTTPBasicValue(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{basic_auth: []}]}}}, components: {securitySchemes: {basic_auth: {type: http, scheme: basic}}}}`))
+	value := "user:pa:ss"
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewSecuritySchemeValues(map[string]interface{}{"basic_auth": &value}))
+
+	require.NoError(t, err)
+	credentials := result["basic_auth"].GetValidValue().(*auth.HTTPBasicCredentials)
+	assert.Equal(t, "user", credentials.GetUsername())
+	assert.Equal(t, "pa:ss", credentials.GetPassword())
+}
+
+func TestSecuritySchemeMap_WithInvalidHTTPBasicValue(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{basic_auth: []}]}}}, components: {securitySchemes: {basic_auth: {type: http, scheme: basic}}}}`))
+	value := "user"
+
+	_, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewSecuritySchemeValues(map[string]interface{}{"basic_auth": &value}))
+
+	assert.ErrorContains(t, err, "user:password")
+}
+
+func newTokenServer(t *testing.T) string {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/.well-known/openid-configuration" {
+			_, _ = w.Write([]byte(`{"token_endpoint":"` + "http://" + r.Host + `/token","jwks_uri":"http://` + r.Host + `/jwks"}`))
+			return
+		}
+		_ = r.ParseForm()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"access_token":"` + r.PostForm.Get("grant_type") + `-token","token_type":"Bearer","expires_in":3600}`))
+	}))
+	t.Cleanup(srv.Close)
+	return srv.URL
+}
+
+func TestSecuritySchemeMap_WithOAuth2ClientCredentialsFlow(t *testing.T) {
+	tokenServer := newTokenServer(t)
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{oauth: []}]}}}, components: {securitySchemes: {oauth: {type: oauth2, flows: {clientCredentials: {tokenUrl: '`+tokenServer+`/token', scopes: {}}}}}}}`))
+	values := openapi.NewEmptySecuritySchemeValues().WithCredentials(auth.NewCredentialRegistry(auth.CredentialOptions{ClientID: "client", ClientSecret: "secret"}))
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), values)
+
+	require.NoError(t, err)
+	assert.Equal(t, "client_credentials-token", result["oauth"].GetToken())
+	assert.Equal(t, "Bearer client_credentials-token", result["oauth"].GetHeaders().Get("Authorization"))
+}
+
+func TestSecuritySchemeMap_WithOAuth2PasswordFlow(t *testing.T) {
+	tokenServer := newTokenServer(t)
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{oauth: []}]}}}, components: {securitySchemes: {oauth: {type: oauth2, flows: {password: {tokenUrl: '`+tokenServer+`/token', scopes: {}}}}}}}`))
+	values := openapi.NewEmptySecuritySchemeValues().WithCredentials(auth.NewCredentialRegistry(auth.CredentialOptions{ClientID: "client", Username: "user", Password: "pass"}))
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), values)
+
+	require.NoError(t, err)
+	assert.Equal(t, "password-token", result["oauth"].GetToken())
+}
+
+func TestSecuritySchemeMap_WithOpenIDConnectDiscovery(t *testing.T) {
+	tokenServer := newTokenServer(t)
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{oidc: []}]}}}, components: {securitySchemes: {oidc: {type: openIdConnect, openIdConnectUrl: '`+tokenServer+`/.well-known/openid-configuration'}}}}`))
+	values := openapi.NewEmptySecuritySchemeValues().WithCredentials(auth.NewCredentialRegistry(auth.CredentialOptions{ClientID: "client", ClientSecret: "secret"}))
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), values)
+
+	require.NoError(t, err)
+	assert.Equal(t, auth.OpenIdConnect, result["oidc"].GetType())
+	assert.Equal(t, "client_credentials-token", result["oidc"].GetToken())
+	assert.Equal(t, &auth.OpenIDConnectConfig{
+		URL:      tokenServer + "/.well-known/openid-configuration",
+		TokenURL: tokenServer + "/token",
+		JWKSURL:  tokenServer + "/jwks",
+	}, result["oidc"].GetConfig())
+}
+
+func TestSecuritySchemeMap_WithLoginCommand(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer}}}}`))
+	values := openapi.NewEmptySecuritySchemeValues().WithCredentials(auth.NewCredentialRegistry(auth.CredentialOptions{LoginCommand: "echo command-token"}))
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), values)
+
+	require.NoError(t, err)
+	assert.Equal(t, "Bearer command-token", result["bearer_auth"].GetHeaders().Get("Authorization"))
+}
+
+func TestSecuritySchemeMap_ExplicitValueWinsOverCredentials(t *testing.T) {
+	openapiContract, _ := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer}}}}`))
+	token := "explicit"
+	values := openapi.NewSecuritySchemeValues(map[string]interface{}{"bearer_auth": &token}).WithCredentials(auth.NewCredentialRegistry(auth.CredentialOptions{LoginCommand: "echo command-token"}))
+
+	result, err := openapiContract.SecuritySchemeMap(t.Context(), values)
+
+	require.NoError(t, err)
+	assert.Equal(t, "Bearer explicit", result["bearer_auth"].GetHeaders().Get("Authorization"))
 }

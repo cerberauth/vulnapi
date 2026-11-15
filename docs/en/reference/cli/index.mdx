@@ -65,6 +65,24 @@ All `scan` and `discover` commands share these flags. HTTP client flags follow t
 
 > **Deprecated:** `--rate-limit` (`-r`) was replaced by `--rate`. The old flag is still accepted as an alias.
 
+## Authentication flags
+
+`scan openapi`, `scan curl` and `scan graphql` accept these flags to obtain the credential under test. See [Authenticated Scanning](../../authenticated-scanning).
+
+| Flag | Default | Description |
+|---|---|---|
+| `--client-id <id>` | `` | OAuth2 client ID (env `VULNAPI_CLIENT_ID`) |
+| `--client-secret <secret>` | `` | OAuth2 client secret (env `VULNAPI_CLIENT_SECRET`) |
+| `--token-url <url>` | `` | OAuth2 token endpoint, overriding the one of the security scheme |
+| `--oauth2-scope <scope>` | `` | OAuth2 scope to request (repeatable) |
+| `--oauth2-username <user>` | `` | Username for the OAuth2 password flow (env `VULNAPI_OAUTH2_USERNAME`) |
+| `--oauth2-password <password>` | `` | Password for the OAuth2 password flow (env `VULNAPI_OAUTH2_PASSWORD`) |
+| `--login-command <command>` | `` | Command printing the token on stdout |
+| `--login-url <url>` | `` | Login endpoint returning the token in JSON |
+| `--login-data <body>` | `` | Body sent to `--login-url` (JSON or form encoded) |
+| `--login-token-field <path>` | `access_token` | Field of the login response holding the token |
+| `--jwt-public-key <path-or-url>` | `` | PEM public key of the JWT under test |
+
 ## Exit behaviour
 
 When at least one finding has a CVSS score above `--severity-threshold`, VulnAPI writes output to **stderr** in addition to stdout. This causes `|| exit 1` patterns and CI/CD failure checks to trigger automatically. The default threshold is `1.0`, meaning any finding with CVSS > 1.0 triggers stderr output.

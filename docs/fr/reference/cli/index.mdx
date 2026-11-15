@@ -65,6 +65,24 @@ Toutes les commandes `scan` et `discover` partagent ces options. Les options du 
 
 > **Déprécié :** `--rate-limit` (`-r`) a été remplacé par `--rate`. L'ancienne option est toujours acceptée en tant qu'alias.
 
+## Options d'authentification
+
+`scan openapi`, `scan curl` et `scan graphql` acceptent ces options pour obtenir l'identifiant testé. Voir [Scan authentifié](../../authenticated-scanning).
+
+| Option | Défaut | Description |
+|---|---|---|
+| `--client-id <id>` | `` | Client ID OAuth2 (env `VULNAPI_CLIENT_ID`) |
+| `--client-secret <secret>` | `` | Client secret OAuth2 (env `VULNAPI_CLIENT_SECRET`) |
+| `--token-url <url>` | `` | Endpoint de token OAuth2, remplaçant celui du schéma de sécurité |
+| `--oauth2-scope <scope>` | `` | Scope OAuth2 à demander (répétable) |
+| `--oauth2-username <utilisateur>` | `` | Utilisateur pour le flow OAuth2 password (env `VULNAPI_OAUTH2_USERNAME`) |
+| `--oauth2-password <mot-de-passe>` | `` | Mot de passe pour le flow OAuth2 password (env `VULNAPI_OAUTH2_PASSWORD`) |
+| `--login-command <commande>` | `` | Commande affichant le token sur stdout |
+| `--login-url <url>` | `` | Endpoint de connexion renvoyant le token en JSON |
+| `--login-data <corps>` | `` | Corps envoyé à `--login-url` (JSON ou form encoded) |
+| `--login-token-field <chemin>` | `access_token` | Champ de la réponse de connexion contenant le token |
+| `--jwt-public-key <chemin-ou-url>` | `` | Clé publique PEM du JWT testé |
+
 ## Comportement de sortie
 
 Lorsqu'au moins un résultat a un score CVSS supérieur à `--severity-threshold`, VulnAPI écrit la sortie sur **stderr** en plus de stdout. Cela déclenche automatiquement les patterns `|| exit 1` et les contrôles d'échec en CI/CD. Le seuil par défaut est `1.0`, ce qui signifie que tout résultat avec un CVSS > 1.0 déclenche une sortie sur stderr.
