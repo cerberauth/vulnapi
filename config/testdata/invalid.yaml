@@ -1,0 +1,19 @@
+version: 1
+target:
+  graphql: not-a-url
+  openapi: ./openapi.yaml
+identities:
+  user:
+    schemes:
+      bearerAuth:
+        oauth2: { clientId: { env: ID }, username: { env: USER } }
+scan:
+  rate: fast
+  timeout: soon
+  operations: { methods: [FETCH] }
+report:
+  failOn: severe
+  outputs:
+    - { format: docx, path: out.docx }
+suppressions:
+  - check: jwt.alg_none

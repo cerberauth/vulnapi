@@ -43,8 +43,9 @@ func GenerateOperationID(method string, path string) string {
 type Operation struct {
 	*request.Client `json:"-" yaml:"-"`
 
-	OpenAPIDocPath *string `json:"-" yaml:"-"`
-	ID             string  `json:"id" yaml:"id"`
+	OpenAPIDocPath *string  `json:"-" yaml:"-"`
+	Tags           []string `json:"-" yaml:"-"`
+	ID             string   `json:"id" yaml:"id"`
 
 	Method          string                 `json:"method" yaml:"method"`
 	URL             url.URL                `json:"url" yaml:"url"`
@@ -161,6 +162,7 @@ func (operation *Operation) WithOpenapiOperation(docPath string, openapiOperatio
 		operation.SetID(GenerateOperationID(operation.Method, docPath))
 	}
 	operation.OpenAPIDocPath = &docPath
+	operation.Tags = slices.Clone(openapiOperation.Tags)
 
 	return operation
 }
@@ -312,6 +314,7 @@ func (o *Operation) Clone() (*Operation, error) {
 		Client: o.Client,
 
 		OpenAPIDocPath: openAPIDocPath,
+		Tags:           slices.Clone(o.Tags),
 
 		Method:          o.Method,
 		URL:             u,

@@ -19,6 +19,7 @@ require (
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.12
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/otel v1.47.0
+	golang.org/x/oauth2 v0.36.0
 	golang.org/x/text v0.44.0
 	golang.org/x/time v0.16.0
 	gopkg.in/yaml.v3 v3.0.1

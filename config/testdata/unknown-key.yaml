@@ -1,0 +1,4 @@
+version: 1
+scan:
+  rate: 10/s
+  ratelimit: 5/s
