@@ -107,20 +107,28 @@ func runScan(ctx context.Context, env []string, bin, work string, m *benchmark.M
 			return fail(err)
 		}
 	}
-	var token string
+	vars := map[string]string{}
+	scripts := map[string]string{}
+	for name, script := range s.Vars {
+		scripts[name] = script
+	}
 	if s.Token != "" {
-		var err error
-		if token, err = shell(ctx, env, s.Token); err != nil || token == "" {
-			return fail(fmt.Errorf("token: %v", err))
+		scripts["TOKEN"] = s.Token
+	}
+	for name, script := range scripts {
+		value, err := shell(ctx, env, script)
+		if err != nil || value == "" {
+			return fail(fmt.Errorf("%s: %v", name, err))
 		}
+		vars[name] = value
 	}
 
 	reportPath := filepath.Join(work, unsafeChars.ReplaceAllString(m.Name+"-"+s.Name, "-")+".json")
 	args := make([]string, 0, len(s.Args)+8)
 	for _, arg := range s.Args {
 		args = append(args, os.Expand(arg, func(key string) string {
-			if key == "TOKEN" {
-				return token
+			if value, ok := vars[key]; ok {
+				return value
 			}
 			return os.Getenv(key)
 		}))
