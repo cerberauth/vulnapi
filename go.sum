@@ -10,6 +10,8 @@ github.com/cerberauth/harnessx v0.5.0 h1:9XTxMkyLAnMQBkrxB4ZZ9O4Zbf/3u6FYI3TzzVI
 github.com/cerberauth/harnessx v0.5.0/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
 github.com/cerberauth/jwtop v0.9.1-0.20261115193508-521f36bc4466 h1:q8L3wAcH8bCXGvaON6ySeNFiW19AHY9YLUlQgSQUWzg=
 github.com/cerberauth/jwtop v0.9.1-0.20261115193508-521f36bc4466/go.mod h1:gbNTyX5ENtCRrfQQUuYNAurr0nRwtz9/pgIC8WdJxxU=
+github.com/cerberauth/proxyaudit v0.3.1-0.20261115193627-9457f6c13bcb h1:AUpd/sAhYGVjTSNO1NYJ+qrqC5nzHFPXyJ6owaO0wRo=
+github.com/cerberauth/proxyaudit v0.3.1-0.20261115193627-9457f6c13bcb/go.mod h1:cYYIoWF5i37riSYpS47/WB3dt19XcFdPFj9ZUWipW68=
 github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
 github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173 h1:Gy8q2r+13DVhSZMnvopTCr0gVGJHyRoMnH0Pn1boWY0=

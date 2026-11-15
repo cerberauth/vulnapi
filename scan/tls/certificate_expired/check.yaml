@@ -1,0 +1,11 @@
+id: "tls.certificate_expired"
+name: "TLS Certificate Expired"
+description: "The certificate is expired or not valid yet."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/tls?utm_source=vulnapi-report"
+tags:
+  - tls
+depends_on: ["tls.fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 6.9
+cwe_id: "CWE-298"
+owasp: "API8:2023"
