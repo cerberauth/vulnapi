@@ -42,7 +42,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 			client = client.WithHeader(req.Header).WithCookies(req.Cookies())
 			request.SetDefaultClient(client)
 
-			internalCmd.ApplyJWTSecretFlag(cmd)
+			internalCmd.ApplyJWTFlags(cmd)
 			internalCmd.SetSeverityThreshold(severityThreshold)
 			internalCmd.SetOnlyScansAboveThreshold(onlyScansAboveThreshold)
 
@@ -84,7 +84,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 
 	scanCmd.Flags().StringArrayVar(&includeScans, "scans", nil, "Include specific scans")
 	scanCmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", nil, "Exclude specific scans")
-	internalCmd.AddJWTSecretFlag(scanCmd)
+	internalCmd.AddJWTFlags(scanCmd)
 	cobrareportx.RegisterFormatFlags(scanCmd)
 	cobrareportx.RegisterTransportFlags(scanCmd)
 	scanCmd.Flags().BoolVar(&noProgress, "no-progress", false, "Disable progress output")
