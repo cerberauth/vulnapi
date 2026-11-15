@@ -19,13 +19,13 @@ import (
 	"github.com/cerberauth/vulnapi/internal/operation"
 )
 
-const operationsLoaderCheckID harnessx.CheckID = "_operations"
+const OperationsLoaderCheckID harnessx.CheckID = "_operations"
 
 const defaultToolName = "vulnapi"
 
 func newOperationsLoaderCheck(ops operation.Operations) harnessx.Check {
 	return harnessx.Check{
-		ID:    operationsLoaderCheckID,
+		ID:    OperationsLoaderCheckID,
 		Name:  "Operations Loader",
 		Scope: harnessx.ScopeGlobal,
 		Run: func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
@@ -71,7 +71,7 @@ func (a *harnessxReporter) OnScanStart(target harnessx.Target, _ int) {
 func (a *harnessxReporter) OnCheckStart(_ harnessx.Check, _ harnessx.Target, _ *harnessx.Resource) {}
 
 func (a *harnessxReporter) OnCheckComplete(result harnessx.Result) {
-	if result.CheckID == operationsLoaderCheckID {
+	if result.CheckID == OperationsLoaderCheckID {
 		a.mu.Lock()
 		for _, res := range result.Resources {
 			if op, ok := harnessx.ResourceDataAs[*operation.Operation](res); ok {
@@ -79,22 +79,31 @@ func (a *harnessxReporter) OnCheckComplete(result harnessx.Result) {
 			}
 		}
 		a.mu.Unlock()
-	} else if f, ok := harnessx.DataAs[*finding.Finding](result); ok && f != nil {
+	} else if findings := resultFindings(result); len(findings) > 0 {
 		def := a.checkDefs[result.CheckID]
 
-		op := f.Operation
 		a.mu.Lock()
-		if op == nil {
-			op = a.resources[result.ResourceID]
+		for _, f := range findings {
+			op := f.Operation
+			if op == nil {
+				op = a.resources[result.ResourceID]
+			}
+			a.findings = append(a.findings, toFinding(def, f, op, a.target))
 		}
-		target := a.target
-		a.findings = append(a.findings, toFinding(def, f, op, target))
 		a.mu.Unlock()
 	}
 
 	if a.callback != nil {
 		a.callback(nil)
 	}
+}
+
+func resultFindings(result harnessx.Result) []*finding.Finding {
+	if f, ok := harnessx.DataAs[*finding.Finding](result); ok && f != nil {
+		return []*finding.Finding{f}
+	}
+	findings, _ := harnessx.DataAs[[]*finding.Finding](result)
+	return findings
 }
 
 func (a *harnessxReporter) OnScanComplete(summary harnessx.ScanSummary) {
