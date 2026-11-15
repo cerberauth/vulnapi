@@ -59,6 +59,7 @@ func (c *Config) Validate() error {
 	}
 	c.Target.validate("target", &errs)
 	validateIdentities("identities", c.Identities, &errs)
+	c.Auth.validate("auth", &errs)
 	c.Scan.validate("scan", &errs)
 	c.Report.validate("report", &errs)
 	for i, suppression := range c.Suppressions {
@@ -69,6 +70,7 @@ func (c *Config) Validate() error {
 		field := "environments." + name
 		environment.Target.validate(field+".target", &errs)
 		validateIdentities(field+".identities", environment.Identities, &errs)
+		environment.Auth.validate(field+".auth", &errs)
 		environment.Scan.validate(field+".scan", &errs)
 		environment.Report.validate(field+".report", &errs)
 	}
@@ -151,6 +153,40 @@ func (c Credential) validate(field string, errs *validationErrors) {
 	for name, ref := range map[string]*SecretRef{"clientId": o.ClientID, "clientSecret": o.ClientSecret, "username": o.Username, "password": o.Password} {
 		if ref != nil {
 			errs.add(field+".oauth2."+name, ref.validate())
+		}
+	}
+}
+
+func (a *Auth) validate(field string, errs *validationErrors) {
+	if a == nil {
+		return
+	}
+	for name, ref := range map[string]*SecretRef{"clientId": a.ClientID, "clientSecret": a.ClientSecret, "username": a.Username, "password": a.Password} {
+		if ref != nil {
+			errs.add(field+"."+name, ref.validate())
+		}
+	}
+	if a.ClientID == nil && (a.ClientSecret != nil || a.Username != nil) {
+		errs.add(field+".clientId", errors.New("required for the OAuth2 flows"))
+	}
+	if (a.Username == nil) != (a.Password == nil) {
+		errs.add(field, errors.New("username and password must be set together"))
+	}
+	if a.TokenURL != "" {
+		errs.add(field+".tokenUrl", validateAbsoluteURL(a.TokenURL))
+	}
+	if l := a.Login; l != nil {
+		if (l.Command == "") == (l.URL == "") {
+			errs.add(field+".login", errors.New("set exactly one of command or url"))
+		}
+		if l.URL != "" {
+			errs.add(field+".login.url", validateAbsoluteURL(l.URL))
+		}
+		if l.Data != nil {
+			errs.add(field+".login.data", l.Data.validate())
+			if l.URL == "" {
+				errs.add(field+".login.data", errors.New("only applies to a login url"))
+			}
 		}
 	}
 }

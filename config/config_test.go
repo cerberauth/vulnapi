@@ -129,3 +129,50 @@ func TestParseFailOn(t *testing.T) {
 	_, err := config.ParseFailOn("11")
 	assert.Error(t, err)
 }
+
+func TestLoad_Auth(t *testing.T) {
+	c, err := config.Parse([]byte(`version: 1
+auth:
+  clientId: { env: CLIENT_ID }
+  clientSecret: { file: secrets/client }
+  jwtPublicKey: keys/public.pem
+  login:
+    command: ./login.sh
+environments:
+  production:
+    auth:
+      tokenUrl: https://auth.example.com/token
+`), "/etc/vulnapi")
+	require.NoError(t, err)
+	assert.Equal(t, "/etc/vulnapi/secrets/client", c.Auth.ClientSecret.File)
+	assert.Equal(t, "/etc/vulnapi/keys/public.pem", c.Auth.JWTPublicKey)
+
+	production, err := c.WithEnvironment("production")
+	require.NoError(t, err)
+	assert.Equal(t, "https://auth.example.com/token", production.Auth.TokenURL)
+	assert.Equal(t, "CLIENT_ID", production.Auth.ClientID.Env)
+	assert.Equal(t, "./login.sh", production.Auth.Login.Command)
+}
+
+func TestLoad_AuthRejected(t *testing.T) {
+	_, err := config.Parse([]byte(`version: 1
+auth:
+  clientSecret: s3cr3t
+  username: { env: USER }
+  login:
+    command: ./login.sh
+    url: https://api.example.com/login
+    data: '{"password":"s3cr3t"}'
+`), t.TempDir())
+	require.Error(t, err)
+	for _, want := range []string{
+		"auth.clientSecret: secrets must be a reference",
+		"auth.clientId: required for the OAuth2 flows",
+		"auth: username and password must be set together",
+		"auth.login: set exactly one of command or url",
+		"auth.login.data: secrets must be a reference",
+	} {
+		assert.ErrorContains(t, err, want)
+	}
+	assert.NotContains(t, err.Error(), "s3cr3t")
+}

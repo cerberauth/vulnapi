@@ -30,6 +30,7 @@ func (c *Config) WithEnvironment(name string) (*Config, error) {
 	merged.environment = name
 	merged.Target = mergeTarget(c.Target, environment.Target)
 	merged.Identities = mergeMap(c.Identities, environment.Identities)
+	merged.Auth = mergeAuth(c.Auth, environment.Auth)
 	merged.Scan = mergeScan(c.Scan, environment.Scan)
 	merged.Report = mergeReport(c.Report, environment.Report)
 	return &merged, nil
@@ -101,5 +102,26 @@ func mergeReport(base, overlay *Report) *Report {
 	merged.URL = override(base.URL, overlay.URL)
 	merged.Format = override(base.Format, overlay.Format)
 	merged.Headers = mergeMap(base.Headers, overlay.Headers)
+	return &merged
+}
+
+func mergeAuth(base, overlay *Auth) *Auth {
+	if overlay == nil {
+		return base
+	}
+	if base == nil {
+		return overlay
+	}
+	merged := *base
+	merged.ClientID = override(base.ClientID, overlay.ClientID)
+	merged.ClientSecret = override(base.ClientSecret, overlay.ClientSecret)
+	merged.TokenURL = override(base.TokenURL, overlay.TokenURL)
+	if overlay.Scopes != nil {
+		merged.Scopes = overlay.Scopes
+	}
+	merged.Username = override(base.Username, overlay.Username)
+	merged.Password = override(base.Password, overlay.Password)
+	merged.Login = override(base.Login, overlay.Login)
+	merged.JWTPublicKey = override(base.JWTPublicKey, overlay.JWTPublicKey)
 	return &merged
 }

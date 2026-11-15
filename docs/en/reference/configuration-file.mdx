@@ -67,6 +67,7 @@ Flags override environment variables, which override the environment selected wi
 | `target.request` | curl-style request (`url`, `method`, `data`), scanned by `vulnapi scan` or `vulnapi scan curl` |
 | `target.headers` | Headers sent with every request, like `-H`; values are strings or secret references |
 | `identities.<name>` | Credentials of each OpenAPI security scheme, with optional `role` and `tenant`. The `"*"` scheme applies to every scheme without its own credential, like `--token-stdin`. A scan uses the only identity, or the one named `default` |
+| `auth` | Credentials of the scan token, refreshed when it expires: `clientId`, `clientSecret`, `tokenUrl`, `scopes`, `username`, `password` (OAuth2), `login` (`command`, or `url` with `data` and `tokenField`) and `jwtPublicKey`. See [authenticated scanning](../../authenticated-scanning/) |
 | `scan.checks` | `include` / `exclude` check IDs or patterns, like `--scans` / `--exclude-scans`. Included IDs this build does not know are skipped |
 | `scan.operations` | Operation filters: `paths`, `excludePaths` (`*` matches a segment, `**` any number), `tags`, `operationIds`, `methods` |
 | `scan.allowUnsafeMethods` | `--allow-unsafe-methods` |
@@ -75,7 +76,7 @@ Flags override environment variables, which override the environment selected wi
 | `report.outputs` | Report files, each with a `format` and a `path` |
 | `report.url`, `report.format`, `report.headers` | `--report-url`, `--report-format` and `--report-header` |
 | `suppressions` | Findings to accept: `check`, optional `operation` ID, mandatory `reason` and `expires` (`YYYY-MM-DD`). After `expires`, the finding is reported again |
-| `environments.<name>` | Overlay of `target`, `identities`, `scan` and `report`, selected with `--env` |
+| `environments.<name>` | Overlay of `target`, `identities`, `auth`, `scan` and `report`, selected with `--env` |
 | `enterprise` | Settings of the VulnAPI Enterprise build, accepted and ignored by this build |
 
 ## Secrets
