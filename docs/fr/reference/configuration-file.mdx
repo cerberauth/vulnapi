@@ -1,0 +1,103 @@
+---
+title: Fichier de configuration
+description: Décrire un scan dans un fichier vulnapi.yaml versionné, pour des exécutions CI reproductibles et une ligne de commande courte.
+---
+
+VulnAPI lit ses paramètres dans `vulnapi.yaml` (ou `.vulnapi.yaml`) du répertoire de travail, dans le fichier passé avec `--config`, ou dans la variable d'environnement `VULNAPI_CONFIG`. Les chemins du fichier sont relatifs au fichier.
+
+Lorsque le fichier définit une cible, `vulnapi scan` la scanne sans argument :
+
+```sh
+vulnapi scan
+vulnapi scan --env production
+```
+
+## Exemple
+
+```yaml
+# yaml-language-server: $schema=https://schemas.cerberauth.com/vulnapi/config/v1.json
+version: 1
+
+target:
+  openapi: ./openapi.yaml
+  server: https://staging.api.example.com
+
+identities:
+  user:
+    schemes:
+      bearerAuth: { env: USER_TOKEN }
+
+scan:
+  checks: { exclude: [misconfiguration.http_headers_cors_missing] }
+  operations: { excludePaths: ["/internal/**"], tags: [public] }
+  allowUnsafeMethods: false
+  rate: 10/s
+  timeout: 30s
+
+report:
+  failOn: high
+  outputs:
+    - { format: sarif, path: vulnapi.sarif }
+
+suppressions:
+  - check: misconfiguration.http_headers_hsts_missing
+    operation: getHealth
+    reason: servi derrière un proxy TLS
+    expires: 2027-03-01
+
+environments:
+  production:
+    target: { server: https://api.example.com }
+    scan: { rate: 2/s }
+```
+
+Le fichier est décodé strictement : une clé inconnue est une erreur, une faute de frappe ne désactive donc jamais un paramètre en silence. `version` est obligatoire.
+
+## Priorité
+
+Les options de la ligne de commande l'emportent sur les variables d'environnement, qui l'emportent sur l'environnement choisi avec `--env` (ou `VULNAPI_ENV`), qui l'emporte sur le fichier, qui l'emporte sur les valeurs par défaut.
+
+## Sections
+
+| Clé | Description |
+|---|---|
+| `target.openapi` | Chemin ou URL du document OpenAPI, scanné par `vulnapi scan` ou `vulnapi scan openapi` |
+| `target.server` | URL de base remplaçant les serveurs du document OpenAPI (`--server-url`) |
+| `target.graphql` | Endpoint GraphQL, scanné par `vulnapi scan` ou `vulnapi scan graphql` |
+| `target.request` | Requête façon curl (`url`, `method`, `data`), scannée par `vulnapi scan` ou `vulnapi scan curl` |
+| `target.headers` | En-têtes envoyés avec chaque requête, comme `-H` ; valeurs en clair ou références de secret |
+| `identities.<nom>` | Identifiants de chaque schéma de sécurité OpenAPI, avec `role` et `tenant` optionnels. Le schéma `"*"` s'applique à tout schéma sans identifiant propre, comme `--token-stdin`. Un scan utilise l'unique identité, ou celle nommée `default` |
+| `scan.checks` | `include` / `exclude` d'identifiants ou de motifs, comme `--scans` / `--exclude-scans`. Les identifiants inclus inconnus de ce build sont ignorés |
+| `scan.operations` | Filtres d'opérations : `paths`, `excludePaths` (`*` correspond à un segment, `**` à plusieurs), `tags`, `operationIds`, `methods` |
+| `scan.allowUnsafeMethods` | `--allow-unsafe-methods` |
+| `scan.rate`, `scan.timeout` | `--rate` et le délai des requêtes (`--max-time`), par exemple `10/s` et `30s` |
+| `report.failOn` | `info`, `low`, `medium`, `high`, `critical` ou un score CVSS ; remplace `--severity-threshold` |
+| `report.outputs` | Fichiers de rapport, chacun avec un `format` et un `path` |
+| `report.url`, `report.format`, `report.headers` | `--report-url`, `--report-format` et `--report-header` |
+| `suppressions` | Résultats acceptés : `check`, `operation` optionnelle, `reason` et `expires` (`AAAA-MM-JJ`) obligatoires. Après `expires`, le résultat est de nouveau signalé |
+| `environments.<nom>` | Surcharge de `target`, `identities`, `scan` et `report`, choisie avec `--env` |
+| `enterprise` | Paramètres du build VulnAPI Enterprise, acceptés et ignorés par ce build |
+
+## Secrets
+
+Les secrets ne sont jamais écrits dans le fichier. Les identifiants n'acceptent qu'une référence, une chaîne en clair est refusée :
+
+| Référence | Valeur |
+|---|---|
+| `{ env: NOM }` | Variable d'environnement |
+| `{ file: chemin }` | Contenu d'un fichier, relatif au fichier de configuration |
+| `{ command: "..." }` | Sortie standard d'une commande |
+| `{ oauth2: { clientId, clientSecret, scopes, tokenUrl } }` | Jeton d'accès obtenu par le flux OAuth2 client credentials, ou password lorsque `username` et `password` sont définis. `tokenUrl` vaut par défaut celle du schéma de sécurité |
+
+`vulnapi config show` affiche la configuration effective, avec les valeurs d'en-têtes en clair masquées.
+
+## Commandes
+
+```sh
+vulnapi config validate [--config <chemin>] [--env <nom>]
+vulnapi config show [--config <chemin>] [--env <nom>]
+```
+
+## JSON Schema
+
+Le schéma est publié à `https://schemas.cerberauth.com/vulnapi/config/v1.json`. La version 1 ne reçoit que des ajouts.

@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://schemas.cerberauth.com/vulnapi/config/v1.json
+version: 1
+
+target:
+  openapi: ./openapi.yaml
+  server: https://staging.api.example.com
+
+identities:
+  user:
+    schemes:
+      bearerAuth: { env: USER_TOKEN }
+  admin:
+    role: admin
+    schemes:
+      bearerAuth:
+        oauth2: { clientId: { env: ADMIN_ID }, clientSecret: { env: ADMIN_SECRET } }
+
+scan:
+  checks: { exclude: [misconfiguration.http_headers_cors_missing] }
+  operations: { excludePaths: ["/internal/**"], tags: [public] }
+  allowUnsafeMethods: false
+  rate: 10/s
+
+report:
+  failOn: high
+  outputs:
+    - { format: sarif, path: vulnapi.sarif }
+
+suppressions:
+  - check: misconfiguration.http_headers_hsts_missing
+    operation: getHealth
+    reason: served behind a TLS-terminating proxy
+    expires: 2027-03-01
+
+environments:
+  production:
+    target: { server: https://api.example.com }
+    scan: { rate: 2/s }
+
+enterprise:
+  anything: { goes: here }

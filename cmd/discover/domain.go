@@ -65,7 +65,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 					telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scan"))
 				}
 
-				if err := internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
+				if err := internalCmd.WriteReport(ctx, cmd, reporter, nil); err != nil {
 					telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
 				}
 
