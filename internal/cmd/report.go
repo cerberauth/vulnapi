@@ -80,31 +80,18 @@ func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report) err
 	fmt.Println()
 	fmt.Fprintln(outputStream, outputMessage)
 
-	formatter, err := cobrareportx.FormatterFromFlags(cmd)
-	if err != nil {
-		return err
-	}
-	writer, cleanup, err := cobrareportx.WriterFromFlags(cmd)
+	sinks, cleanup, err := cobrareportx.SinksFromFlags(cmd)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
 
-	if err := r.WriteTo(ctx, writer, formatter); err != nil {
+	if err := r.DeliverAll(ctx, sinks); err != nil {
 		return err
 	}
 
-	httpTransport, err := cobrareportx.HTTPTransportFromFlags(cmd)
-	if err != nil {
-		return err
-	}
-	if httpTransport != nil {
-		if err := r.Send(ctx, httpTransport, formatter); err != nil {
-			return err
-		}
-	}
-
-	recordReport(ctx, cmd, httpTransport != nil)
+	reportURL, _ := cmd.Flags().GetString("report-url")
+	recordReport(ctx, cmd, reportURL != "")
 	return nil
 }
 
