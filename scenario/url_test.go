@@ -199,7 +199,7 @@ func TestNewURLScanSendsClientHeadersAndCookies(t *testing.T) {
 	header.Set("User-Agent", "custom-agent")
 	client := request.NewClient(request.NewClientOptions{
 		Header:  header,
-		Cookies: []*http.Cookie{{Name: "session", Value: "client-session"}},
+		Cookies: []*http.Cookie{{Name: "theme", Value: "dark"}},
 	})
 	u, _ := url.Parse(server.URL)
 	s, err := scenario.NewURLScan(harnessx.New(), http.MethodGet, u, "", client, &scan.ScanOptions{
@@ -216,8 +216,8 @@ func TestNewURLScanSendsClientHeadersAndCookies(t *testing.T) {
 	for _, r := range requests {
 		assert.Equal(t, "tenant", r.Header.Get("X-Tenant"))
 		assert.Equal(t, "custom-agent", r.Header.Get("User-Agent"))
-		cookie, err := r.Cookie("session")
+		cookie, err := r.Cookie("theme")
 		require.NoError(t, err)
-		assert.Equal(t, "client-session", cookie.Value)
+		assert.Equal(t, "dark", cookie.Value)
 	}
 }

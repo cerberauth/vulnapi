@@ -1,6 +1,7 @@
 package scenario
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -22,7 +23,7 @@ func NewGraphQLScan(engine *harnessx.Engine, u *url.URL, client *request.Client,
 		client = request.GetDefaultClient()
 	}
 
-	securityScheme, err := detectSecurityScheme(client.Header)
+	securityScheme, err := clientSecurityScheme(context.Background(), client)
 	if err != nil {
 		return nil, err
 	}

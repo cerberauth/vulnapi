@@ -76,6 +76,7 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 		FuzzMaxStringLen: fuzz.DefaultMaxStringLen,
 
 		CrackedHMACSecret: knownHMACSecret,
+		PublicKeyPEM:      resolvePublicKeyPEM(&op.URL, securityScheme, tokenString),
 	}, nil
 }
 

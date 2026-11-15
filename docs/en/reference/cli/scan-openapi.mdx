@@ -15,7 +15,7 @@ vulnapi scan openapi <PATH_OR_URL> [flags]
 
 | Flag | Default | Description |
 |---|---|---|
-| `--security-schemes <name=value>` | `` | Override the token value for a named security scheme (repeatable) |
+| `--security-schemes <name=value>` | `` | Override the value for a named security scheme: a token, an API key, or `user:password` for HTTP Basic (repeatable) |
 | `--token-stdin` | `false` | Read the default token from stdin |
 | `--server-url <url>` | `` | Base URL of the API, overriding the `servers` of the specification |
 

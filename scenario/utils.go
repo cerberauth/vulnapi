@@ -1,6 +1,7 @@
 package scenario
 
 import (
+	"context"
 	"encoding/base64"
 	"maps"
 	"net/http"
@@ -9,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/cerberauth/cobracurl"
+	jwtop "github.com/cerberauth/jwtop/jwt"
 	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/request"
 )
 
 // apiKeyHeaders are well-known API key header names, checked in this order
@@ -124,7 +127,29 @@ func decodeBasicAuth(encodedUser string) (string, string) {
 	return parts[0], parts[1]
 }
 
-func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
+var sessionCookieKeywords = []string{"session", "sess", "sid", "token", "auth", "jwt", "access"}
+
+var nonCredentialCookieKeywords = []string{"csrf", "xsrf"}
+
+func detectSessionCookie(cookies []*http.Cookie) *http.Cookie {
+	for _, cookie := range cookies {
+		if cookie.Value != "" && jwtop.IsJWT(cookie.Value) {
+			return cookie
+		}
+	}
+	for _, cookie := range cookies {
+		name := strings.ToLower(cookie.Name)
+		if cookie.Value == "" || slices.ContainsFunc(nonCredentialCookieKeywords, func(k string) bool { return strings.Contains(name, k) }) {
+			continue
+		}
+		if slices.ContainsFunc(sessionCookieKeywords, func(k string) bool { return strings.Contains(name, k) }) {
+			return cookie
+		}
+	}
+	return nil
+}
+
+func detectSecurityScheme(header http.Header, cookies []*http.Cookie) (*auth.SecurityScheme, error) {
 	authHeader := detectAuthorizationHeader(header)
 	if authHeader != "" {
 		if token := getBearerToken(authHeader); token != "" {
@@ -141,7 +166,39 @@ func detectSecurityScheme(header http.Header) (*auth.SecurityScheme, error) {
 		return auth.NewAPIKeySecurityScheme(headerName, auth.InHeader, &headerValue)
 	}
 
+	if cookie := detectSessionCookie(cookies); cookie != nil {
+		securityScheme, err := auth.NewAPIKeySecurityScheme(cookie.Name, auth.InCookie, &cookie.Value)
+		if err != nil {
+			return nil, err
+		}
+		if jwtop.IsJWT(cookie.Value) {
+			if err := securityScheme.SetTokenFormat(auth.JWTTokenFormat); err != nil {
+				return nil, err
+			}
+		}
+		return securityScheme, nil
+	}
+
 	return nil, nil
+}
+
+func clientSecurityScheme(ctx context.Context, client *request.Client) (*auth.SecurityScheme, error) {
+	securityScheme, err := detectSecurityScheme(client.Header, client.Cookies)
+	if err != nil || securityScheme != nil {
+		return securityScheme, err
+	}
+	credential := client.Credentials.Default()
+	if credential == nil {
+		return nil, nil
+	}
+	securityScheme, err = auth.NewAuthorizationBearerSecurityScheme("default", nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := securityScheme.SetCredential(ctx, credential); err != nil {
+		return nil, err
+	}
+	return securityScheme, nil
 }
 
 // normalizeURL adds a default scheme to a URL that has none, as curl does.

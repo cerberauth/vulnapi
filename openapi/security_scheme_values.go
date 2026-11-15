@@ -1,8 +1,11 @@
 package openapi
 
+import "github.com/cerberauth/vulnapi/internal/auth"
+
 type SecuritySchemeValues struct {
-	Default interface{}
-	Values  map[string]interface{}
+	Default     interface{}
+	Values      map[string]interface{}
+	Credentials *auth.CredentialRegistry
 }
 
 func NewSecuritySchemeValues(values map[string]interface{}) *SecuritySchemeValues {
@@ -35,4 +38,16 @@ func (s *SecuritySchemeValues) Get(key string) interface{} {
 
 func (s *SecuritySchemeValues) Set(key string, value interface{}) {
 	s.Values[key] = value
+}
+
+func (s *SecuritySchemeValues) WithCredentials(credentials *auth.CredentialRegistry) *SecuritySchemeValues {
+	s.Credentials = credentials
+	return s
+}
+
+func (s *SecuritySchemeValues) has(key string) bool {
+	if _, ok := s.Values[key]; ok {
+		return true
+	}
+	return s.Default != nil
 }
