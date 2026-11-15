@@ -7,6 +7,10 @@ import { Tabs, TabItem } from '@/components/docs'
 
 <table>
   <tr>
+    <th>Identifiant de scan</th>
+    <td><code>jwt.missing_expiry</code>, <code>jwt.long_lifetime</code>, <code>jwt.expired_accepted</code></td>
+  </tr>
+  <tr>
     <th>Gravité</th>
     <td>Moyenne</td>
   </tr>
@@ -48,7 +52,13 @@ Si l'heure actuelle est `1516243000` (soit après l'heure `exp`), le serveur dev
 
 Pour tester si le serveur accepte des tokens expirés, vous pouvez obtenir un token valide, attendre son expiration, puis essayer de l'utiliser. Autrement, si vous disposez de la clé de signature, vous pouvez créer un token déjà expiré.
 
-Pour les tokens signés en HMAC, VulnAPI automatise ce test dès que le secret de signature est connu (cassé par le contrôle de secret faible ou passé avec `--jwt-secret`) : voir [Falsification des horodatages JWT](./jwt-timestamp-tampering). Pour les autres algorithmes, vous pouvez utiliser des outils comme [jwtop](https://github.com/cerberauth/jwtop) pour créer des tokens expirés à des fins de test manuel.
+VulnAPI exécute trois scans sur le token testé : `jwt.missing_expiry` signale un token sans `exp`, `jwt.long_lifetime` un token dont la durée de vie (`exp` moins `iat`) dépasse `--jwt-max-lifetime` (par défaut `24h`), et `jwt.expired_accepted` envoie le token lorsqu'il est déjà expiré et le signale si le serveur l'accepte.
+
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [token-expire]" --jwt-max-lifetime 1h --scans "jwt.missing_expiry" --scans "jwt.long_lifetime" --scans "jwt.expired_accepted"
+```
+
+Pour tester un token qui n'est pas encore expiré, pour les tokens signés en HMAC, VulnAPI automatise ce test dès que le secret de signature est connu (cassé par le contrôle de secret faible ou passé avec `--jwt-secret`) : voir [Falsification des horodatages JWT](./jwt-timestamp-tampering). Pour les autres algorithmes, vous pouvez utiliser des outils comme [jwtop](https://github.com/cerberauth/jwtop) pour créer des tokens expirés à des fins de test manuel.
 
 ## Quel est l'impact ?
 

@@ -6,11 +6,12 @@ require (
 	github.com/brianvoe/gofakeit/v7 v7.17.1
 	github.com/cerberauth/cobracurl v0.5.0
 	github.com/cerberauth/harnessx v0.5.0
-	github.com/cerberauth/jwtop v0.9.0
+	github.com/cerberauth/jwtop v0.9.1-0.20261115193508-521f36bc4466
 	github.com/cerberauth/reportx v0.4.0
 	github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173
 	github.com/getargvio/argvio-go v0.6.0
 	github.com/getkin/kin-openapi v0.149.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/projectdiscovery/wappalyzergo v0.3.2
@@ -32,7 +33,6 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v1.0.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.33.0 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

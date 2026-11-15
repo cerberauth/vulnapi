@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/cerberauth/cobracurl"
+	jwtcrackcheckbase "github.com/cerberauth/jwtop/jwt/crack/checkbase"
 	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/spf13/cobra"
@@ -31,7 +32,7 @@ func AddCommonArgs(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVarP(&includeScans, "scans", "", includeScans, "Include specific scans")
 	cmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", excludeScans, "Exclude specific scans")
 
-	AddJWTSecretFlag(cmd)
+	AddJWTFlags(cmd)
 
 	cobrareportx.RegisterFormatFlags(cmd)
 	cobrareportx.RegisterTransportFlags(cmd)
@@ -42,16 +43,24 @@ func AddCommonArgs(cmd *cobra.Command) {
 	RegisterAllowUnsafeMethodsFlag(cmd, &allowUnsafeMethods)
 }
 
-// AddJWTSecretFlag registers --jwt-secret, a known HMAC secret used to re-sign
-// mutated JWTs so checks like jwt.fuzz reach servers that verify signatures.
-func AddJWTSecretFlag(cmd *cobra.Command) {
+func AddJWTFlags(cmd *cobra.Command) {
 	cmd.Flags().String("jwt-secret", "", "Known HMAC secret of the JWT under test, used to re-sign mutated tokens (e.g. for jwt.fuzz)")
+	cmd.Flags().String("jwt-other-audience-token", "", "Validly signed JWT issued for another audience, sent by jwt.audience_not_validated")
+	cmd.Flags().String("jwt-other-issuer-token", "", "Validly signed JWT issued by another issuer of the same identity provider, sent by jwt.issuer_not_validated")
+	cmd.Flags().Duration("jwt-max-lifetime", jwtcrackcheckbase.DefaultMaxTokenLifetime, "JWT lifetime above which jwt.long_lifetime reports the token")
 }
 
-// ApplyJWTSecretFlag forwards --jwt-secret to the JWT checks.
-func ApplyJWTSecretFlag(cmd *cobra.Command) {
+func ApplyJWTFlags(cmd *cobra.Command) {
 	secret, _ := cmd.Flags().GetString("jwt-secret")
-	jwtcheckbase.SetKnownHMACSecret(secret)
+	otherAudienceToken, _ := cmd.Flags().GetString("jwt-other-audience-token")
+	otherIssuerToken, _ := cmd.Flags().GetString("jwt-other-issuer-token")
+	maxLifetime, _ := cmd.Flags().GetDuration("jwt-max-lifetime")
+	jwtcheckbase.SetOptions(jwtcheckbase.Options{
+		HMACSecret:         secret,
+		OtherAudienceToken: otherAudienceToken,
+		OtherIssuerToken:   otherIssuerToken,
+		MaxTokenLifetime:   maxLifetime,
+	})
 }
 
 func FilterScans(scans []string) []string {

@@ -4,17 +4,24 @@ import (
 	"github.com/cerberauth/vulnapi/scan"
 	authenticationbypass "github.com/cerberauth/vulnapi/scan/broken_authentication/authentication_bypass"
 	jwtalgnone "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/alg_none"
+	jwtaudiencenotvalidated "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/audience_not_validated"
 	jwtblanksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/blank_secret"
 	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
+	jwtclaimremoval "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/claim_removal"
+	jwtexpiredaccepted "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/expired_accepted"
 	jwtfuzz "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/fuzz"
 	jwthmacconfusion "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/hmac_confusion"
+	jwtissuernotvalidated "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/issuer_not_validated"
 	jwtjkuinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jku_injection"
 	jwtjwkinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/jwk_injection"
 	jwtkidpathtraversal "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/kid_path_traversal"
 	jwtkidsqlinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/kid_sql_injection"
+	jwtlonglifetime "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/long_lifetime"
+	jwtmissingexpiry "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/missing_expiry"
 	jwtnoverification "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/no_verification"
 	jwtnullsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/null_signature"
 	jwtpsychicsignature "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/psychic_signature"
+	jwtscopenotvalidated "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/scope_not_validated"
 	jwttimestamptampering "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/timestamp_tampering"
 	jwtweaksecret "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/weak_secret"
 	jwtx5cinjection "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/x5c_injection"
@@ -65,6 +72,13 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(jwtweaksecret.Check, &jwtweaksecret.Def)
 	s.AddCheck(jwttimestamptampering.Check, &jwttimestamptampering.Def)
 	s.AddCheck(jwtfuzz.Check, &jwtfuzz.Def)
+	s.AddCheck(jwtmissingexpiry.Check, &jwtmissingexpiry.Def)
+	s.AddCheck(jwtlonglifetime.Check, &jwtlonglifetime.Def)
+	s.AddCheck(jwtexpiredaccepted.Check, &jwtexpiredaccepted.Def)
+	s.AddCheck(jwtaudiencenotvalidated.Check, &jwtaudiencenotvalidated.Def)
+	s.AddCheck(jwtissuernotvalidated.Check, &jwtissuernotvalidated.Def)
+	s.AddCheck(jwtclaimremoval.Check, &jwtclaimremoval.Def)
+	s.AddCheck(jwtscopenotvalidated.Check, &jwtscopenotvalidated.Def)
 
 	s.AddCheck(httpcookiesfetch.Check, nil)
 	s.AddCheck(httpcookiesnothttponly.Check, &httpcookiesnothttponly.Def)
