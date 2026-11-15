@@ -5,6 +5,10 @@ description: TLS (Transport Layer Security) is a protocol that provides secure c
 
 <table>
   <tr>
+    <th>Scan ID</th>
+    <td><code>tls.http_accepted</code>, <code>tls.certificate_untrusted</code>, <code>tls.certificate_expired</code>, <code>tls.certificate_hostname_mismatch</code>, <code>tls.protocol_deprecated</code>, <code>tls.cipher_weak</code>, <code>tls.forward_secrecy_missing</code></td>
+  </tr>
+  <tr>
     <th>Severity</th>
     <td>Info</td>
   </tr>
@@ -56,7 +60,23 @@ Heartbleed is a vulnerability in the OpenSSL library that allows attackers to re
 
 ## How to test?
 
-Use a tool like [SSL Labs](https://www.ssllabs.com/ssltest/) to test the TLS configuration of an API. The tool will check for common TLS vulnerabilities and provide a grade for the API's TLS configuration.
+VulnAPI inspects the transport once per distinct `host:port` of the scanned operations, with the TLS checks of [proxyaudit](https://github.com/cerberauth/proxyaudit), and reports one finding per host:
+
+| Scan ID | Detects |
+|---------|---------|
+| `tls.http_accepted` | Plain HTTP requests are answered instead of redirected to HTTPS |
+| `tls.certificate_untrusted` | Self-signed certificate, or a chain that does not lead to a trusted authority |
+| `tls.certificate_expired` | Expired or not yet valid certificate |
+| `tls.certificate_hostname_mismatch` | Certificate not valid for the API hostname |
+| `tls.protocol_deprecated` | SSL 3.0, TLS 1.0 or TLS 1.1 accepted |
+| `tls.cipher_weak` | RC4, 3DES, NULL or other insecure cipher suites accepted |
+| `tls.forward_secrecy_missing` | Cipher suite without forward secrecy, or Diffie-Hellman group below 2048 bits |
+
+```bash
+vulnapi scan curl https://api.example.com/users --scans "tls.*"
+```
+
+With `-k` / `--insecure`, the scan continues past an invalid certificate and the certificate problem is reported as a finding. A target served over plain HTTP, or an unreachable port, is skipped with its reason in the report coverage. Heartbleed, DROWN and ROBOT are not probed individually: affected servers also enable a legacy protocol or cipher suite reported above. [SSL Labs](https://www.ssllabs.com/ssltest/) gives a complete review of public endpoints.
 
 ## How to remediate?
 

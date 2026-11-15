@@ -12,7 +12,6 @@ import (
 	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/harnessx/reporters"
 	"github.com/cerberauth/reportx"
-	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 	"github.com/cerberauth/x/telemetryx"
 	"github.com/cerberauth/x/telemetryx/scanmetrics"
@@ -164,7 +163,7 @@ func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
 		check.CAPECID = def.CAPECID
 		check.OWASP = def.OWASP
 	}
-	check.DependsOn = append([]harnessx.CheckID{operationsLoaderCheckID}, check.DependsOn...)
+	check.DependsOn = append([]harnessx.CheckID{OperationsLoaderCheckID}, check.DependsOn...)
 	s.harnessxChecks = append(s.harnessxChecks, check)
 	return s
 }
@@ -262,11 +261,8 @@ func (s *Scan) recordCheckRuns(ctx context.Context, checks []harnessx.Check) {
 // countFindings counts a vulnapi check's finding for scanmetrics: checks
 // report one *finding.Finding per vulnerable operation.
 func countFindings(result harnessx.Result) (int, bool) {
-	f, ok := harnessx.DataAs[*finding.Finding](result)
-	if !ok || f == nil {
-		return 0, false
-	}
-	return 1, true
+	findings := resultFindings(result)
+	return len(findings), len(findings) > 0
 }
 
 // legacyCheckIDAliases maps a check's current ID to IDs it was previously
