@@ -91,8 +91,10 @@ func (c *Config) resolvePaths(dir string) {
 		identity.resolvePaths(dir)
 		c.Identities[name] = identity
 	}
+	c.Auth.resolvePaths(dir)
 	c.Report.resolvePaths(dir)
 	for name, environment := range c.Environments {
+		environment.Auth.resolvePaths(dir)
 		environment.Target.resolvePaths(dir)
 		for identityName, identity := range environment.Identities {
 			identity.resolvePaths(dir)
@@ -129,6 +131,21 @@ func (i *Identity) resolvePaths(dir string) {
 			}
 		}
 		i.Schemes[name] = credential
+	}
+}
+
+func (a *Auth) resolvePaths(dir string) {
+	if a == nil {
+		return
+	}
+	for _, ref := range []*SecretRef{a.ClientID, a.ClientSecret, a.Username, a.Password} {
+		ref.resolvePaths(dir)
+	}
+	if a.Login != nil {
+		a.Login.Data.resolvePaths(dir)
+	}
+	if a.JWTPublicKey != "" && !isURL(a.JWTPublicKey) && !filepath.IsAbs(a.JWTPublicKey) {
+		a.JWTPublicKey = filepath.Join(dir, a.JWTPublicKey)
 	}
 }
 

@@ -16,6 +16,7 @@ type Config struct {
 	Version      int                    `yaml:"version" json:"version"`
 	Target       *Target                `yaml:"target,omitempty" json:"target,omitempty"`
 	Identities   map[string]Identity    `yaml:"identities,omitempty" json:"identities,omitempty"`
+	Auth         *Auth                  `yaml:"auth,omitempty" json:"auth,omitempty"`
 	Scan         *Scan                  `yaml:"scan,omitempty" json:"scan,omitempty"`
 	Report       *Report                `yaml:"report,omitempty" json:"report,omitempty"`
 	Suppressions []Suppression          `yaml:"suppressions,omitempty" json:"suppressions,omitempty"`
@@ -58,6 +59,26 @@ type OAuth2 struct {
 	Username     *SecretRef `yaml:"username,omitempty" json:"username,omitempty"`
 	Password     *SecretRef `yaml:"password,omitempty" json:"password,omitempty"`
 	Scopes       []string   `yaml:"scopes,omitempty" json:"scopes,omitempty"`
+}
+
+// Auth holds the credentials used to obtain and refresh the token of the
+// scan: OAuth2 client credentials or password grant, or a login hook.
+type Auth struct {
+	ClientID     *SecretRef `yaml:"clientId,omitempty" json:"clientId,omitempty"`
+	ClientSecret *SecretRef `yaml:"clientSecret,omitempty" json:"clientSecret,omitempty"`
+	TokenURL     string     `yaml:"tokenUrl,omitempty" json:"tokenUrl,omitempty"`
+	Scopes       []string   `yaml:"scopes,omitempty" json:"scopes,omitempty"`
+	Username     *SecretRef `yaml:"username,omitempty" json:"username,omitempty"`
+	Password     *SecretRef `yaml:"password,omitempty" json:"password,omitempty"`
+	Login        *Login     `yaml:"login,omitempty" json:"login,omitempty"`
+	JWTPublicKey string     `yaml:"jwtPublicKey,omitempty" json:"jwtPublicKey,omitempty"`
+}
+
+type Login struct {
+	Command    string     `yaml:"command,omitempty" json:"command,omitempty"`
+	URL        string     `yaml:"url,omitempty" json:"url,omitempty"`
+	Data       *SecretRef `yaml:"data,omitempty" json:"data,omitempty"`
+	TokenField string     `yaml:"tokenField,omitempty" json:"tokenField,omitempty"`
 }
 
 type Scan struct {
@@ -104,6 +125,7 @@ type Suppression struct {
 type Environment struct {
 	Target     *Target             `yaml:"target,omitempty" json:"target,omitempty"`
 	Identities map[string]Identity `yaml:"identities,omitempty" json:"identities,omitempty"`
+	Auth       *Auth               `yaml:"auth,omitempty" json:"auth,omitempty"`
 	Scan       *Scan               `yaml:"scan,omitempty" json:"scan,omitempty"`
 	Report     *Report             `yaml:"report,omitempty" json:"report,omitempty"`
 }

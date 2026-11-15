@@ -62,7 +62,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
 			client = client.WithHeader(headers).WithCookies(req.Cookies())
-			if _, err := internalCmd.ApplyAuthFlags(cmd, client); err != nil {
+			if _, err := internalCmd.ApplyAuthFlags(cmd, client, settings); err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
 			}
 			request.SetDefaultClient(client)
