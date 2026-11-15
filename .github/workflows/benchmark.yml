@@ -1,0 +1,67 @@
+name: Benchmark
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.27"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Detection benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run the benchmark
+        env:
+          BENCHMARK_DOCS: "true"
+        run: go test -tags benchmark -count=1 -timeout 60m -v ./benchmark/...
+
+      - name: Summary
+        if: ${{ always() }}
+        run: cat benchmark/results/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ always() }}
+        with:
+          name: benchmark
+          path: |
+            benchmark/results/summary.md
+            docs/en/benchmark.mdx
+            docs/fr/benchmark.mdx
+
+      - name: Publish the results
+        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="benchmark/${GITHUB_REF_NAME}"
+          git switch -c "$branch"
+          git add docs/en/benchmark.mdx docs/fr/benchmark.mdx
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "docs: update the detection benchmark for ${GITHUB_REF_NAME}"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "docs: update the detection benchmark for ${GITHUB_REF_NAME}" --body "Detection benchmark of ${GITHUB_REF_NAME}."
