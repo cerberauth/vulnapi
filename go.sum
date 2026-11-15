@@ -8,8 +8,12 @@ github.com/cerberauth/cobracurl v0.5.0 h1:XUHQwGvp78uuIJ8PKkE6nu25w+y1Uk4lj7bbgY
 github.com/cerberauth/cobracurl v0.5.0/go.mod h1:V8j8czS0bPD9QIlbMsaPqaKvs9bQaDL6r5HdCbl1AYY=
 github.com/cerberauth/harnessx v0.5.0 h1:9XTxMkyLAnMQBkrxB4ZZ9O4Zbf/3u6FYI3TzzVIDvSw=
 github.com/cerberauth/harnessx v0.5.0/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
+github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662 h1:eMPuJC9DTf6bYnF9Hy2L45sS422Poz5Sf3ReqdFyry0=
+github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
 github.com/cerberauth/jwtop v0.9.0 h1:A56Zh4GS6Xuay5CDweLZIN3nC4Uu7oWckCYYB+3MGMg=
 github.com/cerberauth/jwtop v0.9.0/go.mod h1:gbNTyX5ENtCRrfQQUuYNAurr0nRwtz9/pgIC8WdJxxU=
+github.com/cerberauth/jwtop v0.9.1-0.20261115215224-efab96b4e2f8 h1:NQR6lottCvs96KMG5VCcRXV8fEPlQAAFTbxAFARfbvg=
+github.com/cerberauth/jwtop v0.9.1-0.20261115215224-efab96b4e2f8/go.mod h1:c+yCrzs2xA/rSv5MTLlavD27/I8aShk0H8J66mWi+0w=
 github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
 github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173 h1:Gy8q2r+13DVhSZMnvopTCr0gVGJHyRoMnH0Pn1boWY0=

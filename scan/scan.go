@@ -3,6 +3,7 @@ package scan
 import (
 	"context"
 	"fmt"
+	"maps"
 	"path"
 	"slices"
 	"strings"
@@ -151,6 +152,10 @@ func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
 	return s
 }
 
+func (s *Scan) CheckDefs() map[harnessx.CheckID]checkdef.CheckDef {
+	return maps.Clone(s.checkDefs)
+}
+
 func (s *Scan) Execute(ctx context.Context, scanCallback func(operationScan *OperationScan)) (*reportx.Report, []error, error) {
 	if scanCallback == nil {
 		scanCallback = func(operationScan *OperationScan) {}
@@ -258,6 +263,10 @@ var legacyCheckIDAliases = map[string][]string{}
 // is renamed or split. Intended to be called from a check package's init().
 func RegisterLegacyCheckIDAlias(newID string, oldIDs ...string) {
 	legacyCheckIDAliases[newID] = append(legacyCheckIDAliases[newID], oldIDs...)
+}
+
+func LegacyCheckIDAliases(id string) []string {
+	return slices.Clone(legacyCheckIDAliases[id])
 }
 
 func isInternalCheckID(id string) bool {

@@ -5,8 +5,8 @@ go 1.27.3
 require (
 	github.com/brianvoe/gofakeit/v7 v7.17.1
 	github.com/cerberauth/cobracurl v0.5.0
-	github.com/cerberauth/harnessx v0.5.0
-	github.com/cerberauth/jwtop v0.9.0
+	github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662
+	github.com/cerberauth/jwtop v0.9.1-0.20261115215224-efab96b4e2f8
 	github.com/cerberauth/reportx v0.4.0
 	github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173
 	github.com/getargvio/argvio-go v0.6.0
