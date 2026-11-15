@@ -3,6 +3,7 @@ package authenticationbypass_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
@@ -68,4 +69,87 @@ func TestAuthBypassScanHandler_Passed_WhenUnauthorizedResponse(t *testing.T) {
 	require.NoError(t, err)
 	_, ok := harnessx.DataAs[*finding.Finding](result)
 	assert.False(t, ok)
+}
+
+func TestAuthBypassScanHandler_Skip_WithOptionalSecurityRequirement(t *testing.T) {
+	token := "token"
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{
+		auth.MustNewAuthorizationBearerSecurityScheme("default", &token),
+		auth.MustNewNoAuthSecurityScheme(),
+	})
+
+	assert.Equal(t, "operation declares an optional security requirement", evalAuthBypassSkip(op))
+}
+
+func TestAuthBypassScanHandler_ComparesWithAuthenticatedResponse(t *testing.T) {
+	testCases := []struct {
+		name       string
+		anonymous  http.HandlerFunc
+		vulnerable bool
+	}{
+		{
+			name: "same protected response",
+			anonymous: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"id":1}`))
+			},
+			vulnerable: true,
+		},
+		{
+			name: "redirect to login page",
+			anonymous: func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, "/login", http.StatusFound)
+			},
+			vulnerable: false,
+		},
+		{
+			name: "catch-all html page",
+			anonymous: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "text/html")
+				_, _ = w.Write([]byte("<html>login</html>"))
+			},
+			vulnerable: false,
+		},
+		{
+			name: "unauthorized",
+			anonymous: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+			},
+			vulnerable: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/login" {
+					w.Header().Set("Content-Type", "text/html")
+					_, _ = w.Write([]byte("<html>login</html>"))
+					return
+				}
+				if r.Header.Get("Authorization") == "Bearer token" {
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write([]byte(`{"id":1}`))
+					return
+				}
+				tc.anonymous(w, r)
+			}))
+			defer server.Close()
+
+			token := "token"
+			op := operation.MustNewOperation(http.MethodGet, server.URL+"/profile", nil, nil)
+			op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("default", &token)})
+
+			result, err := runAuthBypassCheck(op)
+
+			require.NoError(t, err)
+			f, ok := harnessx.DataAs[*finding.Finding](result)
+			assert.Equal(t, tc.vulnerable, ok)
+			if ok {
+				assert.Empty(t, f.Attempt.Request.Header.Get("Authorization"))
+				assert.NotNil(t, f.Attempt.Response)
+			}
+		})
+	}
 }

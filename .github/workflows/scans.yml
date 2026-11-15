@@ -318,7 +318,7 @@ jobs:
         id: vulnapi
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "broken_authentication.authentication_bypass" --no-progress --sqa-opt-out
 
       - name: Stop Server
         if: ${{ always() }}
@@ -357,7 +357,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "X-API-Key: abcdef1234" --scans "broken_authentication.authentication_bypass" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         run: |
@@ -410,7 +410,7 @@ jobs:
         continue-on-error: true
         run: |
           chmod +x vulnapi
-          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "generic.accept_unauthenticated_operation" --no-progress --sqa-opt-out
+          ./vulnapi scan curl http://localhost:8080 -H "Authorization: Bearer abcdef1234" --scans "broken_authentication.authentication_bypass" --no-progress --sqa-opt-out
 
       - name: Check for vulnerabilities
         run: |

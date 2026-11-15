@@ -10,6 +10,7 @@ import (
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/checkutil"
 	"github.com/cerberauth/vulnapi/internal/finding"
+	"github.com/cerberauth/vulnapi/scan"
 )
 
 //go:embed check.yaml
@@ -23,12 +24,18 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		return harnessx.Result{Err: errors.New("authentication_bypass: resource missing *operation.Operation")}, nil
 	}
 
-	noAuthSecurityScheme := auth.MustNewNoAuthSecurityScheme()
-	attempt, err := finding.Fetch(ctx, op, noAuthSecurityScheme)
+	var baseline *finding.Response
+	if op.GetSecurityScheme().HasValidValue() {
+		if baselineAttempt, err := finding.FetchWithoutRedirect(ctx, op, nil); err == nil {
+			baseline = baselineAttempt.Response
+		}
+	}
+
+	attempt, err := finding.FetchWithoutRedirect(ctx, op, auth.MustNewNoAuthSecurityScheme())
 	if err != nil {
 		return harnessx.Result{}, err
 	}
-	if finding.IsUnauthorizedStatusCodeOrSimilar(attempt.Response) {
+	if finding.IsRejected(attempt.Response, baseline) {
 		return harnessx.Result{}, nil
 	}
 
@@ -44,6 +51,13 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 		if op.GetSecurityScheme().GetType() == auth.None {
 			return "operation has no authentication to bypass"
 		}
+		if op.AcceptsUnauthenticated() {
+			return "operation declares an optional security requirement"
+		}
 		return ""
 	})),
 )
+
+func init() {
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "broken_authentication.authentication_bypass")
+}

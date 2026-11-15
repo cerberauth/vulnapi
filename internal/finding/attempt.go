@@ -3,6 +3,7 @@ package finding
 import (
 	"bytes"
 	"context"
+	"mime"
 	"net/http"
 
 	"github.com/cerberauth/harnessx/probe"
@@ -44,6 +45,20 @@ type Attempt struct {
 // returns the resulting Attempt. The returned Attempt is non-nil even when
 // err is non-nil, mirroring the previous scan.ScanURL contract.
 func Fetch(ctx context.Context, op *operation.Operation, securityScheme *auth.SecurityScheme) (*Attempt, error) {
+	return fetch(ctx, op.HTTPClient(), op, securityScheme)
+}
+
+// FetchWithoutRedirect is Fetch returning a redirect response as is
+// instead of following it.
+func FetchWithoutRedirect(ctx context.Context, op *operation.Operation, securityScheme *auth.SecurityScheme) (*Attempt, error) {
+	client := *op.HTTPClient()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	return fetch(ctx, &client, op, securityScheme)
+}
+
+func fetch(ctx context.Context, client *http.Client, op *operation.Operation, securityScheme *auth.SecurityScheme) (*Attempt, error) {
 	if securityScheme == nil {
 		securityScheme = op.GetSecurityScheme()
 	}
@@ -64,7 +79,7 @@ func Fetch(ctx context.Context, op *operation.Operation, securityScheme *auth.Se
 		return attempt, err
 	}
 
-	resp, doErr := probe.DoResponse(ctx, op.HTTPClient(), req)
+	resp, doErr := probe.DoResponse(ctx, client, req)
 	if doErr != nil {
 		attempt.Err = doErr
 		return attempt, doErr
@@ -86,4 +101,40 @@ func IsUnauthorizedStatusCodeOrSimilar(res *Response) bool {
 		res.GetStatusCode() == http.StatusBadRequest ||
 		res.GetStatusCode() == http.StatusNotFound ||
 		res.GetStatusCode() == http.StatusInternalServerError
+}
+
+// IsRejected reports whether res, sent without valid credentials, was
+// rejected, using baseline (the authenticated response, may be nil) to tell
+// a catch-all or login page answer apart from the protected resource.
+func IsRejected(res *Response, baseline *Response) bool {
+	if res == nil {
+		return true
+	}
+	if IsUnauthorizedStatusCodeOrSimilar(res) {
+		return true
+	}
+	if isRedirect(res.StatusCode) {
+		return baseline == nil || !isRedirect(baseline.StatusCode) ||
+			res.Header.Get("Location") != baseline.Header.Get("Location")
+	}
+	if baseline == nil || !isSuccess(baseline.StatusCode) || !isSuccess(res.StatusCode) {
+		return false
+	}
+	return mediaType(res.Header) != mediaType(baseline.Header)
+}
+
+func isRedirect(status int) bool {
+	return status >= http.StatusMultipleChoices && status < http.StatusBadRequest && status != http.StatusNotModified
+}
+
+func isSuccess(status int) bool {
+	return status >= http.StatusOK && status < http.StatusMultipleChoices
+}
+
+func mediaType(header http.Header) string {
+	mt, _, err := mime.ParseMediaType(header.Get("Content-Type"))
+	if err != nil {
+		return ""
+	}
+	return mt
 }

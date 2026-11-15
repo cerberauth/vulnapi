@@ -1,10 +1,10 @@
-id: "generic.accept_unauthenticated_operation"
+id: "broken_authentication.authentication_bypass"
 name: "Authentication is expected but can be bypassed"
-description: ""
-link: ""
+description: "The operation declares an authentication requirement but returns the protected response to a request sent without any credentials."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/authentication-bypass?utm_source=vulnapi-report"
 tags: []
 depends_on: []
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 9.3
-cwe_id: ""
+cwe_id: "CWE-306"
 owasp: "API2:2023"
