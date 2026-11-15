@@ -1,10 +1,10 @@
 id: "discover.accept_unauthenticated"
 name: "Operation May Accepts Unauthenticated Requests"
-description: ""
-link: ""
+description: "The operation declares no authentication requirement, or an optional one, so it can be called without credentials."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/authentication-bypass?utm_source=vulnapi-report"
 tags: []
 depends_on: []
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 0
-cwe_id: ""
+cwe_id: "CWE-306"
 owasp: "API8:2023"
