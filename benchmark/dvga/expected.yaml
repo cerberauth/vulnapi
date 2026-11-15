@@ -1,0 +1,36 @@
+name: DVGA
+url: https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application
+version: dolevf/dvga@sha256:040aa33c199d
+scans:
+  - name: graphql
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:5013/
+    args: [scan, graphql, http://127.0.0.1:5013/graphql]
+    issues:
+      - id: introspection
+        title: GraphQL introspection enabled
+        check: graphql.introspection_enabled
+      - id: security-headers
+        title: Security response headers missing
+        check: misconfiguration.http_headers
+      - id: graphiql
+        title: GraphiQL interface exposed
+        notCovered: https://github.com/cerberauth/vulnapi/issues/321
+      - id: field-suggestions
+        title: Field suggestions disclose the schema
+        notCovered: https://github.com/cerberauth/vulnapi/issues/321
+      - id: query-cost
+        title: Deep recursion, batching, alias and field duplication attacks
+        notCovered: https://github.com/cerberauth/vulnapi/issues/404
+      - id: os-command-injection
+        title: OS command injection in importPaste and systemDiagnostics
+        notCovered: https://github.com/cerberauth/vulnapi/issues/320
+      - id: sqli
+        title: SQL injection in the pastes filter
+        notCovered: https://github.com/cerberauth/vulnapi/issues/320
+      - id: ssrf
+        title: Server-side request forgery in importPaste
+        notCovered: https://github.com/cerberauth/vulnapi/issues/383
+      - id: brute-force
+        title: Weak password protection of systemDiagnostics
+        notCovered: https://github.com/cerberauth/vulnapi/issues/324
