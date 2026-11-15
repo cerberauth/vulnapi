@@ -48,6 +48,7 @@ func NewGraphQLScanCmd() (scanCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewGraphQLScan(engine, req.URL, client, &scan.ScanOptions{
+				ToolVersion:        internalCmd.Version(cmd),
 				AllowUnsafeMethods: allowUnsafeMethods,
 				IncludeScans:       internalCmd.FilterScans(includeScans),
 				ExcludeScans:       internalCmd.FilterScans(excludeScans),

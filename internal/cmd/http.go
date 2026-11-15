@@ -16,9 +16,14 @@ const DefaultHTTPTimeout = 30 * time.Second
 // version, used in the default User-Agent.
 const VersionAnnotation = "version"
 
+// Version returns the vulnapi version cmd runs with.
+func Version(cmd *cobra.Command) string {
+	return cmd.Root().Annotations[VersionAnnotation]
+}
+
 // UserAgent returns the default User-Agent for requests sent by cmd.
 func UserAgent(cmd *cobra.Command) string {
-	if version := cmd.Root().Annotations[VersionAnnotation]; version != "" {
+	if version := Version(cmd); version != "" {
 		return request.DefaultUserAgent + "/" + version
 	}
 	return request.DefaultUserAgent

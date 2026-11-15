@@ -27,3 +27,11 @@ func TestNewHTTPClientFromCmdMaxTimeOverridesDefaultTimeout(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 2.0, client.Timeout.Seconds())
 }
+
+func TestVersionReadsRootAnnotation(t *testing.T) {
+	root := &cobra.Command{Annotations: map[string]string{cmd.VersionAnnotation: "0.12.0"}}
+	child := &cobra.Command{Use: "scan"}
+	root.AddCommand(child)
+
+	assert.Equal(t, "0.12.0", cmd.Version(child))
+}
