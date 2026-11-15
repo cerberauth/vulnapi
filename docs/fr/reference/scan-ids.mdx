@@ -28,20 +28,20 @@ Les motifs sont ancrés : `http` ne sélectionne pas `misconfiguration.http_trac
 
 | Identifiant de scan | Nom | OWASP | CVSS |
 |---------|------|-------|------|
-| `jwt.alg_none` | JWT accepte `alg: none` | API2:2023 | Élevé |
-| `jwt.blank_secret` | JWT signé avec un secret vide | API2:2023 | Élevé |
-| `jwt.weak_secret` | JWT signé avec un secret faible | API2:2023 | Élevé |
+| `jwt.alg_none` | JWT accepte `alg: none` | API2:2023 | 9.3 |
+| `jwt.blank_secret` | JWT signé avec un secret vide | API2:2023 | 9.3 |
+| `jwt.weak_secret` | JWT signé avec un secret faible | API2:2023 | 9.3 |
 | `jwt.kid_injection` | Injection d'en-tête JWT KID (injection SQL et traversée de chemin) | API2:2023 | 9.3 |
 | `jwt.not_verified` | Signature JWT non vérifiée | API2:2023 | 9.3 |
-| `jwt.null_signature` | Signature JWT nulle | API2:2023 | Élevé |
+| `jwt.null_signature` | Signature JWT nulle | API2:2023 | 9.3 |
 | `jwt.hmac_confusion` | Confusion d'algorithme JWT (HMAC confusion) | API2:2023 | 9.3 |
 | `jwt.psychic_signature` | Signature psychique JWT (CVE-2022-21449) | API2:2023 | 9.3 |
 | `jwt.jwk_injection` | Injection d'en-tête `jwk` JWT | API2:2023 | 9.3 |
 | `jwt.jku_injection` | Injection d'en-tête `jku` JWT | API2:2023 | 9.3 |
 | `jwt.x5c_injection` | Injection d'en-tête `x5c` JWT | API2:2023 | 9.3 |
 | `jwt.x5u_injection` | Injection d'en-tête `x5u` JWT | API2:2023 | 9.3 |
-| `jwt.timestamp_tampering` | Falsification des horodatages JWT (token expiré accepté) | API2:2023 | 8.2 |
-| `jwt.fuzz` | Fuzzing des claims JWT | API8:2023 | 5.4 |
+| `jwt.timestamp_tampering` | Falsification des horodatages JWT (token expiré accepté) | API2:2023 | 8.6 |
+| `jwt.fuzz` | Fuzzing des claims JWT | API8:2023 | 6.9 |
 | `jwt.missing_expiry` | JWT sans expiration | API2:2023 | 6.3 |
 | `jwt.long_lifetime` | Durée de vie du JWT au-delà du seuil | API2:2023 | 6.3 |
 | `jwt.expired_accepted` | JWT expiré accepté | API2:2023 | 8.6 |
@@ -57,17 +57,17 @@ Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cer
 
 | Identifiant de scan | Nom | OWASP | CVSS |
 |---------|------|-------|------|
-| `misconfiguration.http_headers` | En-têtes de réponse de sécurité manquants | API8:2023 | Info–Moyen |
+| `misconfiguration.http_headers` | En-têtes de réponse de sécurité manquants | API8:2023 | 0.0–7.1 |
 | `misconfiguration.http_cookies` | Indicateurs de sécurité des cookies mal configurés | API8:2023 | 0.0 |
-| `misconfiguration.http_trace` | Méthode HTTP TRACE activée | API8:2023 | Info |
-| `misconfiguration.http_track` | Méthode HTTP TRACK activée | API8:2023 | Info |
-| `misconfiguration.http_method_override` | En-têtes de substitution de méthode HTTP acceptés | API8:2023 | Info–Élevé |
+| `misconfiguration.http_trace` | Méthode HTTP TRACE activée | API8:2023 | 0.0 |
+| `misconfiguration.http_track` | Méthode HTTP TRACK activée | API8:2023 | 0.0 |
+| `misconfiguration.http_method_override` | En-têtes de substitution de méthode HTTP acceptés | API8:2023 | 0.0–8.8 |
 
 ## GraphQL
 
 | Identifiant de scan | Nom | OWASP | CVSS |
 |---------|------|-------|------|
-| `graphql.introspection_enabled` | Introspection GraphQL activée | API8:2023 | Faible |
+| `graphql.introspection_enabled` | Introspection GraphQL activée | API8:2023 | 0.0 |
 
 ## Discovery
 
@@ -89,7 +89,7 @@ Le scan `misconfiguration.http_headers` couvre plusieurs contrôles d'en-têtes 
 | `X-Frame-Options` | Moyen |
 | `X-Content-Type-Options` | Info |
 | `Strict-Transport-Security` | Info |
-| `Access-Control-Allow-Origin` (CORS) | Moyen |
+| `Access-Control-Allow-Origin` (CORS) | Info |
 | `Origin` arbitraire reflétée avec `Access-Control-Allow-Credentials: true` (`misconfiguration.http_headers_cors_origin_reflection`) | Élevé |
 | Fuite de signature du serveur | Info |
 

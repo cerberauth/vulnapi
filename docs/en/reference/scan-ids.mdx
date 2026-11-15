@@ -28,20 +28,20 @@ Patterns are anchored, so `http` does not select `misconfiguration.http_trace`. 
 
 | Scan ID | Name | OWASP | CVSS |
 |---------|------|-------|------|
-| `jwt.alg_none` | JWT Accepts `alg: none` | API2:2023 | High |
-| `jwt.blank_secret` | JWT Signed With Blank Secret | API2:2023 | High |
-| `jwt.weak_secret` | JWT Signed With Weak Secret | API2:2023 | High |
+| `jwt.alg_none` | JWT Accepts `alg: none` | API2:2023 | 9.3 |
+| `jwt.blank_secret` | JWT Signed With Blank Secret | API2:2023 | 9.3 |
+| `jwt.weak_secret` | JWT Signed With Weak Secret | API2:2023 | 9.3 |
 | `jwt.kid_injection` | JWT KID Header Injection (SQL injection & path traversal) | API2:2023 | 9.3 |
 | `jwt.not_verified` | JWT Signature Not Verified | API2:2023 | 9.3 |
-| `jwt.null_signature` | JWT Null Signature | API2:2023 | High |
+| `jwt.null_signature` | JWT Null Signature | API2:2023 | 9.3 |
 | `jwt.hmac_confusion` | JWT Algorithm Confusion (HMAC confusion) | API2:2023 | 9.3 |
 | `jwt.psychic_signature` | JWT Psychic Signature (CVE-2022-21449) | API2:2023 | 9.3 |
 | `jwt.jwk_injection` | JWT `jwk` Header Injection | API2:2023 | 9.3 |
 | `jwt.jku_injection` | JWT `jku` Header Injection | API2:2023 | 9.3 |
 | `jwt.x5c_injection` | JWT `x5c` Header Injection | API2:2023 | 9.3 |
 | `jwt.x5u_injection` | JWT `x5u` Header Injection | API2:2023 | 9.3 |
-| `jwt.timestamp_tampering` | JWT Timestamp Tampering (expired token accepted) | API2:2023 | 8.2 |
-| `jwt.fuzz` | JWT Claim Fuzzing | API8:2023 | 5.4 |
+| `jwt.timestamp_tampering` | JWT Timestamp Tampering (expired token accepted) | API2:2023 | 8.6 |
+| `jwt.fuzz` | JWT Claim Fuzzing | API8:2023 | 6.9 |
 | `jwt.missing_expiry` | JWT Without Expiry | API2:2023 | 6.3 |
 | `jwt.long_lifetime` | JWT Lifetime Above Threshold | API2:2023 | 6.3 |
 | `jwt.expired_accepted` | Expired JWT Accepted | API2:2023 | 8.6 |
@@ -57,17 +57,17 @@ The JWT checks are powered by [CerberAuth JWTop](https://github.com/cerberauth/j
 
 | Scan ID | Name | OWASP | CVSS |
 |---------|------|-------|------|
-| `misconfiguration.http_headers` | Security Response Headers Missing | API8:2023 | Info–Medium |
+| `misconfiguration.http_headers` | Security Response Headers Missing | API8:2023 | 0.0–7.1 |
 | `misconfiguration.http_cookies` | Cookie Security Flags Misconfigured | API8:2023 | 0.0 |
-| `misconfiguration.http_trace` | HTTP TRACE Method Enabled | API8:2023 | Info |
-| `misconfiguration.http_track` | HTTP TRACK Method Enabled | API8:2023 | Info |
-| `misconfiguration.http_method_override` | HTTP Method Override Headers Accepted | API8:2023 | Info–High |
+| `misconfiguration.http_trace` | HTTP TRACE Method Enabled | API8:2023 | 0.0 |
+| `misconfiguration.http_track` | HTTP TRACK Method Enabled | API8:2023 | 0.0 |
+| `misconfiguration.http_method_override` | HTTP Method Override Headers Accepted | API8:2023 | 0.0–8.8 |
 
 ## GraphQL
 
 | Scan ID | Name | OWASP | CVSS |
 |---------|------|-------|------|
-| `graphql.introspection_enabled` | GraphQL Introspection Enabled | API8:2023 | Low |
+| `graphql.introspection_enabled` | GraphQL Introspection Enabled | API8:2023 | 0.0 |
 
 ## Discovery
 
@@ -89,7 +89,7 @@ The `misconfiguration.http_headers` scan covers multiple individual header check
 | `X-Frame-Options` | Medium |
 | `X-Content-Type-Options` | Info |
 | `Strict-Transport-Security` | Info |
-| `Access-Control-Allow-Origin` (CORS) | Medium |
+| `Access-Control-Allow-Origin` (CORS) | Info |
 | Arbitrary `Origin` reflected with `Access-Control-Allow-Credentials: true` (`misconfiguration.http_headers_cors_origin_reflection`) | High |
 | Server signature leak | Info |
 
