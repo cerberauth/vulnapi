@@ -5,15 +5,15 @@ description: Combien de problèmes connus d'API vulnérables publiques VulnAPI d
 
 Cette page est générée par le benchmark de détection : VulnAPI scanne des API vulnérables publiques et le résultat est comparé à la liste de leurs problèmes connus (`benchmark/<cible>/expected.yaml`). Pour le reproduire : `go test -tags benchmark ./benchmark/...` (Docker requis).
 
-VulnAPI main (83c9d24), 2026-11-15.
+VulnAPI main + #390, #391, #393, 2026-11-15.
 
-**22 problèmes connus détectés sur 40 (55%)**, 0 manqués, 3 manques connus, 15 pas encore couverts par une vérification, 27 résultats inattendus.
+**36 problèmes connus détectés sur 55 (65%)**, 0 manqués, 4 manques connus, 15 pas encore couverts par une vérification, 62 résultats inattendus.
 
 | Cible | Version | Problèmes | Détectés | Manqués | Manques connus | Non couverts | Résultats inattendus |
 |---|---|---|---|---|---|---|---|
-| [API Vulnerabilities Challenges](https://github.com/cerberauth/api-vulns-challenges) | `42c408183088ebea9087af2237c7573750f48844` | 20 | 17 | 0 | 3 | 0 | 24 |
+| [API Vulnerabilities Challenges](https://github.com/cerberauth/api-vulns-challenges) | `42c408183088ebea9087af2237c7573750f48844` | 35 | 31 | 0 | 4 | 0 | 51 |
 | [DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application) | `dolevf/dvga@sha256:040aa33c199d` | 9 | 2 | 0 | 0 | 7 | 0 |
-| [VAmPI](https://github.com/erev0s/VAmPI) | `erev0s/vampi@sha256:0a5a224b6e14` | 11 | 3 | 0 | 0 | 8 | 3 |
+| [VAmPI](https://github.com/erev0s/VAmPI) | `erev0s/vampi@sha256:0a5a224b6e14` | 11 | 3 | 0 | 0 | 8 | 11 |
 
 ### API Vulnerabilities Challenges
 
@@ -32,6 +32,21 @@ VulnAPI main (83c9d24), 2026-11-15.
 | jwt-timestamp-tampering | JWT expiration not validated | `jwt.timestamp_tampering` | détecté |
 | jwt-x5c-x5u-header-injection | JWT x5c header injection | `jwt.x5c_injection` | détecté |
 | auth-not-verified | Endpoint accepts unauthenticated requests | `discover.accept_unauthenticated` | détecté |
+| auth-unauthenticated-endpoint | Operation declaring bearer authentication answers anonymous callers | `broken_authentication.authentication_bypass` | détecté |
+| jwt-claim-removal | JWT accepted without registered claims | `jwt.claim_removal` | détecté |
+| jwt-claim-removal | JWT audience not validated | `jwt.audience_not_validated` | détecté |
+| jwt-scope-not-validated | JWT accepted without scope on a write operation | `jwt.scope_not_validated` | détecté |
+| jwt-missing-expiry | JWT issued without expiry | `jwt.missing_expiry` | détecté |
+| jwt-long-lifetime | JWT valid for a year | `jwt.long_lifetime` | détecté |
+| jwt-issuer-not-validated | JWT of another tenant accepted | `jwt.issuer_not_validated` | détecté |
+| jwt-timestamp-tampering expired token | Expired JWT accepted | `jwt.expired_accepted` | détecté |
+| tls-certificate-misconfiguration | Self-signed certificate | `tls.certificate_untrusted` | détecté |
+| tls-certificate-misconfiguration | Expired certificate | `tls.certificate_expired` | détecté |
+| tls-certificate-misconfiguration | Certificate issued for another host | `tls.certificate_hostname_mismatch` | détecté |
+| tls-http-accepted | Plain HTTP served without redirect | `tls.http_accepted` | détecté |
+| tls-weak-dh | Only 1024-bit finite-field DH key exchange | `tls.forward_secrecy_missing` | détecté |
+| proxy-tls-misconfiguration | TLS 1.0 and 1.1 accepted | `tls.protocol_deprecated` | [manque connu](https://github.com/cerberauth/proxyaudit/pull/38) |
+| proxy-tls-misconfiguration | 3DES and non-forward-secret CBC suites accepted | `tls.cipher_weak` | détecté |
 | http-misconfigurations /http-method-override | HTTP method override accepted | `misconfiguration.http_method_override` | détecté |
 | http-misconfigurations /headers/cors-wildcard | CORS allows any origin | `misconfiguration.http_headers_cors_wildcard` | détecté |
 | http-misconfigurations /headers/csp-frame-ancestors | CSP frame-ancestors allows any framing origin | `misconfiguration.http_headers_csp_frame_ancestors_missing` | [manque connu](https://github.com/cerberauth/vulnapi/issues/316) |
@@ -42,6 +57,7 @@ VulnAPI main (83c9d24), 2026-11-15.
 
 Résultats inattendus, à examiner comme faux positifs potentiels :
 
+- auth-unauthenticated-endpoint: `no_verification` (2)
 - http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_cors_missing` (1)
 - http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
 - http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_frame_options_missing` (1)
@@ -63,9 +79,34 @@ Résultats inattendus, à examiner comme faux positifs potentiels :
 - http-misconfigurations /http-method-override: `misconfiguration.http_headers_frame_options_missing` (1)
 - jwt-blank-secret: `kidinjection (path)` (1)
 - jwt-blank-secret: `secret` (1)
+- jwt-claim-removal: `jwt.issuer_not_validated` (1)
 - jwt-not-verified: `algnone` (1)
 - jwt-null-signature: `algnone` (1)
+- jwt-scope-not-validated: `jwt.claim_removal` (1)
+- jwt-scope-not-validated: `kidinjection (sql)` (1)
+- jwt-timestamp-tampering expired token: `jwt.claim_removal` (1)
+- jwt-timestamp-tampering expired token: `timestamptampering` (1)
+- jwt-timestamp-tampering: `jwt.claim_removal` (1)
+- jwt-weak-hmac-secret: `jwt.claim_removal` (1)
 - jwt-weak-hmac-secret: `kidinjection (sql)` (1)
+- proxy-tls-misconfiguration: `misconfiguration.http_headers_cors_missing` (1)
+- proxy-tls-misconfiguration: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- proxy-tls-misconfiguration: `misconfiguration.http_headers_frame_options_missing` (1)
+- proxy-tls-misconfiguration: `tls.certificate_hostname_mismatch` (1)
+- proxy-tls-misconfiguration: `tls.certificate_untrusted` (1)
+- proxy-tls-misconfiguration: `tls.http_accepted` (1)
+- tls-certificate-misconfiguration: `misconfiguration.http_headers_cors_missing` (1)
+- tls-certificate-misconfiguration: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- tls-certificate-misconfiguration: `misconfiguration.http_headers_frame_options_missing` (1)
+- tls-certificate-misconfiguration: `tls.http_accepted` (1)
+- tls-http-accepted: `misconfiguration.http_headers_cors_missing` (1)
+- tls-http-accepted: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- tls-http-accepted: `misconfiguration.http_headers_frame_options_missing` (1)
+- tls-http-accepted: `tls.certificate_untrusted` (1)
+- tls-weak-dh: `misconfiguration.http_headers_cors_missing` (1)
+- tls-weak-dh: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- tls-weak-dh: `misconfiguration.http_headers_frame_options_missing` (1)
+- tls-weak-dh: `tls.certificate_untrusted` (1)
 
 ### DVGA
 
@@ -100,4 +141,5 @@ Résultats inattendus, à examiner comme faux positifs potentiels :
 Résultats inattendus, à examiner comme faux positifs potentiels :
 
 - openapi: `fuzz` (1)
-- openapi: `no_verification` (2)
+- openapi: `jwt.claim_removal` (6)
+- openapi: `kidinjection (sql)` (4)
