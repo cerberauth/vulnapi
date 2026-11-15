@@ -120,6 +120,117 @@ scans:
       - id: accept-unauthenticated
         title: Endpoint accepts unauthenticated requests
         check: discover.accept_unauthenticated
+  - name: auth-unauthenticated-endpoint
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8115/openapi.json
+    token: docker compose run --rm --no-deps -T auth-unauthenticated-endpoint jwt
+    args: [scan, openapi, http://127.0.0.1:8115/openapi.json, --server-url, http://127.0.0.1:8115, --security-schemes, "bearerAuth=${TOKEN}"]
+    issues:
+      - id: authentication-bypass
+        title: Operation declaring bearer authentication answers anonymous callers
+        check: broken_authentication.authentication_bypass
+  - name: jwt-claim-removal
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8116/
+    token: docker compose run --rm --no-deps -T jwt-claim-removal jwt
+    args: [scan, curl, "http://127.0.0.1:8116/", -H, "Authorization: Bearer ${TOKEN}", --jwt-secret, claim-removal-dev-key]
+    issues:
+      - id: claim-removal
+        title: JWT accepted without registered claims
+        check: jwt.claim_removal
+      - id: audience
+        title: JWT audience not validated
+        check: jwt.audience_not_validated
+  - name: jwt-scope-not-validated
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8117/
+    token: docker compose run --rm --no-deps -T jwt-scope-not-validated jwt
+    args: [scan, curl, -X, POST, "http://127.0.0.1:8117/orders", -H, "Authorization: Bearer ${TOKEN}", -d, '{"item": "book"}', --jwt-secret, scope-dev-key]
+    issues:
+      - id: scope
+        title: JWT accepted without scope on a write operation
+        check: jwt.scope_not_validated
+  - name: jwt-missing-expiry
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8118/
+    token: docker compose run --rm --no-deps -T jwt-missing-expiry jwt
+    args: [scan, curl, "http://127.0.0.1:8118/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: missing-expiry
+        title: JWT issued without expiry
+        check: jwt.missing_expiry
+  - name: jwt-long-lifetime
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8119/
+    token: docker compose run --rm --no-deps -T jwt-long-lifetime jwt
+    args: [scan, curl, "http://127.0.0.1:8119/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: long-lifetime
+        title: JWT valid for a year
+        check: jwt.long_lifetime
+  - name: jwt-issuer-not-validated
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8120/
+    token: docker compose run --rm --no-deps -T jwt-issuer-not-validated jwt
+    vars:
+      OTHER_ISSUER_TOKEN: docker compose run --rm --no-deps -T jwt-issuer-not-validated other-issuer-jwt
+    args: [scan, curl, "http://127.0.0.1:8120/", -H, "Authorization: Bearer ${TOKEN}", --jwt-other-issuer-token, "${OTHER_ISSUER_TOKEN}"]
+    issues:
+      - id: issuer
+        title: JWT of another tenant accepted
+        check: jwt.issuer_not_validated
+  - name: jwt-timestamp-tampering expired token
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8111/session
+    token: >-
+      sh -c 'b64(){ openssl base64 -A | tr "+/" "-_" | tr -d "="; }; h=$(printf "{\"alg\":\"HS256\",\"typ\":\"JWT\"}" | b64); p=$(printf "{\"sub\":\"benchmark\",\"iat\":%d,\"exp\":%d}" $(($(date +%s)-7200)) $(($(date +%s)-3600)) | b64); s=$(printf "%s.%s" "$h" "$p" | openssl dgst -sha256 -hmac s3cr3t-dev-key -binary | b64); echo "$h.$p.$s"'
+    args: [scan, curl, "http://127.0.0.1:8111/session", -H, "Authorization: Bearer ${TOKEN}", --jwt-secret, s3cr3t-dev-key]
+    issues:
+      - id: expired-accepted
+        title: Expired JWT accepted
+        check: jwt.expired_accepted
+  - name: tls-certificate-misconfiguration
+    setup:
+      - curl -sS -k -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 https://127.0.0.1:8121/
+    args: [scan, curl, "https://127.0.0.1:8121/", -k]
+    issues:
+      - id: untrusted
+        title: Self-signed certificate
+        check: tls.certificate_untrusted
+      - id: expired
+        title: Expired certificate
+        check: tls.certificate_expired
+      - id: hostname
+        title: Certificate issued for another host
+        check: tls.certificate_hostname_mismatch
+  - name: tls-http-accepted
+    setup:
+      - curl -sS -k -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 https://127.0.0.1:8122/
+    args: [scan, curl, "https://127.0.0.1:8122/", -k]
+    issues:
+      - id: http-accepted
+        title: Plain HTTP served without redirect
+        check: tls.http_accepted
+  - name: tls-weak-dh
+    setup:
+      - curl -sS -k -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 https://127.0.0.1:8123/
+    args: [scan, curl, "https://127.0.0.1:8123/", -k]
+    issues:
+      - id: weak-dh
+        title: Only 1024-bit finite-field DH key exchange
+        check: tls.forward_secrecy_missing
+  - name: proxy-tls-misconfiguration
+    setup:
+      - curl -sS -k -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 https://127.0.0.1:8124/
+    args: [scan, curl, "https://127.0.0.1:8124/", -k]
+    issues:
+      - id: deprecated-protocol
+        title: TLS 1.0 and 1.1 accepted
+        check: tls.protocol_deprecated
+        knownMiss: https://github.com/cerberauth/proxyaudit/pull/38
+      - id: weak-cipher
+        title: 3DES and non-forward-secret CBC suites accepted
+        check: tls.cipher_weak
   - name: http-misconfigurations /http-method-override
     setup:
       - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
