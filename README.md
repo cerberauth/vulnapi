@@ -75,6 +75,22 @@ echo "[JWT_TOKEN]" | vulnapi scan openapi [PATH_OR_URL_TO_OPENAPI_FILE] --token-
 
 Replace [PATH_OR_URL_TO_OPENAPI_FILE] with the path or the URL to the OpenAPI contract JSON file and [JWT_TOKEN] with the JWT token to use for authentication.
 
+### Using a Configuration File
+
+Describe the scan in a `vulnapi.yaml` file, then run `vulnapi scan`:
+
+```yaml
+version: 1
+target:
+  openapi: ./openapi.yaml
+identities:
+  default:
+    schemes:
+      "*": { env: JWT_TOKEN }
+```
+
+Secrets are only referenced from the file (`env`, `file`, `command` or `oauth2`). See the [configuration file reference](https://www.cerberauth.com/docs/vulnapi/reference/configuration-file/) for every setting.
+
 ## Output
 
 The CLI provides detailed reports on any vulnerabilities detected during the scan. Below is an example of the output format:

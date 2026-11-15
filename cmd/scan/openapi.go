@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -8,15 +9,52 @@ import (
 
 	"github.com/cerberauth/cobracurl"
 	"github.com/cerberauth/harnessx"
+	"github.com/cerberauth/vulnapi/config"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
 	"github.com/cerberauth/vulnapi/openapi"
-	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	"github.com/cerberauth/x/telemetryx"
-	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
+
+func oauth2TokenURL(doc *openapi.OpenAPI, schemeName string, password bool) string {
+	if doc.Doc.Components == nil {
+		return ""
+	}
+	scheme, ok := doc.Doc.Components.SecuritySchemes[schemeName]
+	if !ok || scheme.Value == nil || scheme.Value.Flows == nil {
+		return ""
+	}
+	flow := scheme.Value.Flows.ClientCredentials
+	if password {
+		flow = scheme.Value.Flows.Password
+	}
+	if flow == nil {
+		return ""
+	}
+	return flow.TokenURL
+}
+
+func identitySchemeValues(ctx context.Context, cfg *config.Config, doc *openapi.OpenAPI, client *request.Client) (map[string]string, error) {
+	if cfg == nil || len(cfg.Identities) == 0 {
+		return nil, nil
+	}
+	name, identity := cfg.DefaultIdentity()
+	if identity == nil {
+		return nil, errors.New("identities: several identities are declared, name the one to scan with \"default\"")
+	}
+	values := make(map[string]string, len(identity.Schemes))
+	for schemeName, credential := range identity.Schemes {
+		password := credential.OAuth2 != nil && credential.OAuth2.Username != nil
+		value, err := credential.Resolve(ctx, client.Client, oauth2TokenURL(doc, schemeName, password))
+		if err != nil {
+			return nil, fmt.Errorf("identities.%s.schemes.%s: %w", name, schemeName, err)
+		}
+		values[schemeName] = value
+	}
+	return values, nil
+}
 
 func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	var (
@@ -28,21 +66,27 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	scanCmd = &cobra.Command{
 		Use:   "openapi [OpenAPIPath]",
 		Short: "OpenAPI Operations Scan",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			ctx := cmd.Context()
+			settings := resolveSettings(cmd)
+			target := settings.Target()
 
-			openapiUrlOrPath := args[0]
-			if openapiUrlOrPath == "" {
-				telemetryx.Fatal(cmd, telemetryx.Reason(errors.New("OpenAPI path is required"), "openapi-path-is-required"))
-			}
+			openapiUrlOrPath := targetArg(cmd, args, func(s *internalCmd.ScanSettings) string {
+				if target != nil {
+					return target.OpenAPI
+				}
+				return ""
+			}, settings, "OpenAPI")
 
 			doc, err := openapi.LoadOpenAPI(ctx, openapiUrlOrPath)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-loading-openapi"))
 			}
 
+			if serverUrl == "" && target != nil {
+				serverUrl = target.Server
+			}
 			if serverUrl != "" {
 				baseUrl, err := url.Parse(serverUrl)
 				if err != nil || baseUrl.Scheme == "" || baseUrl.Host == "" {
@@ -74,10 +118,6 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				}
 			}
 
-			values := make(map[string]interface{}, len(securitySchemesValueArg))
-			for key, value := range securitySchemesValueArg {
-				values[key] = &value
-			}
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-creating-http-client"))
@@ -86,49 +126,43 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
 			}
-			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken).WithCredentials(credentials)
-			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
+			flagHeaders, cookies, err := cobracurl.BuildRequestHeaders(cmd)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-building-request-headers"))
+			}
+			headers, err := settings.TargetHeaders(ctx, flagHeaders)
+			if err != nil {
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-configuration"))
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
 			request.SetDefaultClient(client)
 
+			identityValues, err := identitySchemeValues(ctx, settings.Config, doc, client)
+			if err != nil {
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-identity"))
+			}
+			values := make(map[string]interface{}, len(identityValues)+len(securitySchemesValueArg))
+			for key, value := range identityValues {
+				if key == config.AllSchemes {
+					if validToken == nil {
+						validToken = &value
+					}
+					continue
+				}
+				values[key] = &value
+			}
+			for key, value := range securitySchemesValueArg {
+				values[key] = &value
+			}
+			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken).WithCredentials(credentials)
+
 			internalCmd.ApplyJWTFlags(cmd)
 
-			engine := harnessx.New()
-			s, err := scenario.NewOpenAPIScan(ctx, engine, doc, securitySchemesValues, client, &scan.ScanOptions{
-				ToolVersion:        internalCmd.Version(cmd),
-				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
-				IncludeScans:       internalCmd.GetIncludeScans(),
-				ExcludeScans:       internalCmd.GetExcludeScans(),
-				MinSeverity:        internalCmd.GetMinSeverity(),
-			})
+			s, err := scenario.NewOpenAPIScan(ctx, harnessx.New(), doc, securitySchemesValues, client, settings.ScanOptions())
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scenario"))
 			}
-
-			var bar *progressbar.ProgressBar
-			if !internalCmd.GetNoProgress() {
-				bar = internalCmd.NewProgressBar(len(s.GetOperationsScans()))
-				// nolint:errcheck
-				defer bar.Finish()
-			}
-			reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
-				if bar != nil {
-					// nolint:errcheck
-					bar.Add(1)
-				}
-			})
-			if err != nil {
-				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scan"))
-			}
-
-			if err = internalCmd.WriteReport(ctx, cmd, reporter); err != nil {
-				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
-			}
-
-			internalCmd.ExitIfFindings(cmd, reporter, len(internalCmd.GetIncludeScans()) > 0 || internalCmd.GetOnlyScansAboveThreshold())
+			executeScan(cmd, s, settings)
 		},
 	}
 

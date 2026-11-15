@@ -7,35 +7,42 @@ import (
 	"github.com/cerberauth/harnessx"
 	internalCmd "github.com/cerberauth/vulnapi/internal/cmd"
 	"github.com/cerberauth/vulnapi/internal/request"
-	"github.com/cerberauth/vulnapi/scan"
 	"github.com/cerberauth/vulnapi/scenario"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/cerberauth/x/telemetryx"
-	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
+func applyConfigRequest(cmd *cobra.Command, settings *internalCmd.ScanSettings) string {
+	target := settings.Target()
+	if target == nil || target.Request == nil {
+		return ""
+	}
+	if target.Request.Method != "" && !cmd.Flags().Changed("request") {
+		_ = cmd.Flags().Set("request", target.Request.Method)
+	}
+	if target.Request.Data != "" && !cmd.Flags().Changed("data") {
+		_ = cmd.Flags().Set("data", target.Request.Data)
+	}
+	return target.Request.URL
+}
+
 func NewCURLScanCmd() (scanCmd *cobra.Command) {
-	var (
-		includeScans            []string
-		excludeScans            []string
-		noProgress              bool
-		severityThreshold       float64
-		onlyScansAboveThreshold bool
-		allowUnsafeMethods      bool
-	)
+	var allowUnsafeMethods bool
 
 	scanCmd = &cobra.Command{
 		Use:   "curl [URL]",
 		Short: "CURL style Scan",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			req, err := cobracurl.BuildRequest(cmd, args)
+			ctx := cmd.Context()
+			settings := resolveSettings(cmd)
+			url := targetArg(cmd, args, func(s *internalCmd.ScanSettings) string { return applyConfigRequest(cmd, s) }, settings, "URL")
+
+			req, err := cobracurl.BuildRequest(cmd, []string{url})
 			if err != nil {
 				telemetryx.Fatal(cmd, err)
 			}
-
-			ctx := cmd.Context()
 
 			var curlData string
 			if req.Body != nil {
@@ -46,66 +53,41 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 				curlData = string(bodyBytes)
 			}
 
+			headers, err := settings.TargetHeaders(ctx, req.Header)
+			if err != nil {
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-configuration"))
+			}
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-client"))
 			}
-			client = client.WithHeader(req.Header).WithCookies(req.Cookies())
+			client = client.WithHeader(headers).WithCookies(req.Cookies())
 			if _, err := internalCmd.ApplyAuthFlags(cmd, client); err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
 			}
 			request.SetDefaultClient(client)
 
 			internalCmd.ApplyJWTFlags(cmd)
-			internalCmd.SetSeverityThreshold(severityThreshold)
-			internalCmd.SetOnlyScansAboveThreshold(onlyScansAboveThreshold)
 
-			engine := harnessx.New()
-			s, err := scenario.NewURLScan(engine, req.Method, req.URL, curlData, client, &scan.ScanOptions{
-				ToolVersion:        internalCmd.Version(cmd),
-				AllowUnsafeMethods: allowUnsafeMethods,
-				IncludeScans:       internalCmd.FilterScans(includeScans),
-				ExcludeScans:       internalCmd.FilterScans(excludeScans),
-				MinSeverity:        internalCmd.GetMinSeverity(),
-			})
+			s, err := scenario.NewURLScan(harnessx.New(), req.Method, req.URL, curlData, client, settings.ScanOptions())
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-scenario"))
 			}
-
-			var bar *progressbar.ProgressBar
-			if !noProgress {
-				bar = internalCmd.NewProgressBar(len(s.GetOperationsScans()))
-				defer func() { _ = bar.Finish() }()
-			}
-			reporter, _, err := s.Execute(ctx, func(operationScan *scan.OperationScan) {
-				if bar != nil {
-					_ = bar.Add(1)
-				}
-			})
-			if err != nil {
-				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-executing-scenario"))
-			}
-
-			err = internalCmd.WriteReport(ctx, cmd, reporter)
-			if err != nil {
-				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-printing-report"))
-			}
-
-			internalCmd.ExitIfFindings(cmd, reporter, len(internalCmd.FilterScans(includeScans)) > 0 || onlyScansAboveThreshold)
+			executeScan(cmd, s, settings)
 		},
 	}
 
 	cobracurl.RegisterFlags(scanCmd.Flags())
 
-	scanCmd.Flags().StringArrayVar(&includeScans, "scans", nil, "Include specific scans")
-	scanCmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", nil, "Exclude specific scans")
+	scanCmd.Flags().StringArray("scans", nil, "Include specific scans")
+	scanCmd.Flags().StringArray("exclude-scans", nil, "Exclude specific scans")
 	internalCmd.AddJWTFlags(scanCmd)
 	internalCmd.AddAuthFlags(scanCmd)
 	cobrareportx.RegisterFormatFlags(scanCmd)
 	cobrareportx.RegisterTransportFlags(scanCmd)
-	scanCmd.Flags().BoolVar(&noProgress, "no-progress", false, "Disable progress output")
-	scanCmd.Flags().Float64Var(&severityThreshold, "severity-threshold", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
-	scanCmd.Flags().BoolVar(&onlyScansAboveThreshold, "only-scans-above-threshold", false, "Only run checks that could reach --severity-threshold; exits on any finding since all of them do")
+	scanCmd.Flags().Bool("no-progress", false, "Disable progress output")
+	scanCmd.Flags().Float64("severity-threshold", 1, "Threshold to trigger stderr output if at least one vulnerability CVSS is higher")
+	scanCmd.Flags().Bool("only-scans-above-threshold", false, "Only run checks that could reach --severity-threshold; exits on any finding since all of them do")
 	internalCmd.RegisterAllowUnsafeMethodsFlag(scanCmd, &allowUnsafeMethods)
 
 	return scanCmd

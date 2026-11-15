@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(kidpathtraversal.Def, "https://www.cerberauth.com/d
 var Check = checkbase.Adapt(kidpathtraversal.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_path_traversal")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_path_traversal", "kidinjection (path)")
 }

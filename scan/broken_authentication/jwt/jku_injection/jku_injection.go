@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(jkuinjection.Def, "https://www.cerberauth.com/docs/
 var Check = checkbase.Adapt(jkuinjection.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.jku_injection")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.jku_injection", "jkuinjection")
 }

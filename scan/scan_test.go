@@ -570,3 +570,46 @@ func TestGetTargetOptions(t *testing.T) {
 		assert.False(t, scan.GetTargetOptions(harnessx.Target{Data: "unexpected"}).AllowUnsafeMethods)
 	})
 }
+
+func TestScanExecute_SkipUnknownScans(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	s, _ := scan.NewScan(harnessx.New(), operation.Operations{op}, &scan.ScanOptions{
+		IncludeScans:     []string{"category", "enterprise.check"},
+		SkipUnknownScans: true,
+	})
+	s.AddCheck(harnessx.Check{
+		ID:    "category.test-handler",
+		Scope: harnessx.ScopePerResource,
+		RunResource: func(_ context.Context, _ harnessx.Target, _ harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
+			return harnessx.Result{Data: &finding.Finding{Parameter: "test-finding"}}, nil
+		},
+	}, nil)
+
+	report, _, err := s.Execute(context.TODO(), nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, []string{"enterprise.check"}, s.UnknownScans)
+	assert.Equal(t, 1, len(report.Findings))
+}
+
+func TestNewScan_OperationFilter(t *testing.T) {
+	users := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/users", nil, nil)
+	internal := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/internal/metrics", nil, nil)
+
+	s, err := scan.NewScan(harnessx.New(), operation.Operations{users, internal}, &scan.ScanOptions{
+		Operations: &scan.OperationFilter{ExcludePaths: []string{"/internal/**"}},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, operation.Operations{users}, s.Operations)
+
+	_, err = scan.NewScan(harnessx.New(), operation.Operations{internal}, &scan.ScanOptions{
+		Operations: &scan.OperationFilter{ExcludePaths: []string{"/internal/**"}},
+	})
+	assert.EqualError(t, err, "no operation matches the operation filters")
+}
+
+func TestMatchesScanID(t *testing.T) {
+	assert.True(t, scan.MatchesScanID("misconfiguration.http_headers", "misconfiguration.http_headers_hsts_missing"))
+	assert.True(t, scan.MatchesScanID("misconfiguration.*", "misconfiguration.http_trace"))
+	assert.False(t, scan.MatchesScanID("http", "misconfiguration.http_trace"))
+}

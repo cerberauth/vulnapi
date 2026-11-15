@@ -12,5 +12,5 @@ var Def = checkbase.WithLink(algnone.Def, "https://www.cerberauth.com/docs/vulna
 var Check = checkbase.Adapt(algnone.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.alg_none")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.alg_none", "algnone")
 }

@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(hmacconfusion.Def, "https://www.cerberauth.com/docs
 var Check = checkbase.Adapt(hmacconfusion.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.hmac_confusion", "jwt.algorithm_confusion")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.hmac_confusion", "jwt.algorithm_confusion", "hmacconfusion")
 }

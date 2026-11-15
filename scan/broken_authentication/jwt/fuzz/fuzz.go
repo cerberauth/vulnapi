@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(fuzz.Def, "https://www.cerberauth.com/docs/vulnapi/
 var Check = checkbase.Adapt(fuzz.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.fuzz", "jwt.claim_fuzzing")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.fuzz", "jwt.claim_fuzzing", "fuzz")
 }

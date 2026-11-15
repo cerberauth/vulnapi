@@ -363,3 +363,14 @@ func TestOperation_NewHTTPRequestUserAgent(t *testing.T) {
 	assert.Equal(t, "custom-agent", req.Header.Get("User-Agent"))
 	assert.Equal(t, "custom-agent", op.UserAgent())
 }
+
+func TestOperation_WithOpenapiOperation_Tags(t *testing.T) {
+	op := operation.MustNewOperation(http.MethodGet, "http://example.com/users", nil, nil)
+	op.WithOpenapiOperation("/users", &openapi3.Operation{OperationID: "getUsers", Tags: []string{"users", "public"}})
+
+	clone, err := op.Clone()
+
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"users", "public"}, op.Tags)
+	assert.Equal(t, op.Tags, clone.Tags)
+}

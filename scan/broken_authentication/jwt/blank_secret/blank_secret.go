@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(blanksecret.Def, "https://www.cerberauth.com/docs/v
 var Check = checkbase.Adapt(blanksecret.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.blank_secret", "blank_secret")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.blank_secret", "blank_secret", "blanksecret")
 }
