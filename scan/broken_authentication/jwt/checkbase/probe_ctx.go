@@ -1,12 +1,9 @@
-// Package checkbase adapts jwtop's ScopeGlobal JWT crack checks — written
-// to scan exactly one target per engine run, reading their
-// *checkbase.ProbeCtx from target.Data — into genuine vulnapi
-// ScopePerResource checks, one per JWT-bearing resource, without
-// reimplementing any check's own Run/RunVariant logic.
+// Package checkbase embeds jwtop's check pack as vulnapi ScopePerResource
+// checks, one run per JWT-bearing resource, building the pack context from
+// each resource's operation.
 package checkbase
 
 import (
-	"context"
 	"errors"
 
 	"github.com/cerberauth/harnessx"
@@ -17,9 +14,8 @@ import (
 	"github.com/cerberauth/jwtop/jwt/fuzz"
 )
 
-// ProbeCtxCheckID is the CheckID every check directory's Adapt call
-// depends on: the *checkbase.ProbeCtx built for a resource by
-// ProbeCtxCheck, read back via store.GetForResource.
+// ProbeCtxCheckID is the internal check building the *checkbase.ProbeCtx of
+// each JWT-bearing resource, which every jwtop check depends on.
 const ProbeCtxCheckID harnessx.CheckID = "jwt.probe_ctx"
 
 // KidSQLTableCandidates lists the table names the kid_sql_injection check
@@ -78,46 +74,4 @@ func buildProbeCtx(resource harnessx.Resource) (*checkbase.ProbeCtx, error) {
 		CrackedHMACSecret: knownHMACSecret,
 		PublicKeyPEM:      resolvePublicKeyPEM(&op.URL, securityScheme, tokenString),
 	}, nil
-}
-
-// ProbeCtxCheck builds and caches, once per JWT-bearing resource, the
-// *checkbase.ProbeCtx every other check in this package depends on and
-// reads via store.GetForResource(ProbeCtxCheckID, resourceID) — the
-// harnessx engine's own per-resource result caching stands in for what
-// used to be a hand-rolled sync.Map cache. Registered with a nil
-// checkdef.CheckDef, like scan/misconfiguration/http_cookies_fetch.Check:
-// it's plumbing, never itself reportable.
-var ProbeCtxCheck = harnessx.Check{
-	ID:    ProbeCtxCheckID,
-	Name:  "JWT Probe Context",
-	Scope: harnessx.ScopePerResource,
-	Skip:  SkipUnlessJWT(),
-	RunResource: func(_ context.Context, _ harnessx.Target, resource harnessx.Resource, _ harnessx.ResultStore) (harnessx.Result, error) {
-		pctx, err := buildProbeCtx(resource)
-		if err != nil {
-			return harnessx.Result{}, err
-		}
-		return harnessx.Result{Data: pctx}, nil
-	},
-}
-
-// innerTargetFor builds the single-target harnessx.Target (URL + this
-// resource's *checkbase.ProbeCtx as Data) every check adapted by Adapt
-// needs to run its unmodified Run/RunVariant/Skip logic for resource,
-// exactly as jwtop's own ProbeAll would build it for a single-target
-// scan.
-func innerTargetFor(resource harnessx.Resource, store harnessx.ResultStore) (harnessx.Target, error) {
-	op, ok := Operation(resource)
-	if !ok {
-		return harnessx.Target{}, errors.New("jwt: resource missing *operation.Operation")
-	}
-	res, ok := store.GetForResource(ProbeCtxCheckID, resource.ID)
-	if !ok {
-		return harnessx.Target{}, errors.New("jwt probe context unavailable")
-	}
-	pctx, ok := harnessx.DataAs[*checkbase.ProbeCtx](res)
-	if !ok {
-		return harnessx.Target{}, errors.New("jwt probe context unavailable")
-	}
-	return harnessx.Target{URL: op.URL.String(), Data: pctx}, nil
 }
