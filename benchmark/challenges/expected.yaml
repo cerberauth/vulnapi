@@ -1,0 +1,179 @@
+name: API Vulnerabilities Challenges
+url: https://github.com/cerberauth/api-vulns-challenges
+version: 42c408183088ebea9087af2237c7573750f48844
+scans:
+  - name: jwt-alg-none-bypass
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8101/
+    token: docker compose run --rm --no-deps -T jwt-alg-none-bypass jwt
+    args: [scan, curl, "http://127.0.0.1:8101/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: alg-none
+        title: JWT accepts alg none
+        check: jwt.alg_none
+  - name: jwt-blank-secret
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8102/
+    token: docker compose run --rm --no-deps -T jwt-blank-secret jwt
+    args: [scan, curl, "http://127.0.0.1:8102/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: blank-secret
+        title: JWT signed with a blank secret
+        check: jwt.blank_secret
+  - name: jwt-null-signature
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8103/
+    token: docker compose run --rm --no-deps -T jwt-null-signature jwt
+    args: [scan, curl, "http://127.0.0.1:8103/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: null-signature
+        title: JWT null signature accepted
+        check: jwt.null_signature
+  - name: jwt-weak-hmac-secret
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8104/
+    token: docker compose run --rm --no-deps -T jwt-weak-hmac-secret jwt
+    args: [scan, curl, "http://127.0.0.1:8104/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: weak-secret
+        title: JWT signed with a weak HMAC secret
+        check: jwt.weak_secret
+  - name: jwt-not-verified
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8105/
+    token: docker compose run --rm --no-deps -T jwt-not-verified jwt
+    args: [scan, curl, "http://127.0.0.1:8105/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: not-verified
+        title: JWT signature not verified
+        check: jwt.not_verified
+  - name: jwt-psychic-signature
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8106/
+    token: docker compose run --rm --no-deps -T jwt-psychic-signature jwt
+    args: [scan, curl, "http://127.0.0.1:8106/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: psychic-signature
+        title: JWT psychic signature (CVE-2022-21449)
+        check: jwt.psychic_signature
+  - name: jwt-hmac-confusion
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8107/
+    token: docker compose run --rm --no-deps -T jwt-hmac-confusion jwt
+    args: [scan, curl, "http://127.0.0.1:8107/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: hmac-confusion
+        title: JWT HMAC/RSA algorithm confusion
+        check: jwt.hmac_confusion
+        knownMiss: https://github.com/cerberauth/vulnapi/issues/353
+  - name: jwt-jwk-header-injection
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8108/
+    token: docker compose run --rm --no-deps -T jwt-jwk-header-injection jwt
+    args: [scan, curl, "http://127.0.0.1:8108/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: jwk-injection
+        title: JWT jwk header injection
+        check: jwt.jwk_injection
+  - name: jwt-kid-sql-injection
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8109/
+    token: docker compose run --rm --no-deps -T jwt-kid-sql-injection jwt
+    args: [scan, curl, "http://127.0.0.1:8109/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: kid-sql-injection
+        title: JWT kid header SQL injection
+        check: jwt.kid_injection
+        knownMiss: https://github.com/cerberauth/vulnapi/issues/405
+  - name: jwt-kid-path-traversal
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8110/
+    token: docker compose run --rm --no-deps -T jwt-kid-path-traversal jwt
+    args: [scan, curl, "http://127.0.0.1:8110/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: kid-path-traversal
+        title: JWT kid header path traversal
+        check: jwt.kid_injection
+  - name: jwt-timestamp-tampering
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8111/
+    token: docker compose run --rm --no-deps -T jwt-timestamp-tampering jwt
+    args: [scan, curl, "http://127.0.0.1:8111/session", -H, "Authorization: Bearer ${TOKEN}", --jwt-secret, s3cr3t-dev-key]
+    issues:
+      - id: timestamp-tampering
+        title: JWT expiration not validated
+        check: jwt.timestamp_tampering
+  - name: jwt-x5c-x5u-header-injection
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8112/
+    token: docker compose run --rm --no-deps -T jwt-x5c-x5u-header-injection jwt
+    args: [scan, curl, "http://127.0.0.1:8112/", -H, "Authorization: Bearer ${TOKEN}"]
+    issues:
+      - id: x5c-injection
+        title: JWT x5c header injection
+        check: jwt.x5c_injection
+  - name: auth-not-verified
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8113/
+    args: [scan, curl, "http://127.0.0.1:8113/"]
+    issues:
+      - id: accept-unauthenticated
+        title: Endpoint accepts unauthenticated requests
+        check: discover.accept_unauthenticated
+  - name: http-misconfigurations /http-method-override
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/http-method-override", -H, "Authorization: Bearer valid-token"]
+    issues:
+      - id: method-override
+        title: HTTP method override accepted
+        check: misconfiguration.http_method_override
+  - name: http-misconfigurations /headers/cors-wildcard
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/headers/cors-wildcard"]
+    issues:
+      - id: cors-wildcard
+        title: CORS allows any origin
+        check: misconfiguration.http_headers_cors_wildcard
+  - name: http-misconfigurations /headers/csp-frame-ancestors
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/headers/csp-frame-ancestors"]
+    issues:
+      - id: csp-frame-ancestors
+        title: CSP frame-ancestors allows any framing origin
+        check: misconfiguration.http_headers_csp_frame_ancestors_missing
+        knownMiss: https://github.com/cerberauth/vulnapi/issues/316
+  - name: http-misconfigurations /cookies/unsecure
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/cookies/unsecure"]
+    issues:
+      - id: cookie-not-secure
+        title: Cookie without Secure
+        check: misconfiguration.http_cookies_not_secure
+  - name: http-misconfigurations /cookies/not-httponly
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/cookies/not-httponly"]
+    issues:
+      - id: cookie-not-httponly
+        title: Cookie without HttpOnly
+        check: misconfiguration.http_cookies_not_http_only
+  - name: http-misconfigurations /cookies/samesite-none
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/cookies/samesite-none"]
+    issues:
+      - id: cookie-samesite-none
+        title: Cookie with SameSite=None
+        check: misconfiguration.http_cookies_same_site_none
+  - name: http-misconfigurations /cookies/no-expiration
+    setup:
+      - curl -sS -o /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:8114/
+    args: [scan, curl, "http://127.0.0.1:8114/cookies/no-expiration"]
+    issues:
+      - id: cookie-no-expiration
+        title: Cookie without expiration
+        check: misconfiguration.http_cookies_without_expires

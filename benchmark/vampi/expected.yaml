@@ -1,0 +1,45 @@
+name: VAmPI
+url: https://github.com/erev0s/VAmPI
+version: erev0s/vampi@sha256:0a5a224b6e14
+scans:
+  - name: openapi
+    setup:
+      - curl -fsS --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:5000/createdb
+    token: >-
+      curl -fsS -X POST http://127.0.0.1:5000/users/v1/login -H 'Content-Type: application/json'
+      -d '{"username":"name1","password":"pass1"}' | jq -r .auth_token
+    args: [scan, openapi, http://127.0.0.1:5000/openapi.json, --server-url, http://127.0.0.1:5000, --security-schemes, "bearerAuth=${TOKEN}"]
+    issues:
+      - id: jwt-weak-key
+        title: JWT authentication bypass via weak signing key
+        check: jwt.weak_secret
+      - id: security-headers
+        title: Security response headers missing
+        check: misconfiguration.http_headers
+      - id: server-banner
+        title: Server version disclosure
+        check: discover.server_signature
+      - id: sqli
+        title: SQL injection on GET /users/v1/{username}
+        notCovered: https://github.com/cerberauth/vulnapi/issues/320
+      - id: unauthorized-password-change
+        title: Unauthorized password change
+        notCovered: https://github.com/cerberauth/vulnapi/issues/351
+      - id: bola
+        title: Broken object level authorization on GET /books/v1/{book_title}
+        notCovered: https://github.com/cerberauth/vulnapi/issues/351
+      - id: mass-assignment
+        title: Mass assignment on POST /users/v1/register
+        notCovered: https://github.com/cerberauth/vulnapi/issues/352
+      - id: excessive-data-exposure
+        title: Excessive data exposure through GET /users/v1/_debug
+        notCovered: https://github.com/cerberauth/vulnapi/issues/319
+      - id: user-enumeration
+        title: User and password enumeration on POST /users/v1/login
+        notCovered: https://github.com/cerberauth/vulnapi/issues/402
+      - id: redos
+        title: Regular expression denial of service on PUT /users/v1/{username}/email
+        notCovered: https://github.com/cerberauth/vulnapi/issues/403
+      - id: rate-limiting
+        title: Lack of resources and rate limiting on POST /users/v1/login
+        notCovered: https://github.com/cerberauth/vulnapi/issues/324
