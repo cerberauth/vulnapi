@@ -7,6 +7,10 @@ import { Tabs, TabItem } from '@/components/docs'
 
 <table>
   <tr>
+    <th>Scan ID</th>
+    <td><code>jwt.missing_expiry</code>, <code>jwt.long_lifetime</code>, <code>jwt.expired_accepted</code></td>
+  </tr>
+  <tr>
     <th>Severity</th>
     <td>Medium</td>
   </tr>
@@ -48,7 +52,13 @@ If the current time is `1516243000` (which is after the `exp` time), the server 
 
 To test if the server accepts expired tokens, you can obtain a valid token, wait for it to expire, and then try to use it. Alternatively, if you have the signing key, you can create a token that is already expired.
 
-For HMAC-signed tokens, VulnAPI automates this test once the signing secret is known (cracked by the weak secret check or passed with `--jwt-secret`): see [JWT Timestamp Tampering](./jwt-timestamp-tampering). For other algorithms, you can use tools like [jwtop](https://github.com/cerberauth/jwtop) to create expired tokens for manual testing.
+VulnAPI runs three scans on the token under test: `jwt.missing_expiry` reports a token without `exp`, `jwt.long_lifetime` a token whose lifetime (`exp` minus `iat`) is above `--jwt-max-lifetime` (default `24h`), and `jwt.expired_accepted` sends the token when it is already expired and reports it when the server accepts it.
+
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [expired-token]" --jwt-max-lifetime 1h --scans "jwt.missing_expiry" --scans "jwt.long_lifetime" --scans "jwt.expired_accepted"
+```
+
+To test a token that is not expired yet, for HMAC-signed tokens, VulnAPI automates this test once the signing secret is known (cracked by the weak secret check or passed with `--jwt-secret`): see [JWT Timestamp Tampering](./jwt-timestamp-tampering). For other algorithms, you can use tools like [jwtop](https://github.com/cerberauth/jwtop) to create expired tokens for manual testing.
 
 ## What is the impact?
 

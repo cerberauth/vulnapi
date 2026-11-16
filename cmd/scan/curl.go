@@ -56,7 +56,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 			}
 			request.SetDefaultClient(client)
 
-			internalCmd.ApplyJWTSecretFlag(cmd)
+			internalCmd.ApplyJWTFlags(cmd)
 			internalCmd.SetSeverityThreshold(severityThreshold)
 			internalCmd.SetOnlyScansAboveThreshold(onlyScansAboveThreshold)
 
@@ -99,7 +99,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 
 	scanCmd.Flags().StringArrayVar(&includeScans, "scans", nil, "Include specific scans")
 	scanCmd.Flags().StringArrayVar(&excludeScans, "exclude-scans", nil, "Exclude specific scans")
-	internalCmd.AddJWTSecretFlag(scanCmd)
+	internalCmd.AddJWTFlags(scanCmd)
 	internalCmd.AddAuthFlags(scanCmd)
 	cobrareportx.RegisterFormatFlags(scanCmd)
 	cobrareportx.RegisterTransportFlags(scanCmd)

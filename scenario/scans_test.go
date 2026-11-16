@@ -25,10 +25,10 @@ func TestWithAllCommonScans_RegistersChecksNotInLegacyLinkTable(t *testing.T) {
 	for _, os := range s.GetOperationsScans() {
 		ids = append(ids, os.CheckID)
 	}
-	assert.Contains(t, ids, "hmacconfusion")
-	assert.Contains(t, ids, "jwkinjection")
-	assert.Contains(t, ids, "psychicsig")
-	assert.Contains(t, ids, "timestamptampering")
+	assert.Contains(t, ids, "jwt.hmac_confusion")
+	assert.Contains(t, ids, "jwt.jwk_injection")
+	assert.Contains(t, ids, "jwt.psychic_signature")
+	assert.Contains(t, ids, "jwt.timestamp_tampering")
 	// baseline is a genuine jwtop check too — every other jwtop check
 	// depends on it — so it's registered directly like the rest, just
 	// without a CheckDef, rather than hidden inside an internal wrapper.
