@@ -7,7 +7,7 @@ require (
 	github.com/cerberauth/cobracurl v0.5.0
 	github.com/cerberauth/harnessx v0.5.0
 	github.com/cerberauth/jwtop v0.9.0
-	github.com/cerberauth/proxyaudit v0.3.1-0.20261115193627-9457f6c13bcb
+	github.com/cerberauth/proxyaudit v0.3.1-0.20261116222834-ef86e17b2f3a
 	github.com/cerberauth/reportx v0.4.0
 	github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173
 	github.com/getargvio/argvio-go v0.6.0
@@ -28,6 +28,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
+	github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect

@@ -4,6 +4,8 @@ github.com/brianvoe/gofakeit/v7 v7.17.1 h1:50FLBhTGVJQaj6ysRUu0it8wCdYO2uGM9Vfux
 github.com/brianvoe/gofakeit/v7 v7.17.1/go.mod h1:QXuPeBw164PJCzCUZVmgpgHJ3Llj49jSLVkKPMtxtxA=
 github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=
 github.com/cenkalti/backoff/v5 v5.0.3/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
+github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b h1:evf721Qco2kjtyjr+zRu2pLi5ow0tKZLPI5oALfyOqY=
+github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b/go.mod h1:+neXN/38V+OxGAAWUBHFDntaFxa9M49f9bjaOmHaOAY=
 github.com/cerberauth/cobracurl v0.5.0 h1:XUHQwGvp78uuIJ8PKkE6nu25w+y1Uk4lj7bbgYafgBY=
 github.com/cerberauth/cobracurl v0.5.0/go.mod h1:V8j8czS0bPD9QIlbMsaPqaKvs9bQaDL6r5HdCbl1AYY=
 github.com/cerberauth/harnessx v0.5.0 h1:9XTxMkyLAnMQBkrxB4ZZ9O4Zbf/3u6FYI3TzzVIDvSw=
@@ -12,6 +14,8 @@ github.com/cerberauth/jwtop v0.9.0 h1:A56Zh4GS6Xuay5CDweLZIN3nC4Uu7oWckCYYB+3MGM
 github.com/cerberauth/jwtop v0.9.0/go.mod h1:gbNTyX5ENtCRrfQQUuYNAurr0nRwtz9/pgIC8WdJxxU=
 github.com/cerberauth/proxyaudit v0.3.1-0.20261115193627-9457f6c13bcb h1:AUpd/sAhYGVjTSNO1NYJ+qrqC5nzHFPXyJ6owaO0wRo=
 github.com/cerberauth/proxyaudit v0.3.1-0.20261115193627-9457f6c13bcb/go.mod h1:cYYIoWF5i37riSYpS47/WB3dt19XcFdPFj9ZUWipW68=
+github.com/cerberauth/proxyaudit v0.3.1-0.20261116222834-ef86e17b2f3a h1:OD/D6/wgllVDl0ooQzObTs54uDFf194qd0JJHXOk7Pg=
+github.com/cerberauth/proxyaudit v0.3.1-0.20261116222834-ef86e17b2f3a/go.mod h1:cYYIoWF5i37riSYpS47/WB3dt19XcFdPFj9ZUWipW68=
 github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
 github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173 h1:Gy8q2r+13DVhSZMnvopTCr0gVGJHyRoMnH0Pn1boWY0=
