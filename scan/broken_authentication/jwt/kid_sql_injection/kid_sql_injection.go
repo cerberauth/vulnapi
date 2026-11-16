@@ -1,4 +1,4 @@
-// Package kidsqlinjection adapts jwtop's kid_sql_injection crack check as
+// Package kidsqlinjection runs jwtop's kid_sql_injection crack check as
 // a vulnapi check.
 package kidsqlinjection
 
@@ -13,7 +13,7 @@ var Def = checkbase.WithLink(kidsqlinjection.Def, "https://www.cerberauth.com/do
 // Check iterates the table-name candidates set on the probe context
 // (checkbase.KidSQLTableCandidates) itself, stopping at the first one that
 // proves vulnerable.
-var Check = checkbase.Adapt(kidsqlinjection.Check)
+var Check = checkbase.Check(kidsqlinjection.Check.ID)
 
 func init() {
 	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_sql_injection", "kidinjection (sql)")

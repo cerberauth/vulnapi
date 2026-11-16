@@ -1,4 +1,4 @@
-// Package blanksecret adapts jwtop's blank_secret crack check as a vulnapi
+// Package blanksecret runs jwtop's blank_secret crack check as a vulnapi
 // check.
 package blanksecret
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(blanksecret.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-blank-secret?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(blanksecret.Check)
+var Check = checkbase.Check(blanksecret.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.blank_secret", "blank_secret", "blanksecret")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "blank_secret", "blanksecret")
 }

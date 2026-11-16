@@ -7,4 +7,4 @@ import (
 
 var Def = checkbase.WithLink(audiencenotvalidated.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-cross-service-relay-attack?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(audiencenotvalidated.Check)
+var Check = checkbase.Check(audiencenotvalidated.Check.ID)

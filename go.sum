@@ -8,8 +8,8 @@ github.com/cerberauth/cobracurl v0.5.0 h1:XUHQwGvp78uuIJ8PKkE6nu25w+y1Uk4lj7bbgY
 github.com/cerberauth/cobracurl v0.5.0/go.mod h1:V8j8czS0bPD9QIlbMsaPqaKvs9bQaDL6r5HdCbl1AYY=
 github.com/cerberauth/harnessx v0.6.0 h1:1qCMiuQg4AHwGTATFmbZaOA28DlYqGj5F1j2Fi1aRZA=
 github.com/cerberauth/harnessx v0.6.0/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
-github.com/cerberauth/jwtop v0.10.0 h1:KmpjeuPG1XeB/R6XBequyBR0Y0OxNJTMb3XABnbXURI=
-github.com/cerberauth/jwtop v0.10.0/go.mod h1:Y7DNEMNhcdjrokYs39vViy3TvQNMSN+b7jio4plXHB4=
+github.com/cerberauth/jwtop v0.10.1 h1:snUNCw4kIfRV85KcufuWeGiyjJwwYzRTJVWW+k6XAng=
+github.com/cerberauth/jwtop v0.10.1/go.mod h1:Y7DNEMNhcdjrokYs39vViy3TvQNMSN+b7jio4plXHB4=
 github.com/cerberauth/proxyaudit v0.4.0 h1:OwxqtlKh3b75XgDn5U2T1VnmQHG/iOT675EvxIs++0o=
 github.com/cerberauth/proxyaudit v0.4.0/go.mod h1:qvxLXeoJArJBgktDDyPYMqv7xNzHa6YSvE1nkhKh3D4=
 github.com/cerberauth/reportx v0.5.0 h1:1a/h3+eOpl4ADwLhRRWgqnaNEIacEoUNCkwiLWp0Iy0=

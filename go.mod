@@ -6,7 +6,7 @@ require (
 	github.com/brianvoe/gofakeit/v7 v7.18.11
 	github.com/cerberauth/cobracurl v0.5.0
 	github.com/cerberauth/harnessx v0.6.0
-	github.com/cerberauth/jwtop v0.10.0
+	github.com/cerberauth/jwtop v0.10.1
 	github.com/cerberauth/proxyaudit v0.4.0
 	github.com/cerberauth/reportx v0.5.0
 	github.com/cerberauth/x v0.0.0-20261115155959-c025fc3e303d

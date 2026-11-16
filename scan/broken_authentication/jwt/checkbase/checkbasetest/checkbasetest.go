@@ -17,7 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const Secret = "secret"
+// Secret signs the test tokens. It must stay out of jwtop's weak secrets dictionary,
+// otherwise the weak_secret check cracks it and the checks that need the
+// secret never see it as unknown.
+const Secret = "vulnapi-test-signing-key-7f3a91"
 
 func Sign(t *testing.T, claims jwtlib.MapClaims) string {
 	t.Helper()
@@ -59,29 +62,56 @@ func Operation(t *testing.T, url string, token string) *operation.Operation {
 	return op
 }
 
+// Run runs check, with the checks it depends on, against op through the
+// harnessx engine. It returns a finding when the check observed the
+// vulnerability, or the reason the check was skipped.
 func Run(t *testing.T, check harnessx.Check, op *operation.Operation, options checkbase.Options) (*finding.Finding, string) {
 	t.Helper()
 	checkbase.SetOptions(options)
 	t.Cleanup(func() { checkbase.SetOptions(checkbase.Options{}) })
 
-	ctx := context.Background()
-	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
-	var results []harnessx.Result
-	for _, dep := range []harnessx.Check{checkbase.ProbeCtxCheck, checkbase.BaselineCheck} {
-		result, err := dep.RunResource(ctx, harnessx.Target{}, resource, harnessx.NewStaticResultStore(results...))
-		require.NoError(t, err)
-		result.CheckID = dep.ID
-		result.ResourceID = resource.ID
-		results = append(results, result)
-	}
-	store := harnessx.NewStaticResultStore(results...)
+	resource := harnessx.Resource{ID: "jwt", URL: op.URL.String(), Method: op.Method, Data: op}
+	discover := harnessx.Check{ID: "_operations", Run: func(context.Context, harnessx.Target, harnessx.ResultStore) (harnessx.Result, error) {
+		return harnessx.Result{Resources: []harnessx.Resource{resource}}, nil
+	}}
 
-	if reason := check.Skip.EvalResource(ctx, harnessx.Target{}, resource, store); reason != "" {
-		return nil, reason
+	byID := map[harnessx.CheckID]harnessx.Check{}
+	for _, c := range checkbase.Checks() {
+		byID[c.ID] = c
 	}
-	result, err := check.RunResource(ctx, harnessx.Target{}, resource, store)
+	checks := []harnessx.Check{discover}
+	seen := map[harnessx.CheckID]bool{}
+	var add func(id harnessx.CheckID)
+	add = func(id harnessx.CheckID) {
+		c, ok := byID[id]
+		if !ok || seen[id] {
+			return
+		}
+		seen[id] = true
+		for _, dep := range c.DependsOn {
+			add(dep)
+		}
+		c.DependsOn = append([]harnessx.CheckID{discover.ID}, c.DependsOn...)
+		checks = append(checks, c)
+	}
+	add(checkbase.ProbeCtxCheck.ID)
+	add(checkbase.BaselineCheck.ID)
+	add(check.ID)
+
+	summary, err := harnessx.New(harnessx.WithChecks(checks...)).Run(context.Background(), harnessx.Target{URL: op.URL.String()})
 	require.NoError(t, err)
-	require.NoError(t, result.Err)
-	f, _ := harnessx.DataAs[*finding.Finding](result)
-	return f, ""
+
+	for _, r := range summary.Results {
+		if r.CheckID != check.ID || r.ResourceID != resource.ID {
+			continue
+		}
+		require.NoError(t, r.Err)
+		if r.SkipReason != "" {
+			return nil, r.SkipReason
+		}
+		if len(r.Observations) > 0 {
+			return &finding.Finding{Parameter: r.Observations[0].Evidence}, ""
+		}
+	}
+	return nil, ""
 }

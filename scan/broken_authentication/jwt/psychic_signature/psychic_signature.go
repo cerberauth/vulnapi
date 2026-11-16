@@ -1,4 +1,4 @@
-// Package psychicsignature adapts jwtop's psychic_signature crack check as
+// Package psychicsignature runs jwtop's psychic_signature crack check as
 // a vulnapi check.
 package psychicsignature
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(psychicsignature.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-psychic-signature?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(psychicsignature.Check)
+var Check = checkbase.Check(psychicsignature.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.psychic_signature", "psychicsig")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "psychicsig")
 }

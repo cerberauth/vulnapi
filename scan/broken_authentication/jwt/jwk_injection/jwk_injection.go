@@ -1,4 +1,4 @@
-// Package jwkinjection adapts jwtop's jwk_injection crack check as a
+// Package jwkinjection runs jwtop's jwk_injection crack check as a
 // vulnapi check.
 package jwkinjection
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(jwkinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-jwk-injection?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(jwkinjection.Check)
+var Check = checkbase.Check(jwkinjection.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.jwk_injection", "jwkinjection")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwkinjection")
 }

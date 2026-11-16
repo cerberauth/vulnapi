@@ -1,4 +1,4 @@
-// Package hmacconfusion adapts jwtop's hmac_confusion crack check as a
+// Package hmacconfusion runs jwtop's hmac_confusion crack check as a
 // vulnapi check.
 package hmacconfusion
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(hmacconfusion.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-algorithm-confusion?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(hmacconfusion.Check)
+var Check = checkbase.Check(hmacconfusion.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.hmac_confusion", "jwt.algorithm_confusion", "hmacconfusion")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.algorithm_confusion", "hmacconfusion")
 }
