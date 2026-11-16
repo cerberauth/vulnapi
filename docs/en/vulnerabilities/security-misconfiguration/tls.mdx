@@ -6,7 +6,7 @@ description: TLS (Transport Layer Security) is a protocol that provides secure c
 <table>
   <tr>
     <th>Scan ID</th>
-    <td><code>tls.http_accepted</code>, <code>tls.certificate_untrusted</code>, <code>tls.certificate_expired</code>, <code>tls.certificate_hostname_mismatch</code>, <code>tls.protocol_deprecated</code>, <code>tls.cipher_weak</code>, <code>tls.forward_secrecy_missing</code></td>
+    <td><code>tls.http_accepted</code>, <code>tls.certificate_untrusted</code>, <code>tls.certificate_expired</code>, <code>tls.certificate_hostname_mismatch</code>, <code>tls.protocol_deprecated</code>, <code>tls.cipher_weak</code>, <code>tls.forward_secrecy_missing</code>, <code>tls.heartbleed</code>, <code>tls.drown</code>, <code>tls.robot</code></td>
   </tr>
   <tr>
     <th>Severity</th>
@@ -71,12 +71,15 @@ VulnAPI inspects the transport once per distinct `host:port` of the scanned oper
 | `tls.protocol_deprecated` | SSL 3.0, TLS 1.0 or TLS 1.1 accepted |
 | `tls.cipher_weak` | RC4, 3DES, NULL or other insecure cipher suites accepted |
 | `tls.forward_secrecy_missing` | Cipher suite without forward secrecy, or Diffie-Hellman group below 2048 bits |
+| `tls.heartbleed` | Heartbeat request with an oversized payload length answered (CVE-2014-0160) |
+| `tls.drown` | SSLv2 ClientHello answered with an SSLv2 ServerHello (CVE-2016-0800) |
+| `tls.robot` | RSA key exchange answering malformed premaster padding differently (Bleichenbacher oracle) |
 
 ```bash
 vulnapi scan curl https://api.example.com/users --scans "tls.*"
 ```
 
-With `-k` / `--insecure`, the scan continues past an invalid certificate and the certificate problem is reported as a finding. A target served over plain HTTP, or an unreachable port, is skipped with its reason in the report coverage. Heartbleed, DROWN and ROBOT are not probed individually: affected servers also enable a legacy protocol or cipher suite reported above. [SSL Labs](https://www.ssllabs.com/ssltest/) gives a complete review of public endpoints.
+With `-k` / `--insecure`, the scan continues past an invalid certificate and the certificate problem is reported as a finding. A target served over plain HTTP, or an unreachable port, is skipped with its reason in the report coverage. [SSL Labs](https://www.ssllabs.com/ssltest/) gives a complete review of public endpoints.
 
 ## How to remediate?
 

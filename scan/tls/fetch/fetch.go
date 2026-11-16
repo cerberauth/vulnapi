@@ -13,8 +13,11 @@ import (
 	"github.com/cerberauth/harnessx/checkdef"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/certificate"
 	cipherstrength "github.com/cerberauth/proxyaudit/proxy/checks/tls/cipher_strength"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/drown"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/heartbleed"
 	httpsredirect "github.com/cerberauth/proxyaudit/proxy/checks/tls/https_redirect"
 	protocolversion "github.com/cerberauth/proxyaudit/proxy/checks/tls/protocol_version"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/robot"
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 	"github.com/cerberauth/vulnapi/internal/finding"
@@ -42,6 +45,9 @@ var tlsChecks = []harnessx.Check{
 	protocolversion.Check,
 	cipherstrength.Check,
 	httpsredirect.Check,
+	heartbleed.Check,
+	drown.Check,
+	robot.Check,
 }
 
 func hostAddress(u *url.URL) string {

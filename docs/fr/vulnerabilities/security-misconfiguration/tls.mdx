@@ -6,7 +6,7 @@ description: TLS (Transport Layer Security) est un protocole assurant une commun
 <table>
   <tr>
     <th>Identifiant de scan</th>
-    <td><code>tls.http_accepted</code>, <code>tls.certificate_untrusted</code>, <code>tls.certificate_expired</code>, <code>tls.certificate_hostname_mismatch</code>, <code>tls.protocol_deprecated</code>, <code>tls.cipher_weak</code>, <code>tls.forward_secrecy_missing</code></td>
+    <td><code>tls.http_accepted</code>, <code>tls.certificate_untrusted</code>, <code>tls.certificate_expired</code>, <code>tls.certificate_hostname_mismatch</code>, <code>tls.protocol_deprecated</code>, <code>tls.cipher_weak</code>, <code>tls.forward_secrecy_missing</code>, <code>tls.heartbleed</code>, <code>tls.drown</code>, <code>tls.robot</code></td>
   </tr>
   <tr>
     <th>Gravité</th>
@@ -71,12 +71,15 @@ VulnAPI inspecte le transport une fois par `hôte:port` distinct des opérations
 | `tls.protocol_deprecated` | SSL 3.0, TLS 1.0 ou TLS 1.1 accepté |
 | `tls.cipher_weak` | Suites de chiffrement RC4, 3DES, NULL ou autres suites non sûres acceptées |
 | `tls.forward_secrecy_missing` | Suite de chiffrement sans confidentialité persistante, ou groupe Diffie-Hellman inférieur à 2048 bits |
+| `tls.heartbleed` | Requête heartbeat avec une longueur de charge utile excessive acceptée (CVE-2014-0160) |
+| `tls.drown` | ClientHello SSLv2 accepté avec un ServerHello SSLv2 (CVE-2016-0800) |
+| `tls.robot` | Échange de clés RSA répondant différemment à un padding de premaster malformé (oracle de Bleichenbacher) |
 
 ```bash
 vulnapi scan curl https://api.example.com/users --scans "tls.*"
 ```
 
-Avec `-k` / `--insecure`, le scan continue malgré un certificat invalide et le problème de certificat est signalé comme un résultat. Une cible servie en HTTP clair, ou un port injoignable, est ignorée avec sa raison dans la couverture du rapport. Heartbleed, DROWN et ROBOT ne sont pas testés individuellement : les serveurs concernés activent aussi un protocole ou une suite de chiffrement obsolète signalés ci-dessus. [SSL Labs](https://www.ssllabs.com/ssltest/) fournit une revue complète des endpoints publics.
+Avec `-k` / `--insecure`, le scan continue malgré un certificat invalide et le problème de certificat est signalé comme un résultat. Une cible servie en HTTP clair, ou un port injoignable, est ignorée avec sa raison dans la couverture du rapport. [SSL Labs](https://www.ssllabs.com/ssltest/) fournit une revue complète des endpoints publics.
 
 ## Comment corriger ?
 
