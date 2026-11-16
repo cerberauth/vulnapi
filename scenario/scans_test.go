@@ -25,20 +25,17 @@ func TestWithAllCommonScans_RegistersChecksNotInLegacyLinkTable(t *testing.T) {
 	for _, os := range s.GetOperationsScans() {
 		ids = append(ids, os.CheckID)
 	}
-	assert.Contains(t, ids, "hmacconfusion")
-	assert.Contains(t, ids, "jwkinjection")
-	assert.Contains(t, ids, "psychicsig")
-	assert.Contains(t, ids, "timestamptampering")
-	// baseline is a genuine jwtop check too — every other jwtop check
-	// depends on it — so it's registered directly like the rest, just
-	// without a CheckDef, rather than hidden inside an internal wrapper.
-	assert.Contains(t, ids, string(checkbase.CheckIDBaseline))
+	assert.Contains(t, ids, "jwt.hmac_confusion")
+	assert.Contains(t, ids, "jwt.jwk_injection")
+	assert.Contains(t, ids, "jwt.psychic_signature")
+	assert.Contains(t, ids, "jwt.timestamp_tampering")
+	assert.NotContains(t, ids, string(checkbase.CheckIDBaseline))
 }
 
 func TestWithAllCommonScans_LegacyExcludeScansStillExcludesRenamedCheck(t *testing.T) {
 	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
 	s, err := scan.NewScan(harnessx.New(), operation.Operations{op}, &scan.ScanOptions{
-		ExcludeScans: []string{"jwt.blank_secret"},
+		ExcludeScans: []string{"blanksecret"},
 	})
 	require.NoError(t, err)
 

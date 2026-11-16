@@ -1,4 +1,4 @@
-// Package noverification adapts jwtop's no_verification crack check as a
+// Package noverification runs jwtop's no_verification crack check as a
 // vulnapi check.
 package noverification
 
@@ -10,8 +10,8 @@ import (
 
 var Def = noverification.Def
 
-var Check = checkbase.Adapt(noverification.Check)
+var Check = checkbase.Check(noverification.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.not_verified")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.not_verified", "no_verification")
 }

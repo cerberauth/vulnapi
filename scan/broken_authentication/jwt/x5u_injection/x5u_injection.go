@@ -1,4 +1,4 @@
-// Package x5uinjection adapts jwtop's x5u_injection crack check as a
+// Package x5uinjection runs jwtop's x5u_injection crack check as a
 // vulnapi check.
 package x5uinjection
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(x5uinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-x5u-injection?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(x5uinjection.Check)
+var Check = checkbase.Check(x5uinjection.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.x5u_injection")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "x5uinjection")
 }

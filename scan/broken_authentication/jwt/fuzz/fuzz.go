@@ -1,4 +1,4 @@
-// Package fuzz adapts jwtop's fuzz (claim-mutation) crack check as a
+// Package fuzz runs jwtop's fuzz (claim-mutation) crack check as a
 // vulnapi check.
 package fuzz
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(fuzz.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-claim-fuzzing?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(fuzz.Check)
+var Check = checkbase.Check(fuzz.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.fuzz", "jwt.claim_fuzzing")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.claim_fuzzing", "fuzz")
 }

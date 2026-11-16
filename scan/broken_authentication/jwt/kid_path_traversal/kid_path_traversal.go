@@ -1,4 +1,4 @@
-// Package kidpathtraversal adapts jwtop's kid_path_traversal crack check
+// Package kidpathtraversal runs jwtop's kid_path_traversal crack check
 // as a vulnapi check.
 package kidpathtraversal
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(kidpathtraversal.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-kid-injection?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(kidpathtraversal.Check)
+var Check = checkbase.Check(kidpathtraversal.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_path_traversal")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_path_traversal", "kidinjection (path)")
 }

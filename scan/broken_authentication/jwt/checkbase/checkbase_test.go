@@ -3,79 +3,81 @@ package checkbase
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/jwtop/jwt/crack/checkbase"
 	blanksecret "github.com/cerberauth/jwtop/jwt/crack/checks/blank_secret"
-	"github.com/cerberauth/vulnapi/internal/auth"
-	"github.com/cerberauth/vulnapi/internal/finding"
-	"github.com/cerberauth/vulnapi/internal/operation"
+	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cerberauth/vulnapi/internal/auth"
+	"github.com/cerberauth/vulnapi/internal/operation"
 )
 
-func TestToFindingResult_Vulnerable(t *testing.T) {
-	r := harnessx.DataResult(checkbase.ProbeResult{Payload: "exploited-token", Vulnerable: true})
-
-	result := toFindingResult(r)
-
-	f, ok := harnessx.DataAs[*finding.Finding](result)
-	require.True(t, ok)
-	assert.Equal(t, "exploited-token", f.Parameter)
+func jwtResource(t *testing.T, url string) harnessx.Resource {
+	t.Helper()
+	token, err := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, jwtlib.MapClaims{"sub": "u"}).SignedString([]byte("secret"))
+	require.NoError(t, err)
+	op := operation.MustNewOperation(http.MethodGet, url, nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("Authorization", &token)})
+	return harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
 }
 
-func TestToFindingResult_NotVulnerable(t *testing.T) {
-	r := harnessx.DataResult(checkbase.ProbeResult{Vulnerable: false})
+func TestChecks_EmbedJWTopPack(t *testing.T) {
+	checks := Checks()
+	require.NotEmpty(t, checks)
+	assert.Equal(t, ProbeCtxCheckID, checks[0].ID)
+	assert.True(t, ProbeCtxCheck.Internal)
+	assert.True(t, BaselineCheck.Internal)
 
-	result := toFindingResult(r)
-
-	_, ok := harnessx.DataAs[*finding.Finding](result)
-	assert.False(t, ok)
-}
-
-func TestToFindingResult_Skipped(t *testing.T) {
-	r := harnessx.Result{Skipped: true, SkipReason: "HMAC-only exploit"}
-
-	result := toFindingResult(r)
-
-	assert.True(t, result.Skipped)
-	assert.Equal(t, "HMAC-only exploit", result.SkipReason)
-}
-
-func TestToFindingResult_Err(t *testing.T) {
-	r := harnessx.Result{Err: assert.AnError}
-
-	result := toFindingResult(r)
-
-	assert.Equal(t, assert.AnError, result.Err)
-}
-
-// TestAdapt_RunResource_ProbeContextUnavailable_ReturnsErr guards Adapt's
-// own error handling: a resource whose ProbeCtx wasn't built (here, the
-// store never ran ProbeCtxCheck) must surface as an error from RunResource
-// rather than panic on the target.Data type assertion every jwtop check
-// relies on.
-func TestAdapt_RunResource_ProbeContextUnavailable_ReturnsErr(t *testing.T) {
-	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
-	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
-
-	result, err := Adapt(blanksecret.Check).RunResource(context.Background(), harnessx.Target{}, resource, harnessx.NewStaticResultStore())
-
-	require.Error(t, err)
-	assert.False(t, result.Skipped)
-}
-
-// TestAdapt_DependsOn_KeepsJWTopDeps guards that Adapt keeps jwtop's own
-// DependsOn (e.g. blank_secret depends on baseline) exactly as jwtop wrote
-// it, in addition to ProbeCtxCheckID — losing it would run checks out of
-// jwtop's own intended order.
-func TestAdapt_DependsOn_KeepsJWTopDeps(t *testing.T) {
-	adapted := Adapt(blanksecret.Check)
-
+	adapted := Check(blanksecret.Check.ID)
+	assert.Equal(t, harnessx.ScopePerResource, adapted.Scope)
 	assert.Contains(t, adapted.DependsOn, ProbeCtxCheckID)
 	for _, dep := range blanksecret.Check.DependsOn {
 		assert.Contains(t, adapted.DependsOn, dep)
+	}
+	assert.Panics(t, func() { Check("jwt.unknown") })
+}
+
+func TestChecks_RunPerJWTResource(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	withJWT := jwtResource(t, srv.URL+"/jwt")
+	withJWT.ID = "jwt"
+	plain := operation.MustNewOperation(http.MethodGet, srv.URL+"/plain", nil, nil)
+	discover := harnessx.Check{ID: "_operations", Run: func(context.Context, harnessx.Target, harnessx.ResultStore) (harnessx.Result, error) {
+		return harnessx.Result{Resources: []harnessx.Resource{withJWT, {ID: "plain", URL: plain.URL.String(), Data: plain}}}, nil
+	}}
+
+	checks := []harnessx.Check{discover}
+	for _, c := range Checks() {
+		c.DependsOn = append([]harnessx.CheckID{discover.ID}, c.DependsOn...)
+		checks = append(checks, c)
+	}
+	summary, err := harnessx.New(harnessx.WithChecks(checks...)).Run(context.Background(), harnessx.Target{URL: srv.URL})
+	require.NoError(t, err)
+
+	var noVerification []harnessx.Result
+	for _, r := range summary.Results {
+		assert.NotEqual(t, checkbase.CheckIDBaseline, r.CheckID)
+		assert.NotEqual(t, ProbeCtxCheckID, r.CheckID)
+		if r.CheckID == "jwt.no_verification" {
+			noVerification = append(noVerification, r)
+		}
+	}
+	require.Len(t, noVerification, 2)
+	for _, r := range noVerification {
+		if r.ResourceID == withJWT.ID {
+			assert.NotEmpty(t, r.Observations)
+		} else {
+			assert.Equal(t, "security scheme is not a JWT bearer token", r.SkipReason)
+		}
 	}
 }
 
@@ -97,36 +99,6 @@ func TestBuildProbeCtx(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, token, pctx.TokenString)
-}
-
-// TestProbeCtxCheck_RunResource_SharedViaStore guards the replacement for
-// the old hand-rolled probeCtxCache: every check reading
-// store.GetForResource(ProbeCtxCheckID, resourceID) must see the exact
-// same *checkbase.ProbeCtx instance for a resource, since baseline mutates
-// it in place and dependent checks read those mutations back off the same
-// pointer.
-func TestProbeCtxCheck_RunResource_SharedViaStore(t *testing.T) {
-	token := "header.payload.signature"
-	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
-	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("Authorization", &token)})
-	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
-
-	result, err := ProbeCtxCheck.RunResource(context.Background(), harnessx.Target{}, resource, harnessx.NewStaticResultStore())
-	require.NoError(t, err)
-
-	first, ok := harnessx.DataAs[*checkbase.ProbeCtx](result)
-	require.True(t, ok)
-	first.Alg = "HS256" // simulate baseline mutating the shared ProbeCtx
-
-	store := harnessx.NewStaticResultStore(harnessx.Result{CheckID: ProbeCtxCheckID, ResourceID: resource.ID, Data: first})
-
-	innerTarget, err := innerTargetFor(resource, store)
-	require.NoError(t, err)
-
-	second, ok := innerTarget.Data.(*checkbase.ProbeCtx)
-	require.True(t, ok)
-	assert.Same(t, first, second)
-	assert.Equal(t, "HS256", second.Alg)
 }
 
 func TestProbeCtxCheck_RunResource_SeedsKnownHMACSecret(t *testing.T) {

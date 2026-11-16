@@ -90,6 +90,13 @@ func (a *harnessxReporter) OnCheckComplete(result harnessx.Result) {
 		target := a.target
 		a.findings = append(a.findings, toFinding(def, f, op, target))
 		a.mu.Unlock()
+	} else if len(result.Observations) > 0 {
+		def := a.checkDefs[result.CheckID]
+		f := &finding.Finding{Parameter: result.Observations[0].Evidence}
+
+		a.mu.Lock()
+		a.findings = append(a.findings, toFinding(def, f, a.resources[result.ResourceID], a.target))
+		a.mu.Unlock()
 	}
 
 	if a.callback != nil {
