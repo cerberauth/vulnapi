@@ -40,6 +40,14 @@ import (
 	httpmethodoverrideauthbypass "github.com/cerberauth/vulnapi/scan/misconfiguration/http_method_override_auth_bypass"
 	httptrace "github.com/cerberauth/vulnapi/scan/misconfiguration/http_trace"
 	httptrack "github.com/cerberauth/vulnapi/scan/misconfiguration/http_track"
+	tlscertificateexpired "github.com/cerberauth/vulnapi/scan/tls/certificate_expired"
+	tlscertificatehostnamemismatch "github.com/cerberauth/vulnapi/scan/tls/certificate_hostname_mismatch"
+	tlscertificateuntrusted "github.com/cerberauth/vulnapi/scan/tls/certificate_untrusted"
+	tlscipherweak "github.com/cerberauth/vulnapi/scan/tls/cipher_weak"
+	tlsfetch "github.com/cerberauth/vulnapi/scan/tls/fetch"
+	tlsforwardsecrecymissing "github.com/cerberauth/vulnapi/scan/tls/forward_secrecy_missing"
+	tlshttpaccepted "github.com/cerberauth/vulnapi/scan/tls/http_accepted"
+	tlsprotocoldeprecated "github.com/cerberauth/vulnapi/scan/tls/protocol_deprecated"
 )
 
 func WithAllCommonScans(s *scan.Scan) *scan.Scan {
@@ -48,6 +56,14 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(acceptunauthenticated.Check, &acceptunauthenticated.Def)
 	s.AddCheck(authenticationbypass.Check, &authenticationbypass.Def)
 
+	s.AddCheck(tlsfetch.Check, nil)
+	s.AddCheck(tlshttpaccepted.Check, &tlshttpaccepted.Def)
+	s.AddCheck(tlscertificateuntrusted.Check, &tlscertificateuntrusted.Def)
+	s.AddCheck(tlscertificateexpired.Check, &tlscertificateexpired.Def)
+	s.AddCheck(tlscertificatehostnamemismatch.Check, &tlscertificatehostnamemismatch.Def)
+	s.AddCheck(tlsprotocoldeprecated.Check, &tlsprotocoldeprecated.Def)
+	s.AddCheck(tlscipherweak.Check, &tlscipherweak.Def)
+	s.AddCheck(tlsforwardsecrecymissing.Check, &tlsforwardsecrecymissing.Def)
 	s.AddCheck(jwtcheckbase.ProbeCtxCheck, nil)
 	s.AddCheck(jwtcheckbase.BaselineCheck, nil)
 	s.AddCheck(jwtnoverification.Check, &jwtnoverification.Def)

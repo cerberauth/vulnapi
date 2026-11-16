@@ -56,6 +56,20 @@ Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cer
 | `misconfiguration.http_track` | Méthode HTTP TRACK activée | API8:2023 | Info |
 | `misconfiguration.http_method_override` | En-têtes de substitution de méthode HTTP acceptés | API8:2023 | Info–Élevé |
 
+## Sécurité du transport (TLS)
+
+| Identifiant de scan | Nom | OWASP | CVSS |
+|---------|-----|-------|------|
+| `tls.http_accepted` | HTTP accepté sans TLS | API8:2023 | 6.9 |
+| `tls.certificate_untrusted` | Certificat TLS non approuvé | API8:2023 | 6.9 |
+| `tls.certificate_expired` | Certificat TLS expiré | API8:2023 | 6.9 |
+| `tls.certificate_hostname_mismatch` | Nom d'hôte du certificat TLS incorrect | API8:2023 | 6.9 |
+| `tls.protocol_deprecated` | Version obsolète du protocole TLS acceptée | API8:2023 | 6.9 |
+| `tls.cipher_weak` | Suite de chiffrement TLS faible acceptée | API8:2023 | 6.9 |
+| `tls.forward_secrecy_missing` | Confidentialité persistante TLS absente ou faible | API8:2023 | 6.9 |
+
+Ces scans s'exécutent une fois par `hôte:port` distinct, et non par opération.
+
 ## GraphQL
 
 | Identifiant de scan | Nom | OWASP | CVSS |
