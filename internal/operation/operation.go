@@ -256,6 +256,15 @@ func (operation *Operation) GetSecurityScheme() *auth.SecurityScheme {
 	return operation.SecuritySchemes[0]
 }
 
+func (operation *Operation) AcceptsUnauthenticated() bool {
+	for _, securityScheme := range operation.GetSecuritySchemes() {
+		if securityScheme.GetType() == auth.None {
+			return true
+		}
+	}
+	return false
+}
+
 func (operation *Operation) SetSecuritySchemes(securitySchemes []*auth.SecurityScheme) *Operation {
 	operation.SecuritySchemes = securitySchemes
 	return operation

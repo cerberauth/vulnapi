@@ -43,3 +43,19 @@ func TestCheckNoAuthOperationScanHandler_Passed_WhenAuthConfigured(t *testing.T)
 	_, ok := harnessx.DataAs[*finding.Finding](result)
 	assert.False(t, ok)
 }
+
+func TestAcceptUnauthenticatedScanHandler_Failed_WhenOptionalSecurityRequirement(t *testing.T) {
+	token := "token"
+	op := operation.MustNewOperation(http.MethodGet, "http://localhost:8080/", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{
+		auth.MustNewAuthorizationBearerSecurityScheme("default", &token),
+		auth.MustNewNoAuthSecurityScheme(),
+	})
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+
+	result, err := acceptunauthenticated.Check.RunResource(context.Background(), harnessx.Target{URL: op.URL.String()}, resource, nil)
+
+	require.NoError(t, err)
+	_, ok := harnessx.DataAs[*finding.Finding](result)
+	assert.True(t, ok)
+}

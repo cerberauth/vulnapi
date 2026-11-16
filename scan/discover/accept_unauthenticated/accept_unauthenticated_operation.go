@@ -7,7 +7,6 @@ import (
 
 	"github.com/cerberauth/harnessx"
 	hxcheckdef "github.com/cerberauth/harnessx/checkdef"
-	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/finding"
 	"github.com/cerberauth/vulnapi/internal/operation"
 )
@@ -22,9 +21,7 @@ var Check = hxcheckdef.NewResourceCheck(Def, func(ctx context.Context, _ harness
 	if !ok {
 		return harnessx.Result{Err: errors.New("accept_unauthenticated: resource missing *operation.Operation")}, nil
 	}
-	securityScheme := op.GetSecurityScheme()
-
-	if securityScheme.GetType() != auth.None {
+	if !op.AcceptsUnauthenticated() {
 		return harnessx.Result{}, nil
 	}
 	return harnessx.Result{Data: &finding.Finding{}}, nil

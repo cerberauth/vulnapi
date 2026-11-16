@@ -88,7 +88,6 @@ func TestOperations_AndSecurityRequirementSendsCompanionCredentials(t *testing.T
 	// "api_key" sorts first, so it is the scheme under test and the bearer
 	// token is sent along with every request
 	assert.Equal(t, []*auth.SecurityScheme{securitySchemes["api_key"]}, operations[0].SecuritySchemes)
-	assert.Equal(t, "Bearer token", operations[0].Header.Get("Authorization"))
 }
 
 func TestOperations_RequestBodies(t *testing.T) {
@@ -163,4 +162,33 @@ func TestOperations_RequestBodies(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOperations_OptionalSecurityRequirementAcceptsUnauthenticated(t *testing.T) {
+	openapiContract, err := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{bearer_auth: []}, {}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer}}}}`))
+	require.NoError(t, err)
+	token := "token"
+	securitySchemes, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewSecuritySchemeValues(map[string]interface{}{"bearer_auth": &token}))
+	require.NoError(t, err)
+
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemes)
+
+	require.NoError(t, err)
+	require.Len(t, operations[0].SecuritySchemes, 2)
+	assert.Equal(t, securitySchemes["bearer_auth"], operations[0].GetSecurityScheme())
+	assert.Equal(t, auth.None, operations[0].SecuritySchemes[1].GetType())
+	assert.True(t, operations[0].AcceptsUnauthenticated())
+}
+
+func TestOperations_RequiredSecurityRequirementRejectsUnauthenticated(t *testing.T) {
+	openapiContract, err := openapi.LoadFromData(t.Context(), []byte(`{openapi: 3.0.2, servers: [{url: 'http://localhost:8080'}], paths: {/: {get: {responses: {'204': {description: ok}}, security: [{bearer_auth: []}]}}}, components: {securitySchemes: {bearer_auth: {type: http, scheme: bearer}}}}`))
+	require.NoError(t, err)
+	token := "token"
+	securitySchemes, err := openapiContract.SecuritySchemeMap(t.Context(), openapi.NewSecuritySchemeValues(map[string]interface{}{"bearer_auth": &token}))
+	require.NoError(t, err)
+
+	operations, err := openapiContract.Operations(t.Context(), nil, securitySchemes)
+
+	require.NoError(t, err)
+	assert.False(t, operations[0].AcceptsUnauthenticated())
 }

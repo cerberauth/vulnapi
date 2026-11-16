@@ -8,7 +8,7 @@ import { Tabs, TabItem } from '@/components/docs'
 <table>
   <tr>
     <th>Scan ID</th>
-    <td><code>generic.accept_unauthenticated_operation</code></td>
+    <td><code>broken_authentication.authentication_bypass</code></td>
   </tr>
   <tr>
     <th>Severity</th>
@@ -19,6 +19,12 @@ import { Tabs, TabItem } from '@/components/docs'
     <td>9.3 — <code>CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N</code></td>
   </tr>
   <tr>
+    <th>Classifications</th>
+    <td>
+      <a href="https://cwe.mitre.org/data/definitions/306.html">CWE-306: Missing Authentication for Critical Function</a>
+    </td>
+  </tr>
+  <tr>
     <th>OWASP Category</th>
     <td>
       <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
@@ -27,6 +33,8 @@ import { Tabs, TabItem } from '@/components/docs'
 </table>
 
 The "Authentication Bypass" vulnerability occurs when an endpoint that is expected to require authentication returns a success response (2xx) when the request contains no credentials at all. VulnAPI detects this by sending a request to the endpoint without any `Authorization` header, cookies, or other credentials and checking if the response indicates success rather than returning a `401 Unauthorized` or `403 Forbidden`.
+
+The unauthenticated response is compared with the authenticated one: a redirect (for example to a login page) or a success response of a different content type (for example an HTML login page served by a catch-all route) counts as a rejection. Operations that declare an optional security requirement (`security: [{bearer: []}, {}]`) are public by design and are not tested.
 
 ## Example
 
@@ -50,17 +58,17 @@ HTTP/1.1 200 OK   ← vulnerable!
 <Tabs>
   <TabItem label="cURL">
 ```bash
-vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans broken_authentication.authentication_bypass
 ```
   </TabItem>
   <TabItem label="OpenAPI">
 ```bash
-echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans generic.accept_unauthenticated_operation --token-stdin
+echo "eyJhbGciOiJSUzUxMiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans broken_authentication.authentication_bypass --token-stdin
 ```
   </TabItem>
   <TabItem label="GraphQL">
 ```bash
-vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans generic.accept_unauthenticated_operation [url]
+vulnapi scan graphql -H "Authorization: Bearer eyJhbGciOiJSUzUxMiI..." --scans broken_authentication.authentication_bypass [url]
 ```
   </TabItem>
 </Tabs>

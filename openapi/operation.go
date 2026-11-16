@@ -92,7 +92,12 @@ func recordOperationSchemes(ctx context.Context, method string, schemes []*auth.
 func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirements, securitySchemes map[string]*auth.SecurityScheme) ([]*auth.SecurityScheme, [][]*auth.SecurityScheme) {
 	operationsSecuritySchemes := []*auth.SecurityScheme{}
 	companions := [][]*auth.SecurityScheme{}
+	optional := false
 	for _, security := range *securityRequirements {
+		if len(security) == 0 {
+			optional = true
+			continue
+		}
 		var requirementSchemes []*auth.SecurityScheme
 		for _, name := range slices.Sorted(maps.Keys(security)) {
 			if securityScheme := securitySchemes[name]; securityScheme != nil {
@@ -105,6 +110,9 @@ func getOperationSecuritySchemes(securityRequirements *openapi3.SecurityRequirem
 
 		operationsSecuritySchemes = append(operationsSecuritySchemes, requirementSchemes[0])
 		companions = append(companions, requirementSchemes[1:])
+	}
+	if optional && len(operationsSecuritySchemes) > 0 {
+		operationsSecuritySchemes = append(operationsSecuritySchemes, auth.MustNewNoAuthSecurityScheme())
 	}
 
 	return operationsSecuritySchemes, companions
