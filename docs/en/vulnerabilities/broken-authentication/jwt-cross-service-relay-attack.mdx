@@ -5,6 +5,10 @@ description: A vulnerability arises when a Token is forged by the same service b
 
 <table>
   <tr>
+    <th>Scan ID</th>
+    <td><code>jwt.audience_not_validated</code>, <code>jwt.issuer_not_validated</code></td>
+  </tr>
+  <tr>
     <th>Severity</th>
     <td>High</td>
   </tr>
@@ -104,7 +108,11 @@ Notice that the `aud` claim has been changed to the attacker's project `Client I
 
 Create a new project with the same service and generate a token (through a legitimate authentication process). Then, try to relay the token to your original project and see if the service accepts the token or not. If the service accepts the token, then the service is vulnerable to this attack.
 
-This test requires manual steps. VulnAPI does not currently automate this scan. Create a second project with the same identity provider, obtain a valid token for that project, then send it to your original project's API. If the API accepts the request, it is vulnerable.
+VulnAPI automates it: pass the token obtained for the other project with `--jwt-other-audience-token` (`jwt.audience_not_validated`), or a token from another issuer of the same identity provider with `--jwt-other-issuer-token` (`jwt.issuer_not_validated`). Without them, when the HMAC secret is known (cracked by `jwt.weak_secret` or passed with `--jwt-secret`), VulnAPI re-signs the token with another `aud` or `iss` instead. Otherwise both scans are skipped.
+
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [token]" --jwt-other-audience-token [token-for-another-project] --scans "jwt.audience_not_validated"
+```
 
 ## What is the impact?
 

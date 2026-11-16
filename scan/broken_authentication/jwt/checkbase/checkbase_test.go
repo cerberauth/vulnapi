@@ -3,6 +3,7 @@ package checkbase
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
@@ -97,6 +98,31 @@ func TestBuildProbeCtx(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, token, pctx.TokenString)
+}
+
+func TestBuildProbeCtx_DoesNotFollowRedirects(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/login" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}))
+	defer srv.Close()
+	token := "header.payload.signature"
+	op := operation.MustNewOperation(http.MethodGet, srv.URL+"/account", nil, nil)
+	op.SetSecuritySchemes([]*auth.SecurityScheme{auth.MustNewAuthorizationBearerSecurityScheme("Authorization", &token)})
+	resource := harnessx.Resource{ID: op.ID, URL: op.URL.String(), Method: op.Method, Data: op}
+
+	pctx, err := buildProbeCtx(resource)
+	require.NoError(t, err)
+	req, err := pctx.NewRequest(context.Background(), token)
+	require.NoError(t, err)
+	resp, err := pctx.Probe.Client().Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusFound, resp.StatusCode)
 }
 
 // TestProbeCtxCheck_RunResource_SharedViaStore guards the replacement for
