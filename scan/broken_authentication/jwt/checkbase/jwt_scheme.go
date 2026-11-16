@@ -30,6 +30,9 @@ func SkipUnlessJWT() harnessx.SkipDecision {
 		if !ShouldBeScanned(op.GetSecurityScheme()) {
 			return "security scheme is not a JWT bearer token"
 		}
+		if op.AcceptsUnauthenticated() {
+			return "operation allows anonymous access"
+		}
 		return ""
 	})
 }
