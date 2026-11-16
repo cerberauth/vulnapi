@@ -26,7 +26,7 @@ func TestDetectSecuritySchemeWithLowercaseBasicAuth(t *testing.T) {
 	header := http.Header{}
 	header.Set("Authorization", "basic dXNlcjpwYXNzd29yZA==")
 
-	securityScheme, err := detectSecurityScheme(header)
+	securityScheme, err := detectSecurityScheme(header, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, auth.BasicScheme, securityScheme.GetScheme())
@@ -76,4 +76,44 @@ func TestDetectAPIKeyHeader(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDetectSecuritySchemeFromSessionCookie(t *testing.T) {
+	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl"
+	tests := []struct {
+		name         string
+		cookies      []*http.Cookie
+		expectedName string
+		jwt          bool
+	}{
+		{"session cookie", []*http.Cookie{{Name: "theme", Value: "dark"}, {Name: "SESSIONID", Value: "abc"}}, "SESSIONID", false},
+		{"jwt cookie", []*http.Cookie{{Name: "theme", Value: "dark"}, {Name: "id", Value: jwt}}, "id", true},
+		{"csrf cookie only", []*http.Cookie{{Name: "csrf_token", Value: "abc"}}, "", false},
+		{"no credential cookie", []*http.Cookie{{Name: "theme", Value: "dark"}}, "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			securityScheme, err := detectSecurityScheme(http.Header{}, tt.cookies)
+
+			assert.NoError(t, err)
+			if tt.expectedName == "" {
+				assert.Nil(t, securityScheme)
+				return
+			}
+			assert.Equal(t, auth.ApiKey, securityScheme.GetType())
+			assert.Equal(t, auth.InCookie, *securityScheme.GetIn())
+			assert.Equal(t, tt.expectedName, securityScheme.GetName())
+			assert.Equal(t, tt.jwt, securityScheme.GetTokenFormat() != nil && *securityScheme.GetTokenFormat() == auth.JWTTokenFormat)
+		})
+	}
+}
+
+func TestDetectSecuritySchemePrefersHeaderOverCookie(t *testing.T) {
+	header := http.Header{}
+	header.Set("Authorization", "Bearer token")
+
+	securityScheme, err := detectSecurityScheme(header, []*http.Cookie{{Name: "session", Value: "abc"}})
+
+	assert.NoError(t, err)
+	assert.Equal(t, auth.BearerScheme, securityScheme.GetScheme())
 }

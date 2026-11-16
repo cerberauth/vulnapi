@@ -78,12 +78,15 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 			for key, value := range securitySchemesValueArg {
 				values[key] = &value
 			}
-			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken)
-
 			client, err := internalCmd.NewHTTPClientFromCmd(cmd)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-creating-http-client"))
 			}
+			credentials, err := internalCmd.ApplyAuthFlags(cmd, client)
+			if err != nil {
+				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
+			}
+			securitySchemesValues := openapi.NewSecuritySchemeValues(values).WithDefault(validToken).WithCredentials(credentials)
 			headers, cookies, err := cobracurl.BuildRequestHeaders(cmd)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "error-building-request-headers"))
@@ -129,7 +132,8 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 	}
 
 	internalCmd.AddCommonArgs(scanCmd)
-	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Example value for each security scheme")
+	internalCmd.AddAuthFlags(scanCmd)
+	scanCmd.Flags().StringToStringVarP(&securitySchemesValueArg, "security-schemes", "", nil, "Value for each security scheme: a token, an API key, or user:password for HTTP Basic")
 	scanCmd.Flags().BoolVar(&tokenStdin, "token-stdin", false, "Read the default security scheme token from stdin")
 	scanCmd.Flags().StringVar(&serverUrl, "server-url", "", "Base URL of the API, overriding the servers of the OpenAPI document")
 	return scanCmd

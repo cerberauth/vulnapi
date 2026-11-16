@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,6 +25,8 @@ type SecurityScheme struct {
 
 	ValidValue  interface{} `json:"-" yaml:"-"`
 	AttackValue interface{} `json:"-" yaml:"-"`
+
+	credential *ManagedCredential
 }
 type SecuritySchemesMap map[string]*SecurityScheme
 
@@ -68,7 +71,7 @@ func (securityScheme *SecurityScheme) GetToken() string {
 		return ""
 	}
 	switch securityScheme.GetType() {
-	case OAuth2:
+	case OAuth2, OpenIdConnect:
 		return securityScheme.GetValidValue().(*OAuthValue).GetAccessToken()
 	default:
 		return securityScheme.GetValidValue().(string)
@@ -142,7 +145,7 @@ func (securityScheme *SecurityScheme) validateValue(value interface{}) error {
 			return nil
 		}
 
-	case OAuth2:
+	case OAuth2, OpenIdConnect:
 		_, ok := value.(*OAuthValue)
 		if !ok {
 			return fmt.Errorf("invalid value for oauth2 security scheme")
@@ -168,7 +171,45 @@ func (securityScheme *SecurityScheme) SetValidValue(value interface{}) error {
 }
 
 func (securityScheme *SecurityScheme) GetValidValue() interface{} {
+	if securityScheme.credential != nil {
+		if value, err := securityScheme.credential.Value(context.Background()); err == nil {
+			return securityScheme.credentialValue(value)
+		}
+	}
 	return securityScheme.ValidValue
+}
+
+func (securityScheme *SecurityScheme) credentialValue(value string) interface{} {
+	switch securityScheme.GetType() {
+	case OAuth2, OpenIdConnect:
+		return NewOAuthValue(value, nil, nil, nil)
+	default:
+		return value
+	}
+}
+
+func (securityScheme *SecurityScheme) SetCredential(ctx context.Context, credential *ManagedCredential) error {
+	if securityScheme.GetType() == HttpType && securityScheme.GetScheme() == BasicScheme {
+		return fmt.Errorf("security scheme %q does not take a token", securityScheme.GetName())
+	}
+	value, err := credential.Value(ctx)
+	if err != nil {
+		return fmt.Errorf("obtaining credentials for security scheme %q: %w", securityScheme.GetName(), err)
+	}
+	if err := securityScheme.SetValidValue(securityScheme.credentialValue(value)); err != nil {
+		return err
+	}
+	if securityScheme.GetType() != ApiKey || jwtop.IsJWT(value) {
+		tokenFormat := NoneTokenFormat
+		if jwtop.IsJWT(value) {
+			tokenFormat = JWTTokenFormat
+		}
+		if err := securityScheme.SetTokenFormat(tokenFormat); err != nil {
+			return err
+		}
+	}
+	securityScheme.credential = credential
+	return nil
 }
 
 func (securityScheme *SecurityScheme) HasValidValue() bool {
@@ -231,6 +272,17 @@ func (securityScheme *SecurityScheme) GetHeaders() http.Header {
 	case ApiKey:
 		if val := fmt.Sprintf("%s", attackValue); val != "" {
 			header.Set(securityScheme.GetName(), val)
+		}
+	case OAuth2, OpenIdConnect:
+		var token string
+		switch value := attackValue.(type) {
+		case *OAuthValue:
+			token = value.GetAccessToken()
+		case string:
+			token = value
+		}
+		if token != "" {
+			header.Set(AuthorizationHeader, fmt.Sprintf("%s %s", BearerPrefix, token))
 		}
 	}
 

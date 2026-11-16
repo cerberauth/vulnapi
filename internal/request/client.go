@@ -47,6 +47,8 @@ type Client struct {
 	// UserAgent is the default User-Agent, overridden by a User-Agent in
 	// Header (e.g. from -A or -H). DefaultUserAgent is used when empty.
 	UserAgent string
+
+	Credentials *auth.CredentialRegistry
 }
 
 type NewClientOptions struct {
