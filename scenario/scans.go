@@ -44,10 +44,13 @@ import (
 	tlscertificatehostnamemismatch "github.com/cerberauth/vulnapi/scan/tls/certificate_hostname_mismatch"
 	tlscertificateuntrusted "github.com/cerberauth/vulnapi/scan/tls/certificate_untrusted"
 	tlscipherweak "github.com/cerberauth/vulnapi/scan/tls/cipher_weak"
+	tlsdrown "github.com/cerberauth/vulnapi/scan/tls/drown"
 	tlsfetch "github.com/cerberauth/vulnapi/scan/tls/fetch"
 	tlsforwardsecrecymissing "github.com/cerberauth/vulnapi/scan/tls/forward_secrecy_missing"
+	tlsheartbleed "github.com/cerberauth/vulnapi/scan/tls/heartbleed"
 	tlshttpaccepted "github.com/cerberauth/vulnapi/scan/tls/http_accepted"
 	tlsprotocoldeprecated "github.com/cerberauth/vulnapi/scan/tls/protocol_deprecated"
+	tlsrobot "github.com/cerberauth/vulnapi/scan/tls/robot"
 )
 
 func WithAllCommonScans(s *scan.Scan) *scan.Scan {
@@ -64,6 +67,9 @@ func WithAllCommonScans(s *scan.Scan) *scan.Scan {
 	s.AddCheck(tlsprotocoldeprecated.Check, &tlsprotocoldeprecated.Def)
 	s.AddCheck(tlscipherweak.Check, &tlscipherweak.Def)
 	s.AddCheck(tlsforwardsecrecymissing.Check, &tlsforwardsecrecymissing.Def)
+	s.AddCheck(tlsheartbleed.Check, &tlsheartbleed.Def)
+	s.AddCheck(tlsdrown.Check, &tlsdrown.Def)
+	s.AddCheck(tlsrobot.Check, &tlsrobot.Def)
 	s.AddCheck(jwtcheckbase.ProbeCtxCheck, nil)
 	s.AddCheck(jwtcheckbase.BaselineCheck, nil)
 	s.AddCheck(jwtnoverification.Check, &jwtnoverification.Def)

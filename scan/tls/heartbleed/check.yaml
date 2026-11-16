@@ -1,0 +1,11 @@
+id: "tls.heartbleed"
+name: "Heartbleed (CVE-2014-0160)"
+description: "The API answers TLS heartbeat requests declaring a longer payload than they carry, leaking server memory such as private keys and session data."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/tls?utm_source=vulnapi-report"
+tags:
+  - tls
+depends_on: ["tls.fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-125"
+owasp: "API8:2023"
