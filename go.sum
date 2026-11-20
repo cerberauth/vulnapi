@@ -12,8 +12,12 @@ github.com/cerberauth/jwtop v0.9.0 h1:A56Zh4GS6Xuay5CDweLZIN3nC4Uu7oWckCYYB+3MGM
 github.com/cerberauth/jwtop v0.9.0/go.mod h1:gbNTyX5ENtCRrfQQUuYNAurr0nRwtz9/pgIC8WdJxxU=
 github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
 github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
+github.com/cerberauth/reportx v0.4.1 h1:QV6qD1Ko+/Z+e3zFE4/+8l+rpslKEdmdYU9y5y6q758=
+github.com/cerberauth/reportx v0.4.1/go.mod h1:uqi3NjzOROc9m33RpfOfjyxci0FRslrcWHCBlfdrhrM=
 github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173 h1:Gy8q2r+13DVhSZMnvopTCr0gVGJHyRoMnH0Pn1boWY0=
 github.com/cerberauth/x v0.0.0-20261108232819-0070b4a32173/go.mod h1:rQzImO57nyY3NAmaG+aVmWuFRif7WfdnfgnFFptoDmQ=
+github.com/cerberauth/x v0.0.0-20261115155959-c025fc3e303d h1:zuEIGibF4XgHU4lgm9+AfnPNTvVVSbQzKKsX+du6phg=
+github.com/cerberauth/x v0.0.0-20261115155959-c025fc3e303d/go.mod h1:6SVKnIqRFzTSh11wrbSz2NzUda8oDAGHU7iPz6h8tUs=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chengxilo/virtualterm v1.0.4 h1:Z6IpERbRVlfB8WkOmtbHiDbBANU7cimRIof7mk9/PwM=
