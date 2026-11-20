@@ -48,6 +48,7 @@ func NewAPICmd() (apiCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewDiscoverAPIScan(engine, http.MethodGet, parsedUrl, client, &scan.ScanOptions{
+				ToolVersion:        internalCmd.Version(cmd),
 				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
 				IncludeScans:       internalCmd.GetIncludeScans(),
 				ExcludeScans:       internalCmd.GetExcludeScans(),

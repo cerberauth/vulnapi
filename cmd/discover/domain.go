@@ -36,6 +36,7 @@ func NewDomainCmd() (domainCmd *cobra.Command) {
 			fmt.Printf("Discovering APIs for %s\n", domain)
 			engine := harnessx.New()
 			scans, err := scenario.NewDiscoverDomainsScan(engine, domain, client, &scan.ScanOptions{
+				ToolVersion:        internalCmd.Version(cmd),
 				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
 				IncludeScans:       internalCmd.GetIncludeScans(),
 				ExcludeScans:       internalCmd.GetExcludeScans(),

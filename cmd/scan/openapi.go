@@ -98,6 +98,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewOpenAPIScan(ctx, engine, doc, securitySchemesValues, client, &scan.ScanOptions{
+				ToolVersion:        internalCmd.Version(cmd),
 				AllowUnsafeMethods: internalCmd.GetAllowUnsafeMethods(),
 				IncludeScans:       internalCmd.GetIncludeScans(),
 				ExcludeScans:       internalCmd.GetExcludeScans(),

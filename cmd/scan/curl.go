@@ -62,6 +62,7 @@ func NewCURLScanCmd() (scanCmd *cobra.Command) {
 
 			engine := harnessx.New()
 			s, err := scenario.NewURLScan(engine, req.Method, req.URL, curlData, client, &scan.ScanOptions{
+				ToolVersion:        internalCmd.Version(cmd),
 				AllowUnsafeMethods: allowUnsafeMethods,
 				IncludeScans:       internalCmd.FilterScans(includeScans),
 				ExcludeScans:       internalCmd.FilterScans(excludeScans),
