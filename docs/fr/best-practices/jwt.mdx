@@ -1,6 +1,8 @@
 ---
 title: Bonnes pratiques de sécurité JWT
 description: Bonnes pratiques pour implémenter de manière sécurisée les JSON Web Tokens (JWT) dans vos API.
+sidebar:
+  order: 1
 ---
 
 Les JSON Web Tokens (JWT) sont largement utilisés pour l'authentification et l'autorisation dans les API. Lorsqu'ils sont mal implémentés, ils deviennent une surface d'attaque à haute sévérité. Ce guide présente les meilleures pratiques les plus importantes et associe chaque point à l'analyse VulnAPI correspondante.
@@ -13,7 +15,7 @@ Privilégiez les algorithmes asymétriques (RS256, ES256) pour les systèmes dis
 - **Acceptable pour les systèmes à service unique** : HS256, HS384, HS512 (avec un secret fort — voir ci-dessous)
 - **À ne jamais utiliser** : `alg: none` en production
 
-L'utilisation de `alg: none` supprime toute protection cryptographique, rendant les jetons facilement falsifiables. VulnAPI détecte cela avec l'analyse [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt-alg-none).
+L'utilisation de `alg: none` supprime toute protection cryptographique, rendant les jetons facilement falsifiables. VulnAPI détecte cela avec l'analyse [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt/jwt-alg-none).
 
 ## Utiliser un secret aléatoire d'au moins 256 bits pour HMAC
 
@@ -23,7 +25,7 @@ Lors de l'utilisation d'algorithmes HMAC (HS256/HS384/HS512), la clé secrète d
 - Pas un mot du dictionnaire, un défaut bien connu ou une chaîne prévisible
 - Pas une chaîne vide
 
-Les jetons signés avec des secrets vides ou faibles sont détectés par les analyses [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt-blank-secret) et [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt-weak-secret).
+Les jetons signés avec des secrets vides ou faibles sont détectés par les analyses [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt/jwt-blank-secret) et [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt/jwt-weak-secret).
 
 ```bash
 # Générer un secret sécurisé de 256 bits (Linux/macOS)
@@ -34,7 +36,7 @@ openssl rand -base64 32
 
 Ne faites jamais confiance à un JWT sans vérifier sa signature à l'aide de la clé appropriée. L'omission de la vérification des signatures est l'une des erreurs d'implémentation les plus dangereuses.
 
-VulnAPI détecte cela avec l'analyse [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt-not-verified) (CVSS 9.3).
+VulnAPI détecte cela avec l'analyse [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt/jwt-signature-not-verified) (CVSS 9.3).
 
 ```python
 # Exemple Python avec PyJWT — passez toujours explicitement les algorithmes
@@ -46,19 +48,19 @@ payload = jwt.decode(token, public_key, algorithms=["RS256"])
 
 Certaines bibliothèques JWT acceptent des jetons dont le segment de signature est vide (signature nulle). Configurez toujours votre bibliothèque pour exiger une signature valide et non vide.
 
-VulnAPI détecte cela avec l'analyse [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature).
+VulnAPI détecte cela avec l'analyse [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt/jwt-null-signature).
 
 ## Ne jamais résoudre les clés depuis l'en-tête du jeton
 
 La clé de vérification doit provenir de la configuration côté serveur, jamais du jeton lui-même. Un attaquant contrôle tous les en-têtes : faire confiance à `jwk`, `jku`, `x5c` ou `x5u` lui permet de signer avec une clé qu'il a générée. Si la rotation des clés est nécessaire, résolvez `kid` avec un jeu de clés de confiance côté serveur et — lorsque la récupération dynamique est inévitable — validez `jku`/`x5u` avec une liste d'autorisation stricte d'URL connues.
 
-VulnAPI détecte cela avec les analyses [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt-x5c-injection) et [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt-x5u-injection).
+VulnAPI détecte cela avec les analyses [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt/jwt-x5c-injection) et [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt/jwt-x5u-injection).
 
 ## Imposer une seule famille d'algorithmes attendue
 
-Fixez le ou les algorithmes exacts que vous attendez. Accepter l'en-tête `alg` du jeton permet l'attaque de [confusion d'algorithme](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) (jeton asymétrique resigné en HMAC avec la clé publique) et, pour les vérificateurs ECDSA sur des environnements vulnérables, l'attaque de [signature psychique](../vulnerabilities/broken-authentication/jwt-psychic-signature) (CVE-2022-21449).
+Fixez le ou les algorithmes exacts que vous attendez. Accepter l'en-tête `alg` du jeton permet l'attaque de [confusion d'algorithme](../vulnerabilities/broken-authentication/jwt/jwt-algorithm-confusion) (jeton asymétrique resigné en HMAC avec la clé publique) et, pour les vérificateurs ECDSA sur des environnements vulnérables, l'attaque de [signature psychique](../vulnerabilities/broken-authentication/jwt/jwt-psychic-signature) (CVE-2022-21449).
 
-VulnAPI détecte cela avec les analyses [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) et [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt-psychic-signature).
+VulnAPI détecte cela avec les analyses [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt/jwt-algorithm-confusion) et [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt/jwt-psychic-signature).
 
 ## Valider les revendications standards (Claims)
 
@@ -72,15 +74,15 @@ Après avoir vérifié la signature, valisez ces revendications avant de faire c
 | `nbf` | Date d'effet (Not-before) | Rejeter si l'heure actuelle est antérieure à `nbf` |
 | `sub` | Sujet (Subject) — qui le jeton représente | Vérifier que l'utilisateur existe toujours / est actif |
 
-Le fait de ne pas valider `iss` et `aud` permet des [attaques par relais inter-services](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
+Le fait de ne pas valider `iss` et `aud` permet des [attaques par relais inter-services](../vulnerabilities/broken-authentication/jwt/jwt-cross-service-relay-attack).
 
-VulnAPI détecte les serveurs qui ne valident pas `exp` avec l'analyse [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt-timestamp-tampering), qui s'exécute pour les jetons HMAC une fois le secret de signature connu (cassé par `jwt.weak_secret` ou passé avec `--jwt-secret`).
+VulnAPI détecte les serveurs qui ne valident pas `exp` avec l'analyse [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt/jwt-timestamp-tampering), qui s'exécute pour les jetons HMAC une fois le secret de signature connu (cassé par `jwt.weak_secret` ou passé avec `--jwt-secret`).
 
 ## Valider le type et la longueur des revendications avant utilisation
 
 Ne présumez pas qu'une revendication que vous attendez comme courte chaîne l'est réellement — une revendication décodée directement dans la logique applicative (un template, une requête SQL, une commande shell) sans vérification de son type ou de sa longueur peut faire planter le serveur, fuiter une trace de pile, ou permettre une injection si elle arrive sous un type inattendu, une chaîne trop longue, ou `null`.
 
-VulnAPI détecte cela avec l'analyse [`jwt.fuzz`](../vulnerabilities/broken-authentication/jwt-claim-fuzzing), qui mute chaque revendication et signale les réponses qui divergent de la référence.
+VulnAPI détecte cela avec l'analyse [`jwt.fuzz`](../vulnerabilities/broken-authentication/jwt/jwt-claim-fuzzing), qui mute chaque revendication et signale les réponses qui divergent de la référence.
 
 ## Utiliser des durées de vie de jeton courtes avec rotation des jetons de rafraîchissement (Refresh Tokens)
 

@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 )
 
-var Def = checkbase.WithLink(kidsqlinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-kid-injection?utm_source=vulnapi-report")
+var Def = checkbase.WithLink(kidsqlinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt/jwt-kid-injection?utm_source=vulnapi-report")
 
 // Check iterates the table-name candidates set on the probe context
 // (checkbase.KidSQLTableCandidates) itself, stopping at the first one that

@@ -7,7 +7,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 )
 
-var Def = checkbase.WithLink(algnone.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-alg-none?utm_source=vulnapi-report")
+var Def = checkbase.WithLink(algnone.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt/jwt-alg-none?utm_source=vulnapi-report")
 
 var Check = checkbase.Adapt(algnone.Check)
 

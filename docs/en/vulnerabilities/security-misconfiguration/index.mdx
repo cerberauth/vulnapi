@@ -1,0 +1,14 @@
+---
+title: Security Misconfiguration
+description: "Checks that detect security misconfigurations such as missing TLS, unsafe cookies or exposed introspection."
+sidebar:
+  order: 1
+---
+
+The scans in this group detect security misconfigurations.
+
+- [TLS Missing or Misconfigured](./tls) — TLS (Transport Layer Security) is a protocol that provides secure communication. Misconfigured or missing TLS for an API can expose sensitive data to attackers.
+- [HTTP Cookies Misconfiguration](./http-cookies) — Missing or misconfigured cookie security flags expose session tokens to theft via XSS, network interception, and cross-site request forgery.
+- [HTTP Method Override Enabled](./http-method-allow-override) — HTTP Method Override is a feature that allows clients to override the default HTTP method used in a request. This feature can be exploited by attackers to bypass security controls and perform unauthorized actions on the server.
+- [HTTP TRACE and TRACK Methods Enabled](./http-trace-track) — HTTP TRACE and TRACK methods echo back the incoming request, potentially exposing authorization headers to attackers.
+- [GraphQL Introspection Enabled](./graphql-introspection) — GraphQL introspection is a feature that allows clients to query the schema of the server. It can be used to discover the schema and types, but it can also be used by attackers to learn about the server's implementation details and find potential vulnerabilities.

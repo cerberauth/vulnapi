@@ -1,0 +1,12 @@
+---
+title: Authentification défaillante
+description: "Vérifications qui détectent les défauts d’authentification des API, du contournement aux faiblesses JWT."
+sidebar:
+  order: 1
+---
+
+Les analyses de ce groupe détectent les défauts d’authentification.
+
+- [Contournement de l'authentification](./authentication-bypass) — Une vulnérabilité où un endpoint nécessitant une authentification accepte des requêtes sans identifiants, permettant un accès non authentifié.
+- [Attaque par force brute sur l'authentification API](./brute-force-attack) — Une attaque par force brute, dans le contexte de l'authentification API, est une méthode d'essai-erreur utilisée par les attaquants pour deviner les bons identifiants (nom d'utilisateur et mot de passe) ou tokens d'accès. Les attaquants utilisent des outils automatisés pour effectuer de multiples requêtes vers le endpoint d'authentification, en essayant différentes combinaisons d'identifiants jusqu'à trouver la bonne. Cette attaque peut mener à un accès non autorisé à l'API et aux données sensibles.
+- [JWT](./jwt) — Vérifications des JSON Web Tokens.

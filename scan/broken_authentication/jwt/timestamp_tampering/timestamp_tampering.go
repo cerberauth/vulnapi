@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 )
 
-var Def = checkbase.WithLink(timestamptampering.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-timestamp-tampering?utm_source=vulnapi-report")
+var Def = checkbase.WithLink(timestamptampering.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt/jwt-timestamp-tampering?utm_source=vulnapi-report")
 
 // Check re-signs the token with an expired exp claim. It needs the HMAC
 // secret, either cracked by the weak_secret check or supplied with

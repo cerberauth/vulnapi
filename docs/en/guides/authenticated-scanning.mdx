@@ -1,0 +1,75 @@
+---
+title: Authenticated Scanning
+description: Let VulnAPI obtain and refresh the credentials of the API under test, with OAuth2, OpenID Connect, a login hook, cookies or HTTP Basic.
+sidebar:
+  order: 2
+---
+
+Most checks need a valid credential for one identity. Instead of passing a pre-minted token, VulnAPI can obtain it before the scan and refresh it when it expires or when the API answers `401 Unauthorized` in the middle of the scan.
+
+A value given explicitly (`-H`, `--security-schemes`, `--token-stdin`) always wins over the options below.
+
+## OAuth2 client credentials
+
+With an OpenAPI document, VulnAPI uses the `tokenUrl` of the `clientCredentials` flow of each `oauth2` security scheme:
+
+```sh
+vulnapi scan openapi ./openapi.json --client-id <id> --client-secret <secret>
+```
+
+Pass `--token-url` to use another token endpoint, for example with `scan curl` or `scan graphql`, and `--oauth2-scope` (repeatable) to request scopes:
+
+```sh
+vulnapi scan curl https://api.example.com/users --token-url https://idp.example.com/oauth/token --client-id <id> --client-secret <secret> --oauth2-scope users:read
+```
+
+## OAuth2 password flow
+
+Add the resource owner credentials to use the `password` flow:
+
+```sh
+vulnapi scan openapi ./openapi.json --client-id <id> --oauth2-username <user> --oauth2-password <password>
+```
+
+## OpenID Connect
+
+For an `openIdConnect` security scheme, VulnAPI reads the token endpoint and the JWKS URI from its `openIdConnectUrl`, then uses the client credentials or password flow as above.
+
+## Login hook
+
+When the API has its own login, run a command that prints the token on stdout:
+
+```sh
+vulnapi scan openapi ./openapi.json --login-command "./scripts/get-token.sh"
+```
+
+Or call a login endpoint and read the token from its JSON response (`access_token` by default, nested fields with a dot separated path):
+
+```sh
+vulnapi scan curl https://api.example.com/users \
+  --login-url https://api.example.com/login \
+  --login-data '{"username":"alice","password":"..."}' \
+  --login-token-field data.token
+```
+
+The token is sent as a bearer token, or as the value of an API key scheme without value. It is refreshed when it expires (`exp` claim of a JWT, or `expires_in` of the login response) and after a `401` response.
+
+## Cookie sessions
+
+`scan curl` recognises a session cookie (`-b session=...`, or any cookie holding a JWT) as the credential under test when no `Authorization` or API key header is set, so the authentication checks apply to it.
+
+## HTTP Basic
+
+Give the credentials of an HTTP Basic scheme as `user:password`:
+
+```sh
+vulnapi scan openapi ./openapi.json --security-schemes basicAuth=alice:secret
+```
+
+## JWT public key
+
+`jwt.hmac_confusion` needs the public key of an asymmetric JWT. Pass it with `--jwt-public-key` (path or URL to a PEM file), otherwise VulnAPI fetches it from the JWKS URI of the OpenID Connect scheme or from `/.well-known/jwks.json` of the API.
+
+## Secrets
+
+Secrets can come from the environment instead of the command line: `VULNAPI_CLIENT_ID`, `VULNAPI_CLIENT_SECRET`, `VULNAPI_OAUTH2_USERNAME` and `VULNAPI_OAUTH2_PASSWORD`. They are never printed, credential headers and cookies are redacted from the report evidence, and they are not sent with telemetry.

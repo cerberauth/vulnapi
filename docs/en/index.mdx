@@ -1,11 +1,11 @@
 ---
-title: Introduction
+title: Get Started
 description: VulnAPI is an Open Source DAST that scans APIs for vulnerabilities and security risks.
 sidebar:
   order: 1
 ---
 
-import { Aside } from '@/components/docs'
+import { Steps, CardGrid, LinkCard } from '@/components/docs'
 
 Welcome to VulnAPI Documentation!
 
@@ -22,11 +22,28 @@ VulnAPI offers three methods for scanning APIs:
 * **Using OpenAPI Contracts**: Use an OpenAPI spec to enumerate all endpoints for scanning.
 * **Using GraphQL**: Point VulnAPI at a GraphQL endpoint to scan it for vulnerabilities.
 
-## Installation
+## Get started
 
-Before making your first scan with VulnAPI, you have to download and install it. Please follow the instructions on the [Installation](./installation) page.
+Get your first API security scan running in under five minutes.
 
-<Aside type="tip">Ready to scan? Follow the [First Scan](./first-scan) guide.</Aside>
+<Steps>
+
+1. **[Install VulnAPI](./installation)** — Download a pre-built binary for Linux, macOS, Windows, or run via Docker.
+
+2. **[Run your first scan](./guides/first-scan)** — Use `vulnapi scan curl` or point VulnAPI at your OpenAPI spec.
+
+3. **Read the report** — Understand the OPERATION / RISK LEVEL / CVSS / OWASP / VULNERABILITY columns and what each finding means.
+
+4. **[Automate in CI/CD](./guides/github-actions)** — Add the VulnAPI GitHub Action to your workflow so every PR is scanned automatically.
+
+</Steps>
+
+<CardGrid>
+  <LinkCard title="Installation" href="./installation" description="Download and install VulnAPI on your platform." />
+  <LinkCard title="First Scan" href="./guides/first-scan" description="Step-by-step guide to your first scan." />
+  <LinkCard title="GitHub Action" href="./guides/github-actions" description="Automate scans in your CI/CD pipeline." />
+  <LinkCard title="CLI Reference" href="./reference/cli" description="All commands, flags, and their defaults." />
+</CardGrid>
 
 ## Documentation
 

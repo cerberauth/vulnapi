@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 )
 
-var Def = checkbase.WithLink(jkuinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-jku-injection?utm_source=vulnapi-report")
+var Def = checkbase.WithLink(jkuinjection.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt/jwt-jku-injection?utm_source=vulnapi-report")
 
 var Check = checkbase.Adapt(jkuinjection.Check)
 

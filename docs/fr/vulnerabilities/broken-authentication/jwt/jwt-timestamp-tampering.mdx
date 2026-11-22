@@ -1,0 +1,94 @@
+---
+title: Falsification des horodatages JWT
+description: La vulnérabilité de falsification des horodatages JWT survient lorsqu'un serveur accepte un token correctement signé dont la date d'expiration (claim `exp`) est dépassée, parce qu'il ne valide pas les claims temporels une fois la signature vérifiée.
+sidebar:
+  order: 15
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Gravité</th>
+    <td>Élevée</td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/613.html">CWE-613: Insufficient Session Expiration</a></li>
+        <li><a href="https://capec.mitre.org/data/definitions/60.html">CAPEC-60: Reusing Session IDs (aka Session Replay)</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Catégorie OWASP</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>
+    </td>
+  </tr>
+</table>
+
+La vulnérabilité « Falsification des horodatages JWT » affecte les serveurs qui vérifient la signature d'un token mais pas ses claims temporels (`exp`, et généralement `nbf` et `iat`). Une signature valide prouve seulement qui a émis le token, pas qu'il est encore censé être utilisé. Plusieurs bibliothèques JWT peuvent être configurées, ou le sont par défaut, pour ignorer la validation des claims ; un serveur configuré ainsi accepte les tokens indéfiniment une fois émis.
+
+VulnAPI teste cette vulnérabilité en re-signant le token testé avec son claim `exp` reculé d'une heure dans le passé. Un serveur qui applique l'expiration doit le rejeter ; un serveur qui l'accepte ne valide pas du tout les claims temporels. Voir aussi [JWT expiré](./jwt-expired).
+
+Pour plus de détails, consultez la [documentation jwtop sur la falsification des horodatages](https://www.cerberauth.com/docs/jwtop/vulnerabilities/jwt-timestamp-tampering).
+
+## Exemple
+
+Une application émet des tokens signés en HMAC qui expirent au bout d'une heure :
+
+```json
+{
+  "sub": "2cb307ba-bb46-4194-854f-4774046d9c9b",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "exp": 1516242622
+}
+```
+
+Si le serveur ne valide pas `exp`, un token volé aujourd'hui (dans des journaux, le stockage du navigateur ou une requête divulguée) reste utilisable bien après son expiration, et ni la déconnexion ni la réduction de la durée de vie des tokens ne protègent le compte.
+
+## Comment tester ?
+
+Si vous voulez tester uniquement la vulnérabilité « Falsification des horodatages JWT », vous pouvez utiliser la commande suivante :
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.timestamp_tampering
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "[JWT]" | vulnapi scan openapi [OpenAPI_Path_Or_URL] --scans jwt.timestamp_tampering --token-stdin
+```
+  </TabItem>
+  <TabItem label="GraphQL">
+```bash
+vulnapi scan graphql -H "Authorization: Bearer [JWT]" --scans jwt.timestamp_tampering [url]
+```
+  </TabItem>
+</Tabs>
+
+Ce contrôle ne s'exécute que pour les tokens signés en HMAC (`HS256`, `HS384`, `HS512`) et a besoin du secret de signature pour forger le token expiré. VulnAPI utilise le secret retrouvé par le contrôle de [secret faible](./jwt-weak-secret) ; si vous le connaissez déjà, passez-le avec `--jwt-secret` :
+
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer [JWT]" --scans jwt.timestamp_tampering --jwt-secret [secret]
+```
+
+VulnAPI prend aussi en charge le scan d'autres types de [vulnérabilités](../../).
+
+## Quel est l'impact ?
+
+- **Durée de vie illimitée des tokens** : un token volé n'expire jamais, ce qui donne à un attaquant un accès permanent.
+- **Révocation inefficace** : la déconnexion, la rotation des sessions ou la réduction de la durée de vie des tokens n'ont aucun effet sur les tokens déjà émis.
+- **Détournement de session** : les tokens divulgués dans des journaux, des caches ou le stockage du navigateur restent utilisables indéfiniment.
+
+## Comment corriger ?
+
+- **Valider les claims temporels** : assurez-vous que votre bibliothèque JWT vérifie `exp` (et `nbf` lorsqu'il est présent) à chaque requête ; ne désactivez pas la validation des claims.
+- **Exiger `exp`** : rejetez les tokens qui ne portent pas de date d'expiration.
+- **Tolérer un faible décalage d'horloge uniquement** : quelques secondes ou minutes au plus.
+- **Protéger le secret de signature** : utilisez un secret HMAC long et aléatoire pour qu'un attaquant ne puisse pas forger de tokens.

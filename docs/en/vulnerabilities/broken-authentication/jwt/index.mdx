@@ -1,0 +1,25 @@
+---
+title: JWT
+description: Checks that detect JSON Web Token weaknesses in API authentication.
+sidebar:
+  order: 1
+---
+
+The scans in this group detect JSON Web Token weaknesses.
+
+- [JWT None Algorithm](./jwt-alg-none) — Accepting the "none" algorithm in a JSON Web Token (JWT) occurs when a JWT is signed with the "none" algorithm, it means there is no signature, making it easy for attackers to tamper with the token's content without detection.
+- [JWT Null Signature](./jwt-null-signature) — JWT Null Signature vulnerability occurs when a JSON Web Token (JWT) lacks a signature part, allowing attackers to manipulate the token's content.
+- [JWT Psychic Signature](./jwt-psychic-signature) — The JWT Psychic Signature vulnerability occurs when a server accepts ECDSA-signed tokens whose signature is entirely zero (r=0, s=0), per CVE-2022-21449.
+- [JWT Signature Not Verified](./jwt-signature-not-verified) — A vulnerability where the server accepts JWTs without verifying their cryptographic signature, allowing attackers to forge arbitrary tokens.
+- [JWT Algorithm Confusion](./jwt-algorithm-confusion) — JWT Algorithm Confusion, also known as HMAC confusion attack, occurs when an attacker tricks a server into verifying a JWT using a symmetric algorithm (like HS256) instead of an asymmetric one (like RS256).
+- [JWT Blank Secret](./jwt-blank-secret) — A vulnerability occurs when a JSON Web Token (JWT) is signed with an empty secret. In this scenario, the token lacks proper cryptographic protection, making it susceptible to manipulation.
+- [JWT Weak Secret](./jwt-weak-secret) — A vulnerability occurs when a JSON Web Token (JWT) is signed with a common, a well-known, or a weak secret. In this scenario, the token lacks proper cryptographic protection, making it susceptible to manipulation.
+- [JWT JKU Header Injection](./jwt-jku-injection) — The JWT JKU Header Injection vulnerability occurs when a server fetches the token's jku header URL and trusts whatever JWKS it returns, instead of validating jku against an allowlist.
+- [JWT JWK Header Injection](./jwt-jwk-injection) — The JWT JWK Header Injection vulnerability occurs when a server trusts a self-signed key embedded in the token's jwk header instead of validating the signature against a known key set.
+- [JWT KID Header Injection](./jwt-kid-injection) — JWT KID Header Injection occurs when the `kid` (Key ID) header parameter is passed unsanitized to a database query or file system lookup, allowing attackers to forge trusted tokens.
+- [JWT X5C Header Injection](./jwt-x5c-injection) — The JWT X5C Header Injection vulnerability occurs when a server trusts a self-signed certificate embedded in the token's x5c header instead of validating it against a pinned CA or certificate store.
+- [JWT X5U Header Injection](./jwt-x5u-injection) — The JWT X5U Header Injection vulnerability occurs when a server fetches the token's x5u header URL and trusts whatever certificate it returns, instead of validating it against a pinned CA.
+- [JWT Claim Fuzzing](./jwt-claim-fuzzing) — A vulnerability where a server crashes, leaks a stack trace, or otherwise behaves erratically when a JWT claim contains an unexpected type, an oversized string, special characters, or a null value.
+- [JWT Timestamp Tampering](./jwt-timestamp-tampering) — The JWT Timestamp Tampering vulnerability occurs when a server accepts a correctly signed token whose expiration time (`exp` claim) is in the past, because it does not validate time-based claims once the signature checks out.
+- [JWT Expired](./jwt-expired) — A vulnerability occurs when a JSON Web Token (JWT) is accepted by the server even after its expiration time (`exp` claim) has passed.
+- [JWT Cross Service Relay Attack](./jwt-cross-service-relay-attack) — A vulnerability arises when a Token is forged by the same service but doesn't verify the issuer. This can lead to security risks, as it means an attacker could create a forged Token and manipulate the fields or impersonate an user.
