@@ -1,6 +1,8 @@
 ---
 title: JWT Security Best Practices
 description: Best practices for securely implementing JSON Web Tokens (JWTs) in your APIs.
+sidebar:
+  order: 1
 ---
 
 JSON Web Tokens (JWTs) are widely used for authentication and authorization in APIs. When implemented incorrectly they become a high-severity attack surface. This guide covers the most important best practices and links each point to the relevant VulnAPI scan.
@@ -13,7 +15,7 @@ Prefer asymmetric algorithms (RS256, ES256) for distributed systems where multip
 - **Acceptable for single-service systems**: HS256, HS384, HS512 (with a strong secret — see below)
 - **Never use**: `alg: none` in production
 
-Using `alg: none` removes all cryptographic protection, making tokens trivially forgeable. VulnAPI detects this with the [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt-alg-none) scan.
+Using `alg: none` removes all cryptographic protection, making tokens trivially forgeable. VulnAPI detects this with the [`jwt.alg_none`](../vulnerabilities/broken-authentication/jwt/jwt-alg-none) scan.
 
 ## Use a Minimum 256-bit Random Secret for HMAC
 
@@ -23,7 +25,7 @@ When using HMAC algorithms (HS256/HS384/HS512), the secret key must be:
 - Not a dictionary word, well-known default, or guessable string
 - Not an empty string
 
-Tokens signed with empty or weak secrets are detected by the [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt-blank-secret) and [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt-weak-secret) scans.
+Tokens signed with empty or weak secrets are detected by the [`jwt.blank_secret`](../vulnerabilities/broken-authentication/jwt/jwt-blank-secret) and [`jwt.weak_secret`](../vulnerabilities/broken-authentication/jwt/jwt-weak-secret) scans.
 
 ```bash
 # Generate a secure 256-bit secret (Linux/macOS)
@@ -34,7 +36,7 @@ openssl rand -base64 32
 
 Never trust a JWT without verifying its signature using the correct key. Skipping signature verification is one of the most dangerous implementation mistakes.
 
-VulnAPI detects this with the [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt-not-verified) scan (CVSS 9.3).
+VulnAPI detects this with the [`jwt.not_verified`](../vulnerabilities/broken-authentication/jwt/jwt-signature-not-verified) scan (CVSS 9.3).
 
 ```python
 # Python example using PyJWT — always pass algorithms explicitly
@@ -46,19 +48,19 @@ payload = jwt.decode(token, public_key, algorithms=["RS256"])
 
 Some JWT libraries accept tokens whose signature segment is empty (null signature). Always configure your library to require a valid, non-empty signature.
 
-VulnAPI detects this with the [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt-null-signature) scan.
+VulnAPI detects this with the [`jwt.null_signature`](../vulnerabilities/broken-authentication/jwt/jwt-null-signature) scan.
 
 ## Never Resolve Keys From the Token Header
 
 The verification key must come from server-side configuration, never from the token itself. An attacker controls every header, so trusting `jwk`, `jku`, `x5c`, or `x5u` lets them sign with a key they generated. If key rotation is required, resolve `kid` against a trusted, server-side key set and — where dynamic retrieval is unavoidable — validate `jku`/`x5u` against a strict allowlist of known URLs.
 
-VulnAPI detects these with the [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt-x5c-injection), and [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt-x5u-injection) scans.
+VulnAPI detects these with the [`jwt.jwk_injection`](../vulnerabilities/broken-authentication/jwt/jwt-jwk-injection), [`jwt.jku_injection`](../vulnerabilities/broken-authentication/jwt/jwt-jku-injection), [`jwt.x5c_injection`](../vulnerabilities/broken-authentication/jwt/jwt-x5c-injection), and [`jwt.x5u_injection`](../vulnerabilities/broken-authentication/jwt/jwt-x5u-injection) scans.
 
 ## Enforce a Single Expected Algorithm Family
 
-Pin the exact algorithm(s) you expect. Accepting the token's `alg` header enables the [algorithm confusion](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) attack (asymmetric token re-signed as HMAC with the public key) and, for ECDSA verifiers on vulnerable runtimes, the [psychic signature](../vulnerabilities/broken-authentication/jwt-psychic-signature) attack (CVE-2022-21449).
+Pin the exact algorithm(s) you expect. Accepting the token's `alg` header enables the [algorithm confusion](../vulnerabilities/broken-authentication/jwt/jwt-algorithm-confusion) attack (asymmetric token re-signed as HMAC with the public key) and, for ECDSA verifiers on vulnerable runtimes, the [psychic signature](../vulnerabilities/broken-authentication/jwt/jwt-psychic-signature) attack (CVE-2022-21449).
 
-VulnAPI detects these with the [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt-algorithm-confusion) and [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt-psychic-signature) scans.
+VulnAPI detects these with the [`jwt.hmac_confusion`](../vulnerabilities/broken-authentication/jwt/jwt-algorithm-confusion) and [`jwt.psychic_signature`](../vulnerabilities/broken-authentication/jwt/jwt-psychic-signature) scans.
 
 ## Validate Standard Claims
 
@@ -72,15 +74,15 @@ After verifying the signature, validate these claims before trusting any payload
 | `nbf` | Not-before time | Reject if current time is before `nbf` |
 | `sub` | Subject — who the token represents | Verify the user still exists / is active |
 
-Failure to validate `iss` and `aud` enables [cross-service relay attacks](../vulnerabilities/broken-authentication/jwt-cross-service-relay-attack).
+Failure to validate `iss` and `aud` enables [cross-service relay attacks](../vulnerabilities/broken-authentication/jwt/jwt-cross-service-relay-attack).
 
-VulnAPI detects servers that skip `exp` validation with the [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt-timestamp-tampering) scan, which runs for HMAC tokens once the signing secret is known (cracked by `jwt.weak_secret` or passed with `--jwt-secret`).
+VulnAPI detects servers that skip `exp` validation with the [`jwt.timestamp_tampering`](../vulnerabilities/broken-authentication/jwt/jwt-timestamp-tampering) scan, which runs for HMAC tokens once the signing secret is known (cracked by `jwt.weak_secret` or passed with `--jwt-secret`).
 
 ## Validate Claim Types and Lengths Before Use
 
 Don't assume a claim you expect to be a short string actually is one — a claim decoded straight into application logic (a template, a SQL query, a shell command) without checking its type or length can crash the server, leak a stack trace, or enable injection if it arrives as an unexpected type, an oversized string, or `null`.
 
-VulnAPI detects this with the [`jwt.fuzz`](../vulnerabilities/broken-authentication/jwt-claim-fuzzing) scan, which mutates every claim and flags responses that diverge from the baseline.
+VulnAPI detects this with the [`jwt.fuzz`](../vulnerabilities/broken-authentication/jwt/jwt-claim-fuzzing) scan, which mutates every claim and flags responses that diverge from the baseline.
 
 ## Use Short Token Lifetimes With Refresh Token Rotation
 

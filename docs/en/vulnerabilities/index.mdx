@@ -1,0 +1,56 @@
+---
+title: API Vulnerabilities
+description: List of all vulnerabilities detected by VulnAPI.
+sidebar:
+  order: 1
+---
+
+VulnAPI detects a wide range of API vulnerabilities, including those from the OWASP API Security Top 10.
+
+✅ = automated scan available
+
+| Name                                                                                                  | OWASP                                       | Severity | Automated Scan |
+|-------------------------------------------------------------------------------------------------------|---------------------------------------------|:--------:|:--------------:|
+| Broken Object Level Authorization (BOLA)                                                              | API1:2023 Broken Object Level Authorization | Medium   | |
+| Private Field Access                                                                                  | API1:2023 Broken Object Level Authorization | Medium   | |
+| Mass Assignment                                                                                       | API1:2023 Broken Object Level Authorization | Medium   | |
+| [Authentication Bypass](./broken-authentication/authentication-bypass)                | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT `none` algorithm](./broken-authentication/jwt/jwt-alg-none)                         | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT blank secret](./broken-authentication/jwt/jwt-blank-secret)                         | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT weak secret](./broken-authentication/jwt/jwt-weak-secret)                           | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Audience cross service relay attack](./broken-authentication/jwt/jwt-cross-service-relay-attack) | API2:2023 Broken Authentication             | High     | |
+| [JWT Null Signature](./broken-authentication/jwt/jwt-null-signature)                     | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT KID Header Injection](./broken-authentication/jwt/jwt-kid-injection)                | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Algorithm Confusion](./broken-authentication/jwt/jwt-algorithm-confusion)           | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Psychic Signature](./broken-authentication/jwt/jwt-psychic-signature)               | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT JWK Header Injection](./broken-authentication/jwt/jwt-jwk-injection)                 | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT JKU Header Injection](./broken-authentication/jwt/jwt-jku-injection)                 | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT X5C Header Injection](./broken-authentication/jwt/jwt-x5c-injection)                 | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT X5U Header Injection](./broken-authentication/jwt/jwt-x5u-injection)                 | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Signature not verified](./broken-authentication/jwt/jwt-signature-not-verified)               | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Timestamp Tampering](./broken-authentication/jwt/jwt-timestamp-tampering)           | API2:2023 Broken Authentication             | High     | ✅ |
+| [JWT Claim Fuzzing](./broken-authentication/jwt/jwt-claim-fuzzing)                       | API8:2023 Security Misconfiguration         | Medium   | ✅ |
+| [JWT Expired](./broken-authentication/jwt/jwt-expired)                                     | API2:2023 Broken Authentication             | High     | |
+| Discoverable OpenAPI                                                                                  | API7:2023 Server Side Request Forgery       | Info     | ✅ |
+| Discoverable GraphQL Endpoint                                                                         | API7:2023 Server Side Request Forgery       | Info     | ✅ |
+| [GraphQL Introspection Enabled](./security-misconfiguration/graphql-introspection)   | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Secrets Leak                                                                                          | API8:2023 Security Misconfiguration         | High     | |
+| Directory Listing                                                                                     | API8:2023 Security Misconfiguration         | Medium   | |
+| Private IP Disclosure                                                                                 | API8:2023 Security Misconfiguration         | Low      | |
+| [HTTP Cookies Misconfiguration](./security-misconfiguration/http-cookies)            | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| No CORS Headers                                                                                       | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Permissive CORS Headers                                                                               | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| CORS Origin Reflection with Credentials                                                               | API8:2023 Security Misconfiguration         | High     | ✅ |
+| [HTTP Method Override Enabled](./security-misconfiguration/http-method-allow-override) | API8:2023 Security Misconfiguration         | Info - High | ✅ |
+| X-Content-Type-Options Header Not Set                                                                 | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| X-Frame-Options Header Not Set                                                                        | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| CSP Header Not Set                                                                                    | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| CSP Frame Ancestors Not Set                                                                           | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| HSTS Header Not Set                                                                                   | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| [HTTP TRACE/TRACK Methods Enabled](./security-misconfiguration/http-trace-track)     | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| Server Signature Leak                                                                                 | API8:2023 Security Misconfiguration         | Info     | ✅ |
+| SSL Certificate Not Trusted                                                                           | API8:2023 Security Misconfiguration         | Medium   | |
+| SSL Not Enforced                                                                                      | API8:2023 Security Misconfiguration         | Medium   | |
+| Directory Traversal                                                                                   | API10:2023 Unsafe Consumption of APIs       | High     | |
+
+The JWT vulnerability scans are partially powered by the [CerberAuth JWTop](https://github.com/cerberauth/jwtop) project.

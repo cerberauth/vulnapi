@@ -1,0 +1,14 @@
+---
+title: Mauvaise configuration de sécurité
+description: "Vérifications qui détectent les mauvaises configurations de sécurité : TLS manquant, cookies non sécurisés, introspection exposée."
+sidebar:
+  order: 1
+---
+
+Les analyses de ce groupe détectent les mauvaises configurations de sécurité.
+
+- [TLS manquant ou mal configuré](./tls) — TLS (Transport Layer Security) est un protocole assurant une communication sécurisée. Un TLS manquant ou mal configuré pour une API peut exposer des données sensibles aux attaquants.
+- [Mauvaise configuration des cookies HTTP](./http-cookies) — Des indicateurs de sécurité de cookies manquants ou mal configurés exposent les tokens de session au vol via XSS, l'interception réseau, et la falsification de requête cross-site.
+- [Substitution de méthode HTTP activée](./http-method-allow-override) — La substitution de méthode HTTP est une fonctionnalité permettant aux clients de remplacer la méthode HTTP par défaut utilisée dans une requête. Cette fonctionnalité peut être exploitée par des attaquants pour contourner les contrôles de sécurité et effectuer des actions non autorisées sur le serveur.
+- [Méthodes HTTP TRACE et TRACK activées](./http-trace-track) — Les méthodes HTTP TRACE et TRACK renvoient la requête entrante en écho, exposant potentiellement les en-têtes d'autorisation aux attaquants.
+- [Introspection GraphQL activée](./graphql-introspection) — L'introspection GraphQL est une fonctionnalité permettant aux clients d'interroger le schéma du serveur. Elle peut être utilisée pour découvrir le schéma et les types, mais aussi par des attaquants pour en apprendre davantage sur les détails d'implémentation du serveur et trouver des vulnérabilités potentielles.

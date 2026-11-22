@@ -1,0 +1,25 @@
+---
+title: JWT
+description: Vérifications qui détectent les faiblesses des JSON Web Tokens dans l’authentification des API.
+sidebar:
+  order: 1
+---
+
+Les analyses de ce groupe détectent les faiblesses des JSON Web Tokens.
+
+- [Algorithme JWT None](./jwt-alg-none) — L'acceptation de l'algorithme « none » dans un JSON Web Token (JWT) survient lorsqu'un JWT est signé avec l'algorithme « none » ; cela signifie qu'il n'y a pas de signature, ce qui facilite la falsification du contenu du token par un attaquant sans être détecté.
+- [Signature JWT nulle](./jwt-null-signature) — La vulnérabilité de signature JWT nulle survient lorsqu'un JSON Web Token (JWT) est dépourvu de partie signature, permettant aux attaquants de manipuler le contenu du token.
+- [Signature psychique JWT](./jwt-psychic-signature) — La vulnérabilité de signature psychique JWT survient lorsqu'un serveur accepte des tokens signés en ECDSA dont la signature est entièrement nulle (r=0, s=0), conformément à CVE-2022-21449.
+- [Signature JWT non vérifiée](./jwt-signature-not-verified) — Une vulnérabilité où le serveur accepte des JWT sans vérifier leur signature cryptographique, permettant aux attaquants de forger des tokens arbitraires.
+- [Confusion d'algorithme JWT](./jwt-algorithm-confusion) — La confusion d'algorithme JWT, aussi connue sous le nom d'attaque de confusion HMAC, survient lorsqu'un attaquant trompe un serveur pour qu'il vérifie un JWT avec un algorithme symétrique (comme HS256) au lieu d'un algorithme asymétrique (comme RS256).
+- [Secret JWT vide](./jwt-blank-secret) — Une vulnérabilité survient lorsqu'un JSON Web Token (JWT) est signé avec un secret vide. Dans ce scénario, le token manque d'une protection cryptographique adéquate, le rendant susceptible d'être manipulé.
+- [Secret JWT faible](./jwt-weak-secret) — Une vulnérabilité survient lorsqu'un JSON Web Token (JWT) est signé avec un secret commun, bien connu, ou faible. Dans ce scénario, le token manque d'une protection cryptographique adéquate, le rendant susceptible d'être manipulé.
+- [Injection d'en-tête JKU JWT](./jwt-jku-injection) — La vulnérabilité d'injection d'en-tête JKU survient lorsqu'un serveur récupère l'URL de l'en-tête jku du token et fait confiance au JWKS renvoyé, au lieu de valider jku avec une liste d'autorisation.
+- [Injection d'en-tête JWK JWT](./jwt-jwk-injection) — La vulnérabilité d'injection d'en-tête JWK survient lorsqu'un serveur fait confiance à une clé auto-signée intégrée dans l'en-tête jwk du token au lieu de valider la signature avec un jeu de clés connu.
+- [Injection d'en-tête JWT KID](./jwt-kid-injection) — L'injection d'en-tête JWT KID survient lorsque le paramètre d'en-tête `kid` (Key ID) est transmis sans désinfection à une requête de base de données ou une recherche sur le système de fichiers, permettant aux attaquants de forger des tokens de confiance.
+- [Injection d'en-tête X5C JWT](./jwt-x5c-injection) — La vulnérabilité d'injection d'en-tête X5C survient lorsqu'un serveur fait confiance à un certificat auto-signé intégré dans l'en-tête x5c du token au lieu de le valider avec une AC épinglée ou un magasin de certificats.
+- [Injection d'en-tête X5U JWT](./jwt-x5u-injection) — La vulnérabilité d'injection d'en-tête X5U survient lorsqu'un serveur récupère l'URL de l'en-tête x5u du token et fait confiance au certificat renvoyé, au lieu de le valider avec une AC épinglée.
+- [Fuzzing des claims JWT](./jwt-claim-fuzzing) — Une vulnérabilité où un serveur plante, fuit une trace de pile, ou se comporte de façon erratique lorsqu'un claim JWT contient un type inattendu, une chaîne trop longue, des caractères spéciaux, ou une valeur nulle.
+- [Falsification des horodatages JWT](./jwt-timestamp-tampering) — La vulnérabilité de falsification des horodatages JWT survient lorsqu'un serveur accepte un token correctement signé dont la date d'expiration (claim `exp`) est dépassée, parce qu'il ne valide pas les claims temporels une fois la signature vérifiée.
+- [JWT expiré](./jwt-expired) — Une vulnérabilité survient lorsqu'un JSON Web Token (JWT) est accepté par le serveur même après le passage de son heure d'expiration (claim `exp`).
+- [Attaque de relais inter-services de JWT](./jwt-cross-service-relay-attack) — Une vulnérabilité survient lorsqu'un token est forgé par le même service mais que l'émetteur n'est pas vérifié. Cela peut mener à des risques de sécurité, car cela signifie qu'un attaquant pourrait créer un token forgé et manipuler les champs ou usurper l'identité d'un utilisateur.

@@ -8,7 +8,7 @@ import (
 	"github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
 )
 
-var Def = checkbase.WithLink(weaksecret.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-weak-secret?utm_source=vulnapi-report")
+var Def = checkbase.WithLink(weaksecret.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt/jwt-weak-secret?utm_source=vulnapi-report")
 
 var Check = checkbase.Adapt(weaksecret.Check)
 
