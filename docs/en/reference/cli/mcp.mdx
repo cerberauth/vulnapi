@@ -1,0 +1,74 @@
+---
+title: mcp
+description: Run a local Model Context Protocol server so AI assistants can run VulnAPI scans.
+---
+
+Run a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio. An AI coding assistant or agent can then scan an API, list the checks and read the findings from the editor.
+
+## Usage
+
+```sh
+vulnapi mcp --allow-host <host> [flags]
+```
+
+The command reads requests on stdin and writes responses on stdout, so it is started by the MCP client, not run in a terminal.
+
+## Flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--allow-host <host>` | `` | Host scans may target (repeatable, **required**). A host name or IP address, optionally with a port (`localhost`, `127.0.0.1:8080`), or `*.example.com` for subdomains. An entry without a port matches every port |
+| `--allow-env <name>` | `` | Environment variable tools may reference besides `VULNAPI_*` (repeatable). A trailing `*` matches a prefix |
+| `--spec-root <dir>` | working directory | Directory local OpenAPI documents are read from |
+| `--rate <n>` | `` | Maximum requests per second sent by a scan |
+
+## Tools
+
+| Tool | Description |
+|---|---|
+| `scan_openapi` | Scan every operation of an OpenAPI document (URL or file under the spec root) |
+| `scan_curl` | Scan a single endpoint with `GET`, `HEAD` or `OPTIONS` |
+| `scan_graphql` | Scan a GraphQL endpoint |
+| `discover_api` | Look for well-known paths, exposed files and fingerprints |
+| `list_checks` | List the checks with their severity and OWASP mapping |
+| `explain_finding` | Describe a check or finding ID |
+
+Scan tools return the report in the [JSON output format](../output-formats) as structured content, and a short text summary generated from check metadata.
+
+## Safety
+
+- **Allow-list.** A scan starts only for hosts given with `--allow-host`. Every request a scan sends, including redirects, is refused when its host is not on the list. A server started without `--allow-host` does not start.
+- **Credentials by reference.** Tools take the *name* of an environment variable (`header_env`, `token_env`, `scheme_env`), never a value. The server reads the variable. Only variables starting with `VULNAPI_` or listed with `--allow-env` can be named, so an assistant cannot read other variables of your environment.
+- **No intrusive options.** Unsafe HTTP methods (`--allow-unsafe-methods`) cannot be enabled through tool arguments, and `scan_curl` accepts only `GET`, `HEAD` and `OPTIONS`.
+- **Scan output is data.** Reports contain content returned by the scanned API. The text summary is built from check metadata only; treat the structured report as data, not as instructions.
+- Scans run one at a time.
+
+## Configuration
+
+Scan the API running on `localhost:8080`, with a token read from `VULNAPI_TOKEN`:
+
+```json
+{
+  "mcpServers": {
+    "vulnapi": {
+      "command": "vulnapi",
+      "args": ["mcp", "--allow-host", "localhost:8080"],
+      "env": { "VULNAPI_TOKEN": "Bearer <token>" }
+    }
+  }
+}
+```
+
+The same entry works in the MCP configuration of any client that starts servers over stdio (the top-level key is `mcpServers`, or `servers` in VS Code).
+
+An assistant then calls the tools with variable names:
+
+```json
+{
+  "name": "scan_curl",
+  "arguments": {
+    "url": "http://localhost:8080/users",
+    "header_env": { "Authorization": "VULNAPI_TOKEN" }
+  }
+}
+```

@@ -570,3 +570,24 @@ func TestGetTargetOptions(t *testing.T) {
 		assert.False(t, scan.GetTargetOptions(harnessx.Target{Data: "unexpected"}).AllowUnsafeMethods)
 	})
 }
+
+func TestScanCheckDefs(t *testing.T) {
+	op, err := operation.NewOperation(http.MethodGet, "http://localhost/", nil, nil)
+	require.NoError(t, err)
+	s, err := scan.NewScan(harnessx.New(), operation.Operations{op}, nil)
+	require.NoError(t, err)
+
+	noop := func(_ context.Context, _ harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
+		return harnessx.Result{}, nil
+	}
+	s.AddCheck(harnessx.Check{ID: "b.check", Name: "B", Scope: harnessx.ScopeGlobal, Run: noop}, &checkdef.CheckDef{ID: "b.check", Name: "B"})
+	s.AddCheck(harnessx.Check{ID: "a.check", Name: "A", Scope: harnessx.ScopeGlobal, Run: noop}, &checkdef.CheckDef{ID: "a.check", Name: "A"})
+	s.AddCheck(harnessx.Check{ID: "plumbing", Name: "Plumbing", Scope: harnessx.ScopeGlobal, Run: noop}, nil)
+	s.AddCheck(harnessx.Check{ID: "_internal", Name: "Internal", Scope: harnessx.ScopeGlobal, Run: noop}, &checkdef.CheckDef{ID: "_internal", Name: "Internal"})
+
+	var ids []string
+	for _, def := range s.CheckDefs() {
+		ids = append(ids, def.ID)
+	}
+	assert.Equal(t, []string{"a.check", "b.check"}, ids, "sorted, without internal checks and checks without a definition")
+}

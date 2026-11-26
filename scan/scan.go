@@ -109,6 +109,21 @@ func (s *Scan) GetOperationsScans() []OperationScan {
 	return s.OperationsScans
 }
 
+// CheckDefs returns the definitions of the checks registered with the scan,
+// sorted by ID. Internal and data-provider checks, which have no definition,
+// are left out.
+func (s *Scan) CheckDefs() []checkdef.CheckDef {
+	defs := make([]checkdef.CheckDef, 0, len(s.checkDefs))
+	for id, def := range s.checkDefs {
+		if isInternalCheckID(string(id)) {
+			continue
+		}
+		defs = append(defs, def)
+	}
+	slices.SortFunc(defs, func(a, b checkdef.CheckDef) int { return strings.Compare(a.ID, b.ID) })
+	return defs
+}
+
 // AddCheck registers check with the scan. def supplies the CVSS/CWE/OWASP/
 // CAPEC classification used to build a reportx.Finding when the check
 // reports a vulnerability; pass nil for checks that never do (e.g. pure

@@ -63,8 +63,14 @@ func NewGraphQLScan(engine *harnessx.Engine, u *url.URL, client *request.Client,
 		return nil, err
 	}
 
-	WithAllCommonScans(graphqlScan)
-	graphqlScan.AddCheck(introspectionenabled.Check, &introspectionenabled.Def)
+	return WithGraphQLScans(graphqlScan), nil
+}
 
-	return graphqlScan, nil
+// WithGraphQLScans registers the common checks and the GraphQL specific checks
+// with s.
+func WithGraphQLScans(s *scan.Scan) *scan.Scan {
+	WithAllCommonScans(s)
+	s.AddCheck(introspectionenabled.Check, &introspectionenabled.Def)
+
+	return s
 }
