@@ -44,12 +44,17 @@ func NewDiscoverAPIScan(engine *harnessx.Engine, method string, u *url.URL, clie
 		return nil, err
 	}
 
-	urlScan.AddCheck(fingerprint.Check, &fingerprint.Def)
-	urlScan.AddCheck(discoverableopenapi.Check, &discoverableopenapi.Def)
-	urlScan.AddCheck(discoverablegraphql.Check, &discoverablegraphql.Def)
-	urlScan.AddCheck(exposedfiles.Check, &exposedfiles.Def)
-	urlScan.AddCheck(wellknown.Check, &wellknown.Def)
-	urlScan.AddCheck(healthcheck.Check, &healthcheck.Def)
+	return WithDiscoverScans(urlScan), nil
+}
 
-	return urlScan, nil
+// WithDiscoverScans registers the API discovery checks with s.
+func WithDiscoverScans(s *scan.Scan) *scan.Scan {
+	s.AddCheck(fingerprint.Check, &fingerprint.Def)
+	s.AddCheck(discoverableopenapi.Check, &discoverableopenapi.Def)
+	s.AddCheck(discoverablegraphql.Check, &discoverablegraphql.Def)
+	s.AddCheck(exposedfiles.Check, &exposedfiles.Def)
+	s.AddCheck(wellknown.Check, &wellknown.Def)
+	s.AddCheck(healthcheck.Check, &healthcheck.Def)
+
+	return s
 }
