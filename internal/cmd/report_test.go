@@ -101,3 +101,13 @@ func captureStdout(t *testing.T, fn func()) string {
 	require.NoError(t, err)
 	return string(content)
 }
+
+func TestWriteReport_StdoutIsOnlyTheReport(t *testing.T) {
+	c := newReportCmd(t, "--format", "json")
+
+	stdout := captureStdout(t, func() {
+		require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t), nil))
+	})
+
+	assert.True(t, json.Valid([]byte(stdout)), "stdout must be a single JSON document, got: %q", stdout)
+}

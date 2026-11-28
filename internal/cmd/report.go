@@ -90,23 +90,20 @@ func WriteReport(ctx context.Context, cmd *cobra.Command, r *reportx.Report, set
 		applySuppressions(cmd, r, cfg.Suppressions)
 	}
 
-	outputStream := os.Stdout
-	if highestCVSSScore(r) >= GetSeverityThreshold() {
-		outputStream = os.Stderr
+	// The banner is a human-facing status line: it goes to stderr and only
+	// accompanies the terminal format, so stdout stays a clean machine-readable report.
+	if f, _ := cmd.Flags().GetString("format"); normalizeFormat(f) == string(format.FormatTerminal) {
+		var outputMessage string
+		switch {
+		case activeFindings(r) == 0:
+			outputMessage = "Success: No issue detected!"
+		case highestCVSSScore(r) >= 7.0:
+			outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
+		default:
+			outputMessage = "Warning: There are some issues. It's advised to take action."
+		}
+		fmt.Fprintln(os.Stderr, outputMessage)
 	}
-
-	var outputMessage string
-	switch {
-	case activeFindings(r) == 0:
-		outputMessage = "Success: No issue detected!"
-	case highestCVSSScore(r) >= 7.0:
-		outputMessage = "Error: There are some high-risk issues. It's advised to take immediate action."
-	default:
-		outputMessage = "Warning: There are some issues. It's advised to take action."
-	}
-
-	fmt.Println()
-	fmt.Fprintln(outputStream, outputMessage)
 
 	sinks, cleanup, err := cobrareportx.SinksFromFlags(cmd)
 	if err != nil {
