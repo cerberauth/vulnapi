@@ -67,6 +67,7 @@ Les options de la ligne de commande l'emportent sur les variables d'environnemen
 | `target.request` | Requête façon curl (`url`, `method`, `data`), scannée par `vulnapi scan` ou `vulnapi scan curl` |
 | `target.headers` | En-têtes envoyés avec chaque requête, comme `-H` ; valeurs en clair ou références de secret |
 | `identities.<nom>` | Identifiants de chaque schéma de sécurité OpenAPI, avec `role` et `tenant` optionnels. Le schéma `"*"` s'applique à tout schéma sans identifiant propre, comme `--token-stdin`. Un scan utilise l'unique identité, ou celle nommée `default` |
+| `auth` | Identifiants du jeton du scan, renouvelé à son expiration : `clientId`, `clientSecret`, `tokenUrl`, `scopes`, `username`, `password` (OAuth2), `login` (`command`, ou `url` avec `data` et `tokenField`) et `jwtPublicKey`. Voir [scan authentifié](../../authenticated-scanning/) |
 | `scan.checks` | `include` / `exclude` d'identifiants ou de motifs, comme `--scans` / `--exclude-scans`. Les identifiants inclus inconnus de ce build sont ignorés |
 | `scan.operations` | Filtres d'opérations : `paths`, `excludePaths` (`*` correspond à un segment, `**` à plusieurs), `tags`, `operationIds`, `methods` |
 | `scan.allowUnsafeMethods` | `--allow-unsafe-methods` |
@@ -75,7 +76,7 @@ Les options de la ligne de commande l'emportent sur les variables d'environnemen
 | `report.outputs` | Fichiers de rapport, chacun avec un `format` et un `path` |
 | `report.url`, `report.format`, `report.headers` | `--report-url`, `--report-format` et `--report-header` |
 | `suppressions` | Résultats acceptés : `check`, `operation` optionnelle, `reason` et `expires` (`AAAA-MM-JJ`) obligatoires. Après `expires`, le résultat est de nouveau signalé |
-| `environments.<nom>` | Surcharge de `target`, `identities`, `scan` et `report`, choisie avec `--env` |
+| `environments.<nom>` | Surcharge de `target`, `identities`, `auth`, `scan` et `report`, choisie avec `--env` |
 | `enterprise` | Paramètres du build VulnAPI Enterprise, acceptés et ignorés par ce build |
 
 ## Secrets

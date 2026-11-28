@@ -23,6 +23,9 @@
         "$ref": "#/$defs/identity"
       }
     },
+    "auth": {
+      "$ref": "#/$defs/auth"
+    },
     "scan": {
       "$ref": "#/$defs/scan"
     },
@@ -420,6 +423,9 @@
             "$ref": "#/$defs/identity"
           }
         },
+        "auth": {
+          "$ref": "#/$defs/auth"
+        },
         "scan": {
           "$ref": "#/$defs/scan"
         },
@@ -427,6 +433,91 @@
           "$ref": "#/$defs/report"
         }
       }
+    },
+    "auth": {
+      "type": "object",
+      "description": "Credentials used to obtain and refresh the token of the scan.",
+      "additionalProperties": false,
+      "properties": {
+        "clientId": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "clientSecret": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "OAuth2 token endpoint, overriding the one of the security scheme."
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "username": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "password": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "login": {
+          "$ref": "#/$defs/login"
+        },
+        "jwtPublicKey": {
+          "type": "string",
+          "description": "Path or URL to the PEM public key of the JWT under test."
+        }
+      },
+      "dependentRequired": {
+        "clientSecret": [
+          "clientId"
+        ],
+        "username": [
+          "clientId",
+          "password"
+        ],
+        "password": [
+          "username"
+        ]
+      }
+    },
+    "login": {
+      "type": "object",
+      "description": "Hook returning the token to use, run before the scan and when the token expires.",
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command printing the token on stdout."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL returning the token in a JSON response."
+        },
+        "data": {
+          "$ref": "#/$defs/secretRef",
+          "description": "Body sent to url."
+        },
+        "tokenField": {
+          "type": "string",
+          "description": "Dot separated path of the token in the JSON response."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "command"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ]
     }
   }
 }

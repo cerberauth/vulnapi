@@ -131,7 +131,7 @@ func NewOpenAPIScanCmd() (scanCmd *cobra.Command) {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-configuration"))
 			}
 			client = client.WithHeader(headers).WithCookies(cookies)
-			credentials, err := internalCmd.ApplyAuthFlags(cmd, client)
+			credentials, err := internalCmd.ApplyAuthFlags(cmd, client, settings)
 			if err != nil {
 				telemetryx.Fatal(cmd, telemetryx.Reason(err, "invalid-auth-flags"))
 			}

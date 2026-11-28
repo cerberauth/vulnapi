@@ -70,6 +70,26 @@ vulnapi scan openapi ./openapi.json --security-schemes basicAuth=alice:secret
 
 `jwt.hmac_confusion` needs the public key of an asymmetric JWT. Pass it with `--jwt-public-key` (path or URL to a PEM file), otherwise VulnAPI fetches it from the JWKS URI of the OpenID Connect scheme or from `/.well-known/jwks.json` of the API.
 
+## Configuration file
+
+The same settings can live in the `auth` section of the [configuration file](../reference/configuration-file/). Secrets are references only (`env`, `file` or `command`); a plain value is rejected. Flags win over the environment variables, which win over the file.
+
+```yaml
+version: 1
+auth:
+  clientId: { env: CLIENT_ID }
+  clientSecret: { file: secrets/client-secret }
+  tokenUrl: https://auth.example.com/oauth/token
+  scopes: [read]
+environments:
+  staging:
+    auth:
+      login:
+        url: https://staging.api.example.com/login
+        data: { env: LOGIN_BODY }
+        tokenField: data.token
+```
+
 ## Secrets
 
 Secrets can come from the environment instead of the command line: `VULNAPI_CLIENT_ID`, `VULNAPI_CLIENT_SECRET`, `VULNAPI_OAUTH2_USERNAME` and `VULNAPI_OAUTH2_PASSWORD`. They are never printed, credential headers and cookies are redacted from the report evidence, and they are not sent with telemetry.

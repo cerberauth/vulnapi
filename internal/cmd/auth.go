@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/cerberauth/vulnapi/config"
 	"github.com/cerberauth/vulnapi/internal/auth"
 	"github.com/cerberauth/vulnapi/internal/request"
 	jwtcheckbase "github.com/cerberauth/vulnapi/scan/broken_authentication/jwt/checkbase"
@@ -57,26 +58,72 @@ func readKey(location string) ([]byte, error) {
 	return io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 }
 
-func ApplyAuthFlags(cmd *cobra.Command, client *request.Client) (*auth.CredentialRegistry, error) {
+type authSource struct {
+	cmd  *cobra.Command
+	file *config.Auth
+	err  error
+}
+
+func (a *authSource) secret(flag, env string, ref *config.SecretRef, field string) string {
+	if value := stringFlagOrEnv(a.cmd, flag, env); value != "" || ref == nil || a.err != nil {
+		return value
+	}
+	value, err := ref.Resolve(a.cmd.Context())
+	if err != nil {
+		a.err = fmt.Errorf("auth.%s: %w", field, err)
+	}
+	return value
+}
+
+func (a *authSource) string(flag string, fileValue string) string {
+	if value, _ := a.cmd.Flags().GetString(flag); value != "" && (a.cmd.Flags().Changed(flag) || fileValue == "") {
+		return value
+	}
+	return fileValue
+}
+
+// ApplyAuthFlags builds the credentials of the scan from the auth flags,
+// their environment variables, and the auth section of the configuration
+// file, in that order of precedence.
+func ApplyAuthFlags(cmd *cobra.Command, client *request.Client, settings *ScanSettings) (*auth.CredentialRegistry, error) {
+	source := &authSource{cmd: cmd, file: &config.Auth{}}
+	if settings != nil && settings.Config != nil && settings.Config.Auth != nil {
+		source.file = settings.Config.Auth
+	}
+	file := source.file
+	login := file.Login
+	if login == nil || cmd.Flags().Changed("login-command") || cmd.Flags().Changed("login-url") {
+		login = &config.Login{}
+	}
+
 	scopes, _ := cmd.Flags().GetStringArray("oauth2-scope")
-	tokenURL, _ := cmd.Flags().GetString("token-url")
-	loginCommand, _ := cmd.Flags().GetString("login-command")
-	loginURL, _ := cmd.Flags().GetString("login-url")
+	if !cmd.Flags().Changed("oauth2-scope") && len(file.Scopes) > 0 {
+		scopes = file.Scopes
+	}
+	tokenURL := source.string("token-url", file.TokenURL)
+	loginCommand := source.string("login-command", login.Command)
+	loginURL := source.string("login-url", login.URL)
+	loginTokenField := source.string("login-token-field", login.TokenField)
 	loginData, _ := cmd.Flags().GetString("login-data")
-	loginTokenField, _ := cmd.Flags().GetString("login-token-field")
+	if loginData == "" && login.Data != nil && loginURL == login.URL {
+		loginData = source.secret("login-data", "", login.Data, "login.data")
+	}
 
 	options := auth.CredentialOptions{
-		ClientID:        stringFlagOrEnv(cmd, "client-id", ClientIDEnv),
-		ClientSecret:    stringFlagOrEnv(cmd, "client-secret", ClientSecretEnv),
+		ClientID:        source.secret("client-id", ClientIDEnv, file.ClientID, "clientId"),
+		ClientSecret:    source.secret("client-secret", ClientSecretEnv, file.ClientSecret, "clientSecret"),
 		TokenURL:        tokenURL,
 		Scopes:          scopes,
-		Username:        stringFlagOrEnv(cmd, "oauth2-username", OAuth2UsernameEnv),
-		Password:        stringFlagOrEnv(cmd, "oauth2-password", OAuth2PasswordEnv),
+		Username:        source.secret("oauth2-username", OAuth2UsernameEnv, file.Username, "username"),
+		Password:        source.secret("oauth2-password", OAuth2PasswordEnv, file.Password, "password"),
 		LoginCommand:    loginCommand,
 		LoginURL:        loginURL,
 		LoginData:       loginData,
 		LoginTokenField: loginTokenField,
 		HTTPClient:      &http.Client{Transport: client.Transport, Timeout: client.Timeout},
+	}
+	if source.err != nil {
+		return nil, source.err
 	}
 	if loginCommand != "" && loginURL != "" {
 		return nil, fmt.Errorf("use either --login-command or --login-url, not both")
@@ -89,7 +136,7 @@ func ApplyAuthFlags(cmd *cobra.Command, client *request.Client) (*auth.Credentia
 	client.Credentials = registry
 	client.Transport = registry.Transport(client.Transport)
 
-	if location, _ := cmd.Flags().GetString("jwt-public-key"); location != "" {
+	if location := source.string("jwt-public-key", file.JWTPublicKey); location != "" {
 		publicKeyPEM, err := readKey(location)
 		if err != nil {
 			return nil, fmt.Errorf("reading --jwt-public-key: %w", err)
