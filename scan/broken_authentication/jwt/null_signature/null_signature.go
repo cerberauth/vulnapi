@@ -1,4 +1,4 @@
-// Package nullsignature adapts jwtop's null_signature crack check as a
+// Package nullsignature runs jwtop's null_signature crack check as a
 // vulnapi check.
 package nullsignature
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(nullsignature.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-null-signature?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(nullsignature.Check)
+var Check = checkbase.Check(nullsignature.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.null_signature", "nullsig")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "nullsig")
 }

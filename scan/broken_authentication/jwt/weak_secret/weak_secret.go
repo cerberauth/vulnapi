@@ -1,4 +1,4 @@
-// Package weaksecret adapts jwtop's weak_secret crack check as a vulnapi
+// Package weaksecret runs jwtop's weak_secret crack check as a vulnapi
 // check.
 package weaksecret
 
@@ -10,8 +10,8 @@ import (
 
 var Def = checkbase.WithLink(weaksecret.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-weak-secret?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(weaksecret.Check)
+var Check = checkbase.Check(weaksecret.Check.ID)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.weak_secret", "weak_secret", "secret")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "weak_secret", "secret")
 }

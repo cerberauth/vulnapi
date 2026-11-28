@@ -138,7 +138,7 @@ func (s *Scan) GetOperationsScans() []OperationScan {
 // — used for progress reporting — still only counts checks that match, plus
 // internal (data-provider) checks, which are never user-selectable.
 func (s *Scan) AddCheck(check harnessx.Check, def *checkdef.CheckDef) *Scan {
-	if isInternalCheckID(string(check.ID)) || s.shouldAddScan(string(check.ID)) {
+	if !check.Internal && (isInternalCheckID(string(check.ID)) || s.shouldAddScan(string(check.ID))) {
 		if check.RunResource != nil {
 			for _, op := range s.Operations {
 				s.OperationsScans = append(s.OperationsScans, OperationScan{
@@ -245,7 +245,7 @@ var checkRuns = argvio.NewCounter("scan.check-operations", argvio.Dims("check"))
 
 func (s *Scan) recordCheckRuns(ctx context.Context, checks []harnessx.Check) {
 	for _, check := range checks {
-		if isInternalCheckID(string(check.ID)) {
+		if check.Internal || isInternalCheckID(string(check.ID)) {
 			continue
 		}
 		count := int64(1)
@@ -259,10 +259,17 @@ func (s *Scan) recordCheckRuns(ctx context.Context, checks []harnessx.Check) {
 }
 
 // countFindings counts a vulnapi check's finding for scanmetrics: checks
-// report one *finding.Finding per vulnerable operation.
+// report one *finding.Finding, or embedded checks observations, per
+// vulnerable operation.
 func countFindings(result harnessx.Result) (int, bool) {
 	findings := resultFindings(result)
-	return len(findings), len(findings) > 0
+	if len(findings) > 0 {
+		return len(findings), true
+	}
+	if len(result.Observations) > 0 {
+		return 1, true
+	}
+	return 0, false
 }
 
 // legacyCheckIDAliases maps a check's current ID to IDs it was previously

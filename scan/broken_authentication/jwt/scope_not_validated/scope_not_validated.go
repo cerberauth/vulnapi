@@ -7,4 +7,4 @@ import (
 
 var Def = checkbase.WithLink(scopenotvalidated.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-claims-not-validated?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(scopenotvalidated.Check)
+var Check = checkbase.Check(scopenotvalidated.Check.ID)

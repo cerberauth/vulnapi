@@ -7,4 +7,4 @@ import (
 
 var Def = checkbase.WithLink(longlifetime.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-expired?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(longlifetime.Check)
+var Check = checkbase.Check(longlifetime.Check.ID)

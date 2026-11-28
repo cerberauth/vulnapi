@@ -7,4 +7,4 @@ import (
 
 var Def = checkbase.WithLink(missingexpiry.Def, "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/broken-authentication/jwt-expired?utm_source=vulnapi-report")
 
-var Check = checkbase.Adapt(missingexpiry.Check)
+var Check = checkbase.Check(missingexpiry.Check.ID)
