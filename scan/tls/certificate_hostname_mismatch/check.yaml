@@ -1,0 +1,11 @@
+id: "tls.certificate_hostname_mismatch"
+name: "TLS Certificate Hostname Mismatch"
+description: "The certificate is not valid for the hostname of the API."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/tls?utm_source=vulnapi-report"
+tags:
+  - tls
+depends_on: ["tls.fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 6.9
+cwe_id: "CWE-297"
+owasp: "API8:2023"
