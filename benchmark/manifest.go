@@ -29,11 +29,12 @@ type Manifest struct {
 }
 
 type Scan struct {
-	Name   string   `yaml:"name"`
-	Setup  []string `yaml:"setup,omitempty"`
-	Token  string   `yaml:"token,omitempty"`
-	Args   []string `yaml:"args"`
-	Issues []Issue  `yaml:"issues"`
+	Name   string            `yaml:"name"`
+	Setup  []string          `yaml:"setup,omitempty"`
+	Token  string            `yaml:"token,omitempty"`
+	Vars   map[string]string `yaml:"vars,omitempty"`
+	Args   []string          `yaml:"args"`
+	Issues []Issue           `yaml:"issues"`
 }
 
 // Issue is a known issue of a target. Check is the check ID expected to

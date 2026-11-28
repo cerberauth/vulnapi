@@ -113,3 +113,73 @@ services:
       dockerfile: challenges/http-misconfigurations/Dockerfile
     ports:
       - "127.0.0.1:8114:8080"
+
+  auth-unauthenticated-endpoint:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/auth-unauthenticated-endpoint/Dockerfile
+    ports:
+      - "127.0.0.1:8115:8080"
+
+  jwt-claim-removal:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-claim-removal/Dockerfile
+    ports:
+      - "127.0.0.1:8116:8080"
+
+  jwt-scope-not-validated:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-scope-not-validated/Dockerfile
+    ports:
+      - "127.0.0.1:8117:8080"
+
+  jwt-missing-expiry:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-missing-expiry/Dockerfile
+    ports:
+      - "127.0.0.1:8118:8080"
+
+  jwt-long-lifetime:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-long-lifetime/Dockerfile
+    ports:
+      - "127.0.0.1:8119:8080"
+
+  jwt-issuer-not-validated:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-issuer-not-validated/Dockerfile
+    ports:
+      - "127.0.0.1:8120:8080"
+
+  tls-certificate-misconfiguration:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/tls-certificate-misconfiguration/Dockerfile
+    ports:
+      - "127.0.0.1:8121:8080"
+
+  tls-http-accepted:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/tls-http-accepted/Dockerfile
+    ports:
+      - "127.0.0.1:8122:8080"
+
+  tls-weak-dh:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/tls-weak-dh/Dockerfile
+    ports:
+      - "127.0.0.1:8123:8080"
+
+  proxy-tls-misconfiguration:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/proxy-tls-misconfiguration/Dockerfile
+    ports:
+      - "127.0.0.1:8124:8080"
