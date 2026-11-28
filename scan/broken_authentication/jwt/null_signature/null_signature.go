@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(nullsignature.Def, "https://www.cerberauth.com/docs
 var Check = checkbase.Adapt(nullsignature.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.null_signature")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.null_signature", "nullsig")
 }

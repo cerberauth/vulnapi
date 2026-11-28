@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(weaksecret.Def, "https://www.cerberauth.com/docs/vu
 var Check = checkbase.Adapt(weaksecret.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.weak_secret", "weak_secret")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.weak_secret", "weak_secret", "secret")
 }

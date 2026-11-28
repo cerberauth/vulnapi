@@ -33,6 +33,14 @@ type ScanOptions struct {
 	// PATCH, DELETE) the operation does not declare, with valid credentials.
 	AllowUnsafeMethods bool
 
+	// Operations restricts the scan to the operations it matches.
+	Operations *OperationFilter
+
+	// SkipUnknownScans ignores IncludeScans patterns matching no check
+	// (e.g. checks of another build) instead of failing the scan; they are
+	// listed in Scan.UnknownScans.
+	SkipUnknownScans bool
+
 	// Title names the report (e.g. "cURL Scan", "OpenAPI Scan"). Defaults to
 	// "Scan" when empty.
 	Title string
@@ -47,6 +55,8 @@ type Scan struct {
 
 	Operations      operation.Operations
 	OperationsScans []OperationScan
+
+	UnknownScans []string
 
 	harnessxChecks []harnessx.Check
 	checkDefs      map[harnessx.CheckID]checkdef.CheckDef
@@ -75,6 +85,13 @@ func NewScan(engine *harnessx.Engine, operations operation.Operations, opts *Sca
 	for _, pattern := range append(slices.Clone(opts.IncludeScans), opts.ExcludeScans...) {
 		if err := validateScanPattern(pattern); err != nil {
 			return nil, err
+		}
+	}
+
+	if opts.Operations != nil {
+		operations = opts.Operations.Filter(operations)
+		if len(operations) == 0 {
+			return nil, fmt.Errorf("no operation matches the operation filters")
 		}
 	}
 
@@ -423,6 +440,10 @@ func (s *Scan) checkIncludeScansMatch() error {
 		if !matched {
 			unknown = append(unknown, pattern)
 		}
+	}
+	if len(unknown) > 0 && s.SkipUnknownScans {
+		s.UnknownScans = unknown
+		return nil
 	}
 	if len(unknown) > 0 {
 		return fmt.Errorf("no scan matches %s", strings.Join(unknown, ", "))

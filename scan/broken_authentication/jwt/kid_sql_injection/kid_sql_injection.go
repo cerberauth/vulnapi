@@ -16,5 +16,5 @@ var Def = checkbase.WithLink(kidsqlinjection.Def, "https://www.cerberauth.com/do
 var Check = checkbase.Adapt(kidsqlinjection.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_sql_injection")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.kid_injection", "kid_sql_injection", "kidinjection (sql)")
 }

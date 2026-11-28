@@ -43,7 +43,7 @@ func TestWriteReport_OutputFileUsesOutputFormat(t *testing.T) {
 	output := filepath.Join(t.TempDir(), "report.json")
 	c := newReportCmd(t, "--quiet", "--output", output, "--output-format", "json")
 
-	require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t)))
+	require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t), nil))
 
 	content, err := os.ReadFile(output)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestWriteReport_OutputFileSarif(t *testing.T) {
 	output := filepath.Join(t.TempDir(), "report.sarif.json")
 	c := newReportCmd(t, "--quiet", "--output", output, "--output-format", "sarif")
 
-	require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t)))
+	require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t), nil))
 
 	content, err := os.ReadFile(output)
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestWriteReport_KeepsTerminalReportOnStdoutWithOutputFile(t *testing.T) {
 	c := newReportCmd(t, "--no-color", "--output", output, "--output-format", "json")
 
 	stdout := captureStdout(t, func() {
-		require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t)))
+		require.NoError(t, cmd.WriteReport(context.Background(), c, newReport(t), nil))
 	})
 
 	assert.Contains(t, stdout, "JWT Algorithm None")

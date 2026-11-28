@@ -16,5 +16,5 @@ var Def = checkbase.WithLink(timestamptampering.Def, "https://www.cerberauth.com
 var Check = checkbase.Adapt(timestamptampering.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.timestamp_tampering")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.timestamp_tampering", "timestamptampering")
 }

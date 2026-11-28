@@ -13,5 +13,5 @@ var Def = noverification.Def
 var Check = checkbase.Adapt(noverification.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.not_verified")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.not_verified", "no_verification")
 }

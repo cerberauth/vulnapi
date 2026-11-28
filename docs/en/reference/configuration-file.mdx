@@ -1,0 +1,103 @@
+---
+title: Configuration file
+description: Describe a scan in a versioned vulnapi.yaml file, so CI runs are reproducible and the command line stays short.
+---
+
+VulnAPI reads its settings from `vulnapi.yaml` (or `.vulnapi.yaml`) in the working directory, from the file passed with `--config`, or from the `VULNAPI_CONFIG` environment variable. Paths in the file are relative to the file.
+
+With a target in the file, `vulnapi scan` runs it without any argument:
+
+```sh
+vulnapi scan
+vulnapi scan --env production
+```
+
+## Example
+
+```yaml
+# yaml-language-server: $schema=https://schemas.cerberauth.com/vulnapi/config/v1.json
+version: 1
+
+target:
+  openapi: ./openapi.yaml
+  server: https://staging.api.example.com
+
+identities:
+  user:
+    schemes:
+      bearerAuth: { env: USER_TOKEN }
+
+scan:
+  checks: { exclude: [misconfiguration.http_headers_cors_missing] }
+  operations: { excludePaths: ["/internal/**"], tags: [public] }
+  allowUnsafeMethods: false
+  rate: 10/s
+  timeout: 30s
+
+report:
+  failOn: high
+  outputs:
+    - { format: sarif, path: vulnapi.sarif }
+
+suppressions:
+  - check: misconfiguration.http_headers_hsts_missing
+    operation: getHealth
+    reason: served behind a TLS-terminating proxy
+    expires: 2027-03-01
+
+environments:
+  production:
+    target: { server: https://api.example.com }
+    scan: { rate: 2/s }
+```
+
+The file is decoded strictly: an unknown key is an error, so a typo never disables a setting silently. `version` is required.
+
+## Precedence
+
+Flags override environment variables, which override the environment selected with `--env` (or `VULNAPI_ENV`), which overrides the file, which overrides the defaults.
+
+## Sections
+
+| Key | Description |
+|---|---|
+| `target.openapi` | OpenAPI document path or URL, scanned by `vulnapi scan` or `vulnapi scan openapi` |
+| `target.server` | Base URL overriding the servers of the OpenAPI document (`--server-url`) |
+| `target.graphql` | GraphQL endpoint, scanned by `vulnapi scan` or `vulnapi scan graphql` |
+| `target.request` | curl-style request (`url`, `method`, `data`), scanned by `vulnapi scan` or `vulnapi scan curl` |
+| `target.headers` | Headers sent with every request, like `-H`; values are strings or secret references |
+| `identities.<name>` | Credentials of each OpenAPI security scheme, with optional `role` and `tenant`. The `"*"` scheme applies to every scheme without its own credential, like `--token-stdin`. A scan uses the only identity, or the one named `default` |
+| `scan.checks` | `include` / `exclude` check IDs or patterns, like `--scans` / `--exclude-scans`. Included IDs this build does not know are skipped |
+| `scan.operations` | Operation filters: `paths`, `excludePaths` (`*` matches a segment, `**` any number), `tags`, `operationIds`, `methods` |
+| `scan.allowUnsafeMethods` | `--allow-unsafe-methods` |
+| `scan.rate`, `scan.timeout` | `--rate` and the request timeout (`--max-time`), e.g. `10/s` and `30s` |
+| `report.failOn` | `info`, `low`, `medium`, `high`, `critical` or a CVSS score; replaces `--severity-threshold` |
+| `report.outputs` | Report files, each with a `format` and a `path` |
+| `report.url`, `report.format`, `report.headers` | `--report-url`, `--report-format` and `--report-header` |
+| `suppressions` | Findings to accept: `check`, optional `operation` ID, mandatory `reason` and `expires` (`YYYY-MM-DD`). After `expires`, the finding is reported again |
+| `environments.<name>` | Overlay of `target`, `identities`, `scan` and `report`, selected with `--env` |
+| `enterprise` | Settings of the VulnAPI Enterprise build, accepted and ignored by this build |
+
+## Secrets
+
+Secrets are never written in the file. Credentials take a reference only, and a plain string is rejected:
+
+| Reference | Value |
+|---|---|
+| `{ env: NAME }` | Environment variable |
+| `{ file: path }` | File content, relative to the configuration file |
+| `{ command: "..." }` | Standard output of a command |
+| `{ oauth2: { clientId, clientSecret, scopes, tokenUrl } }` | Access token from the OAuth2 client credentials grant, or the password grant when `username` and `password` are set. `tokenUrl` defaults to the one of the security scheme |
+
+`vulnapi config show` prints the effective configuration with literal header values masked.
+
+## Commands
+
+```sh
+vulnapi config validate [--config <path>] [--env <name>]
+vulnapi config show [--config <path>] [--env <name>]
+```
+
+## JSON Schema
+
+The schema is published at `https://schemas.cerberauth.com/vulnapi/config/v1.json`. Version 1 only receives additive changes.

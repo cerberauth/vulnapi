@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(x5uinjection.Def, "https://www.cerberauth.com/docs/
 var Check = checkbase.Adapt(x5uinjection.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.x5u_injection")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.x5u_injection", "x5uinjection")
 }

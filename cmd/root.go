@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	configcmd "github.com/cerberauth/vulnapi/cmd/config"
 	"github.com/cerberauth/vulnapi/cmd/discover"
 	"github.com/cerberauth/vulnapi/cmd/jwt"
 	"github.com/cerberauth/vulnapi/cmd/scan"
@@ -62,7 +63,9 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 	rootCmd.AddCommand(scan.NewScanCmd())
 	rootCmd.AddCommand(jwt.NewJWTCmd())
 	rootCmd.AddCommand(serve.NewServeCmd())
+	rootCmd.AddCommand(configcmd.NewConfigCmd())
 
+	internalCmd.AddConfigFlags(rootCmd.PersistentFlags())
 	rootCmd.PersistentFlags().BoolVarP(&sqaOptOut, "sqa-opt-out", "", false, "Opt out of sending anonymous usage statistics and crash reports to help improve the tool")
 
 	return rootCmd

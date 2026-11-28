@@ -13,5 +13,5 @@ var Def = checkbase.WithLink(psychicsignature.Def, "https://www.cerberauth.com/d
 var Check = checkbase.Adapt(psychicsignature.Check)
 
 func init() {
-	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.psychic_signature")
+	scan.RegisterLegacyCheckIDAlias(string(Check.ID), "jwt.psychic_signature", "psychicsig")
 }

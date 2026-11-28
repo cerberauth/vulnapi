@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cerberauth.com/vulnapi/config/v1.json",
+  "title": "VulnAPI configuration file",
+  "description": "Configuration of a VulnAPI scan (vulnapi.yaml).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version"
+  ],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Configuration format version."
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "identities": {
+      "type": "object",
+      "description": "Named credential sets.",
+      "additionalProperties": {
+        "$ref": "#/$defs/identity"
+      }
+    },
+    "scan": {
+      "$ref": "#/$defs/scan"
+    },
+    "report": {
+      "$ref": "#/$defs/report"
+    },
+    "suppressions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/suppression"
+      }
+    },
+    "environments": {
+      "type": "object",
+      "description": "Named overlays selected with --env.",
+      "additionalProperties": {
+        "$ref": "#/$defs/environment"
+      }
+    },
+    "enterprise": {
+      "type": "object",
+      "description": "Settings read by the VulnAPI Enterprise build only."
+    }
+  },
+  "$defs": {
+    "secretRef": {
+      "type": "object",
+      "description": "Reference to a secret. Secrets are never written in the file.",
+      "additionalProperties": false,
+      "properties": {
+        "env": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Environment variable holding the secret."
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "File holding the secret, relative to the configuration file."
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Command printing the secret on stdout."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "env"
+          ]
+        },
+        {
+          "required": [
+            "file"
+          ]
+        },
+        {
+          "required": [
+            "command"
+          ]
+        }
+      ]
+    },
+    "value": {
+      "description": "A plain string or a secret reference.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/secretRef"
+        }
+      ]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "openapi": {
+          "type": "string",
+          "description": "OpenAPI document path or URL."
+        },
+        "server": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL overriding the servers of the OpenAPI document."
+        },
+        "graphql": {
+          "type": "string",
+          "format": "uri",
+          "description": "GraphQL endpoint."
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "headers": {
+          "type": "object",
+          "description": "Headers sent with every request, like -H.",
+          "additionalProperties": {
+            "$ref": "#/$defs/value"
+          }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "description": "curl-style request to scan.",
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "method": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemes"
+      ],
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "schemes": {
+          "type": "object",
+          "description": "Credential of each security scheme, by scheme name.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/credential"
+          }
+        }
+      }
+    },
+    "credential": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "env": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oauth2": {
+          "$ref": "#/$defs/oauth2"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "env"
+          ]
+        },
+        {
+          "required": [
+            "file"
+          ]
+        },
+        {
+          "required": [
+            "command"
+          ]
+        },
+        {
+          "required": [
+            "oauth2"
+          ]
+        }
+      ]
+    },
+    "oauth2": {
+      "type": "object",
+      "description": "OAuth2 client credentials, or password grant when username and password are set.",
+      "additionalProperties": false,
+      "required": [
+        "clientId"
+      ],
+      "properties": {
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "clientId": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "clientSecret": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "username": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "password": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "dependentRequired": {
+        "username": [
+          "password"
+        ],
+        "password": [
+          "username"
+        ]
+      }
+    },
+    "scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "include": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "exclude": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "operations": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludePaths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "operationIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "methods": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "allowUnsafeMethods": {
+          "type": "boolean"
+        },
+        "rate": {
+          "type": "string",
+          "pattern": "^[0-9.]+/[smh]$"
+        },
+        "timeout": {
+          "type": "string",
+          "description": "Request timeout, as a Go duration (e.g. 30s)."
+        }
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "failOn": {
+          "description": "Minimum severity, or CVSS score, that fails the scan.",
+          "oneOf": [
+            {
+              "enum": [
+                "info",
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]+)?$"
+            }
+          ]
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "format",
+              "path"
+            ],
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "format": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/value"
+          }
+        }
+      }
+    },
+    "suppression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check",
+        "reason",
+        "expires"
+      ],
+      "properties": {
+        "check": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string",
+          "description": "Operation ID. Every operation when omitted."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expires": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "identities": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/identity"
+          }
+        },
+        "scan": {
+          "$ref": "#/$defs/scan"
+        },
+        "report": {
+          "$ref": "#/$defs/report"
+        }
+      }
+    }
+  }
+}

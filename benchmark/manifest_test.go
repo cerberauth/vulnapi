@@ -83,8 +83,8 @@ func TestCompare(t *testing.T) {
 }
 
 func TestCompare_LegacyCheckIDs(t *testing.T) {
-	report := &benchmark.Report{Findings: []benchmark.Finding{{ID: "secret", Status: "active", CVSS40Score: 9.3}}}
-	result := benchmark.Compare("VAmPI", benchmark.Scan{Name: "s", Issues: []benchmark.Issue{{ID: "a", Title: "A", Check: "jwt.weak_secret"}}}, report)
+	report := &benchmark.Report{Findings: []benchmark.Finding{{ID: "jwt.weak_secret", Status: "active", CVSS40Score: 9.3}}}
+	result := benchmark.Compare("VAmPI", benchmark.Scan{Name: "s", Issues: []benchmark.Issue{{ID: "a", Title: "A", Check: "secret"}}}, report)
 	assert.Equal(t, benchmark.StatusDetected, result.Issues[0].Status)
 }
 
