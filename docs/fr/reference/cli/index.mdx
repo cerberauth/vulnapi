@@ -51,6 +51,10 @@ Toutes les commandes `scan` et `discover` partagent ces options. Les options du 
 | `--digest` | `` | Utiliser l'authentification HTTP Digest (avec `-u`) |
 | `--scans <scan-id>` | `` | Exécuter uniquement des scans spécifiques (répétable ; supporte les jokers comme `jwt.*`) |
 | `--exclude-scans <scan-id>` | `` | Exclure des scans spécifiques (répétable ; mêmes motifs que `--scans`) |
+| `--jwt-secret <secret>` | `` | Secret HMAC connu du JWT testé, utilisé pour re-signer les tokens modifiés |
+| `--jwt-other-audience-token <token>` | `` | JWT validement signé émis pour une autre audience, envoyé par `jwt.audience_not_validated` |
+| `--jwt-other-issuer-token <token>` | `` | JWT validement signé émis par un autre émetteur du même fournisseur d'identité, envoyé par `jwt.issuer_not_validated` |
+| `--jwt-max-lifetime <duration>` | `24h` | Durée de vie au-delà de laquelle `jwt.long_lifetime` signale le token |
 | `--report-format <format>` | `table` | Format de sortie : `table`, `json`, `yaml` |
 | `--report-transport <transport>` | `file` | Transport du rapport : `file`, `http` |
 | `--report-file <path>` | `` | Chemin du fichier où écrire le rapport |

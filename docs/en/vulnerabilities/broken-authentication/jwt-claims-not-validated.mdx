@@ -1,0 +1,82 @@
+---
+title: JWT Claims Not Validated
+description: A vulnerability where the server accepts a correctly signed JWT whose registered, scope or role claims were removed.
+---
+
+import { Tabs, TabItem } from '@/components/docs'
+
+<table>
+  <tr>
+    <th>Scan ID</th>
+    <td><code>jwt.claim_removal</code>, <code>jwt.scope_not_validated</code></td>
+  </tr>
+  <tr>
+    <th>Severity</th>
+    <td>High</td>
+  </tr>
+  <tr>
+    <th>CVSS 4.0</th>
+    <td>8.6 — <code>CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N</code></td>
+  </tr>
+  <tr>
+    <th>Classifications</th>
+    <td>
+      <ul>
+        <li><a href="https://cwe.mitre.org/data/definitions/287.html">CWE-287: Improper Authentication</a></li>
+        <li><a href="https://cwe.mitre.org/data/definitions/285.html">CWE-285: Improper Authorization</a></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>OWASP Category</th>
+    <td>
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/">OWASP API2:2023 Broken Authentication</a>,
+      <a href="https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/">OWASP API5:2023 Broken Function Level Authorization</a>
+    </td>
+  </tr>
+</table>
+
+A valid signature only proves who signed the token. The API must also require the claims it relies on: the issuer (`iss`), the audience (`aud`), the subject (`sub`), the validity window (`exp`, `nbf`, `iat`), and the scope or role granting access to the operation.
+
+## Example
+
+A token carrying a scope:
+
+```json
+{
+  "iss": "https://idp.example.com",
+  "aud": "api",
+  "sub": "1234567890",
+  "scope": "orders:write",
+  "exp": 1516242622
+}
+```
+
+The same token re-signed without `aud` and `scope` must be rejected. If the API accepts it, it does not validate these claims.
+
+## How to test?
+
+`jwt.claim_removal` re-signs the token without `iss`, `aud`, `sub`, `exp`, `nbf` and `iat`, one at a time and all together. `jwt.scope_not_validated` re-signs it without its `scope`, `scp`, `roles`, `role`, `groups`, `permissions` and `authorities` claims. Both need the signing secret, cracked by `jwt.weak_secret` or passed with `--jwt-secret`, and are skipped otherwise.
+
+<Tabs>
+  <TabItem label="cURL">
+```bash
+vulnapi scan curl [url] -H "Authorization: Bearer eyJhbGciOiJIUzI1NiI..." --jwt-secret [secret] --scans "jwt.claim_removal" --scans "jwt.scope_not_validated"
+```
+  </TabItem>
+  <TabItem label="OpenAPI">
+```bash
+echo "eyJhbGciOiJIUzI1NiI..." | vulnapi scan openapi [OpenAPI_Path_Or_URL] --token-stdin --jwt-secret [secret] --scans "jwt.claim_removal" --scans "jwt.scope_not_validated"
+```
+  </TabItem>
+</Tabs>
+
+## What is the impact?
+
+An API that ignores these claims accepts tokens issued for another API or tenant, tokens without subject or expiry, and tokens stripped of their permissions, which leads to impersonation and privilege escalation.
+
+## How to remediate?
+
+- Configure the JWT library to require `iss`, `aud`, `sub` and `exp`, with the expected issuer and audience values.
+- Reject tokens missing a required claim instead of treating it as optional.
+- Authorize each operation against the scope or role claims, and deny access when they are absent.
