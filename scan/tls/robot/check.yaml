@@ -1,0 +1,11 @@
+id: "tls.robot"
+name: "RSA Padding Oracle (ROBOT)"
+description: "The API answers RSA key-exchange handshakes differently depending on the premaster secret padding, a Bleichenbacher oracle that lets an attacker decrypt RSA key-exchange sessions."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/tls?utm_source=vulnapi-report"
+tags:
+  - tls
+depends_on: ["tls.fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.2
+cwe_id: "CWE-203"
+owasp: "API8:2023"

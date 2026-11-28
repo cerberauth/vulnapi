@@ -74,6 +74,9 @@ Les contrôles JWT sont propulsés par [CerberAuth JWTop](https://github.com/cer
 | `tls.protocol_deprecated` | Version obsolète du protocole TLS acceptée | API8:2023 | 6.9 |
 | `tls.cipher_weak` | Suite de chiffrement TLS faible acceptée | API8:2023 | 6.9 |
 | `tls.forward_secrecy_missing` | Confidentialité persistante TLS absente ou faible | API8:2023 | 6.9 |
+| `tls.heartbleed` | Heartbleed (CVE-2014-0160) | API8:2023 | 8.7 |
+| `tls.drown` | SSLv2 activé (DROWN, CVE-2016-0800) | API8:2023 | 8.2 |
+| `tls.robot` | Oracle de padding RSA (ROBOT) | API8:2023 | 8.2 |
 
 Ces scans s'exécutent une fois par `hôte:port` distinct, et non par opération.
 

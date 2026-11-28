@@ -1,0 +1,11 @@
+id: "tls.drown"
+name: "SSLv2 Enabled (DROWN, CVE-2016-0800)"
+description: "The API accepts SSLv2, which lets an attacker decrypt TLS sessions protected by the same RSA key."
+link: "https://www.cerberauth.com/docs/vulnapi/vulnerabilities/security-misconfiguration/tls?utm_source=vulnapi-report"
+tags:
+  - tls
+depends_on: ["tls.fetch"]
+cvss_vector: "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.2
+cwe_id: "CWE-327"
+owasp: "API8:2023"

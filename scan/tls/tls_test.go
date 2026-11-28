@@ -26,9 +26,12 @@ import (
 	tlscertificateuntrusted "github.com/cerberauth/vulnapi/scan/tls/certificate_untrusted"
 	tlscipherweak "github.com/cerberauth/vulnapi/scan/tls/cipher_weak"
 	tlsfetch "github.com/cerberauth/vulnapi/scan/tls/fetch"
+	tlsdrown "github.com/cerberauth/vulnapi/scan/tls/drown"
 	tlsforwardsecrecymissing "github.com/cerberauth/vulnapi/scan/tls/forward_secrecy_missing"
+	tlsheartbleed "github.com/cerberauth/vulnapi/scan/tls/heartbleed"
 	tlshttpaccepted "github.com/cerberauth/vulnapi/scan/tls/http_accepted"
 	tlsprotocoldeprecated "github.com/cerberauth/vulnapi/scan/tls/protocol_deprecated"
+	tlsrobot "github.com/cerberauth/vulnapi/scan/tls/robot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -84,6 +87,9 @@ func runScan(t *testing.T, urls ...string) *reportx.Report {
 	s.AddCheck(tlsprotocoldeprecated.Check, &tlsprotocoldeprecated.Def)
 	s.AddCheck(tlscipherweak.Check, &tlscipherweak.Def)
 	s.AddCheck(tlsforwardsecrecymissing.Check, &tlsforwardsecrecymissing.Def)
+	s.AddCheck(tlsheartbleed.Check, &tlsheartbleed.Def)
+	s.AddCheck(tlsdrown.Check, &tlsdrown.Def)
+	s.AddCheck(tlsrobot.Check, &tlsrobot.Def)
 
 	report, errs, err := s.Execute(context.Background(), nil)
 	require.NoError(t, err)
@@ -111,7 +117,7 @@ func TestTLSChecks(t *testing.T) {
 		expected []string
 		absent   []string
 	}{
-		{"self-signed", &tls.Config{Certificates: []tls.Certificate{valid}}, localIP, []string{"tls.certificate_untrusted"}, []string{"tls.certificate_expired", "tls.certificate_hostname_mismatch", "tls.protocol_deprecated"}},
+		{"self-signed", &tls.Config{Certificates: []tls.Certificate{valid}}, localIP, []string{"tls.certificate_untrusted"}, []string{"tls.certificate_expired", "tls.certificate_hostname_mismatch", "tls.protocol_deprecated", "tls.heartbleed", "tls.drown", "tls.robot"}},
 		{"expired", &tls.Config{Certificates: []tls.Certificate{expired}}, localIP, []string{"tls.certificate_expired"}, []string{"tls.certificate_hostname_mismatch"}},
 		{"wrong host", &tls.Config{Certificates: []tls.Certificate{valid}}, "localhost", []string{"tls.certificate_hostname_mismatch"}, []string{"tls.certificate_expired"}},
 		{"TLS 1.0 allowed", &tls.Config{Certificates: []tls.Certificate{valid}, MinVersion: tls.VersionTLS10}, localIP, []string{"tls.protocol_deprecated"}, nil},
@@ -166,7 +172,7 @@ func skipReasons(t *testing.T, urls ...string) map[harnessx.CheckID]string {
 	store = harnessx.NewStaticResultStore(harnessx.Result{CheckID: scan.OperationsLoaderCheckID, Resources: resources}, result)
 
 	reasons := map[harnessx.CheckID]string{}
-	for _, check := range []harnessx.Check{tlscertificateuntrusted.Check, tlsprotocoldeprecated.Check, tlscipherweak.Check, tlshttpaccepted.Check} {
+	for _, check := range []harnessx.Check{tlscertificateuntrusted.Check, tlsprotocoldeprecated.Check, tlscipherweak.Check, tlshttpaccepted.Check, tlsrobot.Check} {
 		reasons[check.ID] = check.Skip.Eval(context.Background(), harnessx.Target{}, store)
 	}
 	return reasons
@@ -187,4 +193,5 @@ func TestTLSChecks_SkipReasons(t *testing.T) {
 	reasons = skipReasons(t, "https://"+closedAddr+"/users")
 	assert.Contains(t, reasons["tls.certificate_untrusted"], "target port is closed or unreachable")
 	assert.Contains(t, reasons["tls.protocol_deprecated"], "target port is closed or unreachable")
+	assert.Contains(t, reasons["tls.robot"], "target port is closed or unreachable")
 }
