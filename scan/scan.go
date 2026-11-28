@@ -391,6 +391,13 @@ func matchScanPattern(pattern string, id string) bool {
 	return strings.HasPrefix(id, pattern+".") || strings.HasPrefix(id, pattern+"_")
 }
 
+// MatchesScanID reports whether pattern selects the check id, or one of
+// the legacy IDs it was known under.
+func MatchesScanID(pattern string, id string) bool {
+	ids := append([]string{id}, legacyCheckIDAliases[id]...)
+	return slices.ContainsFunc(ids, func(id string) bool { return matchScanPattern(pattern, id) })
+}
+
 func contains(patterns []string, id string) bool {
 	for _, pattern := range patterns {
 		if matchScanPattern(pattern, id) {

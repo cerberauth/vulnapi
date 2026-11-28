@@ -1,0 +1,115 @@
+name: vulnapi-benchmark
+
+services:
+  vampi:
+    image: erev0s/vampi@sha256:0a5a224b6e14ae7da6a6ea265178ff71286ff903aec74adee98f660bb0e4ca12
+    environment:
+      vulnerable: "1"
+      tokentimetolive: "3600"
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  dvga:
+    image: dolevf/dvga@sha256:040aa33c199d99f3380c9ff9a1ee5d725e9abca7b189c63a35a2a73bda79c957
+    environment:
+      WEB_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:5013:5013"
+
+  jwt-alg-none-bypass:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-alg-none-bypass/Dockerfile
+    ports:
+      - "127.0.0.1:8101:8080"
+
+  jwt-blank-secret:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-blank-secret/Dockerfile
+    ports:
+      - "127.0.0.1:8102:8080"
+
+  jwt-null-signature:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-null-signature/Dockerfile
+    ports:
+      - "127.0.0.1:8103:8080"
+
+  jwt-weak-hmac-secret:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-weak-hmac-secret/Dockerfile
+    ports:
+      - "127.0.0.1:8104:8080"
+
+  jwt-not-verified:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-not-verified/Dockerfile
+    ports:
+      - "127.0.0.1:8105:8080"
+
+  jwt-psychic-signature:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-psychic-signature/Dockerfile
+    ports:
+      - "127.0.0.1:8106:8080"
+
+  jwt-hmac-confusion:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-hmac-confusion/Dockerfile
+    ports:
+      - "127.0.0.1:8107:8080"
+
+  jwt-jwk-header-injection:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-jwk-header-injection/Dockerfile
+    ports:
+      - "127.0.0.1:8108:8080"
+
+  jwt-kid-sql-injection:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-kid-sql-injection/Dockerfile
+    ports:
+      - "127.0.0.1:8109:8080"
+
+  jwt-kid-path-traversal:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-kid-path-traversal/Dockerfile
+    ports:
+      - "127.0.0.1:8110:8080"
+
+  jwt-timestamp-tampering:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-timestamp-tampering/Dockerfile
+    ports:
+      - "127.0.0.1:8111:8080"
+
+  jwt-x5c-x5u-header-injection:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/jwt-x5c-x5u-header-injection/Dockerfile
+    ports:
+      - "127.0.0.1:8112:8080"
+
+  auth-not-verified:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/auth-not-verified/Dockerfile
+    ports:
+      - "127.0.0.1:8113:8080"
+
+  http-misconfigurations:
+    build:
+      context: ${CHALLENGES_DIR:?CHALLENGES_DIR must point to an api-vulns-challenges checkout}
+      dockerfile: challenges/http-misconfigurations/Dockerfile
+    ports:
+      - "127.0.0.1:8114:8080"

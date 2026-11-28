@@ -1,0 +1,103 @@
+---
+title: Benchmark de détection
+description: Combien de problèmes connus d'API vulnérables publiques VulnAPI détecte.
+---
+
+Cette page est générée par le benchmark de détection : VulnAPI scanne des API vulnérables publiques et le résultat est comparé à la liste de leurs problèmes connus (`benchmark/<cible>/expected.yaml`). Pour le reproduire : `go test -tags benchmark ./benchmark/...` (Docker requis).
+
+VulnAPI main (83c9d24), 2026-11-15.
+
+**22 problèmes connus détectés sur 40 (55%)**, 0 manqués, 3 manques connus, 15 pas encore couverts par une vérification, 27 résultats inattendus.
+
+| Cible | Version | Problèmes | Détectés | Manqués | Manques connus | Non couverts | Résultats inattendus |
+|---|---|---|---|---|---|---|---|
+| [API Vulnerabilities Challenges](https://github.com/cerberauth/api-vulns-challenges) | `42c408183088ebea9087af2237c7573750f48844` | 20 | 17 | 0 | 3 | 0 | 24 |
+| [DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application) | `dolevf/dvga@sha256:040aa33c199d` | 9 | 2 | 0 | 0 | 7 | 0 |
+| [VAmPI](https://github.com/erev0s/VAmPI) | `erev0s/vampi@sha256:0a5a224b6e14` | 11 | 3 | 0 | 0 | 8 | 3 |
+
+### API Vulnerabilities Challenges
+
+| Scan | Problème | Vérification | Résultat |
+|---|---|---|---|
+| jwt-alg-none-bypass | JWT accepts alg none | `jwt.alg_none` | détecté |
+| jwt-blank-secret | JWT signed with a blank secret | `jwt.blank_secret` | détecté |
+| jwt-null-signature | JWT null signature accepted | `jwt.null_signature` | détecté |
+| jwt-weak-hmac-secret | JWT signed with a weak HMAC secret | `jwt.weak_secret` | détecté |
+| jwt-not-verified | JWT signature not verified | `jwt.not_verified` | détecté |
+| jwt-psychic-signature | JWT psychic signature (CVE-2022-21449) | `jwt.psychic_signature` | détecté |
+| jwt-hmac-confusion | JWT HMAC/RSA algorithm confusion | `jwt.hmac_confusion` | [manque connu](https://github.com/cerberauth/vulnapi/issues/353) |
+| jwt-jwk-header-injection | JWT jwk header injection | `jwt.jwk_injection` | détecté |
+| jwt-kid-sql-injection | JWT kid header SQL injection | `jwt.kid_injection` | [manque connu](https://github.com/cerberauth/vulnapi/issues/405) |
+| jwt-kid-path-traversal | JWT kid header path traversal | `jwt.kid_injection` | détecté |
+| jwt-timestamp-tampering | JWT expiration not validated | `jwt.timestamp_tampering` | détecté |
+| jwt-x5c-x5u-header-injection | JWT x5c header injection | `jwt.x5c_injection` | détecté |
+| auth-not-verified | Endpoint accepts unauthenticated requests | `discover.accept_unauthenticated` | détecté |
+| http-misconfigurations /http-method-override | HTTP method override accepted | `misconfiguration.http_method_override` | détecté |
+| http-misconfigurations /headers/cors-wildcard | CORS allows any origin | `misconfiguration.http_headers_cors_wildcard` | détecté |
+| http-misconfigurations /headers/csp-frame-ancestors | CSP frame-ancestors allows any framing origin | `misconfiguration.http_headers_csp_frame_ancestors_missing` | [manque connu](https://github.com/cerberauth/vulnapi/issues/316) |
+| http-misconfigurations /cookies/unsecure | Cookie without Secure | `misconfiguration.http_cookies_not_secure` | détecté |
+| http-misconfigurations /cookies/not-httponly | Cookie without HttpOnly | `misconfiguration.http_cookies_not_http_only` | détecté |
+| http-misconfigurations /cookies/samesite-none | Cookie with SameSite=None | `misconfiguration.http_cookies_same_site_none` | détecté |
+| http-misconfigurations /cookies/no-expiration | Cookie without expiration | `misconfiguration.http_cookies_without_expires` | détecté |
+
+Résultats inattendus, à examiner comme faux positifs potentiels :
+
+- http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /cookies/no-expiration: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /cookies/not-httponly: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /cookies/not-httponly: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /cookies/not-httponly: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /cookies/samesite-none: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /cookies/samesite-none: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /cookies/samesite-none: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /cookies/unsecure: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /cookies/unsecure: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /cookies/unsecure: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /headers/cors-wildcard: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /headers/cors-wildcard: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /headers/csp-frame-ancestors: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /headers/csp-frame-ancestors: `misconfiguration.http_headers_frame_options_missing` (1)
+- http-misconfigurations /http-method-override: `misconfiguration.http_headers_cors_missing` (1)
+- http-misconfigurations /http-method-override: `misconfiguration.http_headers_csp_frame_ancestors_missing` (1)
+- http-misconfigurations /http-method-override: `misconfiguration.http_headers_frame_options_missing` (1)
+- jwt-blank-secret: `kidinjection (path)` (1)
+- jwt-blank-secret: `secret` (1)
+- jwt-not-verified: `algnone` (1)
+- jwt-null-signature: `algnone` (1)
+- jwt-weak-hmac-secret: `kidinjection (sql)` (1)
+
+### DVGA
+
+| Scan | Problème | Vérification | Résultat |
+|---|---|---|---|
+| graphql | GraphQL introspection enabled | `graphql.introspection_enabled` | détecté |
+| graphql | Security response headers missing | `misconfiguration.http_headers` | détecté |
+| graphql | GraphiQL interface exposed | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/321) |
+| graphql | Field suggestions disclose the schema | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/321) |
+| graphql | Deep recursion, batching, alias and field duplication attacks | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/404) |
+| graphql | OS command injection in importPaste and systemDiagnostics | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/320) |
+| graphql | SQL injection in the pastes filter | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/320) |
+| graphql | Server-side request forgery in importPaste | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/383) |
+| graphql | Weak password protection of systemDiagnostics | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/324) |
+
+### VAmPI
+
+| Scan | Problème | Vérification | Résultat |
+|---|---|---|---|
+| openapi | JWT authentication bypass via weak signing key | `jwt.weak_secret` | détecté |
+| openapi | Security response headers missing | `misconfiguration.http_headers` | détecté |
+| openapi | Server version disclosure | `discover.server_signature` | détecté |
+| openapi | SQL injection on GET /users/v1/{username} | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/320) |
+| openapi | Unauthorized password change | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/351) |
+| openapi | Broken object level authorization on GET /books/v1/{book_title} | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/351) |
+| openapi | Mass assignment on POST /users/v1/register | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/352) |
+| openapi | Excessive data exposure through GET /users/v1/_debug | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/319) |
+| openapi | User and password enumeration on POST /users/v1/login | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/402) |
+| openapi | Regular expression denial of service on PUT /users/v1/{username}/email | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/403) |
+| openapi | Lack of resources and rate limiting on POST /users/v1/login | - | [non couvert](https://github.com/cerberauth/vulnapi/issues/324) |
+
+Résultats inattendus, à examiner comme faux positifs potentiels :
+
+- openapi: `fuzz` (1)
+- openapi: `no_verification` (2)
